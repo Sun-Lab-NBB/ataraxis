@@ -1,0 +1,14 @@
+# CSharpier ignore file for Sun Lab C# projects
+# Excludes Unity-generated files and third-party packages from formatting
+
+# Unity generated directories
+Library/
+Temp/
+Logs/
+obj/
+Build/
+Builds/
+
+# Third-party packages (format manually if needed)
+Packages/com.unity.*
+Packages/com.google.*

@@ -1,0 +1,15 @@
+# CSharpier configuration for sl-unity-tasks
+# Provides C# formatting similar to the clang-format style used in sl-micro-controllers.
+#
+# Installation:
+#   dotnet tool install -g csharpier
+#
+# Usage:
+#   csharpier .                    # Format all files
+#   csharpier --check .            # Check without modifying (CI mode)
+#   csharpier Assets/              # Format specific directory
+
+printWidth: 120
+useTabs: false
+tabWidth: 4
+endOfLine: lf

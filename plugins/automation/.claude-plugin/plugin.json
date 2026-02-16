@@ -1,0 +1,8 @@
+{
+  "name": "automation",
+  "version": "1.0.0",
+  "description": "Provides the shared software development skills that enforce conventions and code style in Ataraxis and derived projects.",
+  "repository": "https://github.com/Sun-Lab-NBB/ataraxis",
+  "license": "Apache-2.0",
+  "skills": "./skills/"
+}
