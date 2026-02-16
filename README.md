@@ -171,6 +171,57 @@ Add Ataraxis MCP servers to your Claude Code configuration (`~/.claude.json`):
 
 ---
 
+## Claude Code Skills
+
+This repository serves as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin marketplace,
+distributing a set of agentic skills that enforce Sun Lab development conventions across all downstream projects. These
+skills provide Claude Code with project-specific knowledge about coding style, documentation format, commit messages,
+project structure, and more.
+
+### Available Skills
+
+| Skill               | Description                                                      |
+|---------------------|------------------------------------------------------------------|
+| `/explore-codebase` | Performs in-depth codebase exploration at the start of a session |
+| `/python-style`     | Applies Sun Lab Python coding conventions                        |
+| `/cpp-style`        | Applies Sun Lab C++ coding conventions                           |
+| `/csharp-style`     | Applies Sun Lab C# coding conventions                            |
+| `/readme-style`     | Applies Sun Lab README conventions                               |
+| `/pyproject-style`  | Applies Sun Lab pyproject.toml conventions                       |
+| `/api-docs`         | Applies Sun Lab API documentation conventions                    |
+| `/project-layout`   | Applies Sun Lab project directory structure conventions          |
+| `/tox-config`       | Applies Sun Lab tox.ini conventions                              |
+| `/commit`           | Drafts style-compliant git commit messages                       |
+| `/skill-design`     | Generates, updates, and verifies skill files and CLAUDE.md       |
+
+### Installing for Claude Code
+
+Claude Code supports plugin installation through its built-in marketplace system. To install the skills:
+
+1. Open Claude Code and add the ataraxis marketplace by running:
+`/plugin marketplace add Sun-Lab-NBB/ataraxis`
+2. Install the automation plugin from the marketplace:
+`/plugin install automation@ataraxis`
+
+Alternatively, use the interactive plugin manager by running `/plugin`, navigating to the **Discover** tab, and
+selecting the `automation` plugin.
+
+***Note,*** the plugin can be installed at different scopes depending on the intended use:
+- **user** (default): Available across all projects for the current user.
+- **project**: Shared with all developers via version control (stored in `.claude/settings.json`).
+- **local**: Project-specific and gitignored (stored in `.claude/settings.local.json`).
+
+To specify a scope during installation, use the CLI form: `claude plugin install automation@ataraxis --scope project`
+
+### Compatibility
+
+These skills are designed for [Claude Code](https://docs.anthropic.com/en/docs/claude-code), the official CLI tool from
+Anthropic. The plugin marketplace system is a Claude Code feature and is not currently available in other Claude
+distributions such as Claude Desktop or the Claude web interface. However, the skill files themselves are plain Markdown
+and can be referenced manually in any context that supports custom instructions or system prompts.
+
+---
+
 ## Example Workflows
 
 ### Pre-Session Hardware Validation
