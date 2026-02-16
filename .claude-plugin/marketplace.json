@@ -1,0 +1,13 @@
+{
+  "name": "ataraxis",
+  "owner": {
+    "name": "Sun (NeuroAI) lab at Cornell University"
+  },
+  "plugins": [
+    {
+      "name": "automation",
+      "source": "./plugins/automation",
+      "description": "Provides the shared software development skills that enforce conventions and code style in Ataraxis and derived projects."
+    }
+  ]
+}
