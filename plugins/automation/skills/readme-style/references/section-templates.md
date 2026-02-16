@@ -168,7 +168,10 @@ on installing additional development dependencies.
 
 ## Installation
 
-Python libraries use two subsections: Source and pip.
+Python libraries use two subsections: Source and pip. Short shell commands (such as
+`pip install PACKAGE-NAME`, `pip install .`, `tox -e lint`) should be inlined with backticks
+rather than placed in fenced code blocks. Reserve fenced code blocks for multi-line code samples
+such as Python usage examples.
 
 ### Source subsection
 
@@ -178,13 +181,18 @@ Python libraries use two subsections: Source and pip.
 ### Source
 
 ***Note,*** installation from source is ***highly discouraged*** for anyone who is not an active
-project developer. If possible, use the pip installation method described below.
+project developer.
 
-1. Download this repository to your local machine using your preferred method, such as
-   [git clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository).
-2. `cd` into the root directory of the project using your CLI of choice.
-3. Run `pip install .` to install the project and its dependencies.
+1. Download this repository to the local machine using the preferred method, such as git-cloning.
+   Use one of the [stable releases](https://github.com/Sun-Lab-NBB/PROJECT-NAME/tags) that
+   include precompiled binary and source code distribution (sdist) wheels.
+2. If the downloaded distribution is stored as a compressed archive, unpack it using the
+   appropriate decompression tool.
+3. `cd` to the root directory of the prepared project distribution.
+4. Run `pip install .` to install the project and its dependencies.
 ```
+
+Replace `PROJECT-NAME` with the actual repository name.
 
 ### pip subsection
 
@@ -192,11 +200,7 @@ project developer. If possible, use the pip installation method described below.
 ### pip
 
 Use the following command to install the library and all of its dependencies via
-[pip](https://pip.pypa.io/en/stable/):
-
-```
-pip install PACKAGE-NAME
-```
+[pip](https://pip.pypa.io/en/stable/): `pip install PACKAGE-NAME`
 ````
 
 Replace `PACKAGE-NAME` with the actual PyPI package name.
@@ -304,7 +308,8 @@ Replace the URL with the actual documentation URL. Sun Lab documentation links f
 ## Developers
 
 Optional. When present, Python libraries use the following standard template. Adapt the tox
-environments table to match the actual tox configuration of the project.
+environments table and Additional Dependencies section to match the actual tox configuration
+and requirements of the project.
 
 ````markdown
 ## Developers
@@ -314,49 +319,63 @@ that want to modify the source code of this library.
 
 ### Installing the Project
 
-The first step is to create a [mamba](https://mamba.readthedocs.io/en/latest/) environment using
-one of the environment files stored in the `envs` directory of this project. Alternatively, use
-an existing `mamba` environment that has the minimum version of Python required by this library
-installed.
+***Note,*** this installation method requires **mamba version 2.3.2 or above**. Currently, all
+Sun lab automation pipelines require that mamba is installed through the
+[miniforge3](https://github.com/conda-forge/miniforge) installer.
 
-***Note,*** this project was developed and tested using the `mamba` Python environment manager.
-Use other environment managers at your own risk.
-
-After creating or activating the environment, `cd` into the root directory of the project and
-install the project and all of its development dependencies by running:
-
-```
-pip install -e .[dev]
-```
-
-***Note,*** this is different from the user installation instructions.
+1. Download this repository to the local machine using the preferred method, such as git-cloning.
+2. If the downloaded distribution is stored as a compressed archive, unpack it using the
+   appropriate decompression tool.
+3. `cd` to the root directory of the prepared project distribution.
+4. Install the core Sun lab development dependencies into the ***base*** mamba environment via the
+   `mamba install tox uv tox-uv` command.
+5. Use the `tox -e create` command to create the project-specific development environment followed
+   by `tox -e install` command to install the project into that environment as a library.
 
 ### Additional Dependencies
 
-Some development tools used by this project are not installable via pip and have to be installed
-separately:
+In addition to installing the project and all user dependencies, install the following
+dependencies:
 
-1. Install [tox](https://tox.wiki/en/stable/) by running `pip install tox`.
-2. Install project-specific linters and formatters by running `tox -e lint`.
+1. [Python](https://www.python.org/downloads/) distributions, one for each version supported by
+   the developed project. Currently, this library supports the three latest stable versions. It is
+   recommended to use a tool like [pyenv](https://github.com/pyenv/pyenv) to install and manage
+   the required versions.
 
 ### Development Automation
 
 This project uses `tox` for development automation. The following tox environments are available:
 
-| Environment | Description                         |
-|-------------|-------------------------------------|
-| `lint`      | Runs ruff linting and mypy typing   |
-| `test`      | Runs the test suite via pytest      |
-| `docs`      | Builds the documentation via Sphinx |
-| `build`     | Builds the distribution packages    |
+| Environment          | Description                                                  |
+|----------------------|--------------------------------------------------------------|
+| `lint`               | Runs ruff formatting, ruff linting, and mypy type checking   |
+| `stubs`              | Generates py.typed marker and .pyi stub files                |
+| `{py312,...}-test`   | Runs the test suite via pytest for each supported Python     |
+| `coverage`           | Aggregates test coverage into an HTML report                 |
+| `docs`               | Builds the API documentation via Sphinx                      |
+| `build`              | Builds sdist and wheel distributions                         |
+| `upload`             | Uploads distributions to PyPI via twine                      |
+| `install`            | Builds and installs the project into its mamba environment   |
+| `uninstall`          | Uninstalls the project from its mamba environment            |
+| `create`             | Creates the project's mamba development environment          |
+| `remove`             | Removes the project's mamba development environment          |
+| `provision`          | Recreates the mamba environment from scratch                 |
+| `export`             | Exports the mamba environment as .yml and spec.txt files     |
+| `import`             | Creates or updates the mamba environment from a .yml file    |
 
 Run any environment using `tox -e ENVIRONMENT`. For example, `tox -e lint`.
 
+***Note,*** all pull requests for this project have to successfully complete the `tox` task before
+being merged. To expedite the task's runtime, use the `tox --parallel` command to run some tasks
+in parallel.
+
 ### Automation Troubleshooting
 
-Many `tox` automation commands cache intermediate results to speed up repeated execution. On rare
-occasions, invalid cache can break the automation pipeline. If you encounter inexplicable errors
-when running one of the `tox` commands, clear the cache by running `tox -e clean` and try again.
+Many packages used in `tox` automation pipelines (uv, mypy, ruff) and `tox` itself may experience
+runtime failures. In most cases, this is related to their caching behavior. If an unintelligible
+error is encountered with any of the automation components, deleting the corresponding cache
+directories (`.tox`, `.ruff_cache`, `.mypy_cache`, etc.) manually or via a CLI command typically
+resolves the issue.
 ````
 
 ---
