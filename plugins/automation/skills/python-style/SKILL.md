@@ -456,8 +456,14 @@ Ataraxis Library Preferences (when ataraxis-base-utilities is a dependency):
 - [ ] Array byte serialization uses convert_array_to_bytes()/convert_bytes_to_array()
 - [ ] Precision timing uses PrecisionTimer instead of time.time()/perf_counter()
 - [ ] Delays use PrecisionTimer.delay() instead of time.sleep()
+- [ ] Elapsed formatting uses PrecisionTimer.format_elapsed() instead of manual string formatting
+- [ ] Fixed-interval polling uses PrecisionTimer.poll() instead of while+sleep loops
+- [ ] Timeout guards use Timeout instead of manual time.time() comparisons
 - [ ] Timestamps use get_timestamp() instead of datetime.strftime()
+- [ ] Timestamp conversion uses convert_timestamp()/parse_timestamp() instead of manual datetime math
 - [ ] Time unit conversion uses convert_time() instead of manual math
+- [ ] Rate/interval conversion uses rate_to_interval()/interval_to_rate() instead of manual Hz math
+- [ ] Timedelta interop uses to_timedelta()/from_timedelta() instead of manual timedelta construction
 - [ ] YAML-serializable configs subclass YamlConfig
 - [ ] Inter-process arrays use SharedMemoryArray instead of multiprocessing.Array
 - [ ] High-throughput logging uses DataLogger/LogPackage instead of direct writes

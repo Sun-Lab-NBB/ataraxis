@@ -19,10 +19,16 @@ Transform code to match Sun Lab style:
 | `"""Whether to enable filtering."""`   | `"""Determines whether to enable filtering."""`                |
 | `raise ValueError("Bad input")`        | `console.error(message="...", error=ValueError)`               |
 | `print("Starting...")`                 | `console.echo(...)` (exception: tabulate/formatted tables)     |
-| `time.sleep(0.005)`                    | `timer.delay(delay=5000)`  (microseconds)                      |
+| `time.sleep(0.005)`                    | `timer.delay(delay=5000)` (microseconds)                       |
 | `elapsed = time.time() - start`        | `elapsed = timer.elapsed` (use PrecisionTimer)                 |
+| `f"{elapsed:.2f}s"` for display        | `timer.format_elapsed()` (human-readable)                      |
+| Manual `while` + `time.sleep` polling  | `for cycle in timer.poll(interval=...):`                       |
+| `time.time() - start < timeout`        | `Timeout(duration=...).expired`                                |
 | `datetime.now().strftime("%Y-%m-%d")`  | `get_timestamp(output_format=TimestampFormats.STRING)`         |
+| `datetime.strptime(s, fmt)`            | `parse_timestamp(date_string=s, format_string=fmt)`            |
 | `duration_s = duration_us / 1_000_000` | `convert_time(time=duration_us, from_units=..., to_units=...)` |
+| `interval = 1_000_000 / hz`            | `rate_to_interval(rate=hz)`                                    |
+| `timedelta(seconds=us / 1e6)`          | `to_timedelta(time=us, from_units=TimeUnits.MICROSECOND)`      |
 | `yaml.dump(config.__dict__, file)`     | `config.to_yaml(file_path=path)` (subclass YamlConfig)         |
 | `if flag == True:`                     | `if flag:` (use truthiness)                                    |
 | `if data != None:`                     | `if data is not None:` (use identity)                          |
@@ -84,8 +90,15 @@ Transform code to match Sun Lab style:
 | `print("message")` for plain text     | No logging, inconsistent         | `console.echo(message="...")` (exception: tabulate/formatted tables) |
 | `time.sleep(0.001)`                   | Low precision, blocks GIL        | `PrecisionTimer.delay(delay=1000)`                                   |
 | `time.time()` for intervals           | Insufficient precision           | `PrecisionTimer.elapsed`                                             |
+| `f"{elapsed:.2f}s"` for display       | Inconsistent, manual formatting  | `PrecisionTimer.format_elapsed()`                                    |
+| Manual elapsed snapshots in a list    | Verbose, error-prone             | `PrecisionTimer.lap()` / `.laps`                                     |
+| `while True: time.sleep()` polling    | Low precision, blocks GIL        | `PrecisionTimer.poll(interval=...)`                                  |
+| `time.time() - start < timeout` check | Low precision, verbose           | `Timeout(duration=...).expired`                                      |
 | `datetime.now().strftime(...)`        | Inconsistent format              | `get_timestamp()`                                                    |
+| `datetime.strptime()` + epoch math    | Verbose, timezone-unsafe         | `parse_timestamp()`                                                  |
 | `elapsed_us / 1_000_000`              | Magic number conversion          | `convert_time(time=..., from_units=..., to_units=...)`               |
+| `1_000_000 / hz` for intervals        | Magic number, fragile            | `rate_to_interval(rate=hz)`                                          |
+| `timedelta(seconds=us / 1e6)`         | Magic number, error-prone        | `to_timedelta(time=us, from_units=...)`                              |
 | Manual YAML dump/load                 | No type safety                   | Subclass `YamlConfig`                                                |
 | `multiprocessing.Array`               | Limited dtype support            | `SharedMemoryArray`                                                  |
 | Direct file writes in loops           | Blocks acquisition               | `DataLogger` with `LogPackage`                                       |

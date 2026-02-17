@@ -165,19 +165,88 @@ elapsed_us = timer.elapsed
 # Good - non-blocking delay (releases GIL for other threads)
 timer.delay(delay=5000, allow_sleep=True, block=False)  # 5ms delay
 
+# Good - human-readable elapsed time for logging or CLI output
+timer.reset()
+# ... long operation ...
+console.echo(message=f"Completed in {timer.format_elapsed()}.")  # e.g. "2 h 30 m"
+
+# Good - lap tracking for multi-phase benchmarking
+timer.reset()
+# ... phase 1 ...
+timer.lap()
+# ... phase 2 ...
+timer.lap()
+all_laps = timer.laps  # tuple of lap durations in precision units
+
 # Avoid - time.sleep() for precision timing
 import time
 time.sleep(0.005)  # Wrong for microsecond precision work
+
+# Avoid - manual elapsed time formatting
+elapsed = time.time() - start_time  # Wrong - use timer.format_elapsed()
+print(f"Took {elapsed:.2f}s")
 ```
 
 **Precision options**: `NANOSECOND`, `MICROSECOND` (default), `MILLISECOND`, `SECOND`
+
+### Timeout guards (ataraxis-time)
+
+Use `Timeout` for timeout-guarded loops instead of manual timer comparisons:
+
+```python
+from ataraxis_time import Timeout, TimerPrecisions
+
+# Good - timeout guard for waiting on a condition
+timeout = Timeout(duration=5_000_000, precision=TimerPrecisions.MICROSECOND)  # 5 second timeout
+while not timeout.expired:
+    if check_condition():
+        break
+    remaining = timeout.remaining  # time left before expiry
+
+# Good - activity-based timeout (watchdog pattern)
+timeout = Timeout(duration=1000, precision=TimerPrecisions.MILLISECOND)
+while not timeout.expired:
+    if received_heartbeat():
+        timeout.kick()  # resets countdown without changing duration
+
+# Good - reset with new duration
+timeout.reset(duration=2000)  # restart with a different duration
+
+# Avoid - manual timeout logic
+start = time.time()  # Wrong
+while time.time() - start < 5.0:
+    if check_condition():
+        break
+```
+
+### Fixed-interval polling (ataraxis-time)
+
+Use `PrecisionTimer.poll()` for fixed-interval loops:
+
+```python
+from ataraxis_time import PrecisionTimer, TimerPrecisions
+
+# Good - fixed-interval polling with precise timing
+timer = PrecisionTimer(precision=TimerPrecisions.MILLISECOND)
+for cycle in timer.poll(interval=100):  # 100 ms polling interval
+    data = read_sensor()
+    if data.is_complete or cycle >= 1000:
+        break
+
+# Avoid - manual polling loop with sleep
+while True:  # Wrong
+    data = read_sensor()
+    if data.is_complete:
+        break
+    time.sleep(0.1)
+```
 
 ### Timestamps (ataraxis-time)
 
 Use `get_timestamp()` for generating timestamps:
 
 ```python
-from ataraxis_time import get_timestamp, TimestampFormats
+from ataraxis_time import get_timestamp, TimestampFormats, TimestampPrecisions
 
 # Good - string format for filenames
 timestamp = get_timestamp(output_format=TimestampFormats.STRING)
@@ -189,9 +258,43 @@ timestamp_us = get_timestamp(output_format=TimestampFormats.INTEGER)
 # Good - bytes format for binary serialization
 timestamp_bytes = get_timestamp(output_format=TimestampFormats.BYTES)
 
+# Good - control timestamp precision (e.g. day-level for daily logs)
+day_stamp = get_timestamp(
+    output_format=TimestampFormats.STRING,
+    precision=TimestampPrecisions.DAY,
+)  # "2026-02-16"
+
 # Avoid - datetime manipulation
 from datetime import datetime
 timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")  # Wrong
+```
+
+**Precision options**: `YEAR`, `MONTH`, `DAY`, `HOUR`, `MINUTE`, `SECOND`, `MICROSECOND` (default)
+
+### Timestamp conversion and parsing (ataraxis-time)
+
+Use `convert_timestamp()` to convert between timestamp formats and `parse_timestamp()` to parse arbitrary datetime
+strings:
+
+```python
+from ataraxis_time import convert_timestamp, parse_timestamp, TimestampFormats, TimestampPrecisions
+
+# Good - decode a byte-serialized timestamp to a string
+string_timestamp = convert_timestamp(
+    timestamp=byte_timestamp,
+    output_format=TimestampFormats.STRING,
+)
+
+# Good - parse an external datetime string into a standardized timestamp
+timestamp_us = parse_timestamp(
+    date_string="2026-02-16 14:30:00",
+    format_string="%Y-%m-%d %H:%M:%S",
+    output_format=TimestampFormats.INTEGER,
+)
+
+# Avoid - manual datetime parsing and formatting
+dt = datetime.strptime(date_str, "%Y-%m-%d")  # Wrong
+microseconds = int(dt.timestamp() * 1_000_000)
 ```
 
 ### Time unit conversion (ataraxis-time)
@@ -213,6 +316,40 @@ duration_seconds = elapsed_microseconds / 1_000_000  # Wrong
 ```
 
 **Supported units**: `NANOSECOND`, `MICROSECOND`, `MILLISECOND`, `SECOND`, `MINUTE`, `HOUR`, `DAY`
+
+### Rate and interval conversion (ataraxis-time)
+
+Use `rate_to_interval()` and `interval_to_rate()` for frequency-to-interval conversions:
+
+```python
+from ataraxis_time import rate_to_interval, interval_to_rate, TimeUnits
+
+# Good - convert sampling rate to polling interval
+interval_us = rate_to_interval(rate=30.0, to_units=TimeUnits.MICROSECOND)  # 30 Hz → microseconds
+
+# Good - convert interval back to frequency
+frequency_hz = interval_to_rate(interval=33333.333, from_units=TimeUnits.MICROSECOND)  # → ~30 Hz
+
+# Avoid - manual Hz conversion with magic numbers
+interval_us = 1_000_000 / 30  # Wrong
+```
+
+### Timedelta interop (ataraxis-time)
+
+Use `to_timedelta()` and `from_timedelta()` for `datetime.timedelta` conversions:
+
+```python
+from ataraxis_time import to_timedelta, from_timedelta, TimeUnits
+
+# Good - convert timer units to timedelta for standard library interop
+delta = to_timedelta(time=5_000_000, from_units=TimeUnits.MICROSECOND)  # 5 second timedelta
+
+# Good - convert timedelta back to timer units
+microseconds = from_timedelta(timedelta_value=delta, to_units=TimeUnits.MICROSECOND)
+
+# Avoid - manual timedelta arithmetic
+delta = datetime.timedelta(seconds=elapsed_us / 1_000_000)  # Wrong
+```
 
 ### YAML configuration (ataraxis-data-structures)
 
@@ -310,14 +447,22 @@ np.save(f"frame_{i}.npy", data)  # Wrong - blocks acquisition
 | Error handling          | `console.error()`                | `raise` (when base-utilities unavailable)                       |
 | Convert to list         | `ensure_list()`                  | Manual type checking                                            |
 | Batch iteration         | `chunk_iterable()`               | Manual slicing                                                  |
-| Worker count            | `resolve_worker_count()`         | `os.cpu_count()` arithmetic                                    |
+| Worker count            | `resolve_worker_count()`         | `os.cpu_count()` arithmetic                                     |
 | Parallel job capacity   | `resolve_parallel_job_capacity()`| Manual core division                                            |
-| Scalar to/from bytes    | `convert_scalar_to_bytes()` etc. | `np.array([v]).view(np.uint8)` / `np.frombuffer()`             |
-| Array to/from bytes     | `convert_array_to_bytes()` etc.  | `np.frombuffer()` / `.tobytes()`                               |
+| Scalar to/from bytes    | `convert_scalar_to_bytes()` etc. | `np.array([v]).view(np.uint8)` / `np.frombuffer()`              |
+| Array to/from bytes     | `convert_array_to_bytes()` etc.  | `np.frombuffer()` / `.tobytes()`                                |
 | Precision timing        | `PrecisionTimer`                 | `time.time()`, `time.perf_counter()`                            |
 | Delays                  | `PrecisionTimer.delay()`         | `time.sleep()`                                                  |
+| Elapsed formatting      | `PrecisionTimer.format_elapsed()`| Manual `f"{elapsed:.2f}s"` formatting                           |
+| Lap tracking            | `PrecisionTimer.lap()` / `.laps` | Manual elapsed snapshots in a list                              |
+| Fixed-interval polling  | `PrecisionTimer.poll()`          | `while True: time.sleep(interval)`                              |
+| Timeout guards          | `Timeout`                        | Manual `time.time() - start < limit` checks                     |
 | Timestamps              | `get_timestamp()`                | `datetime.now().strftime()`                                     |
+| Timestamp conversion    | `convert_timestamp()`            | Manual `datetime.fromtimestamp()` formatting                    |
+| Timestamp parsing       | `parse_timestamp()`              | Manual `datetime.strptime()` + epoch math                       |
 | Time unit conversion    | `convert_time()`                 | Manual division/multiplication                                  |
+| Rate/interval conversion| `rate_to_interval()` etc.        | Manual `1_000_000 / hz` arithmetic                              |
+| Timedelta interop       | `to_timedelta()` etc.            | Manual `timedelta(seconds=us / 1e6)`                            |
 | YAML serialization      | `YamlConfig` subclass            | `yaml.dump()`/`yaml.load()`                                     |
 | Inter-process arrays    | `SharedMemoryArray`              | `multiprocessing.Array`                                         |
 | High-throughput logging | `DataLogger` + `LogPackage`      | Direct file writes                                              |
