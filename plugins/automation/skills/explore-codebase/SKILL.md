@@ -242,21 +242,24 @@ Exported from `__init__.py` via `__all__`:
 
 ## Related skills
 
-| Skill               | Relationship                                                        |
-|---------------------|---------------------------------------------------------------------|
-| `/python-style`     | Provides Python coding conventions discovered during exploration    |
-| `/cpp-style`        | Provides C++ coding conventions discovered during exploration       |
-| `/csharp-style`     | Provides C# coding conventions discovered during exploration        |
-| `/readme-style`     | Provides README conventions when exploration reveals README issues  |
-| `/commit`           | Should be invoked after completing code changes informed by context |
-| `/skill-design`     | Provides skill conventions when exploration reveals skill files     |
+| Skill                   | Relationship                                                        |
+|-------------------------|---------------------------------------------------------------------|
+| `/explore-dependencies` | Explores ataraxis dependency APIs; invoke alongside this skill      |
+| `/python-style`         | Provides Python coding conventions discovered during exploration    |
+| `/cpp-style`            | Provides C++ coding conventions discovered during exploration       |
+| `/csharp-style`         | Provides C# coding conventions discovered during exploration        |
+| `/readme-style`         | Provides README conventions when exploration reveals README issues  |
+| `/commit`               | Should be invoked after completing code changes informed by context |
+| `/skill-design`         | Provides skill conventions when exploration reveals skill files     |
 
 ---
 
 ## Proactive behavior
 
 Invoke at session start to ensure full context before making changes. Prevents blind modifications
-and ensures understanding of existing patterns.
+and ensures understanding of existing patterns. When the project has ataraxis or Sun Lab
+dependencies (check `pyproject.toml`), also invoke `/explore-dependencies` to build a live API
+snapshot of each dependency.
 
 Do NOT make code changes during exploration. Present findings and wait for user direction.
 

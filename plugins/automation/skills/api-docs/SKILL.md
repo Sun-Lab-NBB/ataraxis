@@ -212,7 +212,8 @@ dependencies directly to downstream project pyproject.toml files.
 ### tox.ini docs environment
 
 For the complete tox.ini conventions and all other environment definitions, invoke `/tox-config`.
-The docs-specific patterns are summarized here for convenience.
+`/tox-config` is the authoritative source; if any pattern here conflicts, `/tox-config` takes
+precedence. The docs-specific patterns are summarized here for convenience.
 
 **Python-only projects** (no external Doxygen dependency):
 
@@ -271,15 +272,16 @@ via tox (`tox -e docs`). Use the exact templates from
 
 ## Related skills
 
-| Skill               | Relationship                                                          |
-|---------------------|-----------------------------------------------------------------------|
-| `/python-style`     | Defines docstring and type annotation conventions consumed by autodoc |
-| `/readme-style`     | Defines README conventions; README links to hosted API docs           |
-| `/pyproject-style`  | Defines pyproject.toml conventions including documentation URL        |
-| `/project-layout`   | Provides full project directory trees; this skill owns docs/ internals|
-| `/tox-config`       | Owns full tox.ini conventions; this skill documents docs env patterns|
-| `/commit`           | Should be invoked after completing documentation changes              |
-| `/explore-codebase` | Provides project context needed to identify modules for api.rst       |
+| Skill               | Relationship                                                           |
+|---------------------|------------------------------------------------------------------------|
+| `/python-style`     | Defines docstring and type annotation conventions consumed by autodoc  |
+| `/cpp-style`        | Defines Doxygen comment conventions consumed by Breathe                |
+| `/readme-style`     | Defines README conventions; README links to hosted API docs            |
+| `/pyproject-style`  | Defines pyproject.toml conventions including documentation URL         |
+| `/project-layout`   | Provides full project directory trees; this skill owns docs/ internals |
+| `/tox-config`       | Owns full tox.ini conventions; this skill summarizes docs env patterns |
+| `/commit`           | Should be invoked after completing documentation changes               |
+| `/explore-codebase` | Provides project context needed to identify modules for api.rst        |
 
 ---
 

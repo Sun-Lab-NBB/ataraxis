@@ -18,7 +18,7 @@ Transform code to match Sun Lab style:
 | `"""A class that processes data."""`   | `"""Processes experimental data."""`                           |
 | `"""Whether to enable filtering."""`   | `"""Determines whether to enable filtering."""`                |
 | `raise ValueError("Bad input")`        | `console.error(message="...", error=ValueError)`               |
-| `print("Starting...")`                 | `console.echo(...)` (exception: tabulate/formatted tables)     |
+| `print("Starting...")`                 | `console.echo(...)` (use `raw=True` for pre-formatted output)  |
 | `time.sleep(0.005)`                    | `timer.delay(delay=5000)` (microseconds)                       |
 | `elapsed = time.time() - start`        | `elapsed = timer.elapsed` (use PrecisionTimer)                 |
 | `f"{elapsed:.2f}s"` for display        | `timer.format_elapsed()` (human-readable)                      |
@@ -87,7 +87,7 @@ Transform code to match Sun Lab style:
 
 | Anti-Pattern                          | Problem                          | Solution                                                             |
 |---------------------------------------|----------------------------------|----------------------------------------------------------------------|
-| `print("message")` for plain text     | No logging, inconsistent         | `console.echo(message="...")` (exception: tabulate/formatted tables) |
+| `print("message")` for plain text     | No logging, inconsistent         | `console.echo(message="...")` (use `raw=True` for pre-formatted)     |
 | `time.sleep(0.001)`                   | Low precision, blocks GIL        | `PrecisionTimer.delay(delay=1000)`                                   |
 | `time.time()` for intervals           | Insufficient precision           | `PrecisionTimer.elapsed`                                             |
 | `f"{elapsed:.2f}s"` for display       | Inconsistent, manual formatting  | `PrecisionTimer.format_elapsed()`                                    |

@@ -200,6 +200,9 @@ cross-reference against the current state of the codebase to ensure accuracy.
 | `/python-style`     | Provides Python conventions; invoke for Python tasks             |
 | `/cpp-style`        | Provides C++ conventions; invoke for C++ tasks                   |
 | `/csharp-style`     | Provides C# conventions; invoke for C# tasks                     |
+| `/pyproject-style`  | Provides pyproject.toml conventions; one-line description synced |
+| `/project-layout`   | Provides project directory conventions; README is a root file    |
+| `/skill-design`     | Provides skill conventions; invoke for skill authoring tasks     |
 | `/commit`           | Provides commit message conventions; invoke after README changes |
 | `/explore-codebase` | Provides project context for cross-referencing README claims     |
 

@@ -52,6 +52,7 @@ Based on the task, load the appropriate reference files:
 | Writing or modifying docstrings/types    | [docstrings-and-types.md](references/docstrings-and-types.md) |
 | Writing classes, dataclasses, or enums   | [class-patterns.md](references/class-patterns.md)             |
 | Using ataraxis libs, Numba, Click, tests | [libraries-and-tools.md](references/libraries-and-tools.md)   |
+| Using ataraxis library features          | Invoke `/explore-dependencies` first, then load above         |
 | Reviewing code before submission         | [anti-patterns.md](references/anti-patterns.md)               |
 
 Load multiple references when the task spans multiple domains.
@@ -133,11 +134,7 @@ def process_data(self, data: NDArray[np.float32], threshold: float) -> None:
 ```
 
 In projects that do not depend on `ataraxis-base-utilities`, use standard `raise` with the same
-message format:
-
-```python
-raise ValueError(message)
-```
+message format.
 
 ### Error message format
 
@@ -381,12 +378,15 @@ config_path = Path(base_directory) / "config" / "settings.yaml"
 
 ## Related skills
 
-| Skill               | Relationship                                                       |
-|---------------------|--------------------------------------------------------------------|
-| `/readme-style`     | Provides README conventions; invoke for README tasks               |
-| `/commit`           | Provides commit message conventions; invoke for commit tasks       |
-| `/skill-design`     | Provides skill file conventions; invoke for skill authoring tasks  |
-| `/explore-codebase` | Provides project context that informs style-compliant code changes |
+| Skill                   | Relationship                                                                  |
+|-------------------------|-------------------------------------------------------------------------------|
+| `/explore-dependencies` | Provides live ataraxis dependency API snapshots; invoke before using features |
+| `/cpp-style`            | Provides C++ conventions; Python conventions parallel these                   |
+| `/csharp-style`         | Provides C# conventions; Python conventions parallel these                    |
+| `/readme-style`         | Provides README conventions; invoke for README tasks                          |
+| `/commit`               | Provides commit message conventions; invoke for commit tasks                  |
+| `/skill-design`         | Provides skill file conventions; invoke for skill authoring tasks             |
+| `/explore-codebase`     | Provides project context that informs style-compliant code changes            |
 
 ---
 
@@ -445,26 +445,10 @@ Python Style Compliance:
 - [ ] Two blank lines between top-level definitions
 - [ ] Trailing commas in multi-line structures
 
-Ataraxis Library Preferences (when ataraxis-base-utilities is a dependency):
-- [ ] Console output uses console.echo() instead of print() (exception: tabulate/formatted tables)
-- [ ] Error handling uses console.error() instead of raise
-- [ ] List conversion uses ensure_list() instead of manual type checks
-- [ ] Batch iteration uses chunk_iterable() instead of manual slicing
-- [ ] Worker count uses resolve_worker_count() instead of os.cpu_count() arithmetic
-- [ ] Parallel job capacity uses resolve_parallel_job_capacity() instead of manual core division
-- [ ] Scalar byte serialization uses convert_scalar_to_bytes()/convert_bytes_to_scalar()
-- [ ] Array byte serialization uses convert_array_to_bytes()/convert_bytes_to_array()
-- [ ] Precision timing uses PrecisionTimer instead of time.time()/perf_counter()
-- [ ] Delays use PrecisionTimer.delay() instead of time.sleep()
-- [ ] Elapsed formatting uses PrecisionTimer.format_elapsed() instead of manual string formatting
-- [ ] Fixed-interval polling uses PrecisionTimer.poll() instead of while+sleep loops
-- [ ] Timeout guards use Timeout instead of manual time.time() comparisons
-- [ ] Timestamps use get_timestamp() instead of datetime.strftime()
-- [ ] Timestamp conversion uses convert_timestamp()/parse_timestamp() instead of manual datetime math
-- [ ] Time unit conversion uses convert_time() instead of manual math
-- [ ] Rate/interval conversion uses rate_to_interval()/interval_to_rate() instead of manual Hz math
-- [ ] Timedelta interop uses to_timedelta()/from_timedelta() instead of manual timedelta construction
-- [ ] YAML-serializable configs subclass YamlConfig
-- [ ] Inter-process arrays use SharedMemoryArray instead of multiprocessing.Array
-- [ ] High-throughput logging uses DataLogger/LogPackage instead of direct writes
+Ataraxis Library Preferences (when ataraxis libraries are dependencies):
+- [ ] Invoked /explore-dependencies to obtain current API snapshot for each ataraxis dependency
+- [ ] Used ataraxis library features instead of standard library equivalents where available
+- [ ] Console output uses console.echo() instead of print(); raw=True for pre-formatted content
+- [ ] Error handling uses console.error() instead of raise (when ataraxis-base-utilities available)
+- [ ] console.enable() presence verified if console.echo() is used in the library
 ```

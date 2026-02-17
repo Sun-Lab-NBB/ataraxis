@@ -180,19 +180,20 @@ project structure, and more.
 
 ### Available Skills
 
-| Skill               | Description                                                      |
-|---------------------|------------------------------------------------------------------|
-| `/explore-codebase` | Performs in-depth codebase exploration at the start of a session |
-| `/python-style`     | Applies Sun Lab Python coding conventions                        |
-| `/cpp-style`        | Applies Sun Lab C++ coding conventions                           |
-| `/csharp-style`     | Applies Sun Lab C# coding conventions                            |
-| `/readme-style`     | Applies Sun Lab README conventions                               |
-| `/pyproject-style`  | Applies Sun Lab pyproject.toml conventions                       |
-| `/api-docs`         | Applies Sun Lab API documentation conventions                    |
-| `/project-layout`   | Applies Sun Lab project directory structure conventions          |
-| `/tox-config`       | Applies Sun Lab tox.ini conventions                              |
-| `/commit`           | Drafts style-compliant git commit messages                       |
-| `/skill-design`     | Generates, updates, and verifies skill files and CLAUDE.md       |
+| Skill                   | Description                                                              |
+|-------------------------|--------------------------------------------------------------------------|
+| `/explore-codebase`     | Performs in-depth codebase exploration at the start of a session          |
+| `/explore-dependencies` | Explores installed ataraxis/Sun Lab library APIs for dependency awareness |
+| `/python-style`         | Applies Sun Lab Python coding conventions                                |
+| `/cpp-style`            | Applies Sun Lab C++ coding conventions                                   |
+| `/csharp-style`         | Applies Sun Lab C# coding conventions                                    |
+| `/readme-style`         | Applies Sun Lab README conventions                                       |
+| `/pyproject-style`      | Applies Sun Lab pyproject.toml conventions                               |
+| `/api-docs`             | Applies Sun Lab API documentation conventions                            |
+| `/project-layout`       | Applies Sun Lab project directory structure conventions                   |
+| `/tox-config`           | Applies Sun Lab tox.ini conventions                                      |
+| `/commit`               | Drafts style-compliant git commit messages                               |
+| `/skill-design`         | Generates, updates, and verifies skill files and CLAUDE.md               |
 
 ### Installing for Claude Code
 

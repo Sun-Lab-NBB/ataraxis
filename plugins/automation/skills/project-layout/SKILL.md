@@ -267,8 +267,9 @@ Assets/
 | `/cpp-style`       | Owns file-level ordering within C++ source files                         |
 | `/csharp-style`    | Owns file-level ordering within C# source files                          |
 | `/pyproject-style` | Owns `pyproject.toml` structure; references `src/` layout convention     |
+| `/tox-config`      | Owns `tox.ini` conventions; `tox.ini` is a common root file             |
 | `/readme-style`    | Owns `README.md` content conventions                                     |
-| `/skill-design`    | Owns `plugins/automation/skills/` directory structure conventions        |
+| `/skill-design`    | Owns `plugins/automation/skills/` directory structure conventions         |
 
 ---
 

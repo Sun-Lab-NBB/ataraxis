@@ -391,6 +391,9 @@ CLAUDE.md follows the same conventions as skill files with one difference:
 | Skill               | Relationship                                                          |
 |---------------------|-----------------------------------------------------------------------|
 | `/python-style`     | Provides formatting conventions that skill files must also follow     |
+| `/cpp-style`        | Provides C++ conventions relevant when skills reference C++ code      |
+| `/csharp-style`     | Provides C# conventions relevant when skills reference C# code        |
+| `/project-layout`   | Provides project directory conventions; owns `skills/` placement      |
 | `/readme-style`     | Provides README conventions relevant when skills reference READMEs    |
 | `/commit`           | Should be invoked after completing skill file changes                 |
 | `/explore-codebase` | Provides project context needed when writing project-specific skills  |
