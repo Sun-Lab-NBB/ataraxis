@@ -208,7 +208,12 @@ from .spline_grid import SplineGrid
 
 ## \_\_init\_\_.py conventions
 
-Package `__init__.py` files define the public API:
+There are two types of `__init__.py` files with different docstring requirements.
+
+### Top-level library \_\_init\_\_.py
+
+The top-level `__init__.py` (e.g., `src/library_name/__init__.py`) uses an extended docstring with
+documentation links and authors:
 
 ```python
 """Provides assets for processing and analyzing neural imaging data.
@@ -237,12 +242,33 @@ __all__ = [
 ]
 ```
 
+### Subpackage \_\_init\_\_.py
+
+Subpackage `__init__.py` files (e.g., `src/library_name/subpackage/__init__.py`) use a single-line
+docstring only:
+
+```python
+"""Provides configuration and runtime data classes for the processing pipeline."""
+
+from .config import Config, Settings
+from .data import DataStore
+
+__all__ = [
+    "Config",
+    "DataStore",
+    "Settings",
+]
+```
+
 ### Rules
 
-- **Module docstring**: The first line MUST be the bare project description — the same sentence
+- **Top-level docstring**: The first line MUST be the bare project description — the same sentence
   used in all other canonical description locations (`pyproject.toml`, `welcome.rst`, `README.md`)
   with no language or project name prefix. Include documentation link, source repository link,
   and authors. Email addresses in the `Authors:` line are optional and omitted by default
+- **Subpackage docstring**: Use a single-line docstring describing what the subpackage provides.
+  Do NOT include documentation links, source repository links, or authors — these belong only in
+  the top-level library `__init__.py`
 - **Console initialization**: Enabling the global `console` in the top-level `__init__.py` is a
   per-library choice, not a strict requirement. If `console.echo()` is called elsewhere in the
   library without `console.enable()` present, verify with the user whether this is intentional
@@ -426,6 +452,8 @@ Python Style Compliance:
 - [ ] Local imports use direct name imports (no module imports)
 - [ ] Cross-package imports go through package __init__.py (not submodules)
 - [ ] __init__.py files have __all__ (alphabetically sorted); console.enable() is a per-library choice
+- [ ] Top-level library __init__.py has extended docstring (description, docs link, repo link, authors)
+- [ ] Subpackage __init__.py files have single-line docstrings only (no links or authors)
 - [ ] If console.echo() is used without console.enable() anywhere, verify intent with user
 - [ ] Public definitions above private definitions in file
 - [ ] Enums and dataclasses above worker functions and classes
