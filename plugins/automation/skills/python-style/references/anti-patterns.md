@@ -49,7 +49,7 @@ Transform code to match Sun Lab style:
 | Bullet lists in docstrings           | Breaks prose flow           | Use complete sentences instead       |
 | `# Set x to 5` before `x = 5`        | States the obvious          | Remove or explain *why*              |
 | Missing dtype in `NDArray`           | Type checking fails         | Always specify `NDArray[np.float32]` |
-| `Whether to...` for booleans         | Incomplete phrasing         | Use `Determines whether to...`       |
+| `Whether to...` for bool params      | Incomplete phrasing         | Use `Determines whether to...`       |
 | `# ======` section separators        | Visual clutter              | Use blank lines to separate sections |
 
 ---

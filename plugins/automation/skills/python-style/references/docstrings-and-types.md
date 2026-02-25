@@ -42,7 +42,8 @@ Do not include Examples sections or in-code examples in docstrings.
 
 - **Punctuation**: Always use proper punctuation in all documentation.
 - **Imperative mood**: Use verbs like "Computes...", "Defines...", "Configures..." for ALL members.
-- **Boolean descriptions**: Use "Determines whether..." for boolean parameters.
+- **Boolean descriptions**: Use "Determines whether..." for boolean parameters. For properties that return a boolean,
+  use "Returns..." (the property docstring convention supersedes the boolean convention).
 - **Parameters**: Start descriptions with uppercase. Don't repeat type info.
 - **Returns**: Describe what is returned, not the type.
 - **Prose over lists**: Always use prose instead of bullet lists or dashes in docstrings.
