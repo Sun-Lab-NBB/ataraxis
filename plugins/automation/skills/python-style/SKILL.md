@@ -90,11 +90,11 @@ Use **full words**, not abbreviations:
 
 ### Constants
 
-Module-level constants with type annotations and descriptive names:
+Module-level constants with type annotations, descriptive names, and inline docstrings:
 
 ```python
-# Minimum number of samples required for statistical validity.
 _MINIMUM_SAMPLE_COUNT: int = 100
+"""Minimum number of samples required for statistical validity."""
 ```
 
 ---
