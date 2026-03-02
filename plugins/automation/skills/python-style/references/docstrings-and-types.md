@@ -97,11 +97,22 @@ class SessionConfig:
 
 ### Property docstrings
 
+Property docstrings should ideally be a single sentence, even if it spans multiple lines. Do not
+split a property summary into a one-line summary plus an extended description paragraph — keep it
+as one continuous sentence that wraps naturally at the line-length limit.
+
 ```python
 @property
 def field_shape(self) -> tuple[int, int]:
     """Returns the shape of the data field as (height, width)."""
     return self._field_shape
+
+@property
+def rigid_y_offsets(self) -> NDArray[np.int32]:
+    """Returns the vertical translation offsets from rigid registration, one value per frame or a zero array
+    when the underlying data is absent.
+    """
+    ...
 ```
 
 ### Module docstrings
