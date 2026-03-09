@@ -141,6 +141,11 @@ def process_data(input_path: Path, output_path: Path) -> None:
 ### MCP server tool docstrings
 
 MCP tools serve dual purposes: documenting for developers and providing instructions to AI agents.
+MCP tool docstrings MUST include a `Returns` section describing the response structure so that
+developers reviewing the code can understand the tool's output contract at a glance. As with all
+Returns sections, describe the semantic content without restating the return type — the type
+annotation already conveys that. For tools returning structured responses, name the keys in
+prose and describe what each conveys.
 
 ```python
 @mcp.tool()
@@ -159,6 +164,10 @@ def start_video_session(
     Args:
         output_directory: The path to the directory where video files will be saved.
         frame_rate: The target frame rate in frames per second. Defaults to 30.
+
+    Returns:
+        A summary of the session parameters including the interface, camera index, resolution, frame rate,
+        and output directory.
     """
 ```
 
