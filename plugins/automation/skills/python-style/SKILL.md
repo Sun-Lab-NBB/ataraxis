@@ -113,7 +113,9 @@ np.zeros((4,), np.float32)
 compute_coefficients(t, result)
 ```
 
-Exception: Single positional arguments for obvious cases like `range(4)`, `len(array)`.
+Exceptions:
+- Single positional arguments for obvious cases like `range(4)`, `len(array)`.
+- Numba `jitclass` method calls, which do not support keyword arguments. Use positional arguments for these calls and add a brief inline comment if the call is not self-explanatory. Note: standard `@njit` / `@jit` functions do support keyword arguments and are not exempt from this rule.
 
 ---
 
@@ -442,7 +444,7 @@ Python Style Compliance:
 - [ ] Type aliases use PEP 695 `type` statement syntax
 - [ ] Full words used (no abbreviations like `pos`, `idx`, `val`)
 - [ ] Private members use `_underscore` prefix
-- [ ] Keyword arguments used for function calls
+- [ ] Keyword arguments used for function calls (except Numba `jitclass` method calls)
 - [ ] Error handling uses console.error() when ataraxis-base-utilities is available (else raise)
 - [ ] Double quotes used for all strings (enforced by ruff)
 - [ ] F-strings used exclusively (no % formatting or .format())
