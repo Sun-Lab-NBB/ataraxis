@@ -10,13 +10,13 @@ Complete reference for YAML frontmatter fields in SKILL.md files.
 
 The skill's identifier. You MUST ensure it matches the parent directory name.
 
-| Property   | Value                                                               |
-|------------|---------------------------------------------------------------------|
-| Type       | String                                                              |
-| Required   | Yes                                                                 |
-| Max length | 64 characters                                                       |
-| Format     | Lowercase letters, digits, and hyphens only; no consecutive `--`    |
-| Convention | Must match parent directory name: `explore-codebase`, `commit`      |
+| Property   | Value                                                            |
+|------------|------------------------------------------------------------------|
+| Type       | String                                                           |
+| Required   | Yes                                                              |
+| Max length | 64 characters                                                    |
+| Format     | Lowercase letters, digits, and hyphens only; no consecutive `--` |
+| Convention | Must match parent directory name: `explore-codebase`, `commit`   |
 
 ### `description`
 
@@ -48,22 +48,22 @@ description: >-
 
 Controls whether the skill appears in the `/` slash command menu.
 
-| Property | Value                                                            |
-|----------|------------------------------------------------------------------|
-| Type     | Boolean                                                          |
-| Default  | `true`                                                           |
-| Usage    | Set to `false` for skills that are only invoked by other skills  |
+| Property | Value                                                           |
+|----------|-----------------------------------------------------------------|
+| Type     | Boolean                                                         |
+| Default  | `true`                                                          |
+| Usage    | Set to `false` for skills that are only invoked by other skills |
 
 ### `disable-model-invocation`
 
 Prevents the agent from autoloading the skill based on context. When `true`, the skill can only
 be invoked explicitly by the user or by another skill.
 
-| Property | Value                                                            |
-|----------|------------------------------------------------------------------|
-| Type     | Boolean                                                          |
-| Default  | `false`                                                          |
-| Usage    | Set to `true` for skills that should never auto-trigger          |
+| Property | Value                                                   |
+|----------|---------------------------------------------------------|
+| Type     | Boolean                                                 |
+| Default  | `false`                                                 |
+| Usage    | Set to `true` for skills that should never auto-trigger |
 
 ### `allowed-tools`
 
@@ -89,39 +89,39 @@ Autocomplete hint displayed in the `/` menu to indicate expected arguments.
 
 Override the model used when the skill is active.
 
-| Property | Value                                                            |
-|----------|------------------------------------------------------------------|
-| Type     | String                                                           |
-| Example  | `sonnet`, `haiku`, `opus`                                        |
+| Property | Value                     |
+|----------|---------------------------|
+| Type     | String                    |
+| Example  | `sonnet`, `haiku`, `opus` |
 
 ### `context`
 
 Controls execution context. Set to `fork` to run the skill in a subagent with a separate context
 window, keeping the main conversation context clean.
 
-| Property | Value                                                            |
-|----------|------------------------------------------------------------------|
-| Type     | String                                                           |
-| Values   | `fork`                                                           |
+| Property | Value  |
+|----------|--------|
+| Type     | String |
+| Values   | `fork` |
 
 ### `agent`
 
 Specifies which subagent type to use when `context: fork` is set.
 
-| Property | Value                                                            |
-|----------|------------------------------------------------------------------|
-| Type     | String                                                           |
-| Values   | `Explore`, `Plan`, `Bash`, etc.                                  |
+| Property | Value                           |
+|----------|---------------------------------|
+| Type     | String                          |
+| Values   | `Explore`, `Plan`, `Bash`, etc. |
 
 ### `hooks`
 
 Hooks scoped to the skill's lifecycle. Allows running shell commands when the skill is invoked or
 completed.
 
-| Property | Value                                                            |
-|----------|------------------------------------------------------------------|
-| Type     | Object                                                           |
-| Usage    | Advanced pattern for validation or post-processing               |
+| Property | Value                                              |
+|----------|----------------------------------------------------|
+| Type     | Object                                             |
+| Usage    | Advanced pattern for validation or post-processing |
 
 ---
 

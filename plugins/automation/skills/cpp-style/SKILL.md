@@ -50,14 +50,14 @@ Read this entire file. The core conventions below apply to ALL C++ code.
 
 Based on the task, load the appropriate reference files:
 
-| Task                                          | Reference to load                                             |
-|-----------------------------------------------|---------------------------------------------------------------|
-| Writing or modifying Doxygen docs / types     | [doxygen-and-types.md](references/doxygen-and-types.md)       |
-| Writing classes, templates, enums, or structs | [class-patterns.md](references/class-patterns.md)             |
-| Using Arduino/PlatformIO, clang tools, tests  | [libraries-and-tools.md](references/libraries-and-tools.md)   |
-| Using nanobind extensions, CMake, GIL         | [libraries-and-tools.md](references/libraries-and-tools.md)   |
-| Deploying or verifying tool config files      | [assets/](assets/) directory                                  |
-| Reviewing code before submission              | [anti-patterns.md](references/anti-patterns.md)               |
+| Task                                          | Reference to load                                           |
+|-----------------------------------------------|-------------------------------------------------------------|
+| Writing or modifying Doxygen docs / types     | [doxygen-and-types.md](references/doxygen-and-types.md)     |
+| Writing classes, templates, enums, or structs | [class-patterns.md](references/class-patterns.md)           |
+| Using Arduino/PlatformIO, clang tools, tests  | [libraries-and-tools.md](references/libraries-and-tools.md) |
+| Using nanobind extensions, CMake, GIL         | [libraries-and-tools.md](references/libraries-and-tools.md) |
+| Deploying or verifying tool config files      | [assets/](assets/) directory                                |
+| Reviewing code before submission              | [anti-patterns.md](references/anti-patterns.md)             |
 
 Load multiple references when the task spans multiple domains.
 
@@ -123,12 +123,12 @@ verification checklist marks items that apply to only one paradigm.
 
 Use **full words**, not abbreviations:
 
-| Avoid              | Prefer                              |
-|--------------------|-------------------------------------|
-| `pos`, `idx`       | `position`, `index`                 |
-| `msg`, `val`       | `message`, `value`                  |
-| `buf`, `cnt`       | `buffer`, `count`                   |
-| `cb`, `sz`         | `callback`, `size`                  |
+| Avoid        | Prefer              |
+|--------------|---------------------|
+| `pos`, `idx` | `position`, `index` |
+| `msg`, `val` | `message`, `value`  |
+| `buf`, `cnt` | `buffer`, `count`   |
+| `cb`, `sz`   | `callback`, `size`  |
 
 ### Identifiers
 

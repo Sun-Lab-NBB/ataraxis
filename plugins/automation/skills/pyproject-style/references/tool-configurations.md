@@ -130,20 +130,20 @@ lint.ignore = [
 
 Add these ignores only when the project requires them:
 
-| Ignore   | Reason                                   | Projects using it                                  |
-|----------|------------------------------------------|----------------------------------------------------|
-| `ANN401` | `Any` type is needed                     | ataraxis-automation, sl-experiment                 |
-| `BLE001` | Blind exception catching is necessary    | ataraxis-automation, ataraxis-video-system         |
-| `S602`   | Subprocess calls are needed              | ataraxis-automation, ataraxis-video-system         |
-| `S607`   | Partial executable paths are needed      | ataraxis-automation                                |
-| `FBT001` | Positional boolean arguments (UI)        | sl-suite2p, ataraxis-communication-interface       |
-| `FBT002` | Boolean default values (UI)              | sl-suite2p, ataraxis-communication-interface       |
-| `FBT003` | Boolean positional in function calls     | sl-suite2p                                         |
-| `SLF001` | Private member access is necessary       | sl-suite2p, ataraxis-communication-interface       |
-| `SIM115` | Non-context-manager file operations      | sl-suite2p                                         |
-| `TID252` | Relative imports required                | ataraxis-video-system                              |
-| `T201`   | Print statements are needed              | sl-experiment                                      |
-| `W293`   | Whitespace in UI formatting              | sl-behavior, sl-experiment, sl-forgery, sl-suite2p |
+| Ignore   | Reason                                | Projects using it                                  |
+|----------|---------------------------------------|----------------------------------------------------|
+| `ANN401` | `Any` type is needed                  | ataraxis-automation, sl-experiment                 |
+| `BLE001` | Blind exception catching is necessary | ataraxis-automation, ataraxis-video-system         |
+| `S602`   | Subprocess calls are needed           | ataraxis-automation, ataraxis-video-system         |
+| `S607`   | Partial executable paths are needed   | ataraxis-automation                                |
+| `FBT001` | Positional boolean arguments (UI)     | sl-suite2p, ataraxis-communication-interface       |
+| `FBT002` | Boolean default values (UI)           | sl-suite2p, ataraxis-communication-interface       |
+| `FBT003` | Boolean positional in function calls  | sl-suite2p                                         |
+| `SLF001` | Private member access is necessary    | sl-suite2p, ataraxis-communication-interface       |
+| `SIM115` | Non-context-manager file operations   | sl-suite2p                                         |
+| `TID252` | Relative imports required             | ataraxis-video-system                              |
+| `T201`   | Print statements are needed           | sl-experiment                                      |
+| `W293`   | Whitespace in UI formatting           | sl-behavior, sl-experiment, sl-forgery, sl-suite2p |
 
 ### Ruff unused arguments
 

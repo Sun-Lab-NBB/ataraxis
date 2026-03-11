@@ -87,32 +87,32 @@ These files appear at the root of all (or most) Sun Lab projects:
 
 ### Python-specific root files
 
-| File              | Archetypes                   | Purpose                                      |
-|-------------------|------------------------------|----------------------------------------------|
-| `pyproject.toml`  | Python-only, Python+C++ ext  | Build config, metadata, tool settings        |
-| `CMakeLists.txt`  | Python+C++ ext               | CMake build config for nanobind extension    |
-| `Doxyfile`        | Python+C++ ext               | Doxygen documentation configuration          |
-| `.clang-format`   | Python+C++ ext               | C++ formatting configuration                 |
-| `.clang-tidy`     | Python+C++ ext               | C++ linting configuration                    |
+| File             | Archetypes                  | Purpose                                   |
+|------------------|-----------------------------|-------------------------------------------|
+| `pyproject.toml` | Python-only, Python+C++ ext | Build config, metadata, tool settings     |
+| `CMakeLists.txt` | Python+C++ ext              | CMake build config for nanobind extension |
+| `Doxyfile`       | Python+C++ ext              | Doxygen documentation configuration       |
+| `.clang-format`  | Python+C++ ext              | C++ formatting configuration              |
+| `.clang-tidy`    | Python+C++ ext              | C++ linting configuration                 |
 
 ### PlatformIO-specific root files
 
-| File              | Archetypes                         | Purpose                              |
-|-------------------|------------------------------------|--------------------------------------|
-| `platformio.ini`  | PlatformIO lib, PlatformIO fw      | PlatformIO build configuration       |
-| `library.json`    | PlatformIO lib only                | PlatformIO library manifest          |
-| `Doxyfile`        | PlatformIO lib, PlatformIO fw      | Doxygen documentation configuration  |
-| `.clang-format`   | PlatformIO lib, PlatformIO fw      | C++ formatting configuration         |
-| `.clang-tidy`     | PlatformIO lib, PlatformIO fw      | C++ linting configuration            |
+| File             | Archetypes                    | Purpose                             |
+|------------------|-------------------------------|-------------------------------------|
+| `platformio.ini` | PlatformIO lib, PlatformIO fw | PlatformIO build configuration      |
+| `library.json`   | PlatformIO lib only           | PlatformIO library manifest         |
+| `Doxyfile`       | PlatformIO lib, PlatformIO fw | Doxygen documentation configuration |
+| `.clang-format`  | PlatformIO lib, PlatformIO fw | C++ formatting configuration        |
+| `.clang-tidy`    | PlatformIO lib, PlatformIO fw | C++ linting configuration           |
 
 ### Unity-specific root files
 
-| File                  | Purpose                                       |
-|-----------------------|-----------------------------------------------|
-| `*.slnx`              | Unity solution file                           |
-| `.editorconfig`       | Editor configuration (indentation, encoding)  |
-| `.csharpierrc.yaml`   | CSharpier formatter configuration             |
-| `.csharpierignore`    | CSharpier formatter ignore patterns           |
+| File                | Purpose                                      |
+|---------------------|----------------------------------------------|
+| `*.slnx`            | Unity solution file                          |
+| `.editorconfig`     | Editor configuration (indentation, encoding) |
+| `.csharpierrc.yaml` | CSharpier formatter configuration            |
+| `.csharpierignore`  | CSharpier formatter ignore patterns          |
 
 ---
 
@@ -267,9 +267,9 @@ Assets/
 | `/cpp-style`       | Owns file-level ordering within C++ source files                         |
 | `/csharp-style`    | Owns file-level ordering within C# source files                          |
 | `/pyproject-style` | Owns `pyproject.toml` structure; references `src/` layout convention     |
-| `/tox-config`      | Owns `tox.ini` conventions; `tox.ini` is a common root file             |
+| `/tox-config`      | Owns `tox.ini` conventions; `tox.ini` is a common root file              |
 | `/readme-style`    | Owns `README.md` content conventions                                     |
-| `/skill-design`    | Owns `plugins/automation/skills/` directory structure conventions         |
+| `/skill-design`    | Owns `plugins/automation/skills/` directory structure conventions        |
 
 ---
 

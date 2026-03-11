@@ -35,9 +35,9 @@ Transform code to match Sun Lab style:
 | `'single quotes'`                      | `"double quotes"` (enforced by ruff)                           |
 | `"value: %d" % count`                  | `f"value: {count}"` (f-strings only)                           |
 | `raise ValueError(msg)`                | `console.error(message=msg, error=ValueError)`                 |
-| `max(1, os.cpu_count() - 4)`          | `resolve_worker_count()`                                       |
-| `np.array([v], dtype=dt).view(uint8)` | `convert_scalar_to_bytes(value=v, dtype=dt)`                   |
-| `np.frombuffer(data, dtype=dt)[0]`    | `convert_bytes_to_scalar(data=data, dtype=dt)`                 |
+| `max(1, os.cpu_count() - 4)`           | `resolve_worker_count()`                                       |
+| `np.array([v], dtype=dt).view(uint8)`  | `convert_scalar_to_bytes(value=v, dtype=dt)`                   |
+| `np.frombuffer(data, dtype=dt)[0]`     | `convert_bytes_to_scalar(data=data, dtype=dt)`                 |
 
 ---
 
@@ -56,12 +56,12 @@ Transform code to match Sun Lab style:
 
 ## Naming anti-patterns
 
-| Anti-Pattern        | Problem              | Solution                           |
-|---------------------|----------------------|------------------------------------|
-| `pos`, `idx`, `val` | Abbreviations        | `position`, `index`, `value`       |
-| `curIdx`            | Missing underscore   | `_current_index`                   |
-| `process()`         | Too generic          | `process_frame_data()`             |
-| `data1`, `data2`    | Non-descriptive      | `input_data`, `output_data`        |
+| Anti-Pattern        | Problem            | Solution                     |
+|---------------------|--------------------|------------------------------|
+| `pos`, `idx`, `val` | Abbreviations      | `position`, `index`, `value` |
+| `curIdx`            | Missing underscore | `_current_index`             |
+| `process()`         | Too generic        | `process_frame_data()`       |
+| `data1`, `data2`    | Non-descriptive    | `input_data`, `output_data`  |
 
 ---
 
@@ -71,7 +71,7 @@ Transform code to match Sun Lab style:
 |------------------------------------|--------------------------|------------------------------------------------|
 | `np.zeros((4,), np.float32)`       | Positional dtype arg     | `np.zeros((4,), dtype=np.float32)`             |
 | `raise ValueError(...)`            | Wrong error handling     | `console.error(message=..., error=ValueError)` |
-| `from typing import Optional`      | Old-style optional       | Use `Type | None` instead                      |
+| `from typing import Optional`      | Old-style optional       | Use `Type                                      |
 | `@numba.njit` without `cache=True` | Recompiles every run     | `@numba.njit(cache=True)`                      |
 | Inconsistent f-string prefixes     | Confusing multi-line     | Use `f` prefix on all lines                    |
 | `'single quotes'`                  | Violates ruff formatting | Use `"double quotes"`                          |
@@ -85,26 +85,26 @@ Transform code to match Sun Lab style:
 
 ## Ataraxis library anti-patterns
 
-| Anti-Pattern                          | Problem                          | Solution                                                             |
-|---------------------------------------|----------------------------------|----------------------------------------------------------------------|
-| `print("message")` for plain text     | No logging, inconsistent         | `console.echo(message="...")` (use `raw=True` for pre-formatted)     |
-| `time.sleep(0.001)`                   | Low precision, blocks GIL        | `PrecisionTimer.delay(delay=1000)`                                   |
-| `time.time()` for intervals           | Insufficient precision           | `PrecisionTimer.elapsed`                                             |
-| `f"{elapsed:.2f}s"` for display       | Inconsistent, manual formatting  | `PrecisionTimer.format_elapsed()`                                    |
-| Manual elapsed snapshots in a list    | Verbose, error-prone             | `PrecisionTimer.lap()` / `.laps`                                     |
-| `while True: time.sleep()` polling    | Low precision, blocks GIL        | `PrecisionTimer.poll(interval=...)`                                  |
-| `time.time() - start < timeout` check | Low precision, verbose           | `Timeout(duration=...).expired`                                      |
-| `datetime.now().strftime(...)`        | Inconsistent format              | `get_timestamp()`                                                    |
-| `datetime.strptime()` + epoch math    | Verbose, timezone-unsafe         | `parse_timestamp()`                                                  |
-| `elapsed_us / 1_000_000`              | Magic number conversion          | `convert_time(time=..., from_units=..., to_units=...)`               |
-| `1_000_000 / hz` for intervals        | Magic number, fragile            | `rate_to_interval(rate=hz)`                                          |
-| `timedelta(seconds=us / 1e6)`         | Magic number, error-prone        | `to_timedelta(time=us, from_units=...)`                              |
-| Manual YAML dump/load                 | No type safety                   | Subclass `YamlConfig`                                                |
-| `multiprocessing.Array`               | Limited dtype support            | `SharedMemoryArray`                                                  |
-| Direct file writes in loops           | Blocks acquisition               | `DataLogger` with `LogPackage`                                       |
-| Manual `isinstance()` for list check  | Verbose, error-prone             | `ensure_list()`                                                      |
-| Manual slice batching                 | Verbose, doesn't preserve dtype  | `chunk_iterable()`                                                   |
-| `os.cpu_count() - N` for workers      | No None guard, fragile           | `resolve_worker_count()`                                             |
-| `os.cpu_count() // N` for job slots   | No None guard, fragile           | `resolve_parallel_job_capacity()`                                    |
-| `np.array([v]).view(np.uint8)` manual | Duplicated, no cache, error-prone| `convert_scalar_to_bytes()` / `convert_bytes_to_scalar()`            |
-| `np.frombuffer(data, dtype=...)` raw  | No validation, no copy safety    | `convert_bytes_to_array()` / `convert_array_to_bytes()`              |
+| Anti-Pattern                          | Problem                           | Solution                                                         |
+|---------------------------------------|-----------------------------------|------------------------------------------------------------------|
+| `print("message")` for plain text     | No logging, inconsistent          | `console.echo(message="...")` (use `raw=True` for pre-formatted) |
+| `time.sleep(0.001)`                   | Low precision, blocks GIL         | `PrecisionTimer.delay(delay=1000)`                               |
+| `time.time()` for intervals           | Insufficient precision            | `PrecisionTimer.elapsed`                                         |
+| `f"{elapsed:.2f}s"` for display       | Inconsistent, manual formatting   | `PrecisionTimer.format_elapsed()`                                |
+| Manual elapsed snapshots in a list    | Verbose, error-prone              | `PrecisionTimer.lap()` / `.laps`                                 |
+| `while True: time.sleep()` polling    | Low precision, blocks GIL         | `PrecisionTimer.poll(interval=...)`                              |
+| `time.time() - start < timeout` check | Low precision, verbose            | `Timeout(duration=...).expired`                                  |
+| `datetime.now().strftime(...)`        | Inconsistent format               | `get_timestamp()`                                                |
+| `datetime.strptime()` + epoch math    | Verbose, timezone-unsafe          | `parse_timestamp()`                                              |
+| `elapsed_us / 1_000_000`              | Magic number conversion           | `convert_time(time=..., from_units=..., to_units=...)`           |
+| `1_000_000 / hz` for intervals        | Magic number, fragile             | `rate_to_interval(rate=hz)`                                      |
+| `timedelta(seconds=us / 1e6)`         | Magic number, error-prone         | `to_timedelta(time=us, from_units=...)`                          |
+| Manual YAML dump/load                 | No type safety                    | Subclass `YamlConfig`                                            |
+| `multiprocessing.Array`               | Limited dtype support             | `SharedMemoryArray`                                              |
+| Direct file writes in loops           | Blocks acquisition                | `DataLogger` with `LogPackage`                                   |
+| Manual `isinstance()` for list check  | Verbose, error-prone              | `ensure_list()`                                                  |
+| Manual slice batching                 | Verbose, doesn't preserve dtype   | `chunk_iterable()`                                               |
+| `os.cpu_count() - N` for workers      | No None guard, fragile            | `resolve_worker_count()`                                         |
+| `os.cpu_count() // N` for job slots   | No None guard, fragile            | `resolve_parallel_job_capacity()`                                |
+| `np.array([v]).view(np.uint8)` manual | Duplicated, no cache, error-prone | `convert_scalar_to_bytes()` / `convert_bytes_to_scalar()`        |
+| `np.frombuffer(data, dtype=...)` raw  | No validation, no copy safety     | `convert_bytes_to_array()` / `convert_array_to_bytes()`          |

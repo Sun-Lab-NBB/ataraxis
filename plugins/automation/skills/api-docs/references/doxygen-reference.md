@@ -62,11 +62,11 @@ GENERATE_LATEX         = NO
 
 ### Placeholders
 
-| Placeholder           | Description                                 | Example              |
-|-----------------------|---------------------------------------------|----------------------|
-| `<PROJECT_NAME>`      | Project display name (may differ from PyPI) | `ataraxis-timer`     |
-| `<INPUT_PATHS>`       | Space-separated paths to C++ source files   | `src/c_extensions`   |
-| `<MACRO_DEFINITIONS>` | Space-separated macro expansions            | `PACKED_STRUCT=`     |
+| Placeholder           | Description                                 | Example            |
+|-----------------------|---------------------------------------------|--------------------|
+| `<PROJECT_NAME>`      | Project display name (may differ from PyPI) | `ataraxis-timer`   |
+| `<INPUT_PATHS>`       | Space-separated paths to C++ source files   | `src/c_extensions` |
+| `<MACRO_DEFINITIONS>` | Space-separated macro expansions            | `PACKED_STRUCT=`   |
 
 ### INPUT path conventions
 

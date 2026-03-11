@@ -20,19 +20,19 @@ was last updated.
 
 ### Domain-to-library summary
 
-| Domain                        | Preferred library            | Key assets                                             |
-|-------------------------------|------------------------------|--------------------------------------------------------|
-| Console output, errors        | `ataraxis-base-utilities`    | `Console`, `console.echo()`, `console.error()`         |
-| Progress tracking             | `ataraxis-base-utilities`    | `Console.track()`, `Console.progress()`, `ProgressBar` |
-| List/iterable utilities       | `ataraxis-base-utilities`    | `ensure_list()`, `chunk_iterable()`                    |
-| Worker/job resolution         | `ataraxis-base-utilities`    | `resolve_worker_count()`                               |
-| Byte serialization            | `ataraxis-base-utilities`    | `convert_scalar_to_bytes()` etc.                       |
-| Directory creation            | `ataraxis-base-utilities`    | `ensure_directory_exists()`                            |
-| Precision timing and delays   | `ataraxis-time`              | `PrecisionTimer`, `Timeout`                            |
-| Timestamps and conversion     | `ataraxis-time`              | `get_timestamp()`, `convert_time()`                    |
-| YAML configuration            | `ataraxis-data-structures`   | `YamlConfig`                                           |
-| Shared memory                 | `ataraxis-data-structures`   | `SharedMemoryArray`                                    |
-| High-throughput logging       | `ataraxis-data-structures`   | `DataLogger`, `LogPackage`                             |
+| Domain                      | Preferred library          | Key assets                                             |
+|-----------------------------|----------------------------|--------------------------------------------------------|
+| Console output, errors      | `ataraxis-base-utilities`  | `Console`, `console.echo()`, `console.error()`         |
+| Progress tracking           | `ataraxis-base-utilities`  | `Console.track()`, `Console.progress()`, `ProgressBar` |
+| List/iterable utilities     | `ataraxis-base-utilities`  | `ensure_list()`, `chunk_iterable()`                    |
+| Worker/job resolution       | `ataraxis-base-utilities`  | `resolve_worker_count()`                               |
+| Byte serialization          | `ataraxis-base-utilities`  | `convert_scalar_to_bytes()` etc.                       |
+| Directory creation          | `ataraxis-base-utilities`  | `ensure_directory_exists()`                            |
+| Precision timing and delays | `ataraxis-time`            | `PrecisionTimer`, `Timeout`                            |
+| Timestamps and conversion   | `ataraxis-time`            | `get_timestamp()`, `convert_time()`                    |
+| YAML configuration          | `ataraxis-data-structures` | `YamlConfig`                                           |
+| Shared memory               | `ataraxis-data-structures` | `SharedMemoryArray`                                    |
+| High-throughput logging     | `ataraxis-data-structures` | `DataLogger`, `LogPackage`                             |
 
 ### Console and error handling notes
 

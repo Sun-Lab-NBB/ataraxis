@@ -42,11 +42,11 @@ You MUST follow these steps when this skill is invoked.
 Quickly assess the project to select the appropriate exploration tier. Run a file count and directory
 listing to make this determination before proceeding.
 
-| Tier   | Indicators                                                    | Approach                       |
-|--------|---------------------------------------------------------------|--------------------------------|
-| Small  | Single package, < 10 source files, no subpackages             | Single-pass exploration        |
-| Medium | Multiple packages or 10-50 source files                       | Structured four-phase          |
-| Large  | Monorepo, 50+ source files, multiple entry points, MCP server | Parallel subagent exploration  |
+| Tier   | Indicators                                                    | Approach                      |
+|--------|---------------------------------------------------------------|-------------------------------|
+| Small  | Single package, < 10 source files, no subpackages             | Single-pass exploration       |
+| Medium | Multiple packages or 10-50 source files                       | Structured four-phase         |
+| Large  | Monorepo, 50+ source files, multiple entry points, MCP server | Parallel subagent exploration |
 
 ### Step 2: Execute exploration
 

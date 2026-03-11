@@ -163,27 +163,27 @@ Generated with AI assistance       # Tool attribution does not belong
 
 ## Input/output examples
 
-| Input (What was done)                               | Output (Commit message)                                      |
-|-----------------------------------------------------|--------------------------------------------------------------|
-| Added user authentication with JWT tokens           | Added JWT-based authentication for user sessions.            |
-| Fixed bug where dates displayed incorrectly         | Fixed date formatting in timezone conversion.                |
-| Updated dependencies and refactored error handling  | Updated dependencies and standardized error response format. |
-| Removed deprecated API endpoints                    | Removed deprecated v1 API endpoints from configuration.      |
-| Refactored the zone detection logic for clarity     | Refactored zone detection logic to improve readability.      |
+| Input (What was done)                              | Output (Commit message)                                      |
+|----------------------------------------------------|--------------------------------------------------------------|
+| Added user authentication with JWT tokens          | Added JWT-based authentication for user sessions.            |
+| Fixed bug where dates displayed incorrectly        | Fixed date formatting in timezone conversion.                |
+| Updated dependencies and refactored error handling | Updated dependencies and standardized error response format. |
+| Removed deprecated API endpoints                   | Removed deprecated v1 API endpoints from configuration.      |
+| Refactored the zone detection logic for clarity    | Refactored zone detection logic to improve readability.      |
 
 ---
 
 ## Common mistakes
 
-| Wrong                             | Correct                                   | Issue                       |
-|-----------------------------------|-------------------------------------------|-----------------------------|
-| `fixed bug`                       | `Fixed null reference in zone detection.` | Too vague, no punctuation   |
-| `Updated stuff`                   | `Updated MQTT topic names to match spec.` | Not specific                |
-| `Changes to Task.cs`              | `Added corridor reset logic to Task.`     | Describes file, not change  |
-| `WIP`                             | `Added initial zone boundary detection.`  | Not descriptive             |
-| `Add new feature`                 | `Added new feature.`                      | Present tense, no period    |
-| `This commit fixes the login bug` | `Fixed login validation error.`           | Unnecessary preamble        |
-| `Fixed bug (Co-Authored-By: ...)` | `Fixed login validation error.`           | Authorship in message       |
+| Wrong                             | Correct                                   | Issue                      |
+|-----------------------------------|-------------------------------------------|----------------------------|
+| `fixed bug`                       | `Fixed null reference in zone detection.` | Too vague, no punctuation  |
+| `Updated stuff`                   | `Updated MQTT topic names to match spec.` | Not specific               |
+| `Changes to Task.cs`              | `Added corridor reset logic to Task.`     | Describes file, not change |
+| `WIP`                             | `Added initial zone boundary detection.`  | Not descriptive            |
+| `Add new feature`                 | `Added new feature.`                      | Present tense, no period   |
+| `This commit fixes the login bug` | `Fixed login validation error.`           | Unnecessary preamble       |
+| `Fixed bug (Co-Authored-By: ...)` | `Fixed login validation error.`           | Authorship in message      |
 
 ---
 

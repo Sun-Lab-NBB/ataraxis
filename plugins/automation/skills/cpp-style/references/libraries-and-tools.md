@@ -334,12 +334,12 @@ For the complete directory tree for Python + C++ extension projects, invoke `/pr
 
 Extension-specific naming follows these patterns:
 
-| Element                  | Convention           | Example                      |
-|--------------------------|----------------------|------------------------------|
-| Extension source file    | `snake_case_ext.cpp` | `precision_timer_ext.cpp`    |
-| C++ class (extension)    | `CPascalCase`        | `CPrecisionTimer`            |
-| nanobind module name     | `snake_case_ext`     | `precision_timer_ext`        |
-| Python wrapper class     | `PascalCase`         | `PrecisionTimer`             |
+| Element               | Convention           | Example                   |
+|-----------------------|----------------------|---------------------------|
+| Extension source file | `snake_case_ext.cpp` | `precision_timer_ext.cpp` |
+| C++ class (extension) | `CPascalCase`        | `CPrecisionTimer`         |
+| nanobind module name  | `snake_case_ext`     | `precision_timer_ext`     |
+| Python wrapper class  | `PascalCase`         | `PrecisionTimer`          |
 
 The `C` prefix on extension classes distinguishes the C++ implementation from the Python wrapper
 class that users interact with directly.
@@ -465,24 +465,24 @@ invocation automatically during `pip install`.
 
 Unlike embedded code, extension code may use the full C++ standard library:
 
-| Allowed in extensions      | Typical use case                          |
-|----------------------------|-------------------------------------------|
-| `std::string`              | String parameters from Python             |
-| `std::chrono`              | High-resolution timing                    |
-| `std::thread`              | Sleep-based delays                        |
-| `std::invalid_argument`    | Error propagation to Python via nanobind  |
-| `auto` with lambdas        | Callback patterns for GIL management      |
+| Allowed in extensions   | Typical use case                         |
+|-------------------------|------------------------------------------|
+| `std::string`           | String parameters from Python            |
+| `std::chrono`           | High-resolution timing                   |
+| `std::thread`           | Sleep-based delays                       |
+| `std::invalid_argument` | Error propagation to Python via nanobind |
+| `auto` with lambdas     | Callback patterns for GIL management     |
 
 ### Differences from embedded C++
 
-| Aspect                | Embedded                       | Extension                             |
-|-----------------------|--------------------------------|---------------------------------------|
-| Exceptions            | Prohibited                     | Allowed (nanobind translates to Py)   |
-| STL containers        | Prohibited (heap allocation)   | Allowed                               |
-| Dynamic allocation    | Prohibited                     | Allowed when needed                   |
-| RTTI                  | Prohibited                     | Available but rarely needed           |
-| Build system          | PlatformIO                     | CMake + scikit-build-core             |
-| Include guards        | `#ifndef` / `#define`          | Not needed (single .cpp file)         |
-| Target platform       | Teensy / Arduino               | Windows, Linux, macOS                 |
-| AccessModifierOffset  | 0                              | -2 (in .clang-format)                 |
-| Distribution          | Firmware images                | Binary wheels via cibuildwheel        |
+| Aspect               | Embedded                     | Extension                           |
+|----------------------|------------------------------|-------------------------------------|
+| Exceptions           | Prohibited                   | Allowed (nanobind translates to Py) |
+| STL containers       | Prohibited (heap allocation) | Allowed                             |
+| Dynamic allocation   | Prohibited                   | Allowed when needed                 |
+| RTTI                 | Prohibited                   | Available but rarely needed         |
+| Build system         | PlatformIO                   | CMake + scikit-build-core           |
+| Include guards       | `#ifndef` / `#define`        | Not needed (single .cpp file)       |
+| Target platform      | Teensy / Arduino             | Windows, Linux, macOS               |
+| AccessModifierOffset | 0                            | -2 (in .clang-format)               |
+| Distribution         | Firmware images              | Binary wheels via cibuildwheel      |

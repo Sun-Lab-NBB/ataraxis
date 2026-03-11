@@ -48,11 +48,11 @@ Read this entire file. The section ordering and core rules below apply to ALL py
 
 Based on the task, load the appropriate reference files:
 
-| Task                                       | Reference to load                                             |
-|--------------------------------------------|---------------------------------------------------------------|
-| Writing or modifying project metadata      | [project-metadata.md](references/project-metadata.md)         |
-| Writing or modifying tool configurations   | [tool-configurations.md](references/tool-configurations.md)   |
-| Creating a new pyproject.toml from scratch | Load both references                                          |
+| Task                                       | Reference to load                                           |
+|--------------------------------------------|-------------------------------------------------------------|
+| Writing or modifying project metadata      | [project-metadata.md](references/project-metadata.md)       |
+| Writing or modifying tool configurations   | [tool-configurations.md](references/tool-configurations.md) |
+| Creating a new pyproject.toml from scratch | Load both references                                        |
 
 ### Step 3: Determine project type
 

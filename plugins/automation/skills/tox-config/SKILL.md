@@ -316,10 +316,10 @@ envlist = docs
 
 Each project has a short abbreviation used for its mamba environment name:
 
-| Pattern        | Abbreviation rule             | Example                             |
-|----------------|-------------------------------|-------------------------------------|
-| `ataraxis-*`   | Initials of hyphenated parts  | `ataraxis-base-utilities` → `axbu`  |
-| `sl-*`         | Initials of hyphenated parts  | `sl-shared-assets` → `slsa`         |
+| Pattern      | Abbreviation rule            | Example                            |
+|--------------|------------------------------|------------------------------------|
+| `ataraxis-*` | Initials of hyphenated parts | `ataraxis-base-utilities` → `axbu` |
+| `sl-*`       | Initials of hyphenated parts | `sl-shared-assets` → `slsa`        |
 
 The full environment name follows the pattern `{abbr}_dev` (e.g., `axbu_dev`). The OS suffix
 (`_lin`, `_osx`, `_win`) is appended automatically by `automation-cli` at runtime — it does NOT
@@ -377,13 +377,13 @@ basepython = py312  # Earliest supported version controls lint/mypy ruleset
 
 ## Related skills
 
-| Skill              | Relationship                                                           |
-|--------------------|------------------------------------------------------------------------|
-| `/pyproject-style` | Defines dependency groups and optional-deps consumed by tox            |
-| `/api-docs`        | Defines docs/ structure built by the `docs` tox environment            |
-| `/python-style`    | Defines code conventions enforced by the `lint` tox environment        |
-| `/project-layout`  | Defines project directory structure that tox.ini assumes               |
-| `/commit`          | Should be invoked after completing tox.ini changes                     |
+| Skill              | Relationship                                                    |
+|--------------------|-----------------------------------------------------------------|
+| `/pyproject-style` | Defines dependency groups and optional-deps consumed by tox     |
+| `/api-docs`        | Defines docs/ structure built by the `docs` tox environment     |
+| `/python-style`    | Defines code conventions enforced by the `lint` tox environment |
+| `/project-layout`  | Defines project directory structure that tox.ini assumes        |
+| `/commit`          | Should be invoked after completing tox.ini changes              |
 
 ---
 

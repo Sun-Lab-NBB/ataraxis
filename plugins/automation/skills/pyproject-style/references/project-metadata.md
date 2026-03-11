@@ -310,17 +310,17 @@ Install via: `uv sync --group dev` or `pip install --group dev`
 The type stub packages vary by project. Include stubs for any dependency that does not ship
 inline types. Common type stubs:
 
-| Stub package                           | For dependency   |
-|----------------------------------------|------------------|
-| `types-tqdm`                           | tqdm             |
-| `types-paho-mqtt`                      | paho-mqtt        |
-| `types-pyserial`                       | pyserial         |
-| `types-pyyaml`                         | PyYAML           |
-| `types-appdirs`                        | appdirs          |
-| `types-tabulate`                       | tabulate         |
-| `types-filelock`                       | filelock         |
-| `scipy-stubs`                          | scipy            |
-| `google-api-python-client-stubs`       | google-api       |
+| Stub package                     | For dependency |
+|----------------------------------|----------------|
+| `types-tqdm`                     | tqdm           |
+| `types-paho-mqtt`                | paho-mqtt      |
+| `types-pyserial`                 | pyserial       |
+| `types-pyyaml`                   | PyYAML         |
+| `types-appdirs`                  | appdirs        |
+| `types-tabulate`                 | tabulate       |
+| `types-filelock`                 | filelock       |
+| `scipy-stubs`                    | scipy          |
+| `google-api-python-client-stubs` | google-api     |
 
 The `ataraxis-automation` project itself omits the `ataraxis-automation` dependency from its
 dev group since it is self-referential.

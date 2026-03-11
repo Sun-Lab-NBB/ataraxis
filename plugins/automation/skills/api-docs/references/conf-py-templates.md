@@ -62,11 +62,14 @@ html_theme = 'furo'
 
 ### Placeholders
 
-| Placeholder      | Description                          | Example               |
-|------------------|--------------------------------------|-----------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-automation` |
-| `<YEAR>`         | Current copyright year               | `2026`                |
-| `<AUTHOR>`       | Author name(s)                       | `Ivan Kondratyev`     |
+| Placeholder      | Description                          | Example                             |
+|------------------|--------------------------------------|-------------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-automation`               |
+| `<YEAR>`         | Current copyright year               | `2026`                              |
+| `<AUTHOR>`       | Author name(s) as string or list     | `'Ivan Kondratyev'` or `['A', 'B']` |
+
+**Note:** For projects with a single author, use `author = 'Name'`. For projects with multiple
+authors, use `authors = ['Name1', 'Name2']` (plural field name with a list value).
 
 ---
 
@@ -117,12 +120,12 @@ space-separated.
 
 ### Placeholders
 
-| Placeholder      | Description                          | Example                      |
-|------------------|--------------------------------------|------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-micro-controller`  |
-| `<YEAR>`         | Current copyright year               | `2026`                       |
-| `<AUTHOR>`       | Author name(s)                       | `Ivan Kondratyev`            |
-| `<VERSION>`      | Hardcoded version string             | `2.0.0`                      |
+| Placeholder      | Description                          | Example                             |
+|------------------|--------------------------------------|-------------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-micro-controller`         |
+| `<YEAR>`         | Current copyright year               | `2026`                              |
+| `<AUTHOR>`       | Author name(s) as string or list     | `'Ivan Kondratyev'` or `['A', 'B']` |
+| `<VERSION>`      | Hardcoded version string             | `2.0.0`                             |
 
 ---
 
@@ -189,8 +192,8 @@ html_theme = 'furo'
 
 ### Placeholders
 
-| Placeholder      | Description                          | Example           |
-|------------------|--------------------------------------|-------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-time`   |
-| `<YEAR>`         | Current copyright year               | `2026`            |
-| `<AUTHOR>`       | Author name(s)                       | `Ivan Kondratyev` |
+| Placeholder      | Description                          | Example                             |
+|------------------|--------------------------------------|-------------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-time`                     |
+| `<YEAR>`         | Current copyright year               | `2026`                              |
+| `<AUTHOR>`       | Author name(s) as string or list     | `'Ivan Kondratyev'` or `['A', 'B']` |

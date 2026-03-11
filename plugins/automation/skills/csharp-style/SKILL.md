@@ -47,13 +47,13 @@ Read this entire file. The core conventions below apply to ALL C# code.
 
 Based on the task, load the appropriate reference files:
 
-| Task                                        | Reference to load                                             |
-|---------------------------------------------|---------------------------------------------------------------|
-| Writing or modifying XML docs / type usage  | [xml-docs-and-types.md](references/xml-docs-and-types.md)     |
-| Writing classes, enums, or Unity components | [class-patterns.md](references/class-patterns.md)             |
-| Using LINQ, async, IDisposable, or testing  | [libraries-and-tools.md](references/libraries-and-tools.md)   |
-| Deploying or verifying tool config files    | [assets/](assets/) directory                                  |
-| Reviewing code before submission            | [anti-patterns.md](references/anti-patterns.md)               |
+| Task                                        | Reference to load                                           |
+|---------------------------------------------|-------------------------------------------------------------|
+| Writing or modifying XML docs / type usage  | [xml-docs-and-types.md](references/xml-docs-and-types.md)   |
+| Writing classes, enums, or Unity components | [class-patterns.md](references/class-patterns.md)           |
+| Using LINQ, async, IDisposable, or testing  | [libraries-and-tools.md](references/libraries-and-tools.md) |
+| Deploying or verifying tool config files    | [assets/](assets/) directory                                |
+| Reviewing code before submission            | [anti-patterns.md](references/anti-patterns.md)             |
 
 Load multiple references when the task spans multiple domains.
 
@@ -99,12 +99,12 @@ consistency across languages while respecting each language's idiomatic standard
 
 Use **full words**, not abbreviations:
 
-| Avoid              | Prefer                              |
-|--------------------|-------------------------------------|
-| `pos`, `idx`       | `position`, `index`                 |
-| `msg`, `val`       | `message`, `value`                  |
-| `seg`, `trig`      | `segment`, `trigger`                |
-| `cfg`, `cnt`       | `configuration`, `count`            |
+| Avoid         | Prefer                   |
+|---------------|--------------------------|
+| `pos`, `idx`  | `position`, `index`      |
+| `msg`, `val`  | `message`, `value`       |
+| `seg`, `trig` | `segment`, `trigger`     |
+| `cfg`, `cnt`  | `configuration`, `count` |
 
 ### Identifiers
 

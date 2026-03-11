@@ -638,13 +638,13 @@ public sealed class EncoderModule : Module
 
 ## Struct vs class guidance
 
-| Use `struct` when                        | Use `class` when                         |
-|------------------------------------------|------------------------------------------|
-| Logically represents a single value      | Represents an entity with identity       |
-| Instance size is under 16 bytes          | Instance size exceeds 16 bytes           |
-| Immutable after creation                 | Mutable state is needed                  |
-| Frequently allocated (avoid GC pressure) | Long-lived with complex lifecycle        |
-| Value equality semantics needed          | Reference equality is appropriate        |
+| Use `struct` when                        | Use `class` when                   |
+|------------------------------------------|------------------------------------|
+| Logically represents a single value      | Represents an entity with identity |
+| Instance size is under 16 bytes          | Instance size exceeds 16 bytes     |
+| Immutable after creation                 | Mutable state is needed            |
+| Frequently allocated (avoid GC pressure) | Long-lived with complex lifecycle  |
+| Value equality semantics needed          | Reference equality is appropriate  |
 
 ---
 

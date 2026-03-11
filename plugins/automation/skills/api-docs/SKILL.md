@@ -43,11 +43,11 @@ docstrings using Sphinx, autodoc, Napoleon, and optionally Breathe/Doxygen for C
 
 Sun Lab projects follow one of three documentation archetypes based on language composition:
 
-| Archetype   | Language     | Extensions                                                | Doxygen |
-|-------------|--------------|-----------------------------------------------------------|---------|
-| Python-only | Pure Python  | autodoc, napoleon, click, typehints, furo theme            | No      |
-| C++-only    | Pure C++     | breathe, furo theme                                        | Yes     |
-| Hybrid      | Python + C++ | All Python extensions + breathe                            | Yes     |
+| Archetype   | Language     | Extensions                                      | Doxygen |
+|-------------|--------------|-------------------------------------------------|---------|
+| Python-only | Pure Python  | autodoc, napoleon, click, typehints, furo theme | No      |
+| C++-only    | Pure C++     | breathe, furo theme                             | Yes     |
+| Hybrid      | Python + C++ | All Python extensions + breathe                 | Yes     |
 
 ### Directory structure
 
@@ -204,7 +204,10 @@ dependencies directly to downstream project pyproject.toml files.
 - First paragraph: the bare project description — the same sentence used in all other canonical
   description locations for the project archetype (e.g., `pyproject.toml`, `__init__.py`,
   `README.md`, or `library.json`). No language or project name prefix.
-- Second paragraph: standard Ataraxis project attribution with Sun (NeuroAI) lab link.
+- Second paragraph: for Ataraxis projects, standard Ataraxis project attribution with Sun
+  (NeuroAI) lab link. For non-Ataraxis projects, this paragraph is optional or may contain
+  other project-relevant context. May include additional context (e.g., companion libraries)
+  after the attribution when appropriate.
 - Third paragraph: standard disclaimer that the site contains API docs only, with link to
   GitHub repository.
 - Footer: explicit RST link targets for the GitHub repo and Sun lab URLs.

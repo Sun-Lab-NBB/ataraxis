@@ -105,19 +105,19 @@ behavior.
 Scan the project's source code for patterns that duplicate functionality provided by the
 discovered dependency APIs:
 
-| Pattern in project code                    | Likely replacement                          |
-|--------------------------------------------|---------------------------------------------|
-| `print()` or `click.echo()` for output     | `console.echo()` (with `raw=True` if needed)|
-| `raise` for error reporting                | `console.error()`                           |
-| `isinstance` chains to normalize to list   | `ensure_list()`                             |
-| Manual slicing loops for batching          | `chunk_iterable()`                          |
-| `os.cpu_count()` arithmetic               | `resolve_worker_count()`                    |
-| `time.sleep()` or `time.time()` patterns   | `PrecisionTimer` methods                    |
-| `datetime.now().strftime()` calls          | `get_timestamp()`                           |
-| Manual `yaml.dump()`/`yaml.load()` calls   | `YamlConfig` subclass                       |
-| `multiprocessing.Array` or `Value` usage   | `SharedMemoryArray`                         |
-| Direct file writes in acquisition loops    | `DataLogger` + `LogPackage`                 |
-| `os.makedirs()` or `Path.mkdir()` patterns | `ensure_directory_exists()`                 |
+| Pattern in project code                    | Likely replacement                           |
+|--------------------------------------------|----------------------------------------------|
+| `print()` or `click.echo()` for output     | `console.echo()` (with `raw=True` if needed) |
+| `raise` for error reporting                | `console.error()`                            |
+| `isinstance` chains to normalize to list   | `ensure_list()`                              |
+| Manual slicing loops for batching          | `chunk_iterable()`                           |
+| `os.cpu_count()` arithmetic                | `resolve_worker_count()`                     |
+| `time.sleep()` or `time.time()` patterns   | `PrecisionTimer` methods                     |
+| `datetime.now().strftime()` calls          | `get_timestamp()`                            |
+| Manual `yaml.dump()`/`yaml.load()` calls   | `YamlConfig` subclass                        |
+| `multiprocessing.Array` or `Value` usage   | `SharedMemoryArray`                          |
+| Direct file writes in acquisition loops    | `DataLogger` + `LogPackage`                  |
+| `os.makedirs()` or `Path.mkdir()` patterns | `ensure_directory_exists()`                  |
 
 Report each replacement opportunity with the file location and the suggested library alternative.
 
@@ -189,12 +189,12 @@ For small dependencies (fewer than 15 exports), read the APIs directly without s
 
 ## Related skills
 
-| Skill               | Relationship                                                          |
-|---------------------|-----------------------------------------------------------------------|
-| `/python-style`     | Requires this skill before writing code that uses ataraxis features   |
-| `/pyproject-style`  | Manages dependency versions and additions; defer dependency changes   |
-| `/explore-codebase` | Explores project structure; complements dependency exploration        |
-| `/commit`           | Invoke after completing code changes informed by the API snapshot     |
+| Skill               | Relationship                                                        |
+|---------------------|---------------------------------------------------------------------|
+| `/python-style`     | Requires this skill before writing code that uses ataraxis features |
+| `/pyproject-style`  | Manages dependency versions and additions; defer dependency changes |
+| `/explore-codebase` | Explores project structure; complements dependency exploration      |
+| `/commit`           | Invoke after completing code changes informed by the API snapshot   |
 
 ---
 

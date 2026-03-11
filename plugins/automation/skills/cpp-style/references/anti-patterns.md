@@ -30,20 +30,20 @@ reviewing code before submission.
 
 ## Documentation violations
 
-| Wrong                                           | Correct                                         | Rule                          |
-|-------------------------------------------------|-------------------------------------------------|-------------------------------|
-| No documentation on class                       | `/** @brief Provides... */`                     | Document ALL members          |
-| No documentation on private method              | `/// Reads the encoder pulse counter.`          | Document ALL members          |
-| `// This class manages...`                      | `/** @brief Manages... */`                      | Use Doxygen syntax            |
-| `/** \brief Sends data */`                      | `/** @brief Sends data. */`                     | Use @tag not \tag syntax      |
-| `@param pin - the pin number`                   | `@param pin the pin number.`                    | No dash after @param          |
-| `@brief This method sends...`                   | `@brief Sends...`                               | Third-person imperative       |
-| `@brief A class that manages...`                | `@brief Manages...`                             | No articles in brief          |
-| `@return the value`                             | `@returns the value.`                           | Use @returns not @return      |
-| Missing `@file` at top of file                  | `/** @file @brief Provides... */`               | Every file needs @file        |
-| Bullet list in @brief details                   | Flowing prose paragraph                         | Prose over lists              |
-| `@param` before `@tparam`                       | `@tparam` before `@param`                       | Follow tag ordering           |
-| `bool is_enabled`  `///< Checks if enabled.`    | `bool is_enabled`  `///< Determines whether...` | Boolean "Determines whether"  |
+| Wrong                                        | Correct                                         | Rule                         |
+|----------------------------------------------|-------------------------------------------------|------------------------------|
+| No documentation on class                    | `/** @brief Provides... */`                     | Document ALL members         |
+| No documentation on private method           | `/// Reads the encoder pulse counter.`          | Document ALL members         |
+| `// This class manages...`                   | `/** @brief Manages... */`                      | Use Doxygen syntax           |
+| `/** \brief Sends data */`                   | `/** @brief Sends data. */`                     | Use @tag not \tag syntax     |
+| `@param pin - the pin number`                | `@param pin the pin number.`                    | No dash after @param         |
+| `@brief This method sends...`                | `@brief Sends...`                               | Third-person imperative      |
+| `@brief A class that manages...`             | `@brief Manages...`                             | No articles in brief         |
+| `@return the value`                          | `@returns the value.`                           | Use @returns not @return     |
+| Missing `@file` at top of file               | `/** @file @brief Provides... */`               | Every file needs @file       |
+| Bullet list in @brief details                | Flowing prose paragraph                         | Prose over lists             |
+| `@param` before `@tparam`                    | `@tparam` before `@param`                       | Follow tag ordering          |
+| `bool is_enabled`  `///< Checks if enabled.` | `bool is_enabled`  `///< Determines whether...` | Boolean "Determines whether" |
 
 ---
 
@@ -67,19 +67,19 @@ reviewing code before submission.
 
 ## Type and const violations
 
-| Wrong                                  | Correct                                         | Rule                             |
-|----------------------------------------|-------------------------------------------------|----------------------------------|
-| `int status`                           | `uint8_t status`                                | Fixed-width integer types        |
-| `short value`                          | `int16_t value`                                 | Fixed-width integer types        |
-| `long duration`                        | `uint32_t duration`                             | Fixed-width integer types        |
-| `unsigned int size`                    | `uint32_t size`                                 | Fixed-width integer types        |
-| Missing `const` on unchanged local     | `const int32_t new_motion = ...`                | const correctness                |
-| Missing `const` on value parameter     | `void Foo(const uint8_t pin)`                   | const value parameters           |
-| Missing `explicit` on constructor      | `explicit TransportLayer(Stream& port)`         | Prevent implicit conversions     |
-| Missing `[[nodiscard]]` on getter      | `[[nodiscard]] bool ReadData(...) const`        | Mark pure query methods          |
-| Missing `override` on virtual          | `bool RunActiveCommand() override`              | Enforced by clang-tidy           |
-| Missing `final` on leaf class          | `class EncoderModule final : public Module`     | Prevent unintended subclassing   |
-| `auto result = Process()`              | `uint8_t result = Process()`                    | Explicit types preferred         |
+| Wrong                              | Correct                                     | Rule                           |
+|------------------------------------|---------------------------------------------|--------------------------------|
+| `int status`                       | `uint8_t status`                            | Fixed-width integer types      |
+| `short value`                      | `int16_t value`                             | Fixed-width integer types      |
+| `long duration`                    | `uint32_t duration`                         | Fixed-width integer types      |
+| `unsigned int size`                | `uint32_t size`                             | Fixed-width integer types      |
+| Missing `const` on unchanged local | `const int32_t new_motion = ...`            | const correctness              |
+| Missing `const` on value parameter | `void Foo(const uint8_t pin)`               | const value parameters         |
+| Missing `explicit` on constructor  | `explicit TransportLayer(Stream& port)`     | Prevent implicit conversions   |
+| Missing `[[nodiscard]]` on getter  | `[[nodiscard]] bool ReadData(...) const`    | Mark pure query methods        |
+| Missing `override` on virtual      | `bool RunActiveCommand() override`          | Enforced by clang-tidy         |
+| Missing `final` on leaf class      | `class EncoderModule final : public Module` | Prevent unintended subclassing |
+| `auto result = Process()`          | `uint8_t result = Process()`                | Explicit types preferred       |
 
 ---
 
@@ -134,16 +134,16 @@ reviewing code before submission.
 
 These violations break the visual consistency across Python, C#, and C++:
 
-| Wrong                                               | Correct                                       | Rule                           |
-|-----------------------------------------------------|-----------------------------------------------|--------------------------------|
-| 80-char line limit                                  | 120-char line limit                           | All languages use 120          |
-| 2-space indentation                                 | 4-space indentation                           | All languages use 4 spaces     |
-| Tab indentation                                     | Space indentation                             | All languages use spaces       |
-| K&R brace style                                     | Allman brace style                            | C++ and C# use Allman          |
-| `Process()` as method name                          | `ProcessData()` or specific verb phrase       | Descriptive verb phrases       |
-| `int p` as parameter name                           | `int32_t position` with full word             | Full words across all langs    |
-| No documentation on private member                  | Document all members                          | All languages document all     |
-| "This class manages..." in doc                      | "Manages..." in doc                           | Imperative mood in all langs   |
+| Wrong                              | Correct                                 | Rule                         |
+|------------------------------------|-----------------------------------------|------------------------------|
+| 80-char line limit                 | 120-char line limit                     | All languages use 120        |
+| 2-space indentation                | 4-space indentation                     | All languages use 4 spaces   |
+| Tab indentation                    | Space indentation                       | All languages use spaces     |
+| K&R brace style                    | Allman brace style                      | C++ and C# use Allman        |
+| `Process()` as method name         | `ProcessData()` or specific verb phrase | Descriptive verb phrases     |
+| `int p` as parameter name          | `int32_t position` with full word       | Full words across all langs  |
+| No documentation on private member | Document all members                    | All languages document all   |
+| "This class manages..." in doc     | "Manages..." in doc                     | Imperative mood in all langs |
 
 ---
 

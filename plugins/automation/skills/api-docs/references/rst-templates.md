@@ -63,14 +63,18 @@ GitHub repository for installation instructions and library usage examples:
   canonical description locations for the project archetype (e.g., `pyproject.toml`, `__init__.py`,
   `README.md`, or `library.json`). No language prefix ("A Python library that...") and no project
   name prefix ("project-name is...").
+- For Ataraxis projects, the second paragraph MUST include the standard Ataraxis attribution
+  sentence. For non-Ataraxis projects, this paragraph is optional or may contain other
+  project-relevant context. Either way, additional project-relevant context (e.g., companion
+  libraries, related hardware) MAY be included after the attribution when appropriate.
 - The GitHub URL uses the `Sun-Lab-NBB` organization.
 
 ### Placeholders
 
-| Placeholder             | Description                              | Example                             |
-|-------------------------|------------------------------------------|-------------------------------------|
-| `<PROJECT_NAME>`        | Project name matching pyproject.toml     | `ataraxis-time`                     |
-| `<PROJECT_DESCRIPTION>` | Bare project description, imperative     | `Provides high-precision timers...` |
+| Placeholder             | Description                          | Example                             |
+|-------------------------|--------------------------------------|-------------------------------------|
+| `<PROJECT_NAME>`        | Project name matching pyproject.toml | `ataraxis-time`                     |
+| `<PROJECT_DESCRIPTION>` | Bare project description, imperative | `Provides high-precision timers...` |
 
 ---
 

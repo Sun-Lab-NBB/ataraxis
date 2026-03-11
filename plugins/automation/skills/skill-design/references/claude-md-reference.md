@@ -58,11 +58,11 @@ These rules apply only when working with Python files in the src/ or tests/ dire
 
 ### When to use modular rules
 
-| Approach             | When to use                                                  |
-|----------------------|--------------------------------------------------------------|
-| CLAUDE.md inline     | Instructions that apply to all work in the project           |
-| `.claude/rules/*.md` | Topic-specific rules (e.g., Python, Docker, CI)              |
-| Path-specific rules  | Rules scoped to specific directories or file types           |
+| Approach             | When to use                                        |
+|----------------------|----------------------------------------------------|
+| CLAUDE.md inline     | Instructions that apply to all work in the project |
+| `.claude/rules/*.md` | Topic-specific rules (e.g., Python, Docker, CI)    |
+| Path-specific rules  | Rules scoped to specific directories or file types |
 
 ---
 
@@ -85,14 +85,14 @@ be shared with the team:
 
 Use these weighted criteria when evaluating CLAUDE.md quality:
 
-| Criterion            | Weight | Description                                                 |
-|----------------------|--------|-------------------------------------------------------------|
-| Commands/workflows   | High   | Copy-paste ready commands for build, test, lint, deploy     |
-| Architecture clarity | High   | Clear directory structure and component relationships       |
-| Non-obvious patterns | Medium | Project-specific gotchas and conventions                    |
-| Conciseness          | Medium | Dense, information-rich content without filler              |
-| Currency             | High   | Up-to-date with current codebase state                      |
-| Actionability        | High   | Every instruction leads to a concrete action                |
+| Criterion            | Weight | Description                                             |
+|----------------------|--------|---------------------------------------------------------|
+| Commands/workflows   | High   | Copy-paste ready commands for build, test, lint, deploy |
+| Architecture clarity | High   | Clear directory structure and component relationships   |
+| Non-obvious patterns | Medium | Project-specific gotchas and conventions                |
+| Conciseness          | Medium | Dense, information-rich content without filler          |
+| Currency             | High   | Up-to-date with current codebase state                  |
+| Actionability        | High   | Every instruction leads to a concrete action            |
 
 ---
 

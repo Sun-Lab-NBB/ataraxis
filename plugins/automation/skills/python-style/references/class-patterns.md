@@ -139,10 +139,10 @@ Common `__post_init__` uses:
 
 ### Base class selection
 
-| Base Class | Use Case                                           | Example                |
-|------------|----------------------------------------------------|------------------------|
-| `StrEnum`  | Human-readable identifiers, string-based matching  | Session types, modes   |
-| `IntEnum`  | Fixed numeric codes, protocol values, status codes | Log IDs, MQTT codes    |
+| Base Class | Use Case                                           | Example              |
+|------------|----------------------------------------------------|----------------------|
+| `StrEnum`  | Human-readable identifiers, string-based matching  | Session types, modes |
+| `IntEnum`  | Fixed numeric codes, protocol values, status codes | Log IDs, MQTT codes  |
 
 ```python
 from enum import IntEnum, StrEnum

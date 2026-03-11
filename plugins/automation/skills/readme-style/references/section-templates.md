@@ -20,13 +20,13 @@ and no project name prefix ("project-name is...").
 
 The canonical description locations vary by archetype:
 
-| Archetype              | Canonical locations                                             |
-|------------------------|-----------------------------------------------------------------|
-| Python-only            | `pyproject.toml`, `__init__.py`, `welcome.rst`, `README.md`    |
-| Python + C++ extension | `pyproject.toml`, `__init__.py`, `welcome.rst`, `README.md`    |
-| C++ PlatformIO library | `library.json`, `welcome.rst`, `README.md`                     |
-| C++ PlatformIO firmware| `welcome.rst`, `README.md`                                     |
-| C# Unity               | `README.md`                                                    |
+| Archetype               | Canonical locations                                         |
+|-------------------------|-------------------------------------------------------------|
+| Python-only             | `pyproject.toml`, `__init__.py`, `welcome.rst`, `README.md` |
+| Python + C++ extension  | `pyproject.toml`, `__init__.py`, `welcome.rst`, `README.md` |
+| C++ PlatformIO library  | `library.json`, `welcome.rst`, `README.md`                  |
+| C++ PlatformIO firmware | `welcome.rst`, `README.md`                                  |
+| C# Unity                | `README.md`                                                 |
 
 ---
 
