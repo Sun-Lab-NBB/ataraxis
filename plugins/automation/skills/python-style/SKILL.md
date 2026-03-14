@@ -230,11 +230,8 @@ Authors: Author Name (Handle)
 from .module_one import ClassOne, function_one
 from .module_two import ClassTwo, ClassThree
 
-# Optional, per-library choice:
-# from ataraxis_base_utilities import console
-#
-# if not console.enabled:
-#     console.enable()
+# console.enable() belongs only in top-level application libraries (e.g., sl-experiment).
+# Component libraries must NOT enable console — the application entry point handles this.
 
 __all__ = [
     "ClassOne",
@@ -271,12 +268,16 @@ __all__ = [
 - **Subpackage docstring**: Use a single-line docstring describing what the subpackage provides.
   Do NOT include documentation links, source repository links, or authors — these belong only in
   the top-level library `__init__.py`
-- **Console initialization**: Enabling the global `console` in the top-level `__init__.py` is a
-  per-library choice, not a strict requirement. If `console.echo()` is called elsewhere in the
-  library without `console.enable()` present, verify with the user whether this is intentional
+- **Console initialization**: `console.enable()` belongs only in top-level application libraries
+  that serve as the final entry point (e.g., `sl-experiment`). Component and dependency libraries
+  (e.g., `ataraxis-video-system`) must NOT call `console.enable()` — the top-level application
+  is responsible for enabling the console before any component library code runs
 - **Explicit `__all__`**: Every `__init__.py` must declare `__all__` with all public API members
 - **Alphabetical sorting**: Sort `__all__` entries alphabetically
-- **No logic**: `__init__.py` files contain only imports, optional `console.enable()`, and `__all__`
+- **One-time configuration logic**: `__init__.py` files may contain logic that benefits from
+  being executed exactly once on import (e.g., setting the multiprocessing start method,
+  configuring environment variables for platform compatibility). Beyond that, `__init__.py` files
+  should contain only imports and `__all__`
 
 ---
 
@@ -453,10 +454,10 @@ Python Style Compliance:
 - [ ] Import sorting delegated to ruff (do not manually reorder)
 - [ ] Local imports use direct name imports (no module imports)
 - [ ] Cross-package imports go through package __init__.py (not submodules)
-- [ ] __init__.py files have __all__ (alphabetically sorted); console.enable() is a per-library choice
+- [ ] __init__.py files have __all__ (alphabetically sorted)
 - [ ] Top-level library __init__.py has extended docstring (description, docs link, repo link, authors)
 - [ ] Subpackage __init__.py files have single-line docstrings only (no links or authors)
-- [ ] If console.echo() is used without console.enable() anywhere, verify intent with user
+- [ ] console.enable() only in top-level application libraries, not component libraries
 - [ ] Public definitions above private definitions in file
 - [ ] Enums and dataclasses above worker functions and classes
 - [ ] Definitions ordered by call hierarchy or grouped by purpose
@@ -481,5 +482,5 @@ Ataraxis Library Preferences (when ataraxis libraries are dependencies):
 - [ ] Used ataraxis library features instead of standard library equivalents where available
 - [ ] Console output uses console.echo() instead of print(); raw=True for pre-formatted content
 - [ ] Error handling uses console.error() instead of raise (when ataraxis-base-utilities available)
-- [ ] console.enable() presence verified if console.echo() is used in the library
+- [ ] console.enable() absent in component libraries (only top-level application libraries enable it)
 ```
