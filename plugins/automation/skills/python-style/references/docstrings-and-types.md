@@ -208,6 +208,8 @@ return (
 ### NumPy arrays
 
 ```python
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -220,6 +222,10 @@ def process(data: NDArray[np.float32]) -> NDArray[np.float32]:
 - Always specify dtype explicitly: `NDArray[np.float32]`, `NDArray[np.uint16]`, `NDArray[np.bool_]`
 - Never use unparameterized `NDArray`
 - Use `TYPE_CHECKING` block for `NDArray` to avoid runtime import overhead
+- Add `from __future__ import annotations` at the top of the file so that all annotations are
+  evaluated lazily as strings. This is preferred over bare `TYPE_CHECKING` guards because it
+  avoids `NameError` at runtime when an annotation references a name that is only available
+  during type checking
 
 ### Class attributes
 

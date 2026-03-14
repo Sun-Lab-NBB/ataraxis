@@ -65,8 +65,8 @@ Use dataclasses for grouping related data.
 ```python
 from dataclasses import dataclass, field
 
-# Immutable configuration - use frozen=True
-@dataclass(frozen=True)
+# Immutable configuration - use frozen=True and slots=True
+@dataclass(frozen=True, slots=True)
 class ExperimentConfig:
     """Defines configuration parameters for an experiment session."""
 
@@ -78,8 +78,8 @@ class ExperimentConfig:
     """The number of trials to run. Defaults to 10."""
 
 
-# Mutable state tracker - omit frozen=True
-@dataclass
+# Mutable state tracker - omit frozen=True, still use slots=True
+@dataclass(slots=True)
 class ProcessingState:
     """Tracks the runtime state of a processing pipeline."""
 
@@ -97,6 +97,11 @@ class ProcessingState:
 
 - Use `frozen=True` for configuration objects that should not be modified after creation
 - Omit `frozen=True` for dataclasses that require mutation (state trackers, caches, builders)
+- Use `slots=True` by default on all dataclasses. Slotted dataclasses use less memory, have
+  faster attribute access, and prevent accidental attribute creation. Omit `slots=True` only
+  when the dataclass subclasses a base that relies on `__dict__` for serialization or
+  deserialization (e.g., `YamlConfig`), or when the class otherwise requires dynamic attribute
+  assignment
 - Use `field(default_factory=...)` for mutable default values (lists, dicts, sets)
 - Use `field(repr=False)` for internal fields that should not appear in string representation
 - Document each field with inline docstrings using triple-quoted strings
@@ -107,6 +112,7 @@ class ProcessingState:
 Use `__post_init__` for validation, type conversion, and computed field initialization:
 
 ```python
+# YamlConfig subclasses must NOT use slots=True (YamlConfig relies on __dict__ for serialization)
 @dataclass
 class SessionConfig(YamlConfig):
     """Defines session configuration parameters."""

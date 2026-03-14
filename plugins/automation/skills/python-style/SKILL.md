@@ -465,6 +465,7 @@ Python Style Compliance:
 - [ ] Numba functions use cache=True
 - [ ] Decorator stacking order: @staticmethod/@classmethod, @njit, custom, @property
 - [ ] Dataclasses use frozen=True for immutable configs (omit for mutable state)
+- [ ] Dataclasses use slots=True by default (omit for YamlConfig subclasses or classes needing __dict__)
 - [ ] Enum members have inline docstrings; StrEnum for strings, IntEnum for codes
 - [ ] __repr__ uses ClassName(key=value) format; no __str__
 - [ ] Boolean checks use truthiness (not == True); None checks use `is None`
