@@ -83,7 +83,12 @@ ___
 ## Detailed description
 
 An expanded explanation of the library's purpose, typically 2-4 sentences. Placed immediately
-after the horizontal rule under a `## Detailed Description` heading:
+after the horizontal rule under a `## Detailed Description` heading.
+
+For Ataraxis ecosystem libraries, end the detailed description with a sentence linking to the
+main project: "This library is part of the
+[Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework for AI-assisted scientific
+hardware control."
 
 ```markdown
 ___
@@ -92,7 +97,9 @@ ___
 
 This library provides the shared automation pipeline for all Sun Lab Python projects. It abstracts
 project environment manipulation and facilitates development tasks such as linting, typing,
-testing, documentation, and building through a unified CLI interface.
+testing, documentation, and building through a unified CLI interface. This library is part of the
+[Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework for AI-assisted scientific hardware
+control.
 ```
 
 ---
@@ -270,24 +277,17 @@ COMMAND mcp
 | `start_video_session` | Starts a video capture session                 |
 | `stop_video_session`  | Stops the active video session                 |
 
-#### Claude Desktop Configuration
+#### Client Registration
 
-Add the following to the Claude Desktop configuration file:
-
-```json
-{
-  "mcpServers": {
-    "PACKAGE-NAME": {
-      "command": "COMMAND",
-      "args": ["mcp"]
-    }
-  }
-}
-```
+MCP server registration and Claude Code skill assets for this library are distributed through the
+[ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) marketplace as part of the **PLUGIN-NAME**
+plugin. Install the plugin from the marketplace to automatically register the MCP server with
+compatible clients and make all associated skills available.
 ````
 
 Always use a table for the Available Tools section (not a bullet list). Replace `COMMAND` with
-the actual CLI command and `PACKAGE-NAME` with the package name.
+the actual CLI command and `PLUGIN-NAME` with the name of the ataraxis marketplace plugin that
+distributes the assets for this library.
 
 ---
 
@@ -368,6 +368,13 @@ Run any environment using `tox -e ENVIRONMENT`. For example, `tox -e lint`.
 ***Note,*** all pull requests for this project have to successfully complete the `tox` task before
 being merged. To expedite the task's runtime, use the `tox --parallel` command to run some tasks
 in parallel.
+
+### AI-Assisted Development
+
+Claude Code skills and other AI development assets for this project are distributed through the
+[ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) marketplace as part of the **automation**
+plugin. Install the plugin from the marketplace to make all associated skills and development
+tools available to compatible AI coding agents.
 
 ### Automation Troubleshooting
 
