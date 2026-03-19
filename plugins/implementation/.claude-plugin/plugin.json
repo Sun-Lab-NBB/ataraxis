@@ -1,0 +1,14 @@
+{
+  "name": "implementation",
+  "version": "1.0.0",
+  "description": "Guides hardware interface implementation using Ataraxis libraries. Includes MCP bindings for interactive hardware discovery and testing.",
+  "repository": "https://github.com/Sun-Lab-NBB/ataraxis",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "mcpServers": {
+    "ataraxis-video-system": {
+      "command": "axvs",
+      "args": ["mcp"]
+    }
+  }
+}
