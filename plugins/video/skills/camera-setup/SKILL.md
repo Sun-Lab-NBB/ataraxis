@@ -9,9 +9,9 @@ user-invocable: true
 
 # Camera setup
 
-Guides use of the ataraxis-video-system MCP tools for system verification, camera discovery, interactive testing, and
-GenICam configuration. This skill covers all MCP tool interactions; for writing code that integrates VideoSystem into an
-acquisition system, use `/camera-interface` instead.
+Guides the use of the ataraxis-video-system MCP tools for system verification, camera discovery, interactive testing, 
+and GenICam configuration. This skill covers all MCP tool interactions; for writing code that integrates VideoSystem 
+into an acquisition system, use `/camera-interface` instead.
 
 ---
 
@@ -32,7 +32,9 @@ acquisition system, use `/camera-interface` instead.
 
 ## MCP tool reference
 
-The ataraxis-video-system MCP server exposes 13 tools organized into four groups.
+The ataraxis-video-system MCP server exposes 28 tools. This skill covers the 15 tools most relevant to
+camera setup, organized into five groups. Log processing and analysis tools are documented in
+`/log-processing` and `/log-processing-results`.
 
 ### System verification
 
@@ -136,6 +138,29 @@ disconnect.
 - **Always ask the user** for the `output_file` or `config_file` path before calling these tools
 - `strict_identity` (default `false`): when `true`, aborts if camera model/serial does not match the config file;
   when `false`, warns but proceeds
+
+### Camera manifest management
+
+Camera manifests (`camera_manifest.yaml`) identify which log archives in a DataLogger output directory were
+produced by ataraxis-video-system and associate each source ID with a human-readable name. Manifests are
+written automatically by `VideoSystem.__init__()` and by `start_video_session`. These tools provide manual
+manifest management for retroactive tagging or inspection.
+
+| Tool                         | Parameters                           | Purpose                                         |
+|------------------------------|--------------------------------------|-------------------------------------------------|
+| `read_camera_manifest_tool`  | `manifest_path`                      | Reads a manifest and returns its source entries |
+| `write_camera_manifest_tool` | `log_directory`, `source_id`, `name` | Registers a camera source in the manifest       |
+
+**`read_camera_manifest_tool` return structure:**
+
+```text
+{"manifest_path": "/path/to/camera_manifest.yaml", "sources": [{"id": 51, "name": "face_camera"}], "total_sources": 1}
+```
+
+**`write_camera_manifest_tool` behavior:**
+- Creates a new manifest if one does not exist; appends to the existing manifest otherwise
+- The `name` parameter must be a non-empty string (e.g., `"face_camera"`, `"body_camera"`)
+- Use this tool to retroactively tag log archives from sessions that predate the manifest system
 
 ---
 
@@ -261,6 +286,7 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 | `quantization_parameter` | `quantization_parameter` | Same (`int`)                                                        |
 | (fixed at 112)           | `system_id`              | Code should use 51-100 range                                        |
 | (auto-created)           | `data_logger`            | Code must create and manage DataLogger                              |
+| (fixed: `"live_camera"`) | `name`                   | **New required param**; code must provide a descriptive camera name |
 
 ### System ID semantics
 

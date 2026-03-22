@@ -20,6 +20,8 @@ from ataraxis_video_system import (
     CameraInformation,
     GenicamNodeInfo,
     GenicamConfiguration,
+    CameraManifest,
+    CameraSourceData,
     # Discovery and CTI
     discover_camera_ids,
     add_cti_file,
@@ -29,6 +31,7 @@ from ataraxis_video_system import (
     check_gpu_availability,
     # Configuration
     DEFAULT_BLACKLISTED_NODES,
+    CAMERA_MANIFEST_FILENAME,
     # Log processing
     run_log_processing_pipeline,
 )
@@ -46,6 +49,7 @@ The main orchestration class for camera acquisition and video encoding.
 VideoSystem(
     system_id: np.uint8,
     data_logger: DataLogger,
+    name: str,
     output_directory: Path | None,
     camera_interface: CameraInterfaces | str = CameraInterfaces.OPENCV,
     camera_index: int = 0,
@@ -69,6 +73,7 @@ VideoSystem(
 |--------------------------|------------------------------|----------|-----------------------------|--------------------------------------------------------------------------------------------------------|
 | `system_id`              | `np.uint8`                   | Yes      | -                           | Unique identifier for DataLogger timestamp correlation                                                 |
 | `data_logger`            | `DataLogger`                 | Yes      | -                           | Shared logger instance (must be started)                                                               |
+| `name`                   | `str`                        | Yes      | -                           | Human-readable camera name (e.g., `"face_camera"`). Written to camera manifest for archive identification. |
 | `output_directory`       | `Path \| None`               | Yes      | -                           | Directory for video output (None disables saving)                                                      |
 | `camera_interface`       | `CameraInterfaces \| str`    | No       | `CameraInterfaces.OPENCV`   | Camera backend: HARVESTERS, OPENCV, or MOCK                                                            |
 | `camera_index`           | `int`                        | No       | `0`                         | Camera index from discovery functions                                                                  |
@@ -84,6 +89,7 @@ VideoSystem(
 | `color`                  | `bool \| None`               | No       | `None`                      | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
 
 **Notes:**
+- `name` is written to a `camera_manifest.yaml` file in the DataLogger output directory during `__init__()`, associating the `system_id` with the human-readable name for downstream archive identification
 - `frame_width`, `frame_height`, and `frame_rate` default to the camera's native values when set to None
 - `color` is only used by OpenCV and Mock interfaces; Harvesters cameras determine color mode from their GenICam config
 - The output video file is named `{system_id:03d}.mp4` in the output directory
@@ -232,6 +238,39 @@ config.to_yaml(file_path=Path("camera_config.yaml"))
 config = GenicamConfiguration.from_yaml(file_path=Path("camera_config.yaml"))
 ```
 
+### CameraSourceData
+
+Stores identification data for a single camera source in a log manifest:
+
+```python
+@dataclass(frozen=True, slots=True)
+class CameraSourceData:
+    id: int = 0              # Source ID (matches VideoSystem system_id)
+    name: str = ""           # Human-readable name (e.g., "face_camera")
+```
+
+### CameraManifest
+
+Stores camera source identification data for all VideoSystem instances sharing a DataLogger. Extends
+`YamlConfig` with `to_yaml()` and `from_yaml()` methods:
+
+```python
+@dataclass
+class CameraManifest(YamlConfig):
+    sources: list[CameraSourceData] = field(default_factory=list)
+```
+
+Written automatically by `VideoSystem.__init__()` to the DataLogger output directory as
+`camera_manifest.yaml`. Used by `discover_recording_log_archives_tool` to identify axvs-produced
+log archives.
+
+### Constants
+
+| Constant                     | Type            | Value                       | Description                                      |
+|------------------------------|-----------------|-----------------------------|--------------------------------------------------|
+| `CAMERA_MANIFEST_FILENAME`   | `str`           | `"camera_manifest.yaml"`    | Filename for camera manifest files               |
+| `DEFAULT_BLACKLISTED_NODES`  | `frozenset[str]`| (3 entries)                 | GenICam nodes excluded from configuration dumps  |
+
 ---
 
 ## Discovery Functions
@@ -305,12 +344,18 @@ Not exported in `__all__`; import directly from `ataraxis_video_system.log_proce
 
 ```python
 def extract_logged_camera_timestamps(
-    log_path: Path, n_workers: int = -1, *, display_progress: bool = True,
+    log_path: Path,
+    n_workers: int = -1,
+    *,
+    display_progress: bool = True,
+    executor: ProcessPoolExecutor | None = None,
 ) -> NDArray[np.uint64]
 ```
 
 Extracts frame acquisition timestamps from a DataLogger `.npz` archive. Returns a contiguous numpy array of
-timestamps as microseconds since UTC epoch, in frame order.
+timestamps as microseconds since UTC epoch, in frame order. When an `executor` is provided, parallel work is
+submitted to the shared pool instead of creating a new `ProcessPoolExecutor` per call (used by MCP batch
+processing for worker-tier pool sharing).
 
 ---
 
@@ -418,6 +463,7 @@ if __name__ == "__main__":
     camera = VideoSystem(
         system_id=np.uint8(51),
         data_logger=logger,
+        name="test_camera",
         output_directory=output_dir,
         camera_interface=CameraInterfaces.OPENCV,
         camera_index=0,
@@ -473,6 +519,7 @@ if __name__ == "__main__":
     camera = VideoSystem(
         system_id=np.uint8(51),
         data_logger=logger,
+        name="behavior_camera",
         output_directory=Path("/data/session"),
         camera_interface=CameraInterfaces.HARVESTERS,
         camera_index=harvesters_cameras[0].camera_index,

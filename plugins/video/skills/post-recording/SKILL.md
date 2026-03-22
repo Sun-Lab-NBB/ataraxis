@@ -110,15 +110,19 @@ manual assembly tool.
 
 ### Archive verification tool
 
-| Tool                                   | Purpose                                       |
-|----------------------------------------|-----------------------------------------------|
-| `discover_recording_log_archives_tool` | Verifies `.npz` archives exist after assembly |
+| Tool                                   | Purpose                                                                           |
+|----------------------------------------|-----------------------------------------------------------------------------------|
+| `discover_recording_log_archives_tool` | Verifies archives, video files, and manifests exist via manifest-based discovery  |
 
 **Parameters:**
 
-| Parameter        | Type  | Default    | Description                                    |
-|------------------|-------|------------|------------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to root directory to search      |
+| Parameter        | Type  | Default    | Description                                             |
+|------------------|-------|------------|---------------------------------------------------------|
+| `root_directory` | `str` | (required) | Absolute path to root directory to search for manifests |
+
+**Note:** This tool requires `camera_manifest.yaml` files to exist in DataLogger output directories.
+These manifests are written automatically by `VideoSystem.__init__()`. For each manifest source, the
+tool locates the corresponding log archive, video file, and processed feather output.
 
 ---
 
@@ -137,8 +141,10 @@ You MUST follow these steps after every recording session.
 
 3. **Verify archive assembly** — If `archives_assembled` is `true` in the stop response, call
    `discover_recording_log_archives_tool` with the recording root to confirm archives exist for all expected
-   source IDs. If `archives_assembled` is `false`, call `assemble_log_archives_tool` with the `log_directory`
-   path, then verify with the discovery tool.
+   source IDs. The discovery tool uses manifest-based routing, so it requires a `camera_manifest.yaml` in
+   the log directory (written automatically by `VideoSystem.__init__()`). Each source in the response
+   includes a `log_archive` field (path or `null`). If `archives_assembled` is `false`, call
+   `assemble_log_archives_tool` with the `log_directory` path, then verify with the discovery tool.
 
 4. **Cross-reference frame counts** — Compare the video `frame_count` from `validate_video_file_tool` with the
    archive message count from the discovery tool. These should be approximately equal (within 1-2 frames due to
@@ -159,6 +165,11 @@ Use `assemble_log_archives_tool` when:
 
 After calling the tool, verify the result with `discover_recording_log_archives_tool` to confirm all expected
 source IDs have corresponding `.npz` archives.
+
+**Note:** `discover_recording_log_archives_tool` requires a `camera_manifest.yaml` in the log directory.
+For MCP and code-based sessions using the current library version, this manifest is written automatically.
+For legacy sessions without manifests, use `write_camera_manifest_tool` (see `/camera-setup`) to
+retroactively register camera sources before running discovery.
 
 ---
 
@@ -182,6 +193,8 @@ source IDs have corresponding `.npz` archives.
 - These cross-checks can only be fully validated after log processing completes via `/log-processing-results`.
   At this stage, use the archive message count from `discover_recording_log_archives_tool` for a rough
   comparison.
+- Processed output (feather files and tracker) is written to a `camera_data/` subdirectory under the
+  output directory, not directly into the log directory.
 
 ---
 

@@ -151,13 +151,14 @@ A single shared DataLogger is the preferred topology for all use cases:
 
 ```text
 DataLogger(instance_name="session")
-  ├── VideoSystem(system_id=51) → 051_log.npz
-  ├── VideoSystem(system_id=52) → 052_log.npz
-  └── VideoSystem(system_id=53) → 053_log.npz
+  ├── VideoSystem(system_id=51, name="face_camera")    → 051_log.npz + camera_manifest.yaml
+  ├── VideoSystem(system_id=52, name="body_camera")    → 052_log.npz
+  └── VideoSystem(system_id=53, name="arena_camera")   → 053_log.npz
 ```
 
 All cameras share one log directory, all timestamps are correlated, one `assemble_log_archives` call
-consolidates everything, and one processing batch covers all source IDs.
+consolidates everything, and one processing batch covers all source IDs. Each VideoSystem writes an
+entry to `camera_manifest.yaml` during initialization, enabling manifest-based discovery downstream.
 
 Multiple DataLoggers should only be used if a single logger cannot handle the load, leading to excessive
 buffering. This is extremely rare in practice. When it does occur, each DataLogger creates a separate
@@ -201,12 +202,14 @@ session_directory = Path("/path/to/session")
 logger = DataLogger(output_directory=session_directory, instance_name="session")
 logger.start()
 
-# Initializes and starts each camera with a unique system ID.
+# Initializes and starts each camera with a unique system ID and descriptive name.
 cameras: list[VideoSystem] = []
-for camera_id, camera_index in [(51, 0), (52, 1), (53, 2)]:
+camera_configs = [(51, 0, "face_camera"), (52, 1, "body_camera"), (53, 2, "arena_camera")]
+for camera_id, camera_index, camera_name in camera_configs:
     camera = VideoSystem(
         system_id=np.uint8(camera_id),
         data_logger=logger,
+        name=camera_name,
         output_directory=session_directory,
         camera_interface=CameraInterfaces.HARVESTERS,
         camera_index=camera_index,
@@ -235,13 +238,15 @@ assemble_log_archives(log_directory=logger.output_directory, remove_sources=True
 
 ## Multi-camera log processing
 
-All cameras sharing a DataLogger write to the same log directory. This simplifies batch processing:
+All cameras sharing a DataLogger write to the same log directory and the same `camera_manifest.yaml`.
+This simplifies batch processing:
 
-1. `discover_recording_log_archives_tool` finds all source IDs (e.g., 051, 052, 053) in one directory
+1. `discover_recording_log_archives_tool` finds the manifest and identifies all source IDs (e.g., 51, 52, 53)
+   with their camera names, log archives, video files, and feather outputs in one call
 2. `prepare_log_processing_batch_tool` creates one job per source ID
 3. Process all source IDs in a single batch for efficiency
-4. Output: one feather file per camera (`camera_051_timestamps.feather`, `camera_052_timestamps.feather`,
-   etc.)
+4. Output: one feather file per camera under a `camera_data/` subdirectory
+   (`camera_data/camera_51_timestamps.feather`, `camera_data/camera_52_timestamps.feather`, etc.)
 
 For multi-DataLogger setups, process each DataLogger output directory as a separate batch.
 

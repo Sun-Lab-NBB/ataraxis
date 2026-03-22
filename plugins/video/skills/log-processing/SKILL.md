@@ -56,25 +56,35 @@ preparing the batch — present the default (same as log directory) and ask if t
 
 ### Discovery tools
 
-| Tool                                   | Purpose                                                                     |
-|----------------------------------------|-----------------------------------------------------------------------------|
-| `discover_recording_log_archives_tool` | Recursively finds .npz archives, groups by recording root and log directory |
+| Tool                                   | Purpose                                                                           |
+|----------------------------------------|-----------------------------------------------------------------------------------|
+| `discover_recording_log_archives_tool` | Searches for camera manifests, locates archives, video files, and feather outputs |
+
+Uses **manifest-based routing**: recursively searches for `camera_manifest.yaml` files under the root
+directory. Each manifest identifies a DataLogger output directory containing axvs-produced log archives.
+For each manifest source, locates the corresponding log archive, video file, and processed feather output.
 
 **Parameters:**
 
-| Parameter        | Type  | Default    | Description                                      |
-|------------------|-------|------------|--------------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to the root directory to search    |
+| Parameter        | Type  | Default    | Description                                             |
+|------------------|-------|------------|---------------------------------------------------------|
+| `root_directory` | `str` | (required) | Absolute path to the root directory to search           |
 
 **Return structure:**
 ```text
-recordings:        Hierarchical mapping {recording_root: {log_directory: {source_ids, archive_count}}}
-log_directories:   Flat list of log directory paths (pass directly to prepare tool)
-all_source_ids:    Union of all discovered source IDs
-total_recordings:  Number of recording roots found
+recordings:            Hierarchical mapping {recording_root: {log_directories: {log_dir: {source_ids, sources, archive_count}}}}
+  sources[]:           Per-source data: id, name, log_archive (path or null), video_file (path or null), feather_file (path or null)
+log_directories:       Flat list of log directory paths (pass directly to prepare tool)
+all_source_ids:        Union of all discovered source IDs
+total_recordings:      Number of recording roots found
 total_log_directories: Number of log directories found
-total_archives:    Total number of .npz archive files found
+total_archives:        Total number of .npz archive files found
 ```
+
+**Important:** This tool requires `camera_manifest.yaml` files to exist in DataLogger output directories.
+These manifests are written automatically by `VideoSystem.__init__()` when the `name` parameter is provided.
+For legacy sessions without manifests, use `write_camera_manifest_tool` (see `/camera-setup`) to
+retroactively tag log directories before running discovery.
 
 ### Preparation and execution tools
 
@@ -100,13 +110,15 @@ total_archives:    Total number of .npz archive files found
 
 ### Monitoring and management tools
 
-| Tool                             | Purpose                                                |
-|----------------------------------|--------------------------------------------------------|
-| `get_log_processing_status_tool` | Per-job status of active execution session             |
-| `get_log_processing_timing_tool` | Per-job timing and session-level throughput            |
-| `cancel_log_processing_tool`     | Cancels active session, clears pending queue           |
-| `reset_log_processing_jobs_tool` | Resets specific or all jobs to SCHEDULED for retry     |
-| `get_batch_status_overview_tool` | Aggregate status across all log directories under root |
+| Tool                                | Purpose                                                        |
+|-------------------------------------|----------------------------------------------------------------|
+| `get_log_processing_status_tool`    | Per-job status of active execution session                     |
+| `get_log_processing_timing_tool`    | Per-job timing and session-level throughput                    |
+| `cancel_log_processing_tool`        | Cancels active session, clears pending queue                   |
+| `reset_log_processing_jobs_tool`    | Resets specific or all jobs to SCHEDULED for retry             |
+| `get_batch_status_overview_tool`    | Aggregate status across all log directories under root         |
+| `get_log_directory_status_tool`     | Processing status for a single output directory (no recursion) |
+| `clean_log_processing_output_tool`  | Deletes `camera_data/` subdirectory for re-processing          |
 
 **`reset_log_processing_jobs_tool` parameters:**
 
@@ -120,6 +132,26 @@ total_archives:    Total number of .npz archive files found
 | Parameter        | Type  | Default    | Description                                            |
 |------------------|-------|------------|--------------------------------------------------------|
 | `root_directory` | `str` | (required) | Absolute path to root directory to search for trackers |
+
+**`get_log_directory_status_tool` parameters:**
+
+| Parameter          | Type  | Default    | Description                                                         |
+|--------------------|-------|------------|---------------------------------------------------------------------|
+| `output_directory` | `str` | (required) | Absolute path to output directory containing `camera_data/` results |
+
+Returns processing status (`not_started`, `processing`, `completed`, `failed`, `in_progress`)
+with per-job details and a summary. Use this for targeted status queries on individual directories
+instead of `get_batch_status_overview_tool`, which scans an entire directory tree recursively.
+
+**`clean_log_processing_output_tool` parameters:**
+
+| Parameter          | Type  | Default    | Description                                                           |
+|--------------------|-------|------------|-----------------------------------------------------------------------|
+| `output_directory` | `str` | (required) | Absolute path to output directory containing `camera_data/` to delete |
+
+Deletes the entire `camera_data/` subdirectory and all contents (feather files, tracker). After
+cleanup, the output directory can be passed to `prepare_log_processing_batch_tool` to reinitialize
+from scratch.
 
 ---
 
@@ -135,8 +167,12 @@ Key architectural facts:
 - **ProcessingTracker** manages job lifecycle: `SCHEDULED` → `RUNNING` → `SUCCEEDED` / `FAILED` via YAML state files
 - **Single execution session** constraint: only one batch execution can run at a time
 - **Parallel processing** activates automatically for archives with >2000 messages
+- **Output layout:** All processing output is written under a `camera_data/` subdirectory within the
+  output directory (which defaults to the log directory when no custom output path is specified)
 - **Output naming:** `camera_{source_id}_timestamps.feather` (Feather IPC format)
 - **Tracker filename:** `camera_processing_tracker.yaml`
+- **Cleanup:** Use `clean_log_processing_output_tool` to delete the `camera_data/` subdirectory and
+  reinitialize processing from scratch
 
 ---
 
@@ -263,9 +299,13 @@ When using `get_batch_status_overview_tool` for multi-directory status:
 
 ## Re-running failed jobs
 
-1. Identify failed jobs from `get_log_processing_status_tool` output (check `error_message` field)
+1. Identify failed jobs from `get_log_processing_status_tool` or `get_log_directory_status_tool` output
+   (check `error_message` field)
 2. Call `reset_log_processing_jobs_tool` with the tracker path and failed source IDs
 3. Re-prepare or re-execute the reset jobs using the same workflow
+
+To re-process an entire directory from scratch, call `clean_log_processing_output_tool` to delete the
+`camera_data/` subdirectory, then re-prepare and re-execute.
 
 ---
 
@@ -290,11 +330,13 @@ When using `get_batch_status_overview_tool` for multi-directory status:
 
 ### Processing failure routing
 
-| Error Pattern                            | Action                                              |
-|------------------------------------------|-----------------------------------------------------|
-| Archive not found / file read errors     | Verify .npz archives exist in log directory         |
-| MCP tools unavailable                    | Invoke `/mcp-environment-setup`                     |
-| Out of memory                            | Reduce `worker_budget`                              |
+| Error Pattern                        | Action                                                        |
+|--------------------------------------|---------------------------------------------------------------|
+| Archive not found / file read errors | Verify .npz archives exist in log directory                   |
+| MCP tools unavailable                | Invoke `/mcp-environment-setup`                               |
+| Out of memory                        | Reduce `worker_budget`                                        |
+| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare      |
+| Need status for single directory     | Use `get_log_directory_status_tool` instead of batch overview |
 
 ---
 
@@ -318,9 +360,10 @@ Log Processing Workflow:
 - [ ] Archives discovered via `discover_recording_log_archives_tool`
 - [ ] Log directories confirmed with user
 - [ ] Batch prepared via `prepare_log_processing_batch_tool`
+- [ ] Output written to `camera_data/` subdirectory under each output directory
 - [ ] Resource allocation confirmed with user
 - [ ] Jobs executed via `execute_log_processing_jobs_tool`
-- [ ] Status monitored until all jobs complete or fail
-- [ ] Failed jobs investigated and retried if needed
+- [ ] Status monitored until all jobs complete or fail (use `get_log_directory_status_tool` for targeted checks)
+- [ ] Failed jobs investigated and retried if needed (use `clean_log_processing_output_tool` for full reset)
 - [ ] Successful output verified via `/log-processing-results`
 ```

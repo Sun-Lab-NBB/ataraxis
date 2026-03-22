@@ -40,15 +40,20 @@ with users.
 
 ### Discovery tool
 
-| Tool                                   | Purpose                                                                 |
-|----------------------------------------|-------------------------------------------------------------------------|
-| `discover_processed_camera_logs_tool`  | Discovers feather files, cross-references processing status via tracker |
+| Tool                                   | Purpose                                                                            |
+|----------------------------------------|------------------------------------------------------------------------------------|
+| `discover_recording_log_archives_tool` | Discovers manifests, log archives, video files, and feather files under a root dir |
 
 **Parameters:**
 
-| Parameter        | Type  | Default    | Description                               |
-|------------------|-------|------------|-------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to root directory to search |
+| Parameter        | Type  | Default    | Description                                             |
+|------------------|-------|------------|---------------------------------------------------------|
+| `root_directory` | `str` | (required) | Absolute path to root directory to search for manifests |
+
+This tool uses manifest-based routing: it searches for `camera_manifest.yaml` files, then for each
+manifest source locates the corresponding log archive, video file, and processed feather output. Each
+source entry in the response includes a `feather_file` field (path to the feather file, or `null` if
+not yet processed).
 
 ### Analysis tool
 
@@ -68,10 +73,11 @@ with users.
 
 ## Recommended query order
 
-1. **`discover_processed_camera_logs_tool`** — Find all feather files under the root directory and check
-   processing completeness per directory.
+1. **`discover_recording_log_archives_tool`** — Find all manifests, archives, video files, and feather
+   files under the root directory. Each source entry includes a `feather_file` path when processing
+   is complete.
 2. **`analyze_camera_frame_statistics_tool`** — Compute statistics for each camera's feather file. Call
-   once per feather file of interest.
+   once per feather file of interest. Use the `feather_file` paths from the discovery response.
 
 ---
 
@@ -79,12 +85,16 @@ with users.
 
 ### Directory structure
 
+The processing pipeline writes all output under a `camera_data/` subdirectory within the output
+directory (which defaults to the log directory when no custom output path is specified):
+
 ```text
-{log_directory}/
-├── camera_processing_tracker.yaml          # ProcessingTracker state file (job lifecycle)
-├── camera_{source_id}_timestamps.feather   # Per-camera output (one per source ID)
-├── camera_{source_id}_timestamps.feather
-└── ...
+{output_directory}/
+└── camera_data/                                    # Processing output subdirectory
+    ├── camera_processing_tracker.yaml              # ProcessingTracker state file (job lifecycle)
+    ├── camera_{source_id}_timestamps.feather       # Per-camera output (one per source ID)
+    ├── camera_{source_id}_timestamps.feather
+    └── ...
 ```
 
 ### Feather file schema
@@ -105,7 +115,8 @@ system ID string from the DataLogger archive (e.g., `camera_051_timestamps.feath
 
 ### ProcessingTracker file
 
-The `camera_processing_tracker.yaml` file tracks job lifecycle per log directory. Each job has:
+The `camera_processing_tracker.yaml` file tracks job lifecycle per output directory (inside
+`camera_data/`). Each job has:
 - **job_id:** Unique hexadecimal identifier
 - **job_name:** Always `camera_timestamp_extraction`
 - **specifier:** The source ID string
@@ -222,20 +233,50 @@ entering the field of view) indicate the encoder cannot handle peak complexity a
 
 ---
 
-## Processing status classification
+## Discovery output reference
 
-The `discover_processed_camera_logs_tool` classifies each directory into one of four statuses by
-cross-referencing feather files with the ProcessingTracker:
+The `discover_recording_log_archives_tool` returns a hierarchical structure organized by recording root.
+Each source entry includes processing output status via the `feather_file` field:
 
-| Status                | Meaning                                                                  |
-|-----------------------|--------------------------------------------------------------------------|
-| `fully_processed`     | All tracker jobs succeeded and feather files present for all source IDs  |
-| `partially_processed` | Some feather files present but tracker shows incomplete jobs             |
-| `unprocessed`         | Tracker exists but no feather files found                                |
-| `no_tracker`          | Feather files found without a tracker file (manual or legacy processing) |
+```text
+{
+    "recordings": {
+        "<recording_root>": {
+            "log_directories": {
+                "<log_dir>": {
+                    "source_ids": ["51", "52"],
+                    "sources": [
+                        {
+                            "id": 51,
+                            "name": "face_camera",
+                            "log_archive": "/path/to/51_log.npz" or null,
+                            "video_file": "/path/to/video.mp4" or null,
+                            "feather_file": "/path/to/camera_51_timestamps.feather" or null
+                        }
+                    ],
+                    "archive_count": 2
+                }
+            }
+        }
+    },
+    "log_directories": ["/path/to/log_dir1"],
+    "all_source_ids": ["51", "52"],
+    "total_recordings": 1,
+    "total_log_directories": 1,
+    "total_archives": 2
+}
+```
 
-The discovery tool also reports aggregate counts in `status_summary` and per-directory details including
-`file_count`, `total_size_bytes`, `source_ids`, and individual feather file paths with sizes.
+**Processing completeness assessment:**
+
+| `feather_file` value | Meaning                                                          |
+|----------------------|------------------------------------------------------------------|
+| Non-null path        | Processing succeeded for this source; feather file available     |
+| `null`               | Not yet processed, processing failed, or output was cleaned      |
+
+To determine detailed job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), use
+`get_log_directory_status_tool` on the output directory, or check the `camera_processing_tracker.yaml`
+file directly via `get_batch_status_overview_tool`.
 
 ---
 
@@ -254,7 +295,7 @@ The discovery tool also reports aggregate counts in `status_summary` and per-dir
 
 ```text
 Log Processing Output Completeness:
-- [ ] Feather files discovered via `discover_processed_camera_logs_tool`
+- [ ] Feather files discovered via `discover_recording_log_archives_tool`
 - [ ] All expected source IDs have corresponding feather files
 - [ ] Processing status is `fully_processed` for all directories
 - [ ] Frame statistics analyzed via `analyze_camera_frame_statistics_tool` for each camera

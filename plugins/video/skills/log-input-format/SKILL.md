@@ -20,6 +20,7 @@ archives are produced, their internal structure, and source ID semantics.
 **Covers:**
 - NPZ archive format and naming conventions
 - How DataLogger and assemble_log_archives produce archives
+- Camera manifest system for archive identification
 - Source ID semantics, assignment, and uniqueness constraints
 - Multi-logger recording structures
 - Archive internal message layout (onset, frame, data messages)
@@ -67,6 +68,33 @@ Archives are created in two phases:
 **You MUST ensure archives have been assembled before running the processing pipeline.** The pipeline
 expects `.npz` files, not raw `.npy` files. If no `.npz` archives are found during discovery, instruct
 the user to run `assemble_log_archives()` on the log directories first.
+
+### Camera manifest
+
+Each DataLogger output directory should contain a `camera_manifest.yaml` file that identifies which
+archives were produced by ataraxis-video-system. The manifest is a YAML file with the following structure:
+
+```yaml
+sources:
+- id: 51
+  name: face_camera
+- id: 52
+  name: body_camera
+```
+
+**How manifests are produced:**
+
+- **Automatic:** `VideoSystem.__init__()` writes a manifest entry to the DataLogger output directory using
+  the `name` parameter. Each VideoSystem sharing a DataLogger appends its entry to the same manifest file.
+- **MCP sessions:** `start_video_session` creates a VideoSystem with `name="live_camera"`, which writes
+  a manifest automatically.
+- **Manual:** Use `write_camera_manifest_tool` (see `/camera-setup`) to retroactively tag legacy log
+  directories that predate the manifest system.
+
+**Why manifests matter:** The `discover_recording_log_archives_tool` uses manifest-based routing to
+identify axvs-produced log archives. Directories without a `camera_manifest.yaml` will not be discovered
+by this tool. Manifests also associate source IDs with human-readable names and enable the discovery tool
+to locate corresponding video files by camera name.
 
 ---
 
@@ -119,6 +147,7 @@ recording_root/
 ├── video_051.mp4                        # Video output from VideoSystem (system_id=51)
 ├── video_052.mp4                        # Video output from VideoSystem (system_id=52)
 └── session_data_log/                    # DataLogger output (instance_name="session")
+    ├── camera_manifest.yaml             # Camera manifest (auto-written by VideoSystem.__init__)
     ├── 051_00000000000000000000.npy     # Raw logs (before assembly)
     ├── 051_00000000000001234567.npy
     ├── 052_00000000000000000000.npy
@@ -138,6 +167,7 @@ A recording session can use multiple DataLogger instances. Each creates its own 
 ```text
 recording_root/
 ├── behavior_data_log/                   # DataLogger instance_name="behavior"
+│   ├── camera_manifest.yaml             # Manifest for behavior cameras
 │   ├── 51_log.npz                       # Camera system_id=51
 │   └── 52_log.npz                       # Camera system_id=52
 └── physiology_data_log/                 # DataLogger instance_name="physiology"
@@ -220,16 +250,21 @@ processing via `ProcessPoolExecutor`.
 
 Before running the log processing pipeline, verify these conditions:
 
-1. **Archives assembled** — Log directories contain `.npz` files, not just raw `.npy` files. If only
+1. **Camera manifest present** — Log directories should contain a `camera_manifest.yaml` file for
+   `discover_recording_log_archives_tool` to locate them. If missing, use `write_camera_manifest_tool`
+   to create one. Note: the processing pipeline itself does not require manifests — they are only
+   needed for the manifest-based discovery tool.
+
+2. **Archives assembled** — Log directories contain `.npz` files, not just raw `.npy` files. If only
    `.npy` files are present, `assemble_log_archives()` must be run first.
 
-2. **Archive naming valid** — Files match the `{source_id}_log.npz` pattern. The discovery tool uses
-   `LOG_ARCHIVE_SUFFIX` (`_log.npz`) to identify archives.
+3. **Archive naming valid** — Files match the `{source_id}_log.npz` pattern. The preparation tool uses
+   `LOG_ARCHIVE_SUFFIX` (`_log.npz`) to identify archives within each log directory.
 
-3. **Onset message present** — Each archive must contain exactly one onset message (timestamp=0) with
+4. **Onset message present** — Each archive must contain exactly one onset message (timestamp=0) with
    a valid UTC epoch payload. Archives missing the onset message cannot be processed.
 
-4. **Frame messages present** — Archives must contain at least one frame message (empty payload) to
+5. **Frame messages present** — Archives must contain at least one frame message (empty payload) to
    produce output. Archives with only onset or data messages yield empty results.
 
 ---
@@ -249,6 +284,7 @@ Before running the log processing pipeline, verify these conditions:
 
 ```text
 Log Input Format:
+- [ ] Camera manifest (camera_manifest.yaml) present in log directories (for discovery tool)
 - [ ] Log directories contain assembled .npz archives (not raw .npy files)
 - [ ] Archive filenames match {source_id}_log.npz pattern
 - [ ] Source IDs are unique within each log directory

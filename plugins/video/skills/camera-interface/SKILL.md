@@ -77,6 +77,7 @@ See [references/api-reference.md](references/api-reference.md) for the complete 
 camera = VideoSystem(
     system_id=np.uint8(51),
     data_logger=data_logger,
+    name="behavior_camera",
     output_directory=output_directory,
     camera_interface=CameraInterfaces.HARVESTERS,
     camera_index=0,
@@ -88,6 +89,10 @@ camera = VideoSystem(
 ```
 
 Key constructor notes:
+- `name` is a required string that identifies the camera for downstream tools. It is written to a
+  `camera_manifest.yaml` file in the DataLogger output directory during `__init__()`, associating
+  the `system_id` with the human-readable name. The manifest enables `discover_recording_log_archives_tool`
+  to identify axvs-produced log archives and match them with video files.
 - `data_logger` must be an initialized and started `DataLogger` instance. The VideoSystem sends frame
   timestamps to the logger via its multiprocessing input queue during acquisition.
 - `output_directory` accepts `Path | None`. When `None`, frames are acquired but not saved to disk
@@ -210,32 +215,34 @@ H265 produces better compression at equivalent visual quality. To match quality 
 
 ### Parameter mapping
 
-| MCP Parameter            | VideoSystem Parameter     | Key Difference                                        |
-|--------------------------|---------------------------|-------------------------------------------------------|
-| `output_directory` (str) | `output_directory` (Path) | Wrap in `Path()`                                      |
-| `interface` (str)        | `camera_interface`        | Use `CameraInterfaces` enum member                    |
-| `camera_index` (int)     | `camera_index` (int)      | Same                                                  |
-| `width` (int)            | `frame_width` (int)       | **Name change**                                       |
-| `height` (int)           | `frame_height` (int)      | **Name change**                                       |
-| `frame_rate` (int)       | `frame_rate` (int/None)   | Code default `None` (camera native); MCP requires int |
-| `gpu_index` (int)        | `gpu` (int)               | **Name change**                                       |
-| `display_frame_rate`     | `display_frame_rate`      | MCP default 25; code default `None`                   |
-| `monochrome` (bool)      | `color` (bool/None)       | **Inverted**: `monochrome=True` → `color=False`       |
-| `video_encoder` (str)    | `video_encoder`           | `str` → `VideoEncoders` enum                          |
-| `encoder_speed_preset`   | `encoder_speed_preset`    | `int` → `EncoderSpeedPresets` enum                    |
-| `output_pixel_format`    | `output_pixel_format`     | `str` → `OutputPixelFormats` enum                     |
-| (fixed at 112)           | `system_id`               | Code uses 51-100; MCP uses 112                        |
-| (auto-created)           | `data_logger`             | Code must create and manage DataLogger                |
+| MCP Parameter            | VideoSystem Parameter     | Key Difference                                               |
+|--------------------------|---------------------------|--------------------------------------------------------------|
+| `output_directory` (str) | `output_directory` (Path) | Wrap in `Path()`                                             |
+| `interface` (str)        | `camera_interface`        | Use `CameraInterfaces` enum member                           |
+| `camera_index` (int)     | `camera_index` (int)      | Same                                                         |
+| `width` (int)            | `frame_width` (int)       | **Name change**                                              |
+| `height` (int)           | `frame_height` (int)      | **Name change**                                              |
+| `frame_rate` (int)       | `frame_rate` (int/None)   | Code default `None` (camera native); MCP requires int        |
+| `gpu_index` (int)        | `gpu` (int)               | **Name change**                                              |
+| `display_frame_rate`     | `display_frame_rate`      | MCP default 25; code default `None`                          |
+| `monochrome` (bool)      | `color` (bool/None)       | **Inverted**: `monochrome=True` → `color=False`              |
+| `video_encoder` (str)    | `video_encoder`           | `str` → `VideoEncoders` enum                                 |
+| `encoder_speed_preset`   | `encoder_speed_preset`    | `int` → `EncoderSpeedPresets` enum                           |
+| `output_pixel_format`    | `output_pixel_format`     | `str` → `OutputPixelFormats` enum                            |
+| (fixed at 112)           | `system_id`               | Code uses 51-100; MCP uses 112                               |
+| (auto-created)           | `data_logger`             | Code must create and manage DataLogger                       |
+| (fixed: `"live_camera"`) | `name`                    | **New required param**; code must provide a descriptive name |
 
 ### What MCP cannot test
 
-| Capability               | MCP Limitation                                        | Code Alternative                          |
-|--------------------------|-------------------------------------------------------|-------------------------------------------|
-| Multi-camera recording   | Single session only                                   | Multiple VideoSystem instances            |
-| Custom DataLogger config | Auto-created with `instance_name="mcp_video_session"` | Full control over DataLogger              |
-| Custom system IDs        | Fixed at 112                                          | Any `np.uint8` value (51-100 recommended) |
-| Output directory = None  | Requires directory                                    | Disable saving for preview-only mode      |
-| Log archive assembly     | Auto-assembled on stop                                | Call `assemble_log_archives` manually     |
+| Capability               | MCP Limitation                                        | Code Alternative                                    |
+|--------------------------|-------------------------------------------------------|-----------------------------------------------------|
+| Multi-camera recording   | Single session only                                   | Multiple VideoSystem instances                      |
+| Custom DataLogger config | Auto-created with `instance_name="mcp_video_session"` | Full control over DataLogger                        |
+| Custom system IDs        | Fixed at 112                                          | Any `np.uint8` value (51-100 recommended)           |
+| Custom camera names      | Fixed at `"live_camera"`                              | Descriptive name per camera (e.g., `"face_camera"`) |
+| Output directory = None  | Requires directory                                    | Disable saving for preview-only mode                |
+| Log archive assembly     | Auto-assembled on stop                                | Call `assemble_log_archives` manually               |
 
 ---
 
