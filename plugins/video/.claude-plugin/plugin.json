@@ -1,0 +1,14 @@
+{
+  "name": "video",
+  "version": "1.0.0",
+  "description": "Provides camera acquisition, video recording, log processing, and pipeline orchestration skills for ataraxis-video-system. Includes MCP bindings for interactive camera discovery, testing, and session management.",
+  "repository": "https://github.com/Sun-Lab-NBB/ataraxis",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "mcpServers": {
+    "ataraxis-video-system": {
+      "command": "axvs",
+      "args": ["mcp"]
+    }
+  }
+}

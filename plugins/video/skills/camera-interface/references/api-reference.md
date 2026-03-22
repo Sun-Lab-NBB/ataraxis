@@ -27,7 +27,10 @@ from ataraxis_video_system import (
     # Utilities
     check_ffmpeg_availability,
     check_gpu_availability,
-    extract_logged_camera_timestamps,
+    # Configuration
+    DEFAULT_BLACKLISTED_NODES,
+    # Log processing
+    run_log_processing_pipeline,
 )
 ```
 
@@ -62,23 +65,23 @@ VideoSystem(
 
 ### Constructor Parameters
 
-| Parameter                | Type                          | Required | Default                    | Description                                            |
-|--------------------------|-------------------------------|----------|----------------------------|--------------------------------------------------------|
-| `system_id`              | `np.uint8`                    | Yes      | -                          | Unique identifier for DataLogger timestamp correlation |
-| `data_logger`            | `DataLogger`                  | Yes      | -                          | Shared logger instance (must be started)               |
-| `output_directory`       | `Path \| None`                | Yes      | -                          | Directory for video output (None disables saving)      |
-| `camera_interface`       | `CameraInterfaces \| str`     | No       | `CameraInterfaces.OPENCV`  | Camera backend: HARVESTERS, OPENCV, or MOCK            |
-| `camera_index`           | `int`                         | No       | `0`                        | Camera index from discovery functions                  |
-| `display_frame_rate`     | `int \| None`                 | No       | `None`                     | Live preview rate in FPS (None disables preview)       |
-| `frame_width`            | `int \| None`                 | No       | `None`                     | Override native camera frame width in pixels           |
-| `frame_height`           | `int \| None`                 | No       | `None`                     | Override native camera frame height in pixels          |
-| `frame_rate`             | `int \| None`                 | No       | `None`                     | Override native camera frame rate in FPS               |
-| `gpu`                    | `int`                         | No       | `-1`                       | GPU index for hardware encoding (-1 for CPU only)      |
-| `video_encoder`          | `VideoEncoders \| str`        | No       | `VideoEncoders.H265`       | Video codec: H264 or H265                              |
-| `encoder_speed_preset`   | `EncoderSpeedPresets \| int`  | No       | `EncoderSpeedPresets.SLOW`  | Encoding speed vs quality tradeoff (1-7)               |
-| `output_pixel_format`    | `OutputPixelFormats \| str`   | No       | `OutputPixelFormats.YUV444` | Output color format: YUV420 or YUV444                  |
-| `quantization_parameter` | `int`                         | No       | `15`                       | Quality parameter 0-51 (lower = higher quality)        |
-| `color`                  | `bool \| None`                | No       | `None`                     | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
+| Parameter                | Type                         | Required | Default                     | Description                                                                                            |
+|--------------------------|------------------------------|----------|-----------------------------|--------------------------------------------------------------------------------------------------------|
+| `system_id`              | `np.uint8`                   | Yes      | -                           | Unique identifier for DataLogger timestamp correlation                                                 |
+| `data_logger`            | `DataLogger`                 | Yes      | -                           | Shared logger instance (must be started)                                                               |
+| `output_directory`       | `Path \| None`               | Yes      | -                           | Directory for video output (None disables saving)                                                      |
+| `camera_interface`       | `CameraInterfaces \| str`    | No       | `CameraInterfaces.OPENCV`   | Camera backend: HARVESTERS, OPENCV, or MOCK                                                            |
+| `camera_index`           | `int`                        | No       | `0`                         | Camera index from discovery functions                                                                  |
+| `display_frame_rate`     | `int \| None`                | No       | `None`                      | Live preview rate in FPS (None disables preview)                                                       |
+| `frame_width`            | `int \| None`                | No       | `None`                      | Override native camera frame width in pixels                                                           |
+| `frame_height`           | `int \| None`                | No       | `None`                      | Override native camera frame height in pixels                                                          |
+| `frame_rate`             | `int \| None`                | No       | `None`                      | Override native camera frame rate in FPS                                                               |
+| `gpu`                    | `int`                        | No       | `-1`                        | GPU index for hardware encoding (-1 for CPU only)                                                      |
+| `video_encoder`          | `VideoEncoders \| str`       | No       | `VideoEncoders.H265`        | Video codec: H264 or H265                                                                              |
+| `encoder_speed_preset`   | `EncoderSpeedPresets \| int` | No       | `EncoderSpeedPresets.SLOW`  | Encoding speed vs quality tradeoff (1-7)                                                               |
+| `output_pixel_format`    | `OutputPixelFormats \| str`  | No       | `OutputPixelFormats.YUV444` | Output color format: YUV420 or YUV444                                                                  |
+| `quantization_parameter` | `int`                        | No       | `15`                        | Quality parameter 0-51 (lower = higher quality)                                                        |
+| `color`                  | `bool \| None`               | No       | `None`                      | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
 
 **Notes:**
 - `frame_width`, `frame_height`, and `frame_rate` default to the camera's native values when set to None
@@ -104,7 +107,7 @@ VideoSystem(
 
 ### Lifecycle
 
-```
+```text
 __init__()
     |
     v
@@ -186,15 +189,15 @@ class InputPixelFormats(StrEnum):
 Returned by `discover_camera_ids()`:
 
 ```python
-@dataclass()
+@dataclass(frozen=True, slots=True)
 class CameraInformation:
-    camera_index: int              # Index for VideoSystem constructor
-    interface: CameraInterfaces    # OPENCV or HARVESTERS
-    frame_width: int               # Native frame width in pixels
-    frame_height: int              # Native frame height in pixels
-    acquisition_frame_rate: int    # Native frame rate in FPS
-    serial_number: str | None      # Harvesters only
-    model: str | None              # Harvesters only
+    camera_index: int                  # Index for VideoSystem constructor
+    interface: CameraInterfaces | str  # OPENCV or HARVESTERS
+    frame_width: int                   # Native frame width in pixels
+    frame_height: int                  # Native frame height in pixels
+    acquisition_frame_rate: int        # Native frame rate in FPS
+    serial_number: str | None = None   # Harvesters only
+    model: str | None = None           # Harvesters only
 ```
 
 ### GenicamNodeInfo
@@ -206,7 +209,6 @@ Stores a single GenICam feature node's value:
 class GenicamNodeInfo:
     name: str                              # Feature name (e.g., "Width", "ExposureTime")
     value: int | float | str | bool        # Current value
-    unit: str | None = None                # Measurement unit (e.g., "us", "dB"), or None
 ```
 
 ### GenicamConfiguration
@@ -280,19 +282,35 @@ def check_gpu_availability() -> bool
 
 Returns True if NVIDIA GPU hardware encoding is available (checks via `nvidia-smi`).
 
-### extract_logged_camera_timestamps
+### run_log_processing_pipeline
 
 ```python
-def extract_logged_camera_timestamps(log_path: Path, n_workers: int = -1) -> tuple[np.uint64, ...]
+def run_log_processing_pipeline(
+    log_directory: Path,
+    output_directory: Path,
+    job_id: str | None = None,
+    log_ids: list[str] | None = None,
+    *,
+    workers: int = -1,
+    display_progress: bool = True,
+) -> None
 ```
 
-Extracts frame acquisition timestamps from a DataLogger `.npz` archive. Returns timestamps as microseconds since UTC
-epoch, in frame order.
+Orchestrates timestamp extraction for all log archives in a directory. Creates a ProcessingTracker, discovers
+source IDs, and runs extraction jobs. For MCP-based batch processing, use `/log-processing` instead.
 
-| Parameter   | Type   | Default | Description                                         |
-|-------------|--------|---------|-----------------------------------------------------|
-| `log_path`  | `Path` | -       | Path to the assembled .npz log archive              |
-| `n_workers` | `int`  | `-1`    | Parallel workers (-1 for all cores, 1 for sequential) |
+### extract_logged_camera_timestamps (internal)
+
+Not exported in `__all__`; import directly from `ataraxis_video_system.log_processing` if needed.
+
+```python
+def extract_logged_camera_timestamps(
+    log_path: Path, n_workers: int = -1, *, display_progress: bool = True,
+) -> NDArray[np.uint64]
+```
+
+Extracts frame acquisition timestamps from a DataLogger `.npz` archive. Returns a contiguous numpy array of
+timestamps as microseconds since UTC epoch, in frame order.
 
 ---
 
@@ -323,7 +341,7 @@ The first log entry for each VideoSystem uses a special format:
 
 ## Architecture
 
-```
+```text
 +------------------------------------------------------------------+
 |                          VideoSystem                               |
 |  +------------------------------------------------------------+  |
@@ -420,7 +438,10 @@ if __name__ == "__main__":
     logger.stop()
 ```
 
-### GeniCam Camera with Configuration
+### Harvesters camera
+
+For Harvesters cameras, set resolution and frame rate via GenICam configuration (see `/camera-setup`)
+rather than VideoSystem constructor overrides.
 
 ```python
 from pathlib import Path
@@ -431,37 +452,33 @@ from ataraxis_video_system import (
     CameraInterfaces,
     VideoEncoders,
     EncoderSpeedPresets,
-    OutputPixelFormats,
-    GenicamConfiguration,
     add_cti_file,
     check_cti_file,
     discover_camera_ids,
 )
 
 if __name__ == "__main__":
-    # Check/configure CTI file
+    # Ensures CTI file is configured for Harvesters camera discovery.
     if check_cti_file() is None:
-        add_cti_file(Path("/path/to/your/camera/vendor.cti"))
+        add_cti_file(cti_path=Path("/path/to/your/camera/vendor.cti"))
 
-    # Discover cameras
+    # Discovers cameras and selects the first Harvesters camera.
     cameras = discover_camera_ids()
     harvesters_cameras = [c for c in cameras if c.interface == CameraInterfaces.HARVESTERS]
 
-    # Setup for high-quality recording
     logger = DataLogger(output_directory=Path("/data/session"), instance_name="camera")
     logger.start()
 
+    # Resolution and frame rate come from GenICam configuration, not constructor overrides.
     camera = VideoSystem(
         system_id=np.uint8(51),
         data_logger=logger,
         output_directory=Path("/data/session"),
         camera_interface=CameraInterfaces.HARVESTERS,
         camera_index=harvesters_cameras[0].camera_index,
-        display_frame_rate=25,
         video_encoder=VideoEncoders.H265,
         gpu=0,
         encoder_speed_preset=EncoderSpeedPresets.MEDIUM,
-        output_pixel_format=OutputPixelFormats.YUV444,
         quantization_parameter=15,
     )
 
@@ -470,14 +487,4 @@ if __name__ == "__main__":
     # ... acquisition ...
     camera.stop()
     logger.stop()
-```
-
-### Extracting Timestamps
-
-```python
-from pathlib import Path
-from ataraxis_video_system import extract_logged_camera_timestamps
-
-timestamps = extract_logged_camera_timestamps(Path("051_log.npz"))
-frame_times_seconds = [ts / 1e6 for ts in timestamps]  # Convert to seconds
 ```

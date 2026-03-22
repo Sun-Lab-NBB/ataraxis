@@ -10,9 +10,9 @@
       "description": "Provides the shared software development skills that enforce conventions and code style in Ataraxis and derived projects."
     },
     {
-      "name": "implementation",
-      "source": "./plugins/implementation",
-      "description": "Guides hardware interface implementation using Ataraxis libraries. Includes MCP bindings for interactive hardware discovery and testing."
+      "name": "video",
+      "source": "./plugins/video",
+      "description": "Provides camera acquisition, video recording, log processing, and pipeline orchestration skills for ataraxis-video-system. Includes MCP bindings for interactive camera discovery, testing, and session management."
     }
   ]
 }
