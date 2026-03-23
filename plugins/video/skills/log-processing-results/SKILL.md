@@ -40,9 +40,9 @@ with users.
 
 ### Discovery tool
 
-| Tool                                   | Purpose                                                                            |
-|----------------------------------------|------------------------------------------------------------------------------------|
-| `discover_recording_log_archives_tool` | Discovers manifests, log archives, video files, and feather files under a root dir |
+| Tool                         | Purpose                                                                            |
+|------------------------------|------------------------------------------------------------------------------------|
+| `discover_camera_data_tool`  | Discovers manifests, log archives, video files, and feather files under a root dir |
 
 **Parameters:**
 
@@ -51,33 +51,36 @@ with users.
 | `root_directory` | `str` | (required) | Absolute path to root directory to search for manifests |
 
 This tool uses manifest-based routing: it searches for `camera_manifest.yaml` files, then for each
-manifest source locates the corresponding log archive, video file, and processed feather output. Each
-source entry in the response includes a `feather_file` field (path to the feather file, or `null` if
-not yet processed).
+manifest source locates the corresponding log archive, video file, and processed timestamp feather
+output. Each source entry in the response includes a `timestamps_file` field (path to the feather
+file, or `null` if not yet processed).
 
 ### Analysis tool
 
-| Tool                                   | Purpose                                                               |
-|----------------------------------------|-----------------------------------------------------------------------|
-| `analyze_camera_frame_statistics_tool` | Computes frame timing stats and detects frame drops from feather file |
+| Tool                                   | Purpose                                                                |
+|----------------------------------------|------------------------------------------------------------------------|
+| `analyze_camera_frame_statistics_tool` | Computes frame timing stats and detects frame drops from feather files |
 
 **Parameters:**
 
-| Parameter            | Type  | Default    | Description                                                      |
-|----------------------|-------|------------|------------------------------------------------------------------|
-| `feather_file`       | `str` | (required) | Absolute path to a `camera_*_timestamps.feather` file            |
-| `drop_threshold_us`  | `int` | `0`        | Gap threshold in microseconds; 0 for auto-detection (2x median)  |
-| `max_drop_locations` | `int` | `50`       | Maximum number of drop locations to include in the response      |
+| Parameter            | Type        | Default    | Description                                                             |
+|----------------------|-------------|------------|-------------------------------------------------------------------------|
+| `feather_files`      | `list[str]` | (required) | Absolute paths to `camera_*_timestamps.feather` files                   |
+| `drop_threshold_us`  | `int`       | `0`        | Gap threshold in microseconds; 0 for auto-detection (2x median)         |
+| `max_drop_locations` | `int`       | `50`       | Maximum number of frame drop locations to include per file              |
+
+Returns a dictionary with a `results` list (one entry per file, each containing `file`, `basic_stats`,
+`inter_frame_timing`, and `frame_drop_analysis` keys) and a `total_files` count. Files that cannot be
+read produce an entry with `file` and `error` keys instead of statistics.
 
 ---
 
 ## Recommended query order
 
-1. **`discover_recording_log_archives_tool`** — Find all manifests, archives, video files, and feather
-   files under the root directory. Each source entry includes a `feather_file` path when processing
-   is complete.
-2. **`analyze_camera_frame_statistics_tool`** — Compute statistics for each camera's feather file. Call
-   once per feather file of interest. Use the `feather_file` paths from the discovery response.
+1. **`discover_camera_data_tool`** — Find all manifests, archives, video files, and feather files under
+   the root directory. Each source entry includes a `timestamps_file` path when processing is complete.
+2. **`analyze_camera_frame_statistics_tool`** — Compute statistics for discovered feather files. Pass the
+   `timestamps_file` paths from the discovery response as the `feather_files` list.
 
 ---
 
@@ -85,12 +88,12 @@ not yet processed).
 
 ### Directory structure
 
-The processing pipeline writes all output under a `camera_data/` subdirectory within the output
-directory (which defaults to the log directory when no custom output path is specified):
+The processing pipeline writes all output under a `camera_timestamps/` subdirectory within the output
+directory provided by the user:
 
 ```text
 {output_directory}/
-└── camera_data/                                    # Processing output subdirectory
+└── camera_timestamps/                               # Processing output subdirectory
     ├── camera_processing_tracker.yaml              # ProcessingTracker state file (job lifecycle)
     ├── camera_{source_id}_timestamps.feather       # Per-camera output (one per source ID)
     ├── camera_{source_id}_timestamps.feather
@@ -116,7 +119,7 @@ system ID string from the DataLogger archive (e.g., `camera_051_timestamps.feath
 ### ProcessingTracker file
 
 The `camera_processing_tracker.yaml` file tracks job lifecycle per output directory (inside
-`camera_data/`). Each job has:
+`camera_timestamps/`). Each job has:
 - **job_id:** Unique hexadecimal identifier
 - **job_name:** Always `camera_timestamp_extraction`
 - **specifier:** The source ID string
@@ -235,48 +238,37 @@ entering the field of view) indicate the encoder cannot handle peak complexity a
 
 ## Discovery output reference
 
-The `discover_recording_log_archives_tool` returns a hierarchical structure organized by recording root.
-Each source entry includes processing output status via the `feather_file` field:
+The `discover_camera_data_tool` returns a flat list of confirmed source entries. Each source entry
+includes processing output status via the `timestamps_file` field:
 
 ```text
 {
-    "recordings": {
-        "<recording_root>": {
-            "log_directories": {
-                "<log_dir>": {
-                    "source_ids": ["51", "52"],
-                    "sources": [
-                        {
-                            "id": 51,
-                            "name": "face_camera",
-                            "log_archive": "/path/to/51_log.npz" or null,
-                            "video_file": "/path/to/video.mp4" or null,
-                            "feather_file": "/path/to/camera_51_timestamps.feather" or null
-                        }
-                    ],
-                    "archive_count": 2
-                }
-            }
+    "sources": [
+        {
+            "recording_root": "/path/to/session",
+            "source_id": "51",
+            "name": "face_camera",
+            "log_archive": "/path/to/51_log.npz",
+            "video_file": "/path/to/video.mp4" or null,
+            "timestamps_file": "/path/to/camera_51_timestamps.feather" or null,
+            "log_directory": "/path/to/session_data_log"
         }
-    },
-    "log_directories": ["/path/to/log_dir1"],
-    "all_source_ids": ["51", "52"],
-    "total_recordings": 1,
-    "total_log_directories": 1,
-    "total_archives": 2
+    ],
+    "log_directories": ["/path/to/session_data_log"],
+    "total_sources": 1,
+    "total_log_directories": 1
 }
 ```
 
 **Processing completeness assessment:**
 
-| `feather_file` value | Meaning                                                          |
-|----------------------|------------------------------------------------------------------|
-| Non-null path        | Processing succeeded for this source; feather file available     |
-| `null`               | Not yet processed, processing failed, or output was cleaned      |
+| `timestamps_file` value  | Meaning                                                          |
+|--------------------------|------------------------------------------------------------------|
+| Non-null path            | Processing succeeded for this source; feather file available     |
+| `null`                   | Not yet processed, processing failed, or output was cleaned      |
 
-To determine detailed job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), use
-`get_log_directory_status_tool` on the output directory, or check the `camera_processing_tracker.yaml`
-file directly via `get_batch_status_overview_tool`.
+To determine detailed job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), check the
+`camera_processing_tracker.yaml` file via `get_batch_status_overview_tool`.
 
 ---
 
@@ -295,9 +287,9 @@ file directly via `get_batch_status_overview_tool`.
 
 ```text
 Log Processing Output Completeness:
-- [ ] Feather files discovered via `discover_recording_log_archives_tool`
-- [ ] All expected source IDs have corresponding feather files
-- [ ] Processing status is `fully_processed` for all directories
+- [ ] Feather files discovered via `discover_camera_data_tool`
+- [ ] All expected source IDs have non-null `timestamps_file` entries
+- [ ] Processing status verified for all directories
 - [ ] Frame statistics analyzed via `analyze_camera_frame_statistics_tool` for each camera
 - [ ] Estimated FPS matches expected camera frame rate
 - [ ] Frame drop rate is within acceptable range for the experiment

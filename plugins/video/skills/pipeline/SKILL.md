@@ -241,12 +241,12 @@ assemble_log_archives(log_directory=logger.output_directory, remove_sources=True
 All cameras sharing a DataLogger write to the same log directory and the same `camera_manifest.yaml`.
 This simplifies batch processing:
 
-1. `discover_recording_log_archives_tool` finds the manifest and identifies all source IDs (e.g., 51, 52, 53)
-   with their camera names, log archives, video files, and feather outputs in one call
-2. `prepare_log_processing_batch_tool` creates one job per source ID
+1. `discover_camera_data_tool` finds the manifest and identifies all confirmed sources (e.g., 51, 52, 53)
+   with their camera names, log archives, video files, and feather outputs in one flat `sources` list
+2. `prepare_log_processing_batch_tool` creates one job per source ID (pass confirmed `source_ids` from discovery)
 3. Process all source IDs in a single batch for efficiency
-4. Output: one feather file per camera under a `camera_data/` subdirectory
-   (`camera_data/camera_51_timestamps.feather`, `camera_data/camera_52_timestamps.feather`, etc.)
+4. Output: one feather file per camera under a `camera_timestamps/` subdirectory
+   (`camera_timestamps/camera_51_timestamps.feather`, `camera_timestamps/camera_52_timestamps.feather`, etc.)
 
 For multi-DataLogger setups, process each DataLogger output directory as a separate batch.
 
@@ -254,7 +254,8 @@ For multi-DataLogger setups, process each DataLogger output directory as a separ
 
 ## Cross-camera frame statistics comparison
 
-After processing, use `analyze_camera_frame_statistics_tool` on each camera's feather file and compare:
+After processing, use `analyze_camera_frame_statistics_tool` with all camera feather files (pass the
+`timestamps_file` paths from `discover_camera_data_tool` as the `feather_files` list) and compare:
 
 - **Estimated FPS** — All cameras should match the configured rate. A camera with lower FPS than others
   indicates an interface or encoding bottleneck on that specific channel.

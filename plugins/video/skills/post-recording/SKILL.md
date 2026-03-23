@@ -110,9 +110,9 @@ manual assembly tool.
 
 ### Archive verification tool
 
-| Tool                                   | Purpose                                                                           |
-|----------------------------------------|-----------------------------------------------------------------------------------|
-| `discover_recording_log_archives_tool` | Verifies archives, video files, and manifests exist via manifest-based discovery  |
+| Tool                         | Purpose                                                                          |
+|------------------------------|----------------------------------------------------------------------------------|
+| `discover_camera_data_tool`  | Verifies archives, video files, and manifests exist via manifest-based discovery |
 
 **Parameters:**
 
@@ -121,8 +121,9 @@ manual assembly tool.
 | `root_directory` | `str` | (required) | Absolute path to root directory to search for manifests |
 
 **Note:** This tool requires `camera_manifest.yaml` files to exist in DataLogger output directories.
-These manifests are written automatically by `VideoSystem.__init__()`. For each manifest source, the
-tool locates the corresponding log archive, video file, and processed feather output.
+These manifests are written automatically by `VideoSystem.__init__()`. For each confirmed manifest
+source, the tool locates the corresponding log archive, video file, and processed timestamp feather
+output, returning a flat `sources` list.
 
 ---
 
@@ -140,10 +141,10 @@ You MUST follow these steps after every recording session.
    - If `video_file` is `null`, no frames were saved (verify that `start_frame_saving` was called)
 
 3. **Verify archive assembly** — If `archives_assembled` is `true` in the stop response, call
-   `discover_recording_log_archives_tool` with the recording root to confirm archives exist for all expected
+   `discover_camera_data_tool` with the recording root to confirm archives exist for all expected
    source IDs. The discovery tool uses manifest-based routing, so it requires a `camera_manifest.yaml` in
-   the log directory (written automatically by `VideoSystem.__init__()`). Each source in the response
-   includes a `log_archive` field (path or `null`). If `archives_assembled` is `false`, call
+   the log directory (written automatically by `VideoSystem.__init__()`). Each source in the flat `sources`
+   list includes a `log_archive` path. If `archives_assembled` is `false`, call
    `assemble_log_archives_tool` with the `log_directory` path, then verify with the discovery tool.
 
 4. **Cross-reference frame counts** — Compare the video `frame_count` from `validate_video_file_tool` with the
@@ -163,10 +164,10 @@ Use `assemble_log_archives_tool` when:
 - Recovering from partial session failures
 - Assembling archives from sessions run via the `axvs run` CLI that were interrupted before assembly
 
-After calling the tool, verify the result with `discover_recording_log_archives_tool` to confirm all expected
+After calling the tool, verify the result with `discover_camera_data_tool` to confirm all expected
 source IDs have corresponding `.npz` archives.
 
-**Note:** `discover_recording_log_archives_tool` requires a `camera_manifest.yaml` in the log directory.
+**Note:** `discover_camera_data_tool` requires a `camera_manifest.yaml` in the log directory.
 For MCP and code-based sessions using the current library version, this manifest is written automatically.
 For legacy sessions without manifests, use `write_camera_manifest_tool` (see `/camera-setup`) to
 retroactively register camera sources before running discovery.
@@ -191,9 +192,8 @@ retroactively register camera sources before running discovery.
   message (i.e., `archive_frame_messages - 1`).
 - Video `duration_seconds` should match `(last_timestamp - first_timestamp)` from processed timestamps.
 - These cross-checks can only be fully validated after log processing completes via `/log-processing-results`.
-  At this stage, use the archive message count from `discover_recording_log_archives_tool` for a rough
-  comparison.
-- Processed output (feather files and tracker) is written to a `camera_data/` subdirectory under the
+  At this stage, use the archive message count from `discover_camera_data_tool` for a rough comparison.
+- Processed output (feather files and tracker) is written to a `camera_timestamps/` subdirectory under the
   output directory, not directly into the log directory.
 
 ---

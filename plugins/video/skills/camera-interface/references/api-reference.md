@@ -73,7 +73,7 @@ VideoSystem(
 |--------------------------|------------------------------|----------|-----------------------------|--------------------------------------------------------------------------------------------------------|
 | `system_id`              | `np.uint8`                   | Yes      | -                           | Unique identifier for DataLogger timestamp correlation                                                 |
 | `data_logger`            | `DataLogger`                 | Yes      | -                           | Shared logger instance (must be started)                                                               |
-| `name`                   | `str`                        | Yes      | -                           | Human-readable camera name (e.g., `"face_camera"`). Written to camera manifest for archive identification. |
+| `name`                   | `str`                        | Yes      | -                           | Human-readable camera name (e.g., `"face_camera"`). Written to camera manifest for discovery.          |
 | `output_directory`       | `Path \| None`               | Yes      | -                           | Directory for video output (None disables saving)                                                      |
 | `camera_interface`       | `CameraInterfaces \| str`    | No       | `CameraInterfaces.OPENCV`   | Camera backend: HARVESTERS, OPENCV, or MOCK                                                            |
 | `camera_index`           | `int`                        | No       | `0`                         | Camera index from discovery functions                                                                  |
@@ -261,7 +261,7 @@ class CameraManifest(YamlConfig):
 ```
 
 Written automatically by `VideoSystem.__init__()` to the DataLogger output directory as
-`camera_manifest.yaml`. Used by `discover_recording_log_archives_tool` to identify axvs-produced
+`camera_manifest.yaml`. Used by `discover_camera_data_tool` to identify axvs-produced
 log archives.
 
 ### Constants

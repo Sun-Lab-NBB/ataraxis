@@ -32,7 +32,7 @@ into an acquisition system, use `/camera-interface` instead.
 
 ## MCP tool reference
 
-The ataraxis-video-system MCP server exposes 28 tools. This skill covers the 15 tools most relevant to
+The ataraxis-video-system MCP server exposes 27 tools. This skill covers the 15 tools most relevant to
 camera setup, organized into five groups. Log processing and analysis tools are documented in
 `/log-processing` and `/log-processing-results`.
 

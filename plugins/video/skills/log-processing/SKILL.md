@@ -46,9 +46,10 @@ You MUST use the ataraxis-video-system MCP tools for all processing operations. 
 Python functions directly or run processing via CLI commands. If MCP tools are not available, invoke
 `/mcp-environment-setup` to diagnose and resolve connectivity issues.
 
-You MUST ask the user for directory paths before calling `prepare_log_processing_batch_tool`. Do not assume
-or guess directory paths. You MUST also confirm the output directory selection with the user before
-preparing the batch — present the default (same as log directory) and ask if they want custom output paths.
+You MUST run `discover_camera_data_tool` before calling `prepare_log_processing_batch_tool` to obtain
+confirmed log directory paths and source IDs. Do not assume or guess directory paths or source IDs. You
+MUST ask the user for output directory paths before preparing the batch — there is no default, and
+output directories are required for every log directory being processed.
 
 ---
 
@@ -56,13 +57,14 @@ preparing the batch — present the default (same as log directory) and ask if t
 
 ### Discovery tools
 
-| Tool                                   | Purpose                                                                           |
-|----------------------------------------|-----------------------------------------------------------------------------------|
-| `discover_recording_log_archives_tool` | Searches for camera manifests, locates archives, video files, and feather outputs |
+| Tool                        | Purpose                                                                           |
+|-----------------------------|-----------------------------------------------------------------------------------|
+| `discover_camera_data_tool` | Searches for camera manifests, locates archives, video files, and feather outputs |
 
 Uses **manifest-based routing**: recursively searches for `camera_manifest.yaml` files under the root
 directory. Each manifest identifies a DataLogger output directory containing axvs-produced log archives.
-For each manifest source, locates the corresponding log archive, video file, and processed feather output.
+Only sources whose log archives exist on disk are included. For each confirmed source, resolves the
+paired video file and processed timestamp feather file.
 
 **Parameters:**
 
@@ -72,13 +74,17 @@ For each manifest source, locates the corresponding log archive, video file, and
 
 **Return structure:**
 ```text
-recordings:            Hierarchical mapping {recording_root: {log_directories: {log_dir: {source_ids, sources, archive_count}}}}
-  sources[]:           Per-source data: id, name, log_archive (path or null), video_file (path or null), feather_file (path or null)
+sources[]:             Flat list of confirmed source entries:
+  recording_root:      Path to the recording root directory
+  source_id:           Source ID string
+  name:                Camera name from manifest
+  log_archive:         Absolute path to the .npz archive
+  video_file:          Absolute path to the video file (or null if not found)
+  timestamps_file:     Absolute path to the processed feather file (or null if not yet processed)
+  log_directory:       Absolute path to the DataLogger output directory
 log_directories:       Flat list of log directory paths (pass directly to prepare tool)
-all_source_ids:        Union of all discovered source IDs
-total_recordings:      Number of recording roots found
-total_log_directories: Number of log directories found
-total_archives:        Total number of .npz archive files found
+total_sources:         Number of confirmed source entries
+total_log_directories: Number of log directories with archives
 ```
 
 **Important:** This tool requires `camera_manifest.yaml` files to exist in DataLogger output directories.
@@ -95,11 +101,11 @@ retroactively tag log directories before running discovery.
 
 **`prepare_log_processing_batch_tool` parameters:**
 
-| Parameter            | Type              | Default    | Description                                                      |
-|----------------------|-------------------|------------|------------------------------------------------------------------|
-| `log_directories`    | `list[str]`       | (required) | Absolute paths to DataLogger output directories. **Ask user.**   |
-| `source_ids`         | `list[str]|None`  | `None`     | Optional filter; if omitted, all discovered source IDs included  |
-| `output_directories` | `list[str]|None`  | `None`     | Optional per-directory output paths; must match log_directories length |
+| Parameter            | Type        | Default    | Description                                                                    |
+|----------------------|-------------|------------|--------------------------------------------------------------------------------|
+| `log_directories`    | `list[str]` | (required) | Absolute paths to DataLogger output directories. **Ask user.**                 |
+| `source_ids`         | `list[str]` | (required) | Confirmed source IDs from `discover_camera_data_tool`. Applied uniformly.      |
+| `output_directories` | `list[str]` | (required) | Absolute paths for per-directory output. Must match log_directories length.    |
 
 **`execute_log_processing_jobs_tool` parameters:**
 
@@ -117,15 +123,14 @@ retroactively tag log directories before running discovery.
 | `cancel_log_processing_tool`        | Cancels active session, clears pending queue                   |
 | `reset_log_processing_jobs_tool`    | Resets specific or all jobs to SCHEDULED for retry             |
 | `get_batch_status_overview_tool`    | Aggregate status across all log directories under root         |
-| `get_log_directory_status_tool`     | Processing status for a single output directory (no recursion) |
-| `clean_log_processing_output_tool`  | Deletes `camera_data/` subdirectory for re-processing          |
+| `clean_log_processing_output_tool`  | Deletes `camera_timestamps/` subdirectories for re-processing  |
 
 **`reset_log_processing_jobs_tool` parameters:**
 
-| Parameter      | Type             | Default    | Description                                             |
-|----------------|------------------|------------|---------------------------------------------------------|
-| `tracker_path` | `str`            | (required) | Absolute path to ProcessingTracker YAML file            |
-| `source_ids`   | `list[str]|None` | `None`     | Source IDs to reset; if omitted, all jobs are reset     |
+| Parameter      | Type              | Default    | Description                                         |
+|----------------|-------------------|------------|-----------------------------------------------------|
+| `tracker_path` | `str`             | (required) | Absolute path to ProcessingTracker YAML file        |
+| `source_ids`   | `list[str]\|None` | `None`     | Source IDs to reset; if omitted, all jobs are reset |
 
 **`get_batch_status_overview_tool` parameters:**
 
@@ -133,25 +138,16 @@ retroactively tag log directories before running discovery.
 |------------------|-------|------------|--------------------------------------------------------|
 | `root_directory` | `str` | (required) | Absolute path to root directory to search for trackers |
 
-**`get_log_directory_status_tool` parameters:**
-
-| Parameter          | Type  | Default    | Description                                                         |
-|--------------------|-------|------------|---------------------------------------------------------------------|
-| `output_directory` | `str` | (required) | Absolute path to output directory containing `camera_data/` results |
-
-Returns processing status (`not_started`, `processing`, `completed`, `failed`, `in_progress`)
-with per-job details and a summary. Use this for targeted status queries on individual directories
-instead of `get_batch_status_overview_tool`, which scans an entire directory tree recursively.
-
 **`clean_log_processing_output_tool` parameters:**
 
-| Parameter          | Type  | Default    | Description                                                           |
-|--------------------|-------|------------|-----------------------------------------------------------------------|
-| `output_directory` | `str` | (required) | Absolute path to output directory containing `camera_data/` to delete |
+| Parameter            | Type        | Default    | Description                                                                    |
+|----------------------|-------------|------------|--------------------------------------------------------------------------------|
+| `output_directories` | `list[str]` | (required) | Absolute paths to output directories containing `camera_timestamps/` to delete |
 
-Deletes the entire `camera_data/` subdirectory and all contents (feather files, tracker). After
-cleanup, the output directory can be passed to `prepare_log_processing_batch_tool` to reinitialize
-from scratch.
+Deletes the `camera_timestamps/` subdirectory and all contents (feather files, tracker) under each
+output directory. Returns a `results` list with per-directory outcomes and a `total_cleaned` count.
+After cleanup, the output directories can be passed to `prepare_log_processing_batch_tool` to
+reinitialize from scratch.
 
 ---
 
@@ -167,11 +163,11 @@ Key architectural facts:
 - **ProcessingTracker** manages job lifecycle: `SCHEDULED` → `RUNNING` → `SUCCEEDED` / `FAILED` via YAML state files
 - **Single execution session** constraint: only one batch execution can run at a time
 - **Parallel processing** activates automatically for archives with >2000 messages
-- **Output layout:** All processing output is written under a `camera_data/` subdirectory within the
-  output directory (which defaults to the log directory when no custom output path is specified)
+- **Output layout:** All processing output is written under a `camera_timestamps/` subdirectory within the
+  output directory provided by the user
 - **Output naming:** `camera_{source_id}_timestamps.feather` (Feather IPC format)
 - **Tracker filename:** `camera_processing_tracker.yaml`
-- **Cleanup:** Use `clean_log_processing_output_tool` to delete the `camera_data/` subdirectory and
+- **Cleanup:** Use `clean_log_processing_output_tool` to delete the `camera_timestamps/` subdirectory and
   reinitialize processing from scratch
 
 ---
@@ -194,7 +190,7 @@ The processing workflow uses a **prepare-then-execute** model:
 ```text
 - [ ] Archives discovered or log directory paths provided
 - [ ] Log directories confirmed with user
-- [ ] Output directories confirmed with user (default: same as log directories)
+- [ ] Output directories provided by user (required, no default)
 - [ ] Resource allocation confirmed with user (workers, parallelism)
 ```
 
@@ -202,21 +198,19 @@ The processing workflow uses a **prepare-then-execute** model:
 
 ### Workflow steps
 
-1. **Discover archives** — Call `discover_recording_log_archives_tool` with the user-provided root directory.
+1. **Discover archives** — Call `discover_camera_data_tool` with the user-provided root directory.
 
-2. **Present discovery results** — Show the recording hierarchy, source IDs, and archive counts. Format
+2. **Present discovery results** — Show the discovered sources, source IDs, and archive locations. Format
    the discovery data as a readable summary so the user can see what was found.
 
 3. **Confirm directories to process** — Ask the user which log directories to process. Accept all
    discovered directories or a user-selected subset. MUST confirm before proceeding.
 
-4. **Confirm output directories** — Present the default output location (same as each log directory)
-   and ask the user if they want custom output paths. If the user provides custom paths, pass them as
-   `output_directories` in the next step. MUST confirm before proceeding.
+4. **Confirm output directories** — Ask the user for the output directory paths (one per log directory).
+   There is no default — output directories must be explicitly provided. MUST confirm before proceeding.
 
-5. **Prepare batch** — Call `prepare_log_processing_batch_tool` with the confirmed log directories.
-   Optionally pass `source_ids` to filter specific cameras or `output_directories` for custom output
-   locations.
+5. **Prepare batch** — Call `prepare_log_processing_batch_tool` with the confirmed log directories,
+   source IDs, and output directories. All three parameters are required.
 
 6. **Confirm resource allocation** — Present the default worker budget (worker_budget=-1 for
    automatic resolution to available CPU cores) and ask if the user wants to override. Explain that
@@ -247,7 +241,7 @@ The system uses two layers of allocation:
    multiples of 5. Two 648k archives on a 128-core machine each get 60 workers.
 
 2. **Saturation floor** — a sqrt-derived minimum (`ceil(sqrt(messages / 1,000))`) prevents the budget
-   division from spreading cores too thin. If division would give each job fewer cores than the floor,
+   division from spreading cores too thin. If division gave each job fewer cores than the floor,
    concurrency is reduced until each job gets at least the floor. Example floors:
 
 | Archive Size  | Saturation Floor | Typical Scenario            |
@@ -299,13 +293,12 @@ When using `get_batch_status_overview_tool` for multi-directory status:
 
 ## Re-running failed jobs
 
-1. Identify failed jobs from `get_log_processing_status_tool` or `get_log_directory_status_tool` output
-   (check `error_message` field)
+1. Identify failed jobs from `get_log_processing_status_tool` output (check `error_message` field)
 2. Call `reset_log_processing_jobs_tool` with the tracker path and failed source IDs
 3. Re-prepare or re-execute the reset jobs using the same workflow
 
 To re-process an entire directory from scratch, call `clean_log_processing_output_tool` to delete the
-`camera_data/` subdirectory, then re-prepare and re-execute.
+`camera_timestamps/` subdirectory, then re-prepare and re-execute.
 
 ---
 
@@ -336,7 +329,6 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 | MCP tools unavailable                | Invoke `/mcp-environment-setup`                               |
 | Out of memory                        | Reduce `worker_budget`                                        |
 | Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare      |
-| Need status for single directory     | Use `get_log_directory_status_tool` instead of batch overview |
 
 ---
 
@@ -357,13 +349,13 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 ```text
 Log Processing Workflow:
 - [ ] MCP server connected (if not, invoke `/mcp-environment-setup`)
-- [ ] Archives discovered via `discover_recording_log_archives_tool`
+- [ ] Archives discovered via `discover_camera_data_tool`
 - [ ] Log directories confirmed with user
 - [ ] Batch prepared via `prepare_log_processing_batch_tool`
-- [ ] Output written to `camera_data/` subdirectory under each output directory
+- [ ] Output written to `camera_timestamps/` subdirectory under each output directory
 - [ ] Resource allocation confirmed with user
 - [ ] Jobs executed via `execute_log_processing_jobs_tool`
-- [ ] Status monitored until all jobs complete or fail (use `get_log_directory_status_tool` for targeted checks)
+- [ ] Status monitored until all jobs complete or fail
 - [ ] Failed jobs investigated and retried if needed (use `clean_log_processing_output_tool` for full reset)
 - [ ] Successful output verified via `/log-processing-results`
 ```

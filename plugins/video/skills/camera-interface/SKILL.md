@@ -91,7 +91,7 @@ camera = VideoSystem(
 Key constructor notes:
 - `name` is a required string that identifies the camera for downstream tools. It is written to a
   `camera_manifest.yaml` file in the DataLogger output directory during `__init__()`, associating
-  the `system_id` with the human-readable name. The manifest enables `discover_recording_log_archives_tool`
+  the `system_id` with the human-readable name. The manifest enables `discover_camera_data_tool`
   to identify axvs-produced log archives and match them with video files.
 - `data_logger` must be an initialized and started `DataLogger` instance. The VideoSystem sends frame
   timestamps to the logger via its multiprocessing input queue during acquisition.

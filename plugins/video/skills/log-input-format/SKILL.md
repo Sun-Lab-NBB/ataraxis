@@ -91,7 +91,7 @@ sources:
 - **Manual:** Use `write_camera_manifest_tool` (see `/camera-setup`) to retroactively tag legacy log
   directories that predate the manifest system.
 
-**Why manifests matter:** The `discover_recording_log_archives_tool` uses manifest-based routing to
+**Why manifests matter:** The `discover_camera_data_tool` uses manifest-based routing to
 identify axvs-produced log archives. Directories without a `camera_manifest.yaml` will not be discovered
 by this tool. Manifests also associate source IDs with human-readable names and enable the discovery tool
 to locate corresponding video files by camera name.
@@ -251,7 +251,7 @@ processing via `ProcessPoolExecutor`.
 Before running the log processing pipeline, verify these conditions:
 
 1. **Camera manifest present** — Log directories should contain a `camera_manifest.yaml` file for
-   `discover_recording_log_archives_tool` to locate them. If missing, use `write_camera_manifest_tool`
+   `discover_camera_data_tool` to locate them. If missing, use `write_camera_manifest_tool`
    to create one. Note: the processing pipeline itself does not require manifests — they are only
    needed for the manifest-based discovery tool.
 
