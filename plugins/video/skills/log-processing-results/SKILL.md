@@ -276,10 +276,13 @@ To determine detailed job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), check 
 
 | Skill                    | Relationship                                                       |
 |--------------------------|--------------------------------------------------------------------|
+| `/mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access              |
+| `/camera-setup`          | Upstream: MCP discovery tools that locate archives and recordings  |
+| `/camera-interface`      | Context: VideoSystem configuration determines expected frame rates |
+| `/post-recording`        | Upstream: verifies session outputs before processing               |
 | `/log-input-format`      | Reference: input archive format and source ID semantics            |
 | `/log-processing`        | Upstream: processing workflow that produces this output            |
-| `/camera-interface`      | Context: VideoSystem configuration determines expected frame rates |
-| `/mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access              |
+| `/pipeline`              | Context: results analysis is phase 6 of the end-to-end pipeline    |
 
 ---
 

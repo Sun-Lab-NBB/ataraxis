@@ -82,21 +82,21 @@ Only one video session can be active at a time.
 
 **`start_video_session` parameter details:**
 
-| Parameter                | Type          | Default     | Description                                                  |
-|--------------------------|---------------|-------------|--------------------------------------------------------------|
-| `output_directory`       | `str`         | (required)  | Path to directory for video output. **Always ask the user.** |
-| `interface`              | `str`         | `"opencv"`  | Camera interface: `"opencv"`, `"harvesters"`, or `"mock"`    |
-| `camera_index`           | `int`         | `0`         | Camera index from `list_cameras` output                      |
-| `width`                  | `int`         | `600`       | Frame width in pixels                                        |
-| `height`                 | `int`         | `400`       | Frame height in pixels                                       |
-| `frame_rate`             | `int`         | `30`        | Target acquisition frame rate in FPS                         |
-| `gpu_index`              | `int`         | `-1`        | GPU index for hardware encoding (-1 for CPU)                 |
-| `display_frame_rate`     | `int \| None` | `25`        | Preview display rate in FPS (None disables preview)          |
-| `monochrome`             | `bool`        | `false`     | Capture in grayscale instead of color                        |
-| `video_encoder`          | `str`         | `"H264"`    | Video encoder: `"H264"` or `"H265"`                          |
-| `encoder_speed_preset`   | `int`         | `3`         | Speed preset from 1 (fastest) to 7 (slowest)                 |
-| `output_pixel_format`    | `str`         | `"yuv420p"` | Pixel format: `"yuv420p"` or `"yuv444p"`                     |
-| `quantization_parameter` | `int`         | `15`        | Compression quality (0 = best, 51 = worst)                   |
+| Parameter                | Type         | Default     | Description                                                  |
+|--------------------------|--------------|-------------|--------------------------------------------------------------|
+| `output_directory`       | `str`        | (required)  | Path to directory for video output. **Always ask the user.** |
+| `interface`              | `str`        | `"opencv"`  | Camera interface: `"opencv"`, `"harvesters"`, or `"mock"`    |
+| `camera_index`           | `int`        | `0`         | Camera index from `list_cameras` output                      |
+| `width`                  | `int`        | `600`       | Frame width in pixels                                        |
+| `height`                 | `int`        | `400`       | Frame height in pixels                                       |
+| `frame_rate`             | `int`        | `30`        | Target acquisition frame rate in FPS                         |
+| `gpu_index`              | `int`        | `-1`        | GPU index for hardware encoding (-1 for CPU)                 |
+| `display_frame_rate`     | `int / None` | `25`        | Preview display rate in FPS (None disables preview)          |
+| `monochrome`             | `bool`       | `false`     | Capture in grayscale instead of color                        |
+| `video_encoder`          | `str`        | `"H264"`    | Video encoder: `"H264"` or `"H265"`                          |
+| `encoder_speed_preset`   | `int`        | `3`         | Speed preset from 1 (fastest) to 7 (slowest)                 |
+| `output_pixel_format`    | `str`        | `"yuv420p"` | Pixel format: `"yuv420p"` or `"yuv444p"`                     |
+| `quantization_parameter` | `int`        | `15`        | Compression quality (0 = best, 51 = worst)                   |
 
 See the encoding parameter guidance section below for recommendations on encoder, preset, pixel format, and
 quantization parameter selection.
@@ -323,12 +323,15 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 
 ## Related skills
 
-| Skill                    | Relationship                                                          |
-|--------------------------|-----------------------------------------------------------------------|
-| `/camera-interface`      | Covers writing VideoSystem integration code after testing via MCP     |
-| `/post-recording`        | Downstream: verification after recording sessions                     |
-| `/pipeline`              | Context: end-to-end orchestration and multi-camera planning           |
-| `/mcp-environment-setup` | Prerequisite: MCP server connectivity for all tool interactions       |
+| Skill                     | Relationship                                                      |
+|---------------------------|-------------------------------------------------------------------|
+| `/camera-interface`       | Covers writing VideoSystem integration code after testing via MCP |
+| `/post-recording`         | Downstream: verification after recording sessions                 |
+| `/log-input-format`       | Reference: documents the archive format produced by this workflow |
+| `/log-processing`         | Downstream: processes archives from camera sessions               |
+| `/log-processing-results` | Downstream: analyzes frame statistics from processed archives     |
+| `/pipeline`               | Context: end-to-end orchestration and multi-camera planning       |
+| `/mcp-environment-setup`  | Prerequisite: MCP server connectivity for all tool interactions   |
 
 ---
 

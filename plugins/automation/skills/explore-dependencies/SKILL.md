@@ -142,22 +142,22 @@ Organize the snapshot by library, with sections for each dependency.
 
 ### Classes
 
-| Class | Summary | Key methods |
-|-------|---------|-------------|
+| Class       | Summary           | Key methods                    |
+|-------------|-------------------|--------------------------------|
 | `ClassName` | Docstring summary | `method_one()`, `method_two()` |
 
 ### Functions
 
-| Function | Signature | Summary |
-|----------|-----------|---------|
+| Function        | Signature                           | Summary           |
+|-----------------|-------------------------------------|-------------------|
 | `function_name` | `(param: type, ...) -> return_type` | Docstring summary |
 
 ### Constants and enums
 
-| Name | Type | Summary |
-|------|------|---------|
-| `CONSTANT_NAME` | `type` | Description |
-| `EnumName` | `enum` | Members: `MEMBER_A`, `MEMBER_B`, ... |
+| Name            | Type   | Summary                              |
+|-----------------|--------|--------------------------------------|
+| `CONSTANT_NAME` | `type` | Description                          |
+| `EnumName`      | `enum` | Members: `MEMBER_A`, `MEMBER_B`, ... |
 ```
 
 ### Replacement opportunities section
@@ -167,10 +167,10 @@ After all per-library sections, include a summary of replacement opportunities:
 ```markdown
 ## Replacement opportunities
 
-| File | Current pattern | Suggested replacement |
-|------|----------------|----------------------|
-| `src/module.py:42` | `print(table)` | `console.echo(message=table, raw=True)` |
-| `src/utils.py:15` | `time.sleep(0.1)` | `PrecisionTimer.delay()` |
+| File               | Current pattern   | Suggested replacement                   |
+|--------------------|-------------------|-----------------------------------------|
+| `src/module.py:42` | `print(table)`    | `console.echo(message=table, raw=True)` |
+| `src/utils.py:15`  | `time.sleep(0.1)` | `PrecisionTimer.delay()`                |
 ```
 
 If no replacement opportunities are found, state: "No replacement opportunities identified."

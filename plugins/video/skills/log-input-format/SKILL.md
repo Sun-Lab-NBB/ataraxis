@@ -271,12 +271,15 @@ Before running the log processing pipeline, verify these conditions:
 
 ## Related skills
 
-| Skill                     | Relationship                                                           |
-|---------------------------|------------------------------------------------------------------------|
-| `/log-processing`         | Downstream: consumes archives in the format documented here            |
-| `/log-processing-results` | Downstream: documents the output format produced from these archives   |
-| `/camera-interface`       | Upstream: VideoSystem instances that produce the log data              |
-| `/mcp-environment-setup`  | Prerequisite: MCP server connectivity for discovery and processing     |
+| Skill                     | Relationship                                                         |
+|---------------------------|----------------------------------------------------------------------|
+| `/camera-setup`           | Upstream: MCP sessions that produce archives in this format          |
+| `/camera-interface`       | Upstream: VideoSystem instances that produce the log data            |
+| `/post-recording`         | Upstream: validates and assembles archives in this format            |
+| `/log-processing`         | Downstream: consumes archives in the format documented here          |
+| `/log-processing-results` | Downstream: documents the output format produced from these archives |
+| `/pipeline`               | Context: reference skill for the end-to-end pipeline phases          |
+| `/mcp-environment-setup`  | Prerequisite: MCP server connectivity for discovery and processing   |
 
 ---
 

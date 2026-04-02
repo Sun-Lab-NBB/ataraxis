@@ -127,10 +127,10 @@ retroactively tag log directories before running discovery.
 
 **`reset_log_processing_jobs_tool` parameters:**
 
-| Parameter      | Type              | Default    | Description                                         |
-|----------------|-------------------|------------|-----------------------------------------------------|
-| `tracker_path` | `str`             | (required) | Absolute path to ProcessingTracker YAML file        |
-| `source_ids`   | `list[str]\|None` | `None`     | Source IDs to reset; if omitted, all jobs are reset |
+| Parameter      | Type               | Default    | Description                                         |
+|----------------|--------------------|------------|-----------------------------------------------------|
+| `tracker_path` | `str`              | (required) | Absolute path to ProcessingTracker YAML file        |
+| `source_ids`   | `list[str] / None` | `None`     | Source IDs to reset; if omitted, all jobs are reset |
 
 **`get_batch_status_overview_tool` parameters:**
 
@@ -337,10 +337,12 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 | Skill                     | Role                                                            |
 |---------------------------|-----------------------------------------------------------------|
 | `/mcp-environment-setup`  | Prerequisite: MCP server connectivity                           |
-| `/log-input-format`       | Reference: input archive format and source ID semantics         |
 | `/camera-setup`           | Upstream: camera discovery and testing                          |
 | `/camera-interface`       | Upstream: VideoSystem integration code that produces logs       |
+| `/post-recording`         | Upstream: verifies archives before processing                   |
+| `/log-input-format`       | Reference: input archive format and source ID semantics         |
 | `/log-processing-results` | Downstream: output data discovery and frame statistics analysis |
+| `/pipeline`               | Context: log processing is phase 5 of the end-to-end pipeline   |
 
 ---
 

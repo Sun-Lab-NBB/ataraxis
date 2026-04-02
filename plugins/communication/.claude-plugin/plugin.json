@@ -1,0 +1,14 @@
+{
+  "name": "communication",
+  "version": "1.0.0",
+  "description": "Provides microcontroller discovery, extraction configuration, log processing, and pipeline orchestration skills for ataraxis-communication-interface. Includes MCP bindings for hardware discovery, manifest management, and batch data processing.",
+  "repository": "https://github.com/Sun-Lab-NBB/ataraxis",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "mcpServers": {
+    "ataraxis-communication-interface": {
+      "command": "axci",
+      "args": ["mcp"]
+    }
+  }
+}

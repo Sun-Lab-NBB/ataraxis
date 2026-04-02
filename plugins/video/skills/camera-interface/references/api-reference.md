@@ -69,24 +69,24 @@ VideoSystem(
 
 ### Constructor Parameters
 
-| Parameter                | Type                         | Required | Default                     | Description                                                                                            |
-|--------------------------|------------------------------|----------|-----------------------------|--------------------------------------------------------------------------------------------------------|
-| `system_id`              | `np.uint8`                   | Yes      | -                           | Unique identifier for DataLogger timestamp correlation                                                 |
-| `data_logger`            | `DataLogger`                 | Yes      | -                           | Shared logger instance (must be started)                                                               |
-| `name`                   | `str`                        | Yes      | -                           | Human-readable camera name (e.g., `"face_camera"`). Written to camera manifest for discovery.          |
-| `output_directory`       | `Path \| None`               | Yes      | -                           | Directory for video output (None disables saving)                                                      |
-| `camera_interface`       | `CameraInterfaces \| str`    | No       | `CameraInterfaces.OPENCV`   | Camera backend: HARVESTERS, OPENCV, or MOCK                                                            |
-| `camera_index`           | `int`                        | No       | `0`                         | Camera index from discovery functions                                                                  |
-| `display_frame_rate`     | `int \| None`                | No       | `None`                      | Live preview rate in FPS (None disables preview)                                                       |
-| `frame_width`            | `int \| None`                | No       | `None`                      | Override native camera frame width in pixels                                                           |
-| `frame_height`           | `int \| None`                | No       | `None`                      | Override native camera frame height in pixels                                                          |
-| `frame_rate`             | `int \| None`                | No       | `None`                      | Override native camera frame rate in FPS                                                               |
-| `gpu`                    | `int`                        | No       | `-1`                        | GPU index for hardware encoding (-1 for CPU only)                                                      |
-| `video_encoder`          | `VideoEncoders \| str`       | No       | `VideoEncoders.H265`        | Video codec: H264 or H265                                                                              |
-| `encoder_speed_preset`   | `EncoderSpeedPresets \| int` | No       | `EncoderSpeedPresets.SLOW`  | Encoding speed vs quality tradeoff (1-7)                                                               |
-| `output_pixel_format`    | `OutputPixelFormats \| str`  | No       | `OutputPixelFormats.YUV444` | Output color format: YUV420 or YUV444                                                                  |
-| `quantization_parameter` | `int`                        | No       | `15`                        | Quality parameter 0-51 (lower = higher quality)                                                        |
-| `color`                  | `bool \| None`               | No       | `None`                      | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
+| Parameter                | Type                        | Required | Default                      | Description                                                                                            |
+|--------------------------|-----------------------------|----------|------------------------------|--------------------------------------------------------------------------------------------------------|
+| `system_id`              | `np.uint8`                  | Yes      | -                            | Unique identifier for DataLogger timestamp correlation                                                 |
+| `data_logger`            | `DataLogger`                | Yes      | -                            | Shared logger instance (must be started)                                                               |
+| `name`                   | `str`                       | Yes      | -                            | Human-readable camera name (e.g., `"face_camera"`). Written to camera manifest for discovery.          |
+| `output_directory`       | `Path / None`               | Yes      | -                            | Directory for video output (None disables saving)                                                      |
+| `camera_interface`       | `CameraInterfaces / str`    | No       | `CameraInterfaces.OPENCV`    | Camera backend: HARVESTERS, OPENCV, or MOCK                                                            |
+| `camera_index`           | `int`                       | No       | `0`                          | Camera index from discovery functions                                                                  |
+| `display_frame_rate`     | `int / None`                | No       | `None`                       | Live preview rate in FPS (None disables preview)                                                       |
+| `frame_width`            | `int / None`                | No       | `None`                       | Override native camera frame width in pixels                                                           |
+| `frame_height`           | `int / None`                | No       | `None`                       | Override native camera frame height in pixels                                                          |
+| `frame_rate`             | `int / None`                | No       | `None`                       | Override native camera frame rate in FPS                                                               |
+| `gpu`                    | `int`                       | No       | `-1`                         | GPU index for hardware encoding (-1 for CPU only)                                                      |
+| `video_encoder`          | `VideoEncoders / str`       | No       | `VideoEncoders.H265`         | Video codec: H264 or H265                                                                              |
+| `encoder_speed_preset`   | `EncoderSpeedPresets / int` | No       | `EncoderSpeedPresets.SLOW`   | Encoding speed vs quality tradeoff (1-7)                                                               |
+| `output_pixel_format`    | `OutputPixelFormats / str`  | No       | `OutputPixelFormats.YUV444`  | Output color format: YUV420 or YUV444                                                                  |
+| `quantization_parameter` | `int`                       | No       | `15`                         | Quality parameter 0-51 (lower = higher quality)                                                        |
+| `color`                  | `bool / None`               | No       | `None`                       | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
 
 **Notes:**
 - `name` is written to a `camera_manifest.yaml` file in the DataLogger output directory during `__init__()`, associating the `system_id` with the human-readable name for downstream archive identification
@@ -105,11 +105,11 @@ VideoSystem(
 
 ### Properties
 
-| Property          | Type           | Description                                                   |
-|-------------------|----------------|---------------------------------------------------------------|
-| `video_file_path` | `Path \| None` | Full path to the output MP4 file (None if saving disabled)    |
-| `started`         | `bool`         | True if producer and consumer processes are currently running |
-| `system_id`       | `np.uint8`     | The unique system identifier assigned at construction         |
+| Property          | Type          | Description                                                   |
+|-------------------|---------------|---------------------------------------------------------------|
+| `video_file_path` | `Path / None` | Full path to the output MP4 file (None if saving disabled)    |
+| `started`         | `bool`        | True if producer and consumer processes are currently running |
+| `system_id`       | `np.uint8`    | The unique system identifier assigned at construction         |
 
 ### Lifecycle
 
@@ -388,28 +388,28 @@ The first log entry for each VideoSystem uses a special format:
 
 ```text
 +------------------------------------------------------------------+
-|                          VideoSystem                               |
-|  +------------------------------------------------------------+  |
-|  |  Main Process                                                |  |
-|  |  - Initialization and configuration                          |  |
-|  |  - Lifecycle management (start/stop)                         |  |
-|  |  - Frame saving control                                      |  |
-|  +------------------------------------------------------------+  |
-|           |                           |                            |
-|           v                           v                            |
-|  +--------------------+   +----------------------------------+    |
-|  |  Producer Process  |   |       Consumer Process           |    |
-|  |  - Camera driver   |   |  - Frame encoding (FFMPEG)       |    |
-|  |  - Frame grabbing  |-->|  - MP4 container writing         |    |
-|  |  - Timestamp gen   |   |  - Live preview display          |    |
-|  +--------------------+   +----------------------------------+    |
-|           |                                                        |
-|           v                                                        |
-|  +--------------------+                                            |
-|  |    DataLogger      |                                            |
-|  |  - Timestamp I/O   |                                            |
-|  |  - .npy file write |                                            |
-|  +--------------------+                                            |
+| VideoSystem                                                    |                                     |     |                           |     |
+| +------------------------------------------------------------+ |                                     |     |                           |     |
+|                                                                | Main Process                        |     |                           |     |
+|                                                                | - Initialization and configuration  |     |                           |     |
+|                                                                | - Lifecycle management (start/stop) |     |                           |     |
+|                                                                | - Frame saving control              |     |                           |     |
+| +------------------------------------------------------------+ |                                     |     |                           |     |
+|----------------------------------------------------------------|-------------------------------------|-----|---------------------------|-----|
+| v                           v                                  |                                     |     |                           |     |
+| +--------------------+   +----------------------------------+  |                                     |     |                           |     |
+|                                                                | Producer Process                    |     | Consumer Process          |     |
+|                                                                | - Camera driver                     |     | - Frame encoding (FFMPEG) |     |
+|                                                                | - Frame grabbing                    | --> | - MP4 container writing   |     |
+|                                                                | - Timestamp gen                     |     | - Live preview display    |     |
+| +--------------------+   +----------------------------------+  |                                     |     |                           |     |
+|----------------------------------------------------------------|-------------------------------------|-----|---------------------------|-----|
+| v                                                              |                                     |     |                           |     |
+| +--------------------+                                         |                                     |     |                           |     |
+|                                                                | DataLogger                          |     |                           |     |
+|                                                                | - Timestamp I/O                     |     |                           |     |
+|                                                                | - .npy file write                   |     |                           |     |
+| +--------------------+                                         |                                     |     |                           |     |
 +------------------------------------------------------------------+
 ```
 
