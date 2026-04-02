@@ -13,6 +13,11 @@
       "name": "video",
       "source": "./plugins/video",
       "description": "Provides camera acquisition, video recording, log processing, and pipeline orchestration skills for ataraxis-video-system. Includes MCP bindings for interactive camera discovery, testing, and session management."
+    },
+    {
+      "name": "communication",
+      "source": "./plugins/communication",
+      "description": "Provides microcontroller discovery, extraction configuration, log processing, and pipeline orchestration skills for ataraxis-communication-interface. Includes MCP bindings for hardware discovery, manifest management, and batch data processing."
     }
   ]
 }
