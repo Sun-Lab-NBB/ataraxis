@@ -89,7 +89,7 @@ consistency across languages while respecting each language's idiomatic standard
 - Allman brace style (C++ and C#; not applicable to Python)
 
 **C++-specific divergences from Python:**
-- Methods use PascalCase (not snake_case as in Python)
+- Methods use PascalCase; accessors use `get_`/`set_` snake_case (not bare snake_case as in Python)
 - Constants use `kPascalCase` prefix (not `_UPPER_SNAKE_CASE` as in Python)
 - Enum values use `kPascalCase` prefix (not `UPPER_SNAKE_CASE` as in Python)
 - Documentation uses Doxygen `@tags` (not Google-style docstrings)
@@ -132,27 +132,52 @@ Use **full words**, not abbreviations:
 
 ### Identifiers
 
-| Element               | Convention    | Example                                              |
-|-----------------------|---------------|------------------------------------------------------|
-| Classes               | PascalCase    | `TransportLayer`, `EncoderModule`, `COBSProcessor`   |
-| Methods               | PascalCase    | `SendData`, `ReceiveData`, `SetupModule`             |
-| Private members       | `_snake_case` | `_port`, `_cobs_processor`, `_custom_parameters`     |
-| Local variables       | snake_case    | `start_index`, `payload_size`, `new_motion`          |
-| Parameters            | snake_case    | `module_type`, `module_id`, `baud_rate`              |
-| Constants             | `kPascalCase` | `kTimeout`, `kSerialBufferSize`, `kCalibrationDelay` |
-| Enum types            | `kPascalCase` | `kCustomStatusCodes`, `kModuleCommands`              |
-| Enum values           | `kPascalCase` | `kStandby`, `kRotatedCW`, `kOpen`                    |
-| Template type params  | PascalCase    | `PolynomialType`, `BufferType`                       |
-| Template value params | `kPascalCase` | `kPinA`, `kMaximumTransmittedPayloadSize`            |
-| Namespaces            | snake_case    | `axtlmc_shared_assets`, `axmc_communication_assets`  |
-| Struct members        | snake_case    | `module_type`, `pulse_duration`, `return_code`       |
-| Macros                | UPPER_SNAKE   | `PACKED_STRUCT`, `ENCODER_USE_INTERRUPTS`            |
+| Element               | Convention                 | Example                                              |
+|-----------------------|----------------------------|------------------------------------------------------|
+| Classes               | PascalCase                 | `TransportLayer`, `EncoderModule`, `COBSProcessor`   |
+| Methods               | PascalCase                 | `SendData`, `ReceiveData`, `SetupModule`             |
+| Accessors             | `get_`/`set_` snake_case   | `get_buffer_size`, `set_baud_rate`                   |
+| Private members       | `_snake_case`              | `_port`, `_cobs_processor`, `_custom_parameters`     |
+| Local variables       | snake_case                 | `start_index`, `payload_size`, `new_motion`          |
+| Parameters            | snake_case                 | `module_type`, `module_id`, `baud_rate`              |
+| Constants             | `kPascalCase`              | `kTimeout`, `kSerialBufferSize`, `kCalibrationDelay` |
+| Enum types            | `kPascalCase`              | `kCustomStatusCodes`, `kModuleCommands`              |
+| Enum values           | `kPascalCase`              | `kStandby`, `kRotatedCW`, `kOpen`                    |
+| Template type params  | PascalCase                 | `PolynomialType`, `BufferType`                       |
+| Template value params | `kPascalCase`              | `kPinA`, `kMaximumTransmittedPayloadSize`            |
+| Namespaces            | snake_case                 | `axtlmc_shared_assets`, `axmc_communication_assets`  |
+| Struct members        | snake_case                 | `module_type`, `pulse_duration`, `return_code`       |
+| Macros                | UPPER_SNAKE                | `PACKED_STRUCT`, `ENCODER_USE_INTERRUPTS`            |
 
 ### Functions
 
 - Use descriptive verb phrases: `SendData`, `ResetTransmissionBuffer`, `ReadEncoder`
 - Private methods use PascalCase (same as public, unlike Python)
 - Avoid generic names like `Process`, `Handle`, `DoSomething`
+
+### Accessors (getters and setters)
+
+Accessor methods use `get_`/`set_` snake_case to visually distinguish trivial field access from
+methods that perform real work. This follows the Google C++ naming convention:
+
+```cpp
+/// Returns the size of the instance's transmission buffer, in bytes.
+[[nodiscard]]
+static constexpr uint16_t get_transmission_buffer_size()
+{
+    return kTransmissionBufferSize;
+}
+
+/// Returns the size of the payload currently stored in the instance's transmission buffer.
+[[nodiscard]]
+uint8_t get_bytes_in_transmission_buffer() const
+{
+    return _transmission_buffer[kBufferLayout::kPayloadSizeIndex];
+}
+```
+
+At the call site, casing signals intent: PascalCase means work is being done, `get_`/`set_`
+snake_case means simple field access.
 
 ### Constants
 
@@ -252,6 +277,10 @@ _overflow = 0;
 - Don't reiterate the obvious (e.g., `// Set x to 5` before `x = 5`)
 - Don't add Doxygen comments to code you didn't write or modify
 - Don't use heavy section separator blocks (e.g., `// ======` or `// ------`)
+- Don't include `@code` / `@endcode` example blocks in Doxygen documentation. Examples go stale
+  as APIs evolve and create maintenance debt. Keep documentation concise — the `@brief`, `@param`,
+  and `@returns` tags are sufficient. This parallels the Python convention of not including
+  Examples sections in docstrings
 
 ---
 
@@ -297,7 +326,7 @@ All definitions within a file follow this vertical ordering from top to bottom:
 2. **Include guard** (`#ifndef` / `#define`)
 3. **Macro definitions** (if any, e.g., `#define ENCODER_USE_INTERRUPTS`)
 4. **Include directives**
-5. **Using directives** (`using namespace`)
+5. **Using directives** (`using namespace` — allowed in header-only libraries; see below)
 6. **Namespace declarations** (for shared asset files)
 7. **Free constants** (`static constexpr` at file scope)
 8. **Enumerations** (`enum class` definitions)
@@ -343,6 +372,36 @@ void SendPulse()
     // Main logic at minimal indentation level.
     Pulse();
 }
+```
+
+---
+
+## Data member visibility
+
+**Classes** must keep all data members private (`_snake_case`) and expose them through
+`get_`/`set_` accessors when external access is needed. This enforces encapsulation and keeps
+the class interface explicit.
+
+**Structs** may use public data members (`snake_case`) for passive data holders that have no
+invariants or methods beyond simple initialization. Packed structs used for binary serialization
+are the primary example.
+
+```cpp
+// Class — all data members private, accessed via getters
+class TransportLayer
+{
+    public:
+        [[nodiscard]] uint8_t get_runtime_status() const { return _runtime_status; }
+
+    private:
+        uint8_t _runtime_status = 0;
+};
+
+// Struct — public members allowed for passive data
+struct CustomRuntimeParameters
+{
+        uint32_t pulse_duration = 35000;  ///< The time, in microseconds, to keep the valve open.
+} PACKED_STRUCT;
 ```
 
 ---
@@ -456,6 +515,9 @@ C++ Style Compliance:
 - [ ] Full words used (no abbreviations like pos, idx, val, buf)
 - [ ] Classes use PascalCase
 - [ ] Methods use PascalCase (both public and private)
+- [ ] Accessors use get_/set_ snake_case (not PascalCase)
+- [ ] Class data members are private (_snake_case) with get_/set_ accessors
+- [ ] Struct data members may be public (snake_case) for passive data holders
 - [ ] Private members use _snake_case prefix
 - [ ] Local variables and parameters use snake_case
 - [ ] Constants use kPascalCase prefix (static constexpr)
@@ -473,6 +535,7 @@ C++ Style Compliance:
 - [ ] Public members above private members in class definition
 - [ ] Inline comments use third person imperative
 - [ ] No heavy section separator blocks (// ====== or // ------)
+- [ ] No @code/@endcode example blocks in Doxygen documentation
 - [ ] clang-format applied before commit
 - [ ] clang-tidy passes with zero warnings
 

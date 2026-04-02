@@ -25,6 +25,8 @@ reviewing code before submission.
 | `enum class Codes { Open }`    | `enum class kCodes : uint8_t { kOpen }`          | kPascalCase prefix on both      |
 | `namespace MyAssets {}`        | `namespace my_assets {}`                         | Namespaces use snake_case       |
 | `int* ptr`                     | `int32_t* pointer`                               | Full words, fixed-width types   |
+| `uint8_t GetBufferSize()`      | `uint8_t get_buffer_size()`                      | Accessors use get_/set_ snake   |
+| `void SetBaudRate(uint32_t v)` | `void set_baud_rate(uint32_t baud_rate)`         | Accessors use get_/set_ snake   |
 
 ---
 
@@ -44,6 +46,7 @@ reviewing code before submission.
 | Bullet list in @brief details                | Flowing prose paragraph                         | Prose over lists             |
 | `@param` before `@tparam`                    | `@tparam` before `@param`                       | Follow tag ordering          |
 | `bool is_enabled`  `///< Checks if enabled.` | `bool is_enabled`  `///< Determines whether...` | Boolean "Determines whether" |
+| `@code` / `@endcode` example blocks          | Remove — use `@brief`, `@param`, `@returns`     | No examples in Doxygen       |
 
 ---
 
@@ -98,7 +101,8 @@ reviewing code before submission.
 | Missing virtual destructor on base     | `virtual ~Module() = default`          | Safe polymorphic deletion     |
 | Custom destructor on leaf class        | `~EncoderModule() override = default`  | Default unless managing RAII  |
 | `using namespace std;`                 | Use qualified names                    | Never use namespace std       |
-| `using namespace` in header file       | Only in .cpp files                     | Avoid namespace pollution     |
+| `using namespace` in non-header-only   | Only in .cpp files                     | Avoid namespace pollution     |
+| Public data member on a class          | Private `_member` + `get_` accessor    | Classes: all data private     |
 
 ---
 

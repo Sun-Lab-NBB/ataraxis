@@ -57,7 +57,11 @@ in C++ reference documentation and parallels the Python and C# tag ordering:
 8. `@tparam` — template parameters, in declaration order
 9. `@param` — function parameters, in declaration order
 10. `@returns` — return value description
-11. `@code` / `@endcode` — usage examples (rare; prefer keeping docs concise)
+
+Do **not** include `@code` / `@endcode` example blocks in Doxygen documentation. Examples go
+stale as APIs evolve and create maintenance debt. The `@brief`, `@param`, and `@returns` tags
+are sufficient. This parallels the Python convention of not including Examples sections in
+docstrings.
 
 This matches Python ordering (summary → extended description → Notes → Args → Returns) and
 C# ordering (summary → remarks → typeparam → param → returns → exception). Omit tags that

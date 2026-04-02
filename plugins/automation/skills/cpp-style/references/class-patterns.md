@@ -458,6 +458,47 @@ paralleling the `frozen=True` dataclass convention in Python and `readonly` fiel
 
 ---
 
+## Data member visibility
+
+Classes and structs follow different rules for data member visibility:
+
+- **Classes**: All data members must be private (`_snake_case`). Expose them through `get_`/`set_`
+  accessor methods when external access is needed. This enforces encapsulation and keeps the class
+  interface explicit.
+- **Structs**: Public data members (`snake_case`) are allowed for passive data holders that have
+  no invariants or methods beyond simple initialization.
+
+```cpp
+// Class — all data members private
+class TransportLayer
+{
+    public:
+        /// Returns the runtime status of the most recently called method.
+        [[nodiscard]]
+        uint8_t get_runtime_status() const
+        {
+            return _runtime_status;
+        }
+
+    private:
+        /// Stores the runtime status of the most recently called method.
+        uint8_t _runtime_status = 0;
+};
+
+// Struct — public members for passive data
+/// Stores the instance's addressable runtime parameters.
+struct CustomRuntimeParameters
+{
+        uint32_t pulse_duration    = 35000;   ///< The time, in microseconds, to keep the valve open.
+        uint16_t calibration_count = 500;     ///< The number of times to pulse during calibration.
+} PACKED_STRUCT _custom_parameters;
+```
+
+This parallels the Python convention where class attributes are always private (`_snake_case`)
+with `@property` accessors, while dataclass fields are public.
+
+---
+
 ## Using namespace directives
 
 For shared asset namespaces, use `using namespace` at file scope to bring shared types into the
@@ -473,4 +514,10 @@ Rules:
 - Only use `using namespace` for project-internal shared asset namespaces
 - Place `using namespace` after all `#include` directives
 - Never use `using namespace std;`
-- Never use `using namespace` in header files (pollutes the global namespace for all includers)
+- **Header-only libraries**: Sun Lab C++ libraries are header-only (all code resides in `.h`
+  files). In this context, `using namespace` for project-internal shared asset namespaces is
+  allowed in header files because there are no `.cpp` files to place them in. This exception
+  applies only to project-internal namespaces (e.g., `axtlmc_shared_assets`), never to `std` or
+  third-party namespaces
+- **Libraries with `.cpp` files**: Never use `using namespace` in header files (pollutes the
+  global namespace for all includers). Place `using namespace` in `.cpp` files only
