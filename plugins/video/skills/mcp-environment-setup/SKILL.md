@@ -202,10 +202,13 @@ pick up the changes. The ataraxis video plugin will automatically configure the 
 
 | Skill                     | Relationship                                                                 |
 |---------------------------|------------------------------------------------------------------------------|
-| `/camera-interface`       | Requires the ataraxis-video-system MCP server for API verification           |
 | `/camera-setup`           | Requires the ataraxis-video-system MCP server for all tool interactions      |
+| `/camera-interface`       | Requires the ataraxis-video-system MCP server for API verification           |
+| `/post-recording`         | Requires the MCP server for archive assembly and video validation tools      |
+| `/log-input-format`       | References MCP server tools for archive discovery and assembly               |
 | `/log-processing`         | Requires the ataraxis-video-system MCP server for batch log processing tools |
 | `/log-processing-results` | Requires the ataraxis-video-system MCP server for frame statistics tools     |
+| `/pipeline`               | Orchestrates all phases that depend on MCP server connectivity               |
 
 ---
 

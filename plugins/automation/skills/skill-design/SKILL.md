@@ -259,7 +259,7 @@ When a skill relates to other skills, declare the relationship explicitly using 
 
 | Skill               | Relationship                                                |
 |---------------------|-------------------------------------------------------------|
-| `/python-style`    | Provides coding conventions that inform code review skills  |
+| `/python-style`     | Provides coding conventions that inform code review skills  |
 | `/commit`           | Should be invoked after completing code changes             |
 | `/explore-codebase` | Provides project context that informs implementation skills |
 ```

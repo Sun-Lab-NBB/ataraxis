@@ -276,12 +276,15 @@ cause drops when the scene changes. Consider this when selecting presets.
 
 ## Related skills
 
-| Skill                    | Relationship                                                              |
-|--------------------------|---------------------------------------------------------------------------|
-| `/camera-setup`          | Covers MCP-based camera discovery, testing, and encoding parameter guide  |
-| `/post-recording`        | Downstream: verification after recording sessions                         |
-| `/pipeline`              | Context: end-to-end orchestration and multi-camera planning               |
-| `/mcp-environment-setup` | Prerequisite: MCP server connectivity for API verification                |
+| Skill                     | Relationship                                                             |
+|---------------------------|--------------------------------------------------------------------------|
+| `/camera-setup`           | Covers MCP-based camera discovery, testing, and encoding parameter guide |
+| `/post-recording`         | Downstream: verification after recording sessions                        |
+| `/log-input-format`       | Reference: documents archive format produced by VideoSystem code         |
+| `/log-processing`         | Downstream: processes archives from VideoSystem instances                |
+| `/log-processing-results` | Downstream: analyzes frame statistics from processed archives            |
+| `/pipeline`               | Context: end-to-end orchestration and multi-camera planning              |
+| `/mcp-environment-setup`  | Prerequisite: MCP server connectivity for API verification               |
 
 ---
 
