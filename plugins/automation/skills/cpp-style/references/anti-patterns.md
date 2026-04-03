@@ -70,19 +70,20 @@ reviewing code before submission.
 
 ## Type and const violations
 
-| Wrong                              | Correct                                     | Rule                           |
-|------------------------------------|---------------------------------------------|--------------------------------|
-| `int status`                       | `uint8_t status`                            | Fixed-width integer types      |
-| `short value`                      | `int16_t value`                             | Fixed-width integer types      |
-| `long duration`                    | `uint32_t duration`                         | Fixed-width integer types      |
-| `unsigned int size`                | `uint32_t size`                             | Fixed-width integer types      |
-| Missing `const` on unchanged local | `const int32_t new_motion = ...`            | const correctness              |
-| Missing `const` on value parameter | `void Foo(const uint8_t pin)`               | const value parameters         |
-| Missing `explicit` on constructor  | `explicit TransportLayer(Stream& port)`     | Prevent implicit conversions   |
-| Missing `[[nodiscard]]` on getter  | `[[nodiscard]] bool ReadData(...) const`    | Mark pure query methods        |
-| Missing `override` on virtual      | `bool RunActiveCommand() override`          | Enforced by clang-tidy         |
-| Missing `final` on leaf class      | `class EncoderModule final : public Module` | Prevent unintended subclassing |
-| `auto result = Process()`          | `uint8_t result = Process()`                | Explicit types preferred       |
+| Wrong                                      | Correct                                     | Rule                            |
+|--------------------------------------------|---------------------------------------------|---------------------------------|
+| `int status`                               | `uint8_t status`                            | Fixed-width integer types       |
+| `short value`                              | `int16_t value`                             | Fixed-width integer types       |
+| `long duration`                            | `uint32_t duration`                         | Fixed-width integer types       |
+| `unsigned int size`                        | `uint32_t size`                             | Fixed-width integer types       |
+| Missing `const` on unchanged local         | `const int32_t new_motion = ...`            | const correctness               |
+| Missing `const` on value parameter         | `void Foo(const uint8_t pin)`               | const value parameters          |
+| Missing `explicit` on constructor          | `explicit TransportLayer(Stream& port)`     | Prevent implicit conversions    |
+| Missing `[[nodiscard]]` on getter          | `[[nodiscard]] bool ReadData(...) const`    | Mark pure query methods         |
+| Missing `override` on virtual              | `bool RunActiveCommand() override`          | Enforced by clang-tidy          |
+| Missing `final` on leaf class              | `class EncoderModule final : public Module` | Prevent unintended subclassing  |
+| `auto result = Process()`                  | `uint8_t result = Process()`                | Explicit types when not obvious |
+| `uint32_t d = static_cast<uint32_t>(x)`    | `auto d = static_cast<uint32_t>(x)`         | auto when type already on RHS   |
 
 ---
 

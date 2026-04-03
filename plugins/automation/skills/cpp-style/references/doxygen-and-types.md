@@ -251,17 +251,19 @@ prose in `<remarks>`:
 
 ### Explicit types
 
-Prefer explicit types over `auto` in most cases. Use `auto` only when the type is immediately
-obvious or when working with complex template types:
+Prefer explicit types over `auto` in most cases. Use `auto` when the type is already stated on
+the right-hand side (cast, constructor, template factory) and restating it would be redundant,
+or when working with complex template types:
 
 ```cpp
-// Good - explicit types
+// Good - explicit types when the type is not obvious from the initializer
 const int32_t new_motion = _encoder.readAndReset() * kMultiplier;
 const uint16_t signal = AnalogRead(kPin, _custom_parameters.average_pool_size);
 uint8_t test_array[4] = {0, 0, 0, 0};
 
-// Acceptable - type obvious from cast
-auto delta = static_cast<uint32_t>(abs(_overflow));
+// Good - auto avoids trivially restating the type already visible in the initializer
+const auto delta = static_cast<uint32_t>(abs(_overflow));
+const auto start_index = static_cast<uint16_t>(_transmission_buffer[kPayloadSizeIndex]);
 
 // Acceptable - complex iterator types
 auto it = container.begin();
