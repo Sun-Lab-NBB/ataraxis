@@ -75,6 +75,16 @@ Called during each Kernel runtime cycle when the module has an active command. S
 command code from `get_active_command()` into a call to the command-specific handler method. Returns
 `true` if the command was recognized, `false` otherwise. Does NOT indicate command success.
 
+### Virtual destructor
+
+```cpp
+virtual ~Module() = default;
+```
+
+Module subclasses should declare an overriding destructor (`~MyModule() override = default;`) to ensure
+proper cleanup through base class pointers. The Kernel manages modules via `Module*` arrays, so the
+virtual destructor is load-bearing.
+
 ---
 
 ## Protected utility methods
@@ -99,16 +109,17 @@ Returns the execution stage of the active command (starts at 1), or 0 if no comm
 void CompleteCommand();
 ```
 
-Ends the active command. Sends a kCommandCompleted (event code 2) message to the PC for non-recurrent
-commands and for recurrent commands being replaced. Resets stage to 0, allowing the next command to
-activate. **You MUST call this at the end of every command handler.** Failure to call it deadlocks the
+Ends the active command. Sends a kCommandCompleted (event code 2) message to the PC when any of these
+conditions hold: a new command is waiting to replace the current one, no next command is queued (including
+after an explicit dequeue), or the command is not recurrent. Resets stage to 0, allowing the next command
+to activate. **You MUST call this at the end of every command handler.** Failure to call it deadlocks the
 module.
 
 ```cpp
 void AbortCommand();
 ```
 
-Cancels the active command. If the command is recurrent, resets the command queue to prevent
+Cancels the active command. If no new command is pending, resets the command queue to prevent
 reactivation. Then calls `CompleteCommand()` internally.
 
 ```cpp
@@ -248,5 +259,5 @@ explicit Communication(Stream& communication_port);
 |----------------------|-----------|-----------------------------------------------------------|
 | `communication_port` | `Stream&` | Arduino Stream (Serial, USB Serial, etc.).                |
 
-Creates a TransportLayer instance with CRC16 (polynomial 0x1021, init 0xFFFF). Reserves up to ~1 kB
-of RAM (~700 bytes on lower-end boards).
+Creates a TransportLayer instance with CRC16 (polynomial 0x1021, init 0xFFFF, final XOR 0x0000).
+Reserves up to ~1 kB of RAM (~700 bytes on lower-end boards).

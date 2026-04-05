@@ -140,6 +140,7 @@ MicroControllerInterface() → start() → [communication active] → stop()
 - `__init__()` writes the manifest entry, configures module interfaces, sets up the communication process
 - `start()` spawns the communication process, verifies controller and module identities, enters the
   communication cycle
+- `reset_controller()` resets the microcontroller to its default state
 - `stop()` terminates the communication process and releases all resources
 
 After `stop()`, the DataLogger can be stopped and archives assembled.
@@ -215,6 +216,27 @@ def process_received_data(self, message: ModuleData | ModuleState) -> None:
     Implement custom online data processing here. Keep fast — blocks communication."""
 ```
 
+### Implementing process_received_data()
+
+Route on `message.event` to handle different event codes. For `ModuleData` messages, access the
+deserialized payload via `message.data_object`. For `ModuleState` messages, the event code itself
+carries all information (no payload). Keep this method fast — it runs in the communication process
+and blocks message reception while executing.
+
+```python
+def process_received_data(self, message: ModuleData | ModuleState) -> None:
+    if message.event == np.uint8(51):       # kRotatedCCW from firmware
+        delta: np.uint32 = message.data_object
+        self._total_pulses -= int(delta)
+    elif message.event == np.uint8(52):     # kRotatedCW from firmware
+        delta: np.uint32 = message.data_object
+        self._total_pulses += int(delta)
+```
+
+The type of `message.data_object` matches the numpy equivalent of the C++ type passed to
+`SendData()` on the firmware side. For scalar values it is a numpy scalar (e.g., `np.uint32`);
+for arrays it is an `NDArray` of the corresponding dtype.
+
 ### Sending commands and parameters
 
 ```python
@@ -230,6 +252,39 @@ module.send_parameters(parameter_data=(np.uint16(500), np.float32(1.5)))
 # Clear the module's command queue on the microcontroller.
 module.reset_command_queue()
 ```
+
+### Parameter struct correspondence
+
+The `parameter_data` tuple must match the firmware's `PACKED_STRUCT` field-by-field — same count, same
+order, same types. A mismatch silently corrupts all subsequent fields because the struct is laid out
+contiguously with no padding. See `/microcontroller:firmware-module` for the C++ struct side and the full
+type mapping table.
+
+```text
+C++ struct (firmware)                    Python tuple (PC)
+─���───────────────────────────────────    ─���───────────────────────────────────
+struct CustomRuntimeParameters           send_parameters(parameter_data=(
+{                                            np.uint32(2000000),   # on_duration
+        uint32_t on_duration  = ...;         np.uint32(2000000),   # off_duration
+        uint32_t off_duration = ...;         np.uint16(666),       # echo_value
+        uint16_t echo_value   = ...;     ))
+} PACKED_STRUCT parameters;
+```
+
+For maintainability, wrap `send_parameters()` in a typed convenience method with named arguments:
+
+```python
+def set_parameters(
+    self,
+    *,
+    on_duration: np.uint32,
+    off_duration: np.uint32,
+    echo_value: np.uint16,
+) -> None:
+    self.send_parameters(parameter_data=(on_duration, off_duration, echo_value))
+```
+
+This makes call sites self-documenting and prevents positional argument ordering mistakes.
 
 ---
 
@@ -264,6 +319,9 @@ MQTTCommunication() → connect() → [publish/subscribe] → disconnect()
 ```
 
 - `connect()` establishes the broker connection and subscribes to monitored topics
+- `send_data(topic, payload=None)` publishes data to the specified MQTT topic
+- `get_data()` returns the next received `(topic, payload)` tuple or `None` if empty
+- `has_data` property returns `True` if there are received messages waiting
 - `disconnect()` releases the connection (also called automatically on garbage collection)
 
 ---

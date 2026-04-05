@@ -135,7 +135,7 @@ ExtractionConfig (YamlConfig)
 | Field           | Type                                 | Description                                     |
 |-----------------|--------------------------------------|-------------------------------------------------|
 | `controller_id` | `int`                                | The controller ID to extract data from          |
-| `modules`       | `tuple[ModuleExtractionConfig, ...]` | Module extraction entries (at least one target) |
+| `modules`       | `tuple[ModuleExtractionConfig, ...]` | Module extraction entries (empty with kernel)   |
 | `kernel`        | `KernelExtractionConfig / None`      | Optional kernel message extraction              |
 
 **ModuleExtractionConfig:**

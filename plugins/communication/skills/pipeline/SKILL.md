@@ -193,6 +193,7 @@ for ctrl_id, port, name, modules in controller_configs:
         controller_id=np.uint8(ctrl_id),
         data_logger=logger,
         module_interfaces=modules,
+        buffer_size=512,
         port=port,
         name=name,
     )

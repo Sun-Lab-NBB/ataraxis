@@ -210,6 +210,25 @@ public:
 | `int32_t`  | 4 bytes | `np.int32`        | Signed large values       |
 | `float`    | 4 bytes | `np.float32`      | Calibrated sensor values  |
 
+**Cross-language correspondence:** The PC sends parameters as a numpy-typed tuple via
+`send_parameters()`. Each tuple element maps to the struct field at the same position:
+
+```text
+C++ struct (firmware)                    Python tuple (PC)
+─────────────────────────────────────    ─────────────────────────────────────
+struct CustomRuntimeParameters           send_parameters(parameter_data=(
+{                                            np.uint32(2000000),   # on_duration
+        uint32_t on_duration  = ...;         np.uint32(2000000),   # off_duration
+        uint32_t off_duration = ...;         np.uint16(666),       # echo_value
+        uint16_t echo_value   = ...;     ))
+} PACKED_STRUCT parameters;
+```
+
+The C++ type of each field determines the required numpy dtype on the Python side. A mismatch (e.g.,
+`np.uint16` sent for a `uint32_t` field) silently corrupts all subsequent fields because `PACKED_STRUCT`
+lays them out contiguously with no padding. Always verify field count, order, and types match across
+both sides when changing the parameter struct.
+
 ---
 
 ## SetupModule()
@@ -493,6 +512,54 @@ class EncoderModule final : public Module
         // ...
 };
 ```
+
+---
+
+## Implementation hints
+
+These are optional efficiency patterns observed in production modules. They are not required but may
+improve robustness or readability for certain hardware designs.
+
+**Constexpr pin logic for polarity-configurable modules:** When a template parameter controls whether
+hardware is normally-open vs. normally-closed (or similar polarity inversion), compute the active/inactive
+logic levels as constexpr booleans rather than branching at runtime:
+
+```cpp
+template <const uint8_t kPin, const bool kNormallyClosed>
+class ValveModule final : public Module
+{
+        static constexpr bool kOpen  = kNormallyClosed ? HIGH : LOW;
+        static constexpr bool kClose = kNormallyClosed ? LOW  : HIGH;
+    // ...
+    // Then use kOpen/kClose directly: digitalWriteFast(kPin, kOpen);
+};
+```
+
+**Sensor hysteresis for polling commands:** When a sensor-polling command runs recurrently, tracking the
+previous reading avoids flooding the PC with redundant zero or steady-state messages. Report only when
+the value crosses a meaningful threshold or when the state changes:
+
+```cpp
+void CheckSensor()
+{
+    const uint16_t value = AnalogRead(kPin, parameters.pool_size);
+    const bool above_threshold = value >= parameters.signal_threshold;
+
+    if (above_threshold)
+    {
+        SendData(static_cast<uint8_t>(kStates::kDetected), value);
+        _previous_zero = false;
+    }
+    else if (!_previous_zero)
+    {
+        SendData(static_cast<uint8_t>(kStates::kDetected), static_cast<uint16_t>(0));
+        _previous_zero = true;
+    }
+    CompleteCommand();
+}
+```
+
+This reduces serial bandwidth and log archive size without losing transition information.
 
 ---
 

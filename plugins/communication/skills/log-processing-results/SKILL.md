@@ -65,12 +65,15 @@ file discovery, schema reference, output verification, event analysis, and inter
 ```text
 verified:           Boolean indicating all files passed schema validation
 files[]:            Per-file verification results:
-  path:             Absolute path to the feather file
+  file:             Absolute path to the feather file
+  filename:         Base filename of the feather file
   valid:            Boolean schema correctness
   row_count:        Number of rows in the file
   columns:          List of column names found
-  file_type:        "module" or "kernel" (inferred from filename)
+  type:             "module", "kernel", or "unknown" (inferred from filename)
 total_files:        Number of feather files found
+output_directory:   Absolute path to the microcontroller_data/ directory
+data_path:          Absolute path to the microcontroller_data/ directory
 tracker:            ProcessingTracker status summary (if tracker exists)
 ```
 
@@ -97,15 +100,21 @@ results[]:                Per-file analysis results:
     last_timestamp_us:    Last message timestamp
     duration_us:          Total duration in microseconds
     duration_seconds:     Total duration in seconds
-  event_distribution:     Per-event-code frequency (event_code → count)
-  command_distribution:   Per-command-code frequency (command_code → count)
+  event_distribution[]:   Per-event-code frequency list:
+    event_code:           Event code (integer)
+    count:                Number of occurrences
+  command_distribution[]: Per-command-code frequency list:
+    command_code:         Command code (integer)
+    count:                Number of occurrences
   inter_event_timing:
-    mean_us/ms:           Mean inter-event interval
-    median_us/ms:         Median inter-event interval
-    std_us/ms:            Standard deviation
-    min_us/ms:            Minimum interval
-    max_us/ms:            Maximum interval
-  sample_rows[]:          First N rows (binary data omitted for readability)
+    mean_us:              Mean inter-event interval (microseconds)
+    mean_ms:              Mean inter-event interval (milliseconds)
+    median_us:            Median inter-event interval (microseconds)
+    median_ms:            Median inter-event interval (milliseconds)
+    std_us:               Standard deviation (microseconds only)
+    min_us:               Minimum interval (microseconds only)
+    max_us:               Maximum interval (microseconds only)
+  sample_rows[]:          First N rows (binary data replaced with has_data boolean)
 total_files:              Number of files analyzed
 ```
 

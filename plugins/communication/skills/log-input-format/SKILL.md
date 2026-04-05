@@ -237,23 +237,39 @@ config's event codes, computes absolute timestamps, and writes them to feather f
 
 ### Data payload structure
 
-For MODULE_DATA and KERNEL_DATA messages, the payload contains:
+After the leading protocol byte, the remaining bytes follow protocol-specific layouts.
+
+**MODULE_DATA** (protocol 6):
 
 ```text
-[command: 1 byte (uint8)][event: 1 byte (uint8)][prototype_code: 1 byte][data: N bytes]
+[module_type: 1 byte][module_id: 1 byte][command: 1 byte][event: 1 byte][prototype_code: 1 byte][data: N bytes]
 ```
 
+**MODULE_STATE** (protocol 8):
+
+```text
+[module_type: 1 byte][module_id: 1 byte][command: 1 byte][event: 1 byte]
+```
+
+**KERNEL_DATA** (protocol 7):
+
+```text
+[command: 1 byte][event: 1 byte][prototype_code: 1 byte][data: N bytes]
+```
+
+**KERNEL_STATE** (protocol 9):
+
+```text
+[command: 1 byte][event: 1 byte]
+```
+
+- **module_type** — Module family code of the sending module (module messages only)
+- **module_id** — Instance ID of the sending module (module messages only)
 - **command** — The command code the module/kernel was executing
 - **event** — The event code identifying the message type
 - **prototype_code** — Identifies the numpy dtype and size of the data bytes (auto-resolved at
-  compile time by the firmware library)
-- **data** — The serialized data value
-
-For MODULE_STATE and KERNEL_STATE messages (no data):
-
-```text
-[command: 1 byte (uint8)][event: 1 byte (uint8)]
-```
+  compile time by the firmware library; data messages only)
+- **data** — The serialized data value (data messages only)
 
 ### Timestamp resolution
 
