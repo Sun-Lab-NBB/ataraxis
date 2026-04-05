@@ -89,7 +89,9 @@ VideoSystem(
 | `color`                  | `bool / None`               | No       | `None`                       | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
 
 **Notes:**
-- `name` is written to a `camera_manifest.yaml` file in the DataLogger output directory during `__init__()`, associating the `system_id` with the human-readable name for downstream archive identification
+- `name` is written to a `camera_manifest.yaml` file in the DataLogger output directory during
+  `__init__()`, associating the `system_id` with the human-readable name for downstream archive
+  identification
 - `frame_width`, `frame_height`, and `frame_rate` default to the camera's native values when set to None
 - `color` is only used by OpenCV and Mock interfaces; Harvesters cameras determine color mode from their GenICam config
 - The output video file is named `{system_id:03d}.mp4` in the output directory

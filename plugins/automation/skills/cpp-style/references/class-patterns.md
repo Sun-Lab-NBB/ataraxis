@@ -39,7 +39,7 @@ class Module
     protected:
         /// Sends the specified status code and data to the connected PC.
         template <typename ObjectType>
-        void SendData(uint8_t status_code, uint8_t prototype, const ObjectType& object);
+        void SendData(uint8_t status_code, const ObjectType& object);
 
         /// Marks the current command as completed.
         void CompleteCommand();

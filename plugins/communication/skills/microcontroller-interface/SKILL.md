@@ -12,10 +12,10 @@ user-invocable: true
 # Microcontroller interface
 
 Guides creation and configuration of MicroControllerInterface, ModuleInterface, and MQTTCommunication
-instances. This skill covers the AXCI API itself; for interactive hardware discovery and MQTT broker
-testing via MCP tools, use `/microcontroller-setup` instead. Overall system architecture (binding classes,
-configuration dataclasses, startup orchestration) is the responsibility of the consuming library or
-application.
+instances. This skill covers the PC-side Python API; for the firmware-side C++ Module counterpart, use
+`/microcontroller:firmware-module` instead. For interactive hardware discovery and MQTT broker testing via
+MCP tools, use `/microcontroller-setup` instead. Overall system architecture (binding classes, configuration
+dataclasses, startup orchestration) is the responsibility of the consuming library or application.
 
 ---
 
@@ -29,10 +29,34 @@ application.
 - DataLogger integration requirements
 
 **Does not cover:**
+- Firmware-side Module subclassing, command handlers, parameter structs, or main.cpp
+  integration (see `/microcontroller:firmware-module`)
 - Microcontroller discovery, MQTT testing, or manifest management via MCP tools (see `/microcontroller-setup`)
 - Extraction configuration management (see `/extraction-configuration`)
 - MCP server connectivity issues (see `/mcp-environment-setup`)
 - Binding class design, configuration dataclasses, or system architecture (consumer's responsibility)
+
+---
+
+## Cross-plugin boundary: firmware vs. interface
+
+This skill and `/microcontroller:firmware-module` are counterparts that share a communication protocol
+but live in different plugins with distinct responsibilities:
+
+| Concern                                 | Authority                          |
+|-----------------------------------------|------------------------------------|
+| C++ Module subclass, command handlers   | `/microcontroller:firmware-module` |
+| Parameter structs (`PACKED_STRUCT`)     | `/microcontroller:firmware-module` |
+| main.cpp wiring (Communication, Kernel) | `/microcontroller:firmware-module` |
+| Python ModuleInterface subclass         | This skill                         |
+| MicroControllerInterface lifecycle      | This skill                         |
+| MQTTCommunication setup                 | This skill                         |
+
+The two sides must agree on **module_type**, **module_id**, **command codes**, **event codes**,
+and **parameter struct layout** (field order, types, and sizes). When implementing a new hardware
+module, always work both skills together: `/microcontroller:firmware-module` for the C++ firmware
+and this skill for the Python interface. If either side's codes or parameter layout change, the
+other must be updated to match.
 
 ---
 
@@ -116,6 +140,7 @@ MicroControllerInterface() → start() → [communication active] → stop()
 - `__init__()` writes the manifest entry, configures module interfaces, sets up the communication process
 - `start()` spawns the communication process, verifies controller and module identities, enters the
   communication cycle
+- `reset_controller()` resets the microcontroller to its default state
 - `stop()` terminates the communication process and releases all resources
 
 After `stop()`, the DataLogger can be stopped and archives assembled.
@@ -168,13 +193,13 @@ class EncoderInterface(ModuleInterface):
         )
 ```
 
-| Parameter     | Type                   | Default | Description                                      |
-|---------------|------------------------|---------|--------------------------------------------------|
-| `module_type` | `np.uint8`             | -       | Hardware module family code (matches firmware)   |
-| `module_id`   | `np.uint8`             | -       | Specific module instance ID (matches firmware)   |
-| `name`        | `str`                  | -       | Human-readable name (written to manifest)        |
-| `error_codes` | `set[np.uint8] / None` | `None`  | Event codes that trigger RuntimeError on receipt |
-| `data_codes`  | `set[np.uint8] / None` | `None`  | Event codes routed to `process_received_data()`  |
+| Parameter     | Type                   | Default   | Description                                      |
+|---------------|------------------------|-----------|--------------------------------------------------|
+| `module_type` | `np.uint8`             | --------- | Hardware module family code (matches firmware)   |
+| `module_id`   | `np.uint8`             | --------- | Specific module instance ID (matches firmware)   |
+| `name`        | `str`                  | --------- | Human-readable name (written to manifest)        |
+| `error_codes` | `set[np.uint8] / None` | `None`    | Event codes that trigger RuntimeError on receipt |
+| `data_codes`  | `set[np.uint8] / None` | `None`    | Event codes routed to `process_received_data()`  |
 
 ### Abstract methods to implement
 
@@ -191,6 +216,27 @@ def process_received_data(self, message: ModuleData | ModuleState) -> None:
     Implement custom online data processing here. Keep fast — blocks communication."""
 ```
 
+### Implementing process_received_data()
+
+Route on `message.event` to handle different event codes. For `ModuleData` messages, access the
+deserialized payload via `message.data_object`. For `ModuleState` messages, the event code itself
+carries all information (no payload). Keep this method fast — it runs in the communication process
+and blocks message reception while executing.
+
+```python
+def process_received_data(self, message: ModuleData | ModuleState) -> None:
+    if message.event == np.uint8(51):       # kRotatedCCW from firmware
+        delta: np.uint32 = message.data_object
+        self._total_pulses -= int(delta)
+    elif message.event == np.uint8(52):     # kRotatedCW from firmware
+        delta: np.uint32 = message.data_object
+        self._total_pulses += int(delta)
+```
+
+The type of `message.data_object` matches the numpy equivalent of the C++ type passed to
+`SendData()` on the firmware side. For scalar values it is a numpy scalar (e.g., `np.uint32`);
+for arrays it is an `NDArray` of the corresponding dtype.
+
 ### Sending commands and parameters
 
 ```python
@@ -206,6 +252,39 @@ module.send_parameters(parameter_data=(np.uint16(500), np.float32(1.5)))
 # Clear the module's command queue on the microcontroller.
 module.reset_command_queue()
 ```
+
+### Parameter struct correspondence
+
+The `parameter_data` tuple must match the firmware's `PACKED_STRUCT` field-by-field — same count, same
+order, same types. A mismatch silently corrupts all subsequent fields because the struct is laid out
+contiguously with no padding. See `/microcontroller:firmware-module` for the C++ struct side and the full
+type mapping table.
+
+```text
+C++ struct (firmware)                    Python tuple (PC)
+─���───────────────────────────────────    ─���───────────────────────────────────
+struct CustomRuntimeParameters           send_parameters(parameter_data=(
+{                                            np.uint32(2000000),   # on_duration
+        uint32_t on_duration  = ...;         np.uint32(2000000),   # off_duration
+        uint32_t off_duration = ...;         np.uint16(666),       # echo_value
+        uint16_t echo_value   = ...;     ))
+} PACKED_STRUCT parameters;
+```
+
+For maintainability, wrap `send_parameters()` in a typed convenience method with named arguments:
+
+```python
+def set_parameters(
+    self,
+    *,
+    on_duration: np.uint32,
+    off_duration: np.uint32,
+    echo_value: np.uint16,
+) -> None:
+    self.send_parameters(parameter_data=(on_duration, off_duration, echo_value))
+```
+
+This makes call sites self-documenting and prevents positional argument ordering mistakes.
 
 ---
 
@@ -240,6 +319,9 @@ MQTTCommunication() → connect() → [publish/subscribe] → disconnect()
 ```
 
 - `connect()` establishes the broker connection and subscribes to monitored topics
+- `send_data(topic, payload=None)` publishes data to the specified MQTT topic
+- `get_data()` returns the next received `(topic, payload)` tuple or `None` if empty
+- `has_data` property returns `True` if there are received messages waiting
 - `disconnect()` releases the connection (also called automatically on garbage collection)
 
 ---
@@ -261,15 +343,15 @@ by protocol codes. Understanding this protocol is essential for debugging commun
 
 ### Incoming messages (microcontroller → PC)
 
-| Protocol Code | Message Type              | Description                                                      |
-|---------------|---------------------------|------------------------------------------------------------------|
-| 6             | ModuleData                | Module event with a typed data payload (command, event, data)    |
-| 7             | KernelData                | Kernel event with a typed data payload (command, event, data)    |
-| 8             | ModuleState               | Module event without data (command, event only)                  |
-| 9             | KernelState               | Kernel event without data (command, event only)                  |
-| 10            | ReceptionCode             | Acknowledgement that the microcontroller received a PC message   |
-| 11            | ControllerIdentification  | Microcontroller ID response during initialization                |
-| 12            | ModuleIdentification      | Module type+id response during initialization                    |
+| Protocol Code | Message Type             | Description                                                    |
+|---------------|--------------------------|----------------------------------------------------------------|
+| 6             | ModuleData               | Module event with a typed data payload (command, event, data)  |
+| 7             | KernelData               | Kernel event with a typed data payload (command, event, data)  |
+| 8             | ModuleState              | Module event without data (command, event only)                |
+| 9             | KernelState              | Kernel event without data (command, event only)                |
+| 10            | ReceptionCode            | Acknowledgement that the microcontroller received a PC message |
+| 11            | ControllerIdentification | Microcontroller ID response during initialization              |
+| 12            | ModuleIdentification     | Module type+id response during initialization                  |
 
 ### Event code ranges
 
@@ -286,6 +368,33 @@ and `process_received_data()` both rely on this invariant.
 Messages with event codes in the user range (51+) and matching a module's `data_codes` set are
 routed to `process_received_data()`. Messages with event codes matching `error_codes` raise
 `RuntimeError` and abort the runtime.
+
+---
+
+## Supported data payload types
+
+The firmware resolves prototype codes at compile time for all data transmitted via `SendData()`. The
+PC side deserializes them into numpy values. The `data_object` field in `ModuleData` and the
+`dtype`/`data` columns in processed feather files use numpy types from this table.
+
+| Numpy Type   | C++ Equivalent | Size    | Supported Element Counts                                                         |
+|--------------|----------------|---------|----------------------------------------------------------------------------------|
+| `np.bool_`   | `bool`         | 1 byte  | 1-15, 16, 24, 32, 40, 48, 52, 248                                                |
+| `np.uint8`   | `uint8_t`      | 1 byte  | 1-15, 16, 18, 20, 22, 24, 28, 32, 36, 40, 44, 48, 52, 64, 96, 128, 192, 244, 248 |
+| `np.int8`    | `int8_t`       | 1 byte  | 1-15, 16, 24, 32, 40, 48, 52, 92, 132, 172, 212, 244, 248                        |
+| `np.uint16`  | `uint16_t`     | 2 bytes | 1-15, 16, 20, 24, 26, 32, 48, 64, 96, 122, 124                                   |
+| `np.int16`   | `int16_t`      | 2 bytes | 1-15, 16, 20, 24, 26, 32, 48, 64, 96, 122, 124                                   |
+| `np.uint32`  | `uint32_t`     | 4 bytes | 1-15, 16, 20, 24, 32, 48, 62                                                     |
+| `np.int32`   | `int32_t`      | 4 bytes | 1-15, 16, 20, 24, 32, 48, 62                                                     |
+| `np.float32` | `float`        | 4 bytes | 1-15, 16, 20, 24, 32, 48, 62                                                     |
+| `np.uint64`  | `uint64_t`     | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
+| `np.int64`   | `int64_t`      | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
+| `np.float64` | `double`       | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
+
+An element count of 1 represents a scalar value. For arrays, `ModuleData.data_object` is a numpy
+array of the corresponding dtype. The maximum payload is 248 bytes; array element counts are
+constrained by `floor(248 / element_size)`. `uint8` arrays have the densest count coverage and can
+serve as a generic bytes buffer for packed structures.
 
 ---
 
@@ -427,38 +536,39 @@ Shutdown: MCI.stop() → DataLogger.stop() → assemble_log_archives()
 
 ## Troubleshooting
 
-| Symptom                                    | Likely Cause                          | Resolution                                                       |
-|--------------------------------------------|---------------------------------------|------------------------------------------------------------------|
-| Communication process fails to start       | Wrong port or baudrate                | Verify with `list_microcontrollers` MCP tool                     |
-| Controller ID mismatch on start            | Firmware uses different ID            | Match controller_id to firmware configuration                    |
-| Module identification fails                | Module type/id mismatch               | Match ModuleInterface type/id to firmware modules                |
-| Process crashes on initialization          | DataLogger not started                | Start DataLogger before MCI initialization                       |
-| Serial permission denied                   | User not in dialout group             | Add user to dialout group or run with sudo                       |
-| Initialization timeout (>30s)              | Microcontroller not responding        | Check serial connection, firmware loaded, correct port           |
-| Error code 2 (MODULE_SETUP_ERROR)          | Module Setup() failed on MCU          | Firmware re-upload required; check module hardware               |
-| Error code 3 (RECEPTION_ERROR)             | MCU failed to parse PC message        | Check serial cable, buffer_size, communication integrity         |
-| Error code 4 (TRANSMISSION_ERROR)          | MCU failed to send to PC              | Check serial cable, USB hub, buffer overflow                     |
-| Error code 5 (INVALID_MESSAGE_PROTOCOL)    | Unknown protocol code sent            | Verify library versions match between PC and firmware            |
-| Error code 7 (MODULE_PARAMETERS_ERROR)     | MCU rejected parameters               | Verify parameter count and types match firmware expectations     |
-| Error code 8 (COMMAND_NOT_RECOGNIZED)      | Unknown command code                  | Verify command codes match firmware module implementation        |
-| Error code 9 (TARGET_MODULE_NOT_FOUND)     | Module type+id not on MCU             | Verify module_type and module_id match firmware configuration    |
-| Error code 10 (KEEPALIVE_TIMEOUT)          | PC missed keepalive deadline          | Check CPU load, serial bandwidth, reduce keepalive_interval      |
-| Watchdog: process prematurely shut down    | Communication process crashed         | Check serial connection, inspect stderr for stack trace          |
-| MQTT connection refused                    | Broker not running or wrong host/port | Verify broker with `check_mqtt_broker` MCP tool                  |
+| Symptom                                 | Likely Cause                          | Resolution                                                    |
+|-----------------------------------------|---------------------------------------|---------------------------------------------------------------|
+| Communication process fails to start    | Wrong port or baudrate                | Verify with `list_microcontrollers` MCP tool                  |
+| Controller ID mismatch on start         | Firmware uses different ID            | Match controller_id to firmware configuration                 |
+| Module identification fails             | Module type/id mismatch               | Match ModuleInterface type/id to firmware modules             |
+| Process crashes on initialization       | DataLogger not started                | Start DataLogger before MCI initialization                    |
+| Serial permission denied                | User not in dialout group             | Add user to dialout group or run with sudo                    |
+| Initialization timeout (>30s)           | Microcontroller not responding        | Check serial connection, firmware loaded, correct port        |
+| Error code 2 (MODULE_SETUP_ERROR)       | Module Setup() failed on MCU          | Firmware re-upload required; check module hardware            |
+| Error code 3 (RECEPTION_ERROR)          | MCU failed to parse PC message        | Check serial cable, buffer_size, communication integrity      |
+| Error code 4 (TRANSMISSION_ERROR)       | MCU failed to send to PC              | Check serial cable, USB hub, buffer overflow                  |
+| Error code 5 (INVALID_MESSAGE_PROTOCOL) | Unknown protocol code sent            | Verify library versions match between PC and firmware         |
+| Error code 7 (MODULE_PARAMETERS_ERROR)  | MCU rejected parameters               | Verify parameter count and types match firmware expectations  |
+| Error code 8 (COMMAND_NOT_RECOGNIZED)   | Unknown command code                  | Verify command codes match firmware module implementation     |
+| Error code 9 (TARGET_MODULE_NOT_FOUND)  | Module type+id not on MCU             | Verify module_type and module_id match firmware configuration |
+| Error code 10 (KEEPALIVE_TIMEOUT)       | PC missed keepalive deadline          | Check CPU load, serial bandwidth, reduce keepalive_interval   |
+| Watchdog: process prematurely shut down | Communication process crashed         | Check serial connection, inspect stderr for stack trace       |
+| MQTT connection refused                 | Broker not running or wrong host/port | Verify broker with `check_mqtt_broker` MCP tool               |
 
 ---
 
 ## Related skills
 
-| Skill                        | Relationship                                                      |
-|------------------------------|-------------------------------------------------------------------|
-| `/microcontroller-setup`     | Covers MCP-based discovery, MQTT testing, and manifest management |
-| `/extraction-configuration`  | Downstream: configure extraction parameters before processing     |
-| `/log-input-format`          | Reference: documents archive format produced by this code         |
-| `/log-processing`            | Downstream: processes archives from MicroControllerInterface data |
-| `/log-processing-results`    | Downstream: analyzes output from processed archives               |
-| `/pipeline`                  | Context: end-to-end orchestration and multi-controller planning   |
-| `/mcp-environment-setup`     | Prerequisite: MCP server connectivity for API verification        |
+| Skill                              | Relationship                                                                                                                                                      |
+|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/microcontroller:firmware-module` | Firmware-side counterpart: use for C++ Module subclassing, command handlers, parameter structs, and main.cpp integration. Codes and parameter layouts must match. |
+| `/microcontroller-setup`           | Covers MCP-based discovery, MQTT testing, and manifest management                                                                                                 |
+| `/extraction-configuration`        | Downstream: configure extraction parameters before processing                                                                                                     |
+| `/log-input-format`                | Reference: documents archive format produced by this code                                                                                                         |
+| `/log-processing`                  | Downstream: processes archives from MicroControllerInterface data                                                                                                 |
+| `/log-processing-results`          | Downstream: analyzes output from processed archives                                                                                                               |
+| `/pipeline`                        | Context: end-to-end orchestration and multi-controller planning                                                                                                   |
+| `/mcp-environment-setup`           | Prerequisite: MCP server connectivity for API verification                                                                                                        |
 
 ---
 
@@ -471,7 +581,8 @@ Microcontroller Interface:
 - [ ] Allocated unique controller IDs in the 101-150 advised range
 - [ ] DataLogger initialized and started before MicroControllerInterface creation
 - [ ] ModuleInterface subclasses implement all three abstract methods
-- [ ] Module type/id codes match firmware configuration
+- [ ] Module type/id codes match firmware configuration (verify via /microcontroller:firmware-module)
+- [ ] Command codes, event codes, and parameter layout match firmware counterpart
 - [ ] stop() called on all MicroControllerInterface instances during shutdown
 - [ ] assemble_log_archives() called after DataLogger.stop()
 ```

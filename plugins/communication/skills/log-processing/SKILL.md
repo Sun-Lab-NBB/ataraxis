@@ -163,7 +163,7 @@ Multi-target data extraction pipeline:
 Key architectural facts:
 - **ProcessingTracker** manages job lifecycle: `SCHEDULED` → `RUNNING` → `SUCCEEDED` / `FAILED` via YAML state files
 - **Single execution session** constraint: only one batch execution can run at a time
-- **Parallel processing** activates automatically for archives with >2000 messages
+- **Parallel processing** activates automatically for archives with >=2000 messages
 - **ExtractionConfig** controls which modules, kernel messages, and event codes are extracted per controller
 - **Output layout:** All processing output is written under a `microcontroller_data/` subdirectory within the
   output directory provided by the user
@@ -240,17 +240,15 @@ The processing workflow uses a **prepare-then-execute** model:
 
 The execution tool uses **budget-based worker allocation** with a single `worker_budget` parameter that
 directly controls memory footprint (each worker spawns a separate process). Before dispatching, the tool
-probes each archive's message count and allocates workers using square root scaling:
+probes each archive's message count and allocates workers using tier-based scaling:
 
 The system uses two layers of allocation:
 
-1. **Budget division** — divides the available budget evenly among concurrent parallel jobs, snapped to
-   multiples of 5. Two large archives on a 128-core machine each get 60 workers.
+1. **Per-job tier assignment** — each job is assigned a worker count based on its archive's message count
+   using a sqrt-derived formula (`ceil(sqrt(messages / 1,000))`), rounded to the nearest multiple of 5.
+   This determines the per-job worker tier:
 
-2. **Saturation floor** — a sqrt-derived minimum (`ceil(sqrt(messages / 1,000))`) prevents the budget
-   division from spreading cores too thin. Example floors:
-
-| Archive Size  | Saturation Floor | Typical Scenario               |
+| Archive Size  | Worker Tier      | Typical Scenario               |
 |---------------|------------------|--------------------------------|
 | < 2,000 msgs  | 1 (sequential)   | Short recording                |
 | 10,000 msgs   | 5                | Brief session                  |
@@ -258,9 +256,9 @@ The system uses two layers of allocation:
 | 250,000 msgs  | 15               | Extended session               |
 | 648,000 msgs  | 25               | Long continuous recording      |
 
-The budget division determines the actual allocation (often much higher than the floor). The floor
-only limits concurrency when many large jobs compete for a limited budget. Two cores are reserved for
-system operations.
+2. **Budget-limited concurrency** — the available budget limits how many jobs can run concurrently, not
+   the per-job worker count. Jobs are grouped by their tier and dispatched in groups that fit within the
+   remaining budget. Two cores are reserved for system operations.
 
 When `worker_budget=-1`, the system resolves the total using the host machine's available CPU cores
 via `resolve_worker_count`. Reduce `worker_budget` to limit memory footprint on constrained systems.

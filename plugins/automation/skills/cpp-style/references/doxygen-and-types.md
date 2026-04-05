@@ -78,12 +78,11 @@ do not apply. Never reorder tags within a documentation block.
  *
  * @tparam ObjectType the type of the data object to send.
  * @param status_code the status code to include in the packet header.
- * @param prototype the data prototype identifier for the receiving parser.
  * @param object the data object to serialize and send.
  * @returns true if the data was successfully sent, false otherwise.
  */
 template <typename ObjectType>
-bool SendData(uint8_t status_code, uint8_t prototype, const ObjectType& object);
+bool SendData(uint8_t status_code, const ObjectType& object);
 ```
 
 ---

@@ -68,16 +68,19 @@ MicroControllerInterface(
 
 ### Methods
 
-| Method    | Returns | Description                                                              |
-|-----------|---------|--------------------------------------------------------------------------|
-| `start()` | `None`  | Spawns communication process, verifies identities, enters comm cycle.    |
-| `stop()`  | `None`  | Terminates communication process and releases all resources.             |
+| Method               | Returns | Description                                                              |
+|----------------------|---------|--------------------------------------------------------------------------|
+| `start()`            | `None`  | Spawns communication process, verifies identities, enters comm cycle.    |
+| `stop()`             | `None`  | Terminates communication process and releases all resources.             |
+| `reset_controller()` | `None`  | Resets the microcontroller to its default state.                         |
 
 ### Properties
 
-| Property        | Type       | Description                                    |
-|-----------------|------------|------------------------------------------------|
-| `controller_id` | `np.uint8` | The controller's unique identifier.            |
+| Property        | Type                          | Description                                            |
+|-----------------|-------------------------------|--------------------------------------------------------|
+| `controller_id` | `np.uint8`                    | The controller's unique identifier.                    |
+| `name`          | `str`                         | Human-readable controller name.                        |
+| `modules`       | `tuple[ModuleInterface, ...]` | All ModuleInterface instances bound to this controller.|
 
 ---
 
@@ -115,11 +118,11 @@ ModuleInterface(
 
 ### Command methods
 
-| Method                  | Key Parameters                                                          | Description                       |
-|-------------------------|-------------------------------------------------------------------------|-----------------------------------|
-| `send_command()`        | `command: np.uint8, noblock: np.bool_, repetition_delay: np.uint32 = 0` | Send command to module.           |
-| `send_parameters()`     | `parameter_data: tuple[np.number, ...]`                                 | Send parameters to module.        |
-| `reset_command_queue()` | None                                                                    | Clear the module's command queue. |
+| Method                  | Key Parameters                                                                                   | Description                       |
+|-------------------------|--------------------------------------------------------------------------------------------------|-----------------------------------|
+| `send_command()`        | `command: np.uint8, noblock: np.bool_, repetition_delay: np.uint32 = 0`                          | Send command to module.           |
+| `send_parameters()`     | `parameter_data: tuple[np.unsignedinteger \| np.signedinteger \| np.bool_ \| np.floating, ...]`  | Send parameters to module.        |
+| `reset_command_queue()` | None                                                                                             | Clear the module's command queue. |
 
 ### Properties
 
@@ -159,10 +162,18 @@ MQTTCommunication(
 
 ### Methods
 
-| Method         | Returns | Description                                                       |
-|----------------|---------|-------------------------------------------------------------------|
-| `connect()`    | `None`  | Connects to broker and subscribes to monitored topics.            |
-| `disconnect()` | `None`  | Disconnects from broker. Called automatically on garbage collect. |
+| Method                             | Returns                                    | Description                                                       |
+|------------------------------------|--------------------------------------------|-------------------------------------------------------------------|
+| `connect()`                        | `None`                                     | Connects to broker and subscribes to monitored topics.            |
+| `disconnect()`                     | `None`                                     | Disconnects from broker. Called automatically on garbage collect. |
+| `send_data(topic, payload=None)`   | `None`                                     | Publishes data to the specified MQTT topic.                       |
+| `get_data()`                       | `tuple[str, bytes \| bytearray] \| None`    | Returns next received `(topic, payload)` or `None` if empty.     |
+
+### Properties
+
+| Property   | Type   | Description                                          |
+|------------|--------|------------------------------------------------------|
+| `has_data` | `bool` | `True` if there are received messages waiting.       |
 
 ---
 
@@ -170,22 +181,29 @@ MQTTCommunication(
 
 ### ModuleData
 
-Received data message from a hardware module (protocol code 6).
+Received data message from a hardware module (protocol code 6). Properties are backed by an internal
+`message: NDArray[np.uint8]` field; `data_object` holds the deserialized payload.
 
-| Field         | Type            | Description                       |
-|---------------|-----------------|-----------------------------------|
-| `command`     | `np.uint8`      | Command the module was executing. |
-| `event`       | `np.uint8`      | Event code of the message.        |
-| `data_object` | `PrototypeType` | Deserialized data payload.        |
+| Property         | Type                   | Description                               |
+|------------------|------------------------|-------------------------------------------|
+| `module_type`    | `np.uint8`             | Module family code of the sending module. |
+| `module_id`      | `np.uint8`             | Instance ID of the sending module.        |
+| `command`        | `np.uint8`             | Command the module was executing.         |
+| `event`          | `np.uint8`             | Event code of the message.                |
+| `prototype_code` | `np.uint8`             | Prototype code identifying data layout.   |
+| `data_object`    | `np.number \| NDArray` | Deserialized data payload.                |
 
 ### ModuleState
 
-Received state message from a hardware module (protocol code 8).
+Received state message from a hardware module (protocol code 8). Properties are backed by an internal
+`message: NDArray[np.uint8]` field.
 
-| Field     | Type       | Description                                     |
-|-----------|------------|-------------------------------------------------|
-| `command` | `np.uint8` | Command the module was executing.               |
-| `event`   | `np.uint8` | Event code of the message.                      |
+| Property      | Type       | Description                               |
+|---------------|------------|-------------------------------------------|
+| `module_type` | `np.uint8` | Module family code of the sending module. |
+| `module_id`   | `np.uint8` | Instance ID of the sending module.        |
+| `command`     | `np.uint8` | Command the module was executing.         |
+| `event`       | `np.uint8` | Event code of the message.                |
 
 ### ModuleSourceData (frozen dataclass)
 
@@ -311,6 +329,6 @@ IDs to process are resolved from the config. Prefer MCP batch tools for multi-ar
 ## Dependencies
 
 - Python >=3.12, <3.15
-- numpy, polars, paho-mqtt
+- numpy, polars, paho-mqtt, click, httpx
 - ataraxis-time, ataraxis-base-utilities, ataraxis-data-structures, ataraxis-transport-layer-pc
 - mcp (for MCP server)

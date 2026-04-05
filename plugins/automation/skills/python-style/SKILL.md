@@ -115,7 +115,10 @@ compute_coefficients(t, result)
 
 Exceptions:
 - Single positional arguments for obvious cases like `range(4)`, `len(array)`.
-- Numba `jitclass` method calls, which do not support keyword arguments. Use positional arguments for these calls and add a brief inline comment if the call is not self-explanatory. Note: standard `@njit` / `@jit` functions do support keyword arguments and are not exempt from this rule.
+- Numba `jitclass` method calls, which do not support keyword arguments. Use positional
+  arguments for these calls and add a brief inline comment if the call is not self-explanatory.
+  Note: standard `@njit` / `@jit` functions do support keyword arguments and are not exempt
+  from this rule.
 
 ---
 
