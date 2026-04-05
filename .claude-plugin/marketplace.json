@@ -18,6 +18,11 @@
       "name": "communication",
       "source": "./plugins/communication",
       "description": "Provides microcontroller discovery, extraction configuration, log processing, and pipeline orchestration skills for ataraxis-communication-interface. Includes MCP bindings for hardware discovery, manifest management, and batch data processing."
+    },
+    {
+      "name": "microcontroller",
+      "source": "./plugins/microcontroller",
+      "description": "Provides firmware module implementation skills for ataraxis-micro-controller."
     }
   ]
 }

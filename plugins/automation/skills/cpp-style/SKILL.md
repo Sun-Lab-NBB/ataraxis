@@ -206,7 +206,6 @@ parameters, use inline comments to label arguments:
 // Good - labeled arguments clarify meaning
 SendData(
     static_cast<uint8_t>(kCustomStatusCodes::kRotatedCW),  // status_code
-    kPrototypes::kOneUint32,                                // prototype
     delta                                                   // value
 );
 

@@ -245,7 +245,8 @@ For MODULE_DATA and KERNEL_DATA messages, the payload contains:
 
 - **command** — The command code the module/kernel was executing
 - **event** — The event code identifying the message type
-- **prototype_code** — Identifies the numpy dtype and size of the data bytes
+- **prototype_code** — Identifies the numpy dtype and size of the data bytes (auto-resolved at
+  compile time by the firmware library)
 - **data** — The serialized data value
 
 For MODULE_STATE and KERNEL_STATE messages (no data):
