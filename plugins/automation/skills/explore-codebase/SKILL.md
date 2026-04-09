@@ -257,8 +257,8 @@ Exported from `__init__.py` via `__all__`:
 ## Proactive behavior
 
 Invoke at session start to ensure full context before making changes. Prevents blind modifications
-and ensures understanding of existing patterns. When the project has ataraxis or Sun Lab
-dependencies (check `pyproject.toml`), also invoke `/explore-dependencies` to build a live API
+and ensures understanding of existing patterns. When the project has ataraxis dependencies
+(check `pyproject.toml`), also invoke `/explore-dependencies` to build a live API
 snapshot of each dependency.
 
 Do NOT make code changes during exploration. Present findings and wait for user direction.

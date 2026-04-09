@@ -1,6 +1,6 @@
 # Ataraxis library catalog
 
-Static reference for the ataraxis and Sun Lab library ecosystem. Use this catalog to understand
+Static reference for the ataraxis library ecosystem. Use this catalog to understand
 which library covers which domain, resolve import names, and identify dependencies to explore.
 
 ---
@@ -58,10 +58,10 @@ All repositories are under `https://github.com/Sun-Lab-NBB/`:
 
 ---
 
-## Sun Lab downstream libraries
+## Downstream libraries
 
 Downstream libraries follow the `sl-*` naming pattern. These are application-level libraries
-built on top of the ataraxis infrastructure for specific lab workflows:
+built on top of the ataraxis infrastructure for specific workflows:
 
 - `sl-experiment` — Experiment orchestration and session management
 - `sl-suite2p` — Neural imaging analysis pipeline (reimplemented suite2p)

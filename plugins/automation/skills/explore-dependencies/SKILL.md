@@ -1,7 +1,7 @@
 ---
 name: explore-dependencies
 description: >-
-  Explores installed ataraxis and Sun Lab dependency source code to build a live API snapshot.
+  Explores installed ataraxis dependency source code to build a live API snapshot.
   Discovers public classes, functions, and constants exported by each dependency, identifies
   replacement opportunities where project code reimplements existing library functionality, and
   produces a structured dependency API snapshot. Use when starting a session on a project with
@@ -12,7 +12,7 @@ user-invocable: true
 
 # Dependency exploration
 
-Explores installed ataraxis and Sun Lab library source code to build a live API snapshot for the
+Explores installed ataraxis library source code to build a live API snapshot for the
 current project.
 
 You MUST run this skill before writing code that uses ataraxis library features. Static reference
@@ -24,7 +24,7 @@ available and how they work.
 ## Scope
 
 **Covers:**
-- Discovering ataraxis and Sun Lab dependencies from `pyproject.toml`
+- Discovering ataraxis dependencies from `pyproject.toml`
 - Locating installed package source code on disk
 - Reading `__init__.py` and `__all__` exports to enumerate public API surfaces
 - Reading source signatures, docstrings, and return types for each public asset
@@ -50,7 +50,7 @@ ecosystem, domain-to-library mappings, and import names.
 
 ### Step 2: Identify project dependencies
 
-Read the project's `pyproject.toml` and extract all ataraxis and Sun Lab dependencies from
+Read the project's `pyproject.toml` and extract all ataraxis dependencies from
 `[project.dependencies]` and `[project.optional-dependencies]`. Match package names that start
 with `ataraxis-` or `sl-`.
 
@@ -201,7 +201,7 @@ For small dependencies (fewer than 15 exports), read the APIs directly without s
 ## Proactive behavior
 
 This skill should be invoked at session start alongside `/explore-codebase` when the project has
-ataraxis or Sun Lab dependencies. The `/python-style` skill explicitly requires this skill before
+ataraxis dependencies. The `/python-style` skill explicitly requires this skill before
 writing code that touches ataraxis library domains.
 
 When invoked proactively, present the dependency API snapshot and replacement opportunities before
@@ -215,7 +215,7 @@ proceeding to code changes. Wait for user acknowledgment before modifying code.
 
 ```text
 Dependency Exploration Compliance:
-- [ ] All ataraxis/Sun Lab dependencies identified from pyproject.toml
+- [ ] All ataraxis dependencies identified from pyproject.toml
 - [ ] Each installed dependency's source location resolved
 - [ ] Unavailable packages noted and skipped
 - [ ] __all__ exports read for each installed dependency

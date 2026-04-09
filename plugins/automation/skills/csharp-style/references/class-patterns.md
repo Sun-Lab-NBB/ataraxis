@@ -1,13 +1,13 @@
 # Class and design patterns
 
 Conventions for C# classes, MonoBehaviour components, ScriptableObjects, enums, properties,
-inheritance, and Unity-specific patterns in Sun Lab projects.
+inheritance, and Unity-specific patterns across projects.
 
 ---
 
 ## MonoBehaviour patterns
 
-MonoBehaviour is the base class for Unity components attached to GameObjects. Most Sun Lab C#
+MonoBehaviour is the base class for Unity components attached to GameObjects. Most C#
 classes inherit from MonoBehaviour.
 
 ### Lifecycle method ordering
@@ -115,6 +115,65 @@ void OnTriggerExit(Collider other)
     _inZone = false;
 }
 ```
+
+---
+
+## Event subscription patterns
+
+Unity uses multiple event systems. Follow consistent subscription and unsubscription patterns
+to prevent memory leaks and null reference errors.
+
+### UnityEvent subscriptions
+
+Subscribe in `OnEnable()` and unsubscribe in `OnDisable()` for events that should only fire
+while the component is active:
+
+```csharp
+/// <summary>The MQTT channel for receiving lick detection events.</summary>
+private MQTTChannel _lickChannel;
+
+/// <summary>Subscribes to MQTT lick events when the component becomes active.</summary>
+void OnEnable()
+{
+    _lickChannel.Event.AddListener(OnLickDetected);
+}
+
+/// <summary>Unsubscribes from MQTT lick events when the component becomes inactive.</summary>
+void OnDisable()
+{
+    _lickChannel.Event.RemoveListener(OnLickDetected);
+}
+```
+
+### C# event and delegate subscriptions
+
+Use `+=` and `-=` for C# events. Every `+=` must have a matching `-=`:
+
+```csharp
+/// <summary>Subscribes to the zone boundary event.</summary>
+void OnEnable()
+{
+    _occupancyZone.BoundaryDisarmed += OnBoundaryDisarmed;
+}
+
+/// <summary>Unsubscribes from the zone boundary event.</summary>
+void OnDisable()
+{
+    _occupancyZone.BoundaryDisarmed -= OnBoundaryDisarmed;
+}
+```
+
+### Guidelines
+
+- **`OnEnable` / `OnDisable`**: Use for events that should only fire while the component is
+  active. This is the default choice for most subscriptions.
+- **`Start` / `OnDestroy`**: Use for events that must persist across enable/disable cycles
+  (e.g., one-time MQTT channel setup).
+- **Symmetry**: Every subscription must have a matching unsubscription in the corresponding
+  lifecycle method. `OnEnable` pairs with `OnDisable`; `Start` pairs with `OnDestroy`.
+- **UnityEvent vs C# event vs Action\<T\>**: Prefer `UnityEvent` for Inspector-configurable
+  callbacks, C# `event` for internal class events, and `Action<T>` delegates for simple
+  one-off callbacks passed as parameters.
 
 ---
 
@@ -394,9 +453,43 @@ public static class Utility
 
 ---
 
+## Static vs instance method guidance
+
+This is the C# equivalent of the Python distinction between `@staticmethod`, `@classmethod`,
+and instance methods.
+
+| Use                  | When                                                           |
+|----------------------|----------------------------------------------------------------|
+| Instance method      | The method accesses instance fields or properties (`this`)     |
+| `static` method      | The method needs no instance or class state                    |
+| `static` class       | All methods in the class are stateless utilities               |
+
+### Rules
+
+- **Prefer `static`** when a method does not access instance state. Roslyn analyzer `CA1822`
+  flags methods that can be made static.
+- **Extension methods**: Use static methods with `this` parameter for adding behavior to types
+  you do not own. Place extension methods in a static class named `{TypeName}Extensions`.
+- **Factory methods**: Use `static` methods that return new instances of the containing type
+  when construction requires validation or naming clarity:
+
+```csharp
+/// <summary>Creates a segment configuration from the specified YAML entry.</summary>
+/// <param name="yamlEntry">The raw YAML key-value pair.</param>
+/// <returns>The parsed segment configuration.</returns>
+public static SegmentConfig FromYaml(Dictionary<string, object> yamlEntry)
+{
+    string name = (string)yamlEntry["name"];
+    float length = Convert.ToSingle(yamlEntry["length"]);
+    return new SegmentConfig(name, length, cueCount: 0);
+}
+```
+
+---
+
 ## Immutability patterns
 
-Immutability is a core design principle across all Sun Lab projects, matching the pervasive
+Immutability is a core design principle across all projects, matching the pervasive
 `const` correctness in the C++ codebase.
 
 ### Readonly fields
@@ -481,6 +574,69 @@ var modified = segment1 with { LengthCm = 200f };
 | `readonly struct` | Small immutable value type with value semantics | Packed struct, all const |
 | `record`          | Immutable reference type with value equality    | N/A (use struct in C++)  |
 | `record struct`   | Immutable value type with value equality        | Packed const struct      |
+
+---
+
+## `in`, `ref`, and `out` parameter conventions
+
+These modifiers control how arguments are passed to methods. Correct usage is the C# equivalent
+of C++ const reference passing and output parameters.
+
+### `in` parameters
+
+Use `in` for large `readonly struct` parameters to avoid copying. Do NOT use `in` for small
+types (`int`, `float`, `bool`) or reference types — it adds overhead without benefit:
+
+```csharp
+/// <summary>Checks whether the specified world position is within the zone bounds.</summary>
+/// <param name="position">The world position to check.</param>
+/// <returns>True if the position is within the zone bounds.</returns>
+public bool ContainsPosition(in WorldPosition position)
+{
+    return position.X >= _minX && position.X <= _maxX
+        && position.Z >= _minZ && position.Z <= _maxZ;
+}
+```
+
+### `out` parameters
+
+Use `out` for methods that return multiple values. Follow the `TryX` pattern (return `bool`,
+populate `out` on success):
+
+```csharp
+/// <summary>Attempts to parse the segment index from the segment name.</summary>
+/// <param name="segmentName">The segment name string to parse.</param>
+/// <param name="index">The parsed segment index, or -1 if parsing fails.</param>
+/// <returns>True if the segment name contains a valid index.</returns>
+public static bool TryParseSegmentIndex(string segmentName, out int index)
+{
+    string numberPart = segmentName.Replace("Segment_", "");
+    return int.TryParse(numberPart, out index);
+}
+```
+
+### `ref` parameters
+
+Use `ref` sparingly, only when a method must modify the caller's variable. Prefer return
+values or `out` parameters over `ref` when possible:
+
+```csharp
+/// <summary>Advances the segment index, wrapping to zero at the corridor length.</summary>
+/// <param name="segmentIndex">The segment index to advance.</param>
+/// <param name="corridorLength">The total number of segments in the corridor.</param>
+public static void AdvanceSegmentIndex(ref int segmentIndex, int corridorLength)
+{
+    segmentIndex = (segmentIndex + 1) % corridorLength;
+}
+```
+
+### Guidelines
+
+| Modifier | Use when                                              | Avoid when                              |
+|----------|-------------------------------------------------------|-----------------------------------------|
+| `in`     | Large `readonly struct` (>16 bytes) passed frequently | Small value types, reference types      |
+| `out`    | Method produces a secondary result (`TryX` pattern)   | Method can return a single value        |
+| `ref`    | Method must modify the caller's variable in place     | A return value or `out` would suffice   |
 
 ---
 
@@ -714,3 +870,92 @@ When stacking multiple attributes on a single member, use this order (outermost 
 [SerializeField]
 private float _occupancyDurationMs = 1000f;
 ```
+
+---
+
+## Switch expressions and pattern matching
+
+Modern C# provides pattern matching syntax. Use it consistently to avoid mixing old-style and
+new-style patterns.
+
+### Switch expressions
+
+Use switch expressions for simple value-to-value mappings with no side effects. Use switch
+statements when branches contain side effects (logging, mutation, method calls):
+
+```csharp
+// Good - switch expression for pure value mapping
+/// <summary>Returns the display name for the specified controller type.</summary>
+public static string GetDisplayName(ControllerTypes controllerType) =>
+    controllerType switch
+    {
+        ControllerTypes.LinearTreadmill => "Linear Treadmill",
+        ControllerTypes.SimulatedLinearTreadmill => "Simulated Treadmill",
+        _ => "Unknown",
+    };
+
+// Good - switch statement when branches have side effects
+/// <summary>Executes the action corresponding to the specified zone status.</summary>
+public void HandleStatus(ZoneStatus status)
+{
+    switch (status)
+    {
+        case ZoneStatus.Active:
+            StartMonitoring();
+            break;
+        case ZoneStatus.Disarmed:
+            Debug.Log("Zone boundary disarmed.");
+            NotifyListeners();
+            break;
+        default:
+            Debug.LogWarning($"Unhandled zone status: {status}.");
+            break;
+    }
+}
+```
+
+### Type patterns
+
+Use `is` type patterns for type checking and casting in a single operation:
+
+```csharp
+// Good - type pattern combines check and cast
+if (component is OccupancyZone occupancyZone)
+{
+    occupancyZone.ResetState();
+}
+
+// Avoid - separate check and cast
+if (component is OccupancyZone)
+{
+    OccupancyZone occupancyZone = (OccupancyZone)component;
+    occupancyZone.ResetState();
+}
+```
+
+### Property patterns
+
+Use property patterns for concise conditional checks on object properties:
+
+```csharp
+// Good - property pattern
+if (template is { segments.Length: > 0 })
+{
+    ProcessSegments(template.segments);
+}
+
+// Acceptable - explicit null check and property check (preferred when clearer)
+if (template != null && template.segments.Length > 0)
+{
+    ProcessSegments(template.segments);
+}
+```
+
+### Guidelines
+
+- Prefer switch expressions over switch statements for simple mappings
+- Always include a `_` (discard) arm in switch expressions for exhaustiveness
+- Always include a `default:` case in switch statements
+- Use type patterns (`is T variable`) instead of separate `is` check + cast
+- Use property patterns sparingly — prefer explicit checks when the pattern is not
+  immediately obvious

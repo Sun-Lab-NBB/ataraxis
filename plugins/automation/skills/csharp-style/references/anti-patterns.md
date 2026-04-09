@@ -1,6 +1,6 @@
 # Anti-patterns
 
-Common C# style violations in Sun Lab projects and how to fix them.
+Common C# style violations and how to fix them.
 
 ---
 
@@ -142,6 +142,21 @@ using UnityEngine;
 
 public class Task : MonoBehaviour { }
 ```
+
+---
+
+## Comment violations
+
+| Wrong                                        | Correct                                        | Rule                              |
+|----------------------------------------------|------------------------------------------------|-----------------------------------|
+| `// This function sends...`                  | `// Sends...`                                  | Third-person imperative           |
+| `// ========================`                | (remove separator)                             | No heavy separator blocks         |
+| `// ---- Section ----`                       | (remove separator)                             | No heavy separator blocks         |
+| End-of-line comment on complex logic         | Comment above the code block                   | Place above, not at end           |
+| `x = 5;  // Set x to 5`                      | `x = 5;`                                       | Don't state the obvious           |
+| Adding XML docs to code not written by you   | Only document your changes                     | Don't add docs to others' code    |
+| `#region Setup` / `#endregion`               | Blank line between logical groups              | No `#region` blocks               |
+| `this.fieldName`                             | `fieldName`                                    | No `this.` (except disambiguation)|
 
 ---
 
@@ -515,5 +530,128 @@ public readonly struct ZoneState
         Timer = timer;
         IsActive = isActive;
     }
+}
+```
+
+---
+
+## String comparison anti-patterns
+
+### Culture-sensitive comparison for internal logic
+
+```csharp
+// Wrong - Contains uses CurrentCulture on some .NET versions
+if (topicName.Contains("Gimbl/Stimulus"))
+{
+    ProcessStimulus();
+}
+
+// Correct - ordinal comparison for protocol strings
+if (topicName.Contains("Gimbl/Stimulus", StringComparison.Ordinal))
+{
+    ProcessStimulus();
+}
+
+// Wrong - StartsWith without StringComparison
+if (configPath.StartsWith("/data"))
+{
+    LoadConfig(configPath);
+}
+
+// Correct - explicit ordinal comparison
+if (configPath.StartsWith("/data", StringComparison.Ordinal))
+{
+    LoadConfig(configPath);
+}
+```
+
+---
+
+## Cross-language consistency violations
+
+These anti-patterns drift toward C++ or Python conventions that do not apply in C#:
+
+### Naming drift
+
+```csharp
+// Wrong - kPrefix from C++ convention
+private const float kEpsilon = 0.01f;
+private const int kMaxRetries = 3;
+
+// Correct - PascalCase for C# constants
+private const float Epsilon = 0.01f;
+private const int MaxRetries = 3;
+
+// Wrong - snake_case namespace from C++ convention
+namespace sl_config { }
+
+// Correct - PascalCase namespace
+namespace SL.Config { }
+
+// Wrong - get_/set_ accessor methods from C++ convention
+public float get_Position() { return _position; }
+public void set_Position(float value) { _position = value; }
+
+// Correct - C# property
+public float Position
+{
+    get { return _position; }
+    set { _position = value; }
+}
+
+// Wrong - _snake_case private members from C++/Python convention
+private int _current_index;
+private float _segment_length;
+
+// Correct - _camelCase private members in C#
+private int _currentIndex;
+private float _segmentLength;
+```
+
+### Documentation drift
+
+```csharp
+// Wrong - Doxygen @brief tag from C++ convention
+/// @brief Manages the task state.
+
+// Correct - XML <summary> tag
+/// <summary>Manages the task state.</summary>
+
+// Wrong - Google-style docstring phrasing from Python convention
+/// <summary>A class that manages task state.</summary>
+
+// Correct - imperative mood without articles
+/// <summary>Manages task state and corridor transitions.</summary>
+
+// Wrong - trailing /// comment from C++ Doxygen convention
+private int _count; ///< The number of completed laps.
+
+// Correct - XML summary above the member
+/// <summary>The number of completed laps.</summary>
+private int _count;
+```
+
+### Structural drift
+
+```csharp
+// Wrong - using static (analogous to C++ "using namespace")
+using static UnityEngine.Mathf;
+float result = Clamp(value, 0f, 1f);
+
+// Correct - qualified call
+float result = Mathf.Clamp(value, 0f, 1f);
+
+// Wrong - Python-style enum (UPPER_SNAKE_CASE values)
+public enum Status
+{
+    ZONE_ACTIVE,
+    ZONE_INACTIVE,
+}
+
+// Correct - PascalCase enum values
+public enum Status
+{
+    ZoneActive,
+    ZoneInactive,
 }
 ```

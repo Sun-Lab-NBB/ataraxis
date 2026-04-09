@@ -1,6 +1,6 @@
 # Archetype directory trees
 
-Annotated directory trees for each Sun Lab project archetype. Each tree is verified against the
+Annotated directory trees for each project archetype. Each tree is verified against the
 canonical example repository listed in its section heading.
 
 ---

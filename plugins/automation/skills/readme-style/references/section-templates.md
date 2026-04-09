@@ -63,7 +63,7 @@ Replace `PACKAGE-NAME` with the actual PyPI package name (e.g., `sl-shared-asset
 ### Other project types
 
 For MATLAB projects, use `matlab` and `license` badges. For Unity/C# projects, use `C#`, `Unity`,
-and license badges. Match the badge URLs from existing Sun Lab projects of the same type.
+and license badges. Match the badge URLs from existing projects of the same type.
 
 ---
 
@@ -95,7 +95,7 @@ ___
 
 ## Detailed Description
 
-This library provides the shared automation pipeline for all Sun Lab Python projects. It abstracts
+This library provides the shared automation pipeline for all Python projects. It abstracts
 project environment manipulation and facilitates development tasks such as linting, typing,
 testing, documentation, and building through a unified CLI interface. This library is part of the
 [Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework for AI-assisted scientific hardware
@@ -300,7 +300,7 @@ See the [API documentation](https://PACKAGE-NAME-api-docs.netlify.app/) for the 
 description of the methods and classes exposed by components of this library.
 ```
 
-Replace the URL with the actual documentation URL. Sun Lab documentation links follow the pattern
+Replace the URL with the actual documentation URL. Documentation links follow the pattern
 `https://PACKAGE-NAME-api-docs.netlify.app/`.
 
 ---
@@ -320,14 +320,14 @@ that want to modify the source code of this library.
 ### Installing the Project
 
 ***Note,*** this installation method requires **mamba version 2.3.2 or above**. Currently, all
-Sun lab automation pipelines require that mamba is installed through the
+automation pipelines require that mamba is installed through the
 [miniforge3](https://github.com/conda-forge/miniforge) installer.
 
 1. Download this repository to the local machine using the preferred method, such as git-cloning.
 2. If the downloaded distribution is stored as a compressed archive, unpack it using the
    appropriate decompression tool.
 3. `cd` to the root directory of the prepared project distribution.
-4. Install the core Sun lab development dependencies into the ***base*** mamba environment via the
+4. Install the core development dependencies into the ***base*** mamba environment via the
    `mamba install tox uv tox-uv` command.
 5. Use the `tox -e create` command to create the project-specific development environment followed
    by `tox -e install` command to install the project into that environment as a library.

@@ -27,7 +27,7 @@ version = "7.1.0"
 version = "2.0.0rc9"
 ```
 
-Sun Lab projects use static versioning (hard-coded in pyproject.toml). To access the version at
+Projects use static versioning (hard-coded in pyproject.toml). To access the version at
 runtime, use `importlib.metadata`:
 
 ```python
@@ -65,7 +65,7 @@ readme = "README.md"
 Uses an SPDX license expression string. The `license-files` field specifies the license file:
 
 ```toml
-# GPL (most Sun Lab projects)
+# GPL (most projects)
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 
@@ -137,7 +137,7 @@ Group classifiers with category comments. The following categories are required 
 
 ### Development status
 
-All production Sun Lab projects use:
+All production projects use:
 
 ```toml
 # Development status
@@ -187,7 +187,7 @@ List each supported minor version individually:
 
 ### Typing
 
-All Sun Lab projects are typed:
+All projects are typed:
 
 ```toml
 "Typing :: Typed"
@@ -257,7 +257,7 @@ dependencies = [
 
 ### Ataraxis cross-dependencies
 
-Projects depending on other Sun Lab libraries use the same range constraint pattern:
+Projects depending on other libraries use the same range constraint pattern:
 
 ```toml
 "ataraxis-time>=5,<6",
@@ -285,7 +285,7 @@ tooling.
 
 ### dev group
 
-The `dev` group contains all development-only dependencies. All Sun Lab projects include:
+The `dev` group contains all development-only dependencies. All projects include:
 
 ```toml
 # Development dependencies (PEP 735). Not published to PyPI.
@@ -360,7 +360,7 @@ command-name = "package_name.module:function"
 - Use hyphens for multi-word commands
 - Prefix with project abbreviation for namespacing (e.g., `axci-id`, `axvs`, `ss2p`)
 
-### Examples from Sun Lab projects
+### Examples from projects
 
 | Project                          | Command          | Entry point                                        |
 |----------------------------------|------------------|----------------------------------------------------|

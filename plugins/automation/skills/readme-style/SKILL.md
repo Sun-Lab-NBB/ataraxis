@@ -1,7 +1,7 @@
 ---
 name: readme-style
 description: >-
-  Applies Sun Lab README conventions when creating or updating README.md files. Covers section
+  Applies README conventions when creating or updating README.md files. Covers section
   ordering, writing style, standard section templates, badges, MCP server documentation, CLI
   documentation, and codebase cross-referencing. Use when writing a new README, updating an
   existing README, or when the user asks about README conventions.
@@ -10,7 +10,7 @@ user-invocable: true
 
 # README style guide
 
-Applies Sun Lab conventions for README.md files.
+Applies conventions for README.md files.
 
 You MUST read this entire skill and load the section templates reference before creating or
 modifying any README file. You MUST verify your changes against the verification checklist before
@@ -210,7 +210,7 @@ cross-reference against the current state of the codebase to ensure accuracy.
 
 ## Proactive behavior
 
-When creating a new Sun Lab project, proactively offer to generate a README following these
+When creating a new project, proactively offer to generate a README following these
 conventions. When modifying code that affects documented behavior (API changes, new features,
 removed functionality), proactively suggest updating the README to reflect the changes.
 

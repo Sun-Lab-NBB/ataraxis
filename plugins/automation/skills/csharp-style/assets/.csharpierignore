@@ -1,4 +1,4 @@
-# CSharpier ignore file for Sun Lab C# projects
+# CSharpier ignore file for C# projects
 # Excludes Unity-generated files and third-party packages from formatting
 
 # Unity generated directories

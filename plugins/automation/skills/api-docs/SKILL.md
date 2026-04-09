@@ -1,7 +1,7 @@
 ---
 name: api-docs
 description: >-
-  Applies Sun Lab API documentation conventions when creating or modifying Sphinx documentation
+  Applies API documentation conventions when creating or modifying Sphinx documentation
   files. Covers conf.py configuration, RST file structure, Doxygen/Breathe integration for C++
   projects, tox build environments, and Makefile wrappers. Use when creating documentation for a
   new project, modifying existing docs/ files, adding new modules to API documentation, or when
@@ -11,7 +11,7 @@ user-invocable: true
 
 # API documentation
 
-Applies Sun Lab conventions for generating API documentation HTML pages from source code
+Applies conventions for generating API documentation HTML pages from source code
 docstrings using Sphinx, autodoc, Napoleon, and optionally Breathe/Doxygen for C++ code.
 
 ---
@@ -41,7 +41,7 @@ docstrings using Sphinx, autodoc, Napoleon, and optionally Breathe/Doxygen for C
 
 ### Project archetypes
 
-Sun Lab projects follow one of three documentation archetypes based on language composition:
+Projects follow one of three documentation archetypes based on language composition:
 
 | Archetype   | Language     | Extensions                                      | Doxygen |
 |-------------|--------------|-------------------------------------------------|---------|
@@ -292,7 +292,7 @@ via tox (`tox -e docs`). Use the exact templates from
 ## Proactive behavior
 
 You should proactively offer to invoke this skill when:
-- Creating a new Sun Lab project that needs API documentation
+- Creating a new project that needs API documentation
 - Adding new Python modules or Click CLI commands that should appear in API docs
 - Adding C++ source files to a hybrid or C++ project
 - The user asks about Sphinx, autodoc, Breathe, Doxygen, or documentation generation

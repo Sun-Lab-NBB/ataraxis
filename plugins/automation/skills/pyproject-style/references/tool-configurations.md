@@ -1,6 +1,6 @@
 # Tool configurations reference
 
-Detailed specifications for all `[tool.*]` sections in Sun Lab pyproject.toml files.
+Detailed specifications for all `[tool.*]` sections in pyproject.toml files.
 
 ---
 
@@ -39,7 +39,7 @@ packages = ["src/ataraxis_video_system", "examples"]
 
 ### Universal settings
 
-These settings are identical across all Sun Lab projects:
+These settings are identical across all projects:
 
 ```toml
 # Ruff Configuration.
@@ -106,7 +106,7 @@ length-sort = true                 # Places shorter imports first
 
 ### Universal ruff ignores
 
-These ignores are present in all Sun Lab projects:
+These ignores are present in all projects:
 
 ```toml
 lint.ignore = [
@@ -241,7 +241,7 @@ The exclusion list is the same for both tiers. All entries are mandatory:
 
 ## Coverage configuration
 
-These settings are identical across all Sun Lab projects:
+These settings are identical across all projects:
 
 ```toml
 # This is used by the 'test' tox tasks to aggregate coverage data produced during pytest runtimes.

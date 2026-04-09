@@ -1,6 +1,6 @@
 # Anti-patterns
 
-Common C++ style violations in Sun Lab projects and their corrections. Use this reference when
+Common C++ style violations and their corrections. Use this reference when
 reviewing code before submission.
 
 ---

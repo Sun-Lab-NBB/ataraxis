@@ -1,6 +1,6 @@
 # Environment templates
 
-Complete tox.ini environment templates for each Sun Lab project archetype. All templates use the
+Complete tox.ini environment templates for each project archetype. All templates use the
 modern convention (`dependency_groups = dev`) introduced in tox 4.22+. Legacy projects may still
 use `extras = dev` with `[project.optional-dependencies]` — see the migration note in SKILL.md.
 

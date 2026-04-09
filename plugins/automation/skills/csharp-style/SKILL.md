@@ -1,7 +1,7 @@
 ---
 name: csharp-style
 description: >-
-  Applies Sun Lab C# coding conventions when writing, reviewing, or refactoring code. Covers .cs
+  Applies C# coding conventions when writing, reviewing, or refactoring code. Covers .cs
   files, XML documentation, naming, formatting, error handling, using directives, file ordering,
   and Unity-specific patterns. Use when writing new C# code, modifying existing code, reviewing
   pull requests, or when the user asks about C# coding standards.
@@ -10,7 +10,7 @@ user-invocable: true
 
 # C# code style guide
 
-Applies Sun Lab C# coding conventions.
+Applies C# coding conventions.
 
 You MUST read this skill and load the relevant reference files before writing or modifying C#
 code. You MUST verify your changes against the checklist before submitting.
@@ -25,7 +25,7 @@ code. You MUST verify your changes against the checklist before submitting.
 - Class design, enums, properties, and inheritance patterns
 - Unity-specific patterns (MonoBehaviour, ScriptableObject, serialization)
 - CSharpier and EditorConfig tooling conventions
-- Cross-language consistency with C++ and Python Sun Lab conventions
+- Cross-language consistency with C++ and Python conventions
 
 **Does not cover:**
 - README file conventions (invoke `/readme-style`)
@@ -71,7 +71,7 @@ submitting work. For anti-pattern examples, load
 
 ## Cross-language consistency
 
-Sun Lab projects span Python, C++, and C#. These conventions maximize visual and structural
+Projects span Python, C++, and C#. These conventions maximize visual and structural
 consistency across languages while respecting each language's idiomatic standards.
 
 **Shared across all languages:**
@@ -79,17 +79,30 @@ consistency across languages while respecting each language's idiomatic standard
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- Private members use underscore prefix (`_camelCase`)
+- Private members use underscore prefix (`_snake_case` in Python and C++, `_camelCase` in C#)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
+- Prose over bullet lists in documentation
+- No example/code blocks in documentation (they go stale)
+- I/O operations separated from processing logic
+
+**Shared between C++ and C# only:**
+- Allman brace style (opening braces on new lines; Python uses indentation)
 
 **C#-specific divergences from C++:**
 - Constants use PascalCase (not `kPrefix` as in C++)
 - Enum values use PascalCase (not `kPrefix` as in C++)
 - Namespaces use PascalCase (not snake_case as in C++)
-- Brace style is Allman (opening braces on new lines, matching the C++ clang-format config)
 - Consecutive assignment alignment is NOT used (CSharpier does not support it)
 - `#region` blocks are NOT used (prefer blank lines between logical groups)
+
+**C#-specific divergences from Python:**
+- Methods and properties use PascalCase (not snake_case as in Python)
+- Constants use PascalCase (not `_UPPER_SNAKE_CASE` as in Python)
+- Enum values use PascalCase (not `UPPER_SNAKE_CASE` as in Python)
+- Private members use `_camelCase` (not `_snake_case` as in Python)
+- Public fields use camelCase (not snake_case as in Python)
+- Documentation uses XML `<summary>` tags (not Google-style docstrings)
 
 ---
 
@@ -220,11 +233,64 @@ if (Mathf.Abs(measuredLength - configuredLength) > LengthComparisonEpsilon)
 }
 ```
 
+### Non-MonoBehaviour code
+
+In editor tools, static utility classes, and pure C# libraries that do not inherit from
+MonoBehaviour, use standard C# exceptions:
+
+```csharp
+/// <summary>Parses the task template from raw YAML content.</summary>
+/// <param name="yamlContent">The YAML string to parse.</param>
+/// <returns>The deserialized task template.</returns>
+/// <exception cref="FormatException">The YAML content does not conform to the template schema.</exception>
+public static TaskTemplate ParseTemplate(string yamlContent)
+{
+    if (string.IsNullOrEmpty(yamlContent))
+    {
+        throw new ArgumentException("YAML content must not be null or empty.", nameof(yamlContent));
+    }
+
+    TaskTemplate template = YamlParser.Deserialize<TaskTemplate>(yamlContent);
+    if (template == null)
+    {
+        throw new FormatException("Failed to deserialize task template from YAML content.");
+    }
+    return template;
+}
+```
+
+### When to use each approach
+
+| Context                          | Error mechanism           | Example                                  |
+|----------------------------------|---------------------------|------------------------------------------|
+| MonoBehaviour lifecycle methods  | `Debug.LogError` + return | `Task.Start()`, `OccupancyZone.Update()` |
+| Editor tools and menu commands   | Exceptions                | `CreateTask.NewTask()`                   |
+| Static utility methods           | Exceptions                | `Utility.GetSegmentLengths()`            |
+| Pure C# classes (non-Unity)      | Exceptions                | `ConfigParser.Parse()`                   |
+| MonoBehaviour constructors/Awake | `Debug.LogError` + return | Field validation in `Awake()`            |
+| Plain C# class constructors      | Exceptions                | `Communication(portName, baudRate)`      |
+
 ### Error message format
 
 Use a structured format: context ("Unable to..."), constraint ("must be..."), actual value
 ("but [actual state]."). Use `Debug.LogError()` for failures that prevent continuation,
 `Debug.LogWarning()` for non-critical issues, and `Debug.Log()` for informational messages.
+
+For multi-line error messages, assign the message to a local variable before passing it.
+This matches the Python convention of assigning to a `message` variable before calling
+`console.error()`:
+
+```csharp
+// Good - message variable for multi-line errors
+string message =
+    $"Unable to create corridor for segment '{segmentName}'. "
+    + $"The configured length ({configuredLength}) must match the prefab length "
+    + $"({measuredLength}), but they differ by {Mathf.Abs(measuredLength - configuredLength)}.";
+Debug.LogError(message);
+
+// Acceptable - short single-line messages passed directly
+Debug.LogError("Failed to load task template from YAML file.");
+```
 
 ### Null handling
 
@@ -274,6 +340,26 @@ using Gimbl;
 using SL.Config;
 ```
 
+### `using static` directives
+
+Do NOT use `using static` directives. Always qualify static method calls with the type name
+for clarity:
+
+```csharp
+// Avoid - using static obscures where methods come from
+using static UnityEngine.Mathf;
+float result = Clamp(value, 0f, 1f);
+
+// Good - qualified call is explicit
+float result = Mathf.Clamp(value, 0f, 1f);
+```
+
+### Global usings
+
+Do NOT use C# 10 global `using` directives or implicit usings. Every file must contain its
+own explicit `using` directives. This ensures each file is self-contained and matches the C++
+convention of explicit `#include` directives per file.
+
 ---
 
 ## File-level ordering
@@ -300,6 +386,16 @@ Within each member kind, order by visibility: `public` -> `internal` -> `protect
 `private`. Always write access modifiers explicitly — never rely on C#'s implicit `private`
 default. Unity lifecycle methods appear in their natural execution order regardless of
 visibility.
+
+### Call-hierarchy ordering
+
+Within each visibility group, definitions should **loosely follow the order in which they are
+called** during the class's runtime. When there is no clear call hierarchy, group definitions
+**by purpose**. This matches the Python convention of ordering definitions by call sequence
+within each visibility group.
+
+For MonoBehaviour classes, this naturally follows from the lifecycle ordering: `Awake` calls
+initialization helpers, `Start` calls setup helpers, `Update` calls per-frame helpers.
 
 ### One class per file
 
@@ -486,6 +582,24 @@ C# Style Compliance:
 - [ ] No #region blocks; no this. qualifier (except disambiguation)
 - [ ] One public type per file; file name matches class name
 - [ ] Unity logging uses Debug.LogError/LogWarning/Log appropriately
+- [ ] XML tag ordering: summary → remarks → typeparam → param → returns → exception
+- [ ] <exception> tags in alphabetical order by type name
+- [ ] <inheritdoc/> used only when base documentation fully describes override behavior
+- [ ] No <example> or <code> tags in XML documentation
+- [ ] No using static directives; no global usings
+- [ ] ToString format matches ClassName(key=value, key=value) pattern
+- [ ] in used only for large readonly struct parameters (not small types or reference types)
+- [ ] out parameters follow TryX pattern (return bool, populate out on success)
+- [ ] Error mechanism matches context (Debug.LogError in MonoBehaviour; exceptions elsewhere)
+- [ ] Multi-line error messages assigned to variable before passing
+- [ ] Prose used in <remarks> blocks (not bullet lists)
+- [ ] Property summaries are single sentences (no summary + remarks split)
+- [ ] Test methods have only <summary> (no <param>, <returns>, or <exception> tags)
+- [ ] I/O operations separated from processing logic
+- [ ] Path.Combine used for path construction (not string concatenation)
+- [ ] StringComparison.Ordinal used for internal string matching
+- [ ] Static methods used when no instance state is accessed
+- [ ] Methods ordered by call hierarchy within each visibility group
 - [ ] CSharpier formatting applied before commit
 - [ ] Inline comments use third person imperative
 
@@ -497,4 +611,8 @@ Unity-Specific Compliance:
 - [ ] No unnecessary GetComponent calls in Update loops
 - [ ] No LINQ in Update/FixedUpdate (allocations in hot paths)
 - [ ] IDisposable resources cleaned up in OnDestroy
+- [ ] Event subscriptions have matching unsubscriptions (OnEnable↔OnDisable, Start↔OnDestroy)
+- [ ] Coroutines stopped in OnDisable/OnDestroy to prevent orphaned execution
+- [ ] #if UNITY_EDITOR used for editor-only code; [Conditional] preferred over #if DEBUG
+- [ ] Switch expressions used for pure value mapping; switch statements for side effects
 ```

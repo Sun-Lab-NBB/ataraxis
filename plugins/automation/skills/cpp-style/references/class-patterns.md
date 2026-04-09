@@ -1,13 +1,13 @@
 # Class design patterns
 
-Conventions for class design, inheritance, templates, enums, structs, and state machines in Sun
-Lab C++ projects.
+Conventions for class design, inheritance, templates, enums, structs, and state machines in
+C++ projects.
 
 ---
 
 ## Class hierarchy
 
-Sun Lab C++ libraries use a clear inheritance pattern: abstract base classes define interfaces,
+C++ libraries use a clear inheritance pattern: abstract base classes define interfaces,
 and `final` template classes provide concrete implementations.
 
 ### Base classes
@@ -106,7 +106,7 @@ class BrakeModule final : public Module
 
 ## Template patterns
 
-Templates are the primary abstraction mechanism in Sun Lab embedded C++ libraries. Hardware
+Templates are the primary abstraction mechanism in embedded C++ libraries. Hardware
 configuration is specified through template parameters, enabling compile-time specialization.
 
 ### Template parameter conventions
@@ -364,7 +364,7 @@ Module(const uint8_t module_type, const uint8_t module_id, Communication& commun
 
 ## State machine pattern
 
-Sun Lab embedded modules use a stage-based state machine for non-blocking command execution. This
+Embedded modules use a stage-based state machine for non-blocking command execution. This
 allows the kernel to service multiple modules within a single loop iteration:
 
 ```cpp
@@ -499,6 +499,72 @@ with `@property` accessors, while dataclass fields are public.
 
 ---
 
+## Accessor vs method decision
+
+This parallels the Python distinction between `@property` (simple attribute access) and
+methods (operations that "do something"):
+
+| Use                       | When                                                         |
+|---------------------------|--------------------------------------------------------------|
+| `get_`/`set_` accessor    | Returns or sets a single data member with no side effects    |
+| PascalCase method         | Performs computation, I/O, or has side effects               |
+
+```cpp
+// Good - accessor for trivial field access
+/// Returns the module's type identifier.
+[[nodiscard]] uint8_t get_module_type() const { return _module_type; }
+
+// Good - PascalCase method for operations with side effects
+/// Sends the specified data to the connected PC via the serial port.
+bool SendData(uint8_t status_code, const ObjectType& object);
+
+// Avoid - accessor name for a method that does real work
+/// Computes and returns the CRC checksum of the current buffer.
+uint16_t get_checksum() const  // Should be ComputeChecksum()
+```
+
+At the call site, naming signals intent: `get_`/`set_` means trivial field access, PascalCase
+means the method performs real work.
+
+---
+
+## Static vs instance method guidance
+
+This parallels the Python distinction between `@staticmethod`, `@classmethod`, and instance
+methods:
+
+| Use              | When                                                              |
+|------------------|-------------------------------------------------------------------|
+| Instance method  | The method accesses instance members (`this`)                     |
+| `static` method  | The method needs no instance state (utility, factory, validation) |
+
+### Rules
+
+- Use `static` for methods that do not access instance or base class members
+- Place `static` utility methods in the `private:` section when they are implementation
+  details
+- Use `static constexpr` for compile-time helper functions
+- clang-tidy `readability-convert-member-functions-to-static` flags methods that can be made
+  static
+
+```cpp
+// Good - static method for stateless utility
+/// Validates that the specified pin is not reserved.
+static constexpr bool ValidatePin(const uint8_t pin)
+{
+    return pin != LED_BUILTIN;
+}
+
+// Good - instance method accesses _port member
+/// Sends the transmission buffer contents through the serial port.
+void TransmitBuffer()
+{
+    _port.write(_transmission_buffer, _buffer_size);
+}
+```
+
+---
+
 ## Using namespace directives
 
 For shared asset namespaces, use `using namespace` at file scope to bring shared types into the
@@ -514,7 +580,7 @@ Rules:
 - Only use `using namespace` for project-internal shared asset namespaces
 - Place `using namespace` after all `#include` directives
 - Never use `using namespace std;`
-- **Header-only libraries**: Sun Lab C++ libraries are header-only (all code resides in `.h`
+- **Header-only libraries**: C++ libraries are header-only (all code resides in `.h`
   files). In this context, `using namespace` for project-internal shared asset namespaces is
   allowed in header files because there are no `.cpp` files to place them in. This exception
   applies only to project-internal namespaces (e.g., `axtlmc_shared_assets`), never to `std` or

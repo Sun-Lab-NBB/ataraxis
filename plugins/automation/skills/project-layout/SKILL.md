@@ -1,7 +1,7 @@
 ---
 name: project-layout
 description: >-
-  Applies Sun Lab project directory structure conventions when creating new projects, adding
+  Applies project directory structure conventions when creating new projects, adding
   directories, or verifying project layout. Covers the five project archetypes (Python-only,
   Python+C++ extension, C++ PlatformIO library, C++ PlatformIO firmware, C# Unity), common root
   files, environment directories, test directories, and documentation directory placement. Use
@@ -12,9 +12,9 @@ user-invocable: true
 
 # Project layout
 
-Applies Sun Lab conventions for project directory structure across all five project archetypes.
+Applies conventions for project directory structure across all five project archetypes.
 
-You MUST read this skill before creating, restructuring, or verifying any Sun Lab project's
+You MUST read this skill before creating, restructuring, or verifying any project's
 directory layout. You MUST verify your changes against the checklist before submitting.
 
 ---
@@ -22,7 +22,7 @@ directory layout. You MUST verify your changes against the checklist before subm
 ## Scope
 
 **Covers:**
-- Project directory trees for all five Sun Lab archetypes
+- Project directory trees for all five archetypes
 - Common root files and their purposes
 - Environment directories (`envs/`) with OS-specific files
 - Test directory conventions (`tests/` vs `test/`)
@@ -75,7 +75,7 @@ submitting work.
 
 ## Common root files
 
-These files appear at the root of all (or most) Sun Lab projects:
+These files appear at the root of all (or most) projects:
 
 | File         | All archetypes | Purpose                                           |
 |--------------|----------------|---------------------------------------------------|
@@ -276,7 +276,7 @@ Assets/
 ## Proactive behavior
 
 You should proactively offer to invoke this skill when:
-- Creating a new Sun Lab project from scratch
+- Creating a new project from scratch
 - The user asks where to place a new file or directory
 - A project structure appears to deviate from conventions during exploration
 - The user asks about project directory conventions or archetypes

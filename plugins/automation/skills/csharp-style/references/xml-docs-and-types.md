@@ -1,13 +1,13 @@
 # XML documentation and type usage
 
-Detailed conventions for C# XML documentation and type usage in Sun Lab projects.
+Detailed conventions for C# XML documentation and type usage across projects.
 
 ---
 
 ## XML documentation
 
 Use XML documentation comments (`///`) for all public and private members. This matches the
-Doxygen documentation style used in Sun Lab C++ projects and the Google-style docstrings used in
+Doxygen documentation style used in C++ projects and the Google-style docstrings used in
 Python projects.
 
 ### Summary tags
@@ -204,6 +204,29 @@ docstrings:
 /// </remarks>
 ```
 
+### Example tags
+
+Do NOT use `<example>` or `<code>` tags in XML documentation. Examples go stale and create
+maintenance debt. This matches the C++ convention of prohibiting `@code`/`@endcode` blocks and
+the Python convention of omitting `Examples` docstring sections:
+
+```csharp
+// Wrong - <example> tag in documentation
+/// <summary>Samples an index from a probability distribution.</summary>
+/// <example>
+/// <code>
+/// int result = SampleFromDistribution(new[] { 0.5f, 0.3f, 0.2f }, random);
+/// </code>
+/// </example>
+
+// Correct - describe behavior in <summary> or <remarks>, no examples
+/// <summary>Samples an index from a probability distribution.</summary>
+/// <remarks>
+/// The probabilities array must sum to 1.0. The method uses inverse transform sampling
+/// to select an index weighted by the given distribution.
+/// </remarks>
+```
+
 ---
 
 ## File-level documentation
@@ -270,7 +293,9 @@ public enum ZoneStatus
 
 ## Property documentation
 
-Properties follow the same XML documentation conventions as fields:
+Property summaries should ideally be a single sentence, even if it spans multiple lines. Do
+not split a property summary into a one-line `<summary>` plus a `<remarks>` block — keep it
+as one continuous sentence. This matches the Python convention for property docstrings:
 
 ```csharp
 /// <summary>Determines whether this zone uses occupancy-based stimulus triggering.</summary>
@@ -342,6 +367,52 @@ Use descriptive type parameter names prefixed with `T`:
 /// <typeparam name="TMessage">The message type for deserialization.</typeparam>
 public class MQTTChannel<TMessage> : MQTTChannel
 ```
+
+### Null analysis attributes
+
+Use null analysis attributes from `System.Diagnostics.CodeAnalysis` to express nullability
+contracts that the compiler cannot infer. This is the C# equivalent of C++ `[[nodiscard]]`
+and `static_assert` for null safety:
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+
+/// <summary>Attempts to find the zone with the specified name.</summary>
+/// <param name="zoneName">The name of the zone to find.</param>
+/// <param name="zone">The found zone, or null if not found.</param>
+/// <returns>True if the zone was found; false otherwise.</returns>
+public bool TryFindZone(string zoneName, [NotNullWhen(true)] out OccupancyZone? zone)
+{
+    zone = _zones.FirstOrDefault(z => z.name == zoneName);
+    return zone != null;
+}
+
+/// <summary>Returns the validated template. Throws if validation fails.</summary>
+/// <returns>The validated template instance.</returns>
+[return: NotNull]
+public TaskTemplate GetValidatedTemplate()
+{
+    if (_template == null)
+    {
+        throw new InvalidOperationException("Template has not been loaded.");
+    }
+    return _template;
+}
+```
+
+Common attributes:
+
+| Attribute                  | Meaning                                                       |
+|----------------------------|---------------------------------------------------------------|
+| `[NotNull]`                | Output is never null (on return or out parameter)             |
+| `[NotNullWhen(true)]`      | Output is non-null when method returns true                   |
+| `[NotNullWhen(false)]`     | Output is non-null when method returns false                  |
+| `[MaybeNullWhen(false)]`   | Output may be null when method returns false                  |
+| `[DoesNotReturn]`          | Method never returns (always throws)                          |
+| `[MemberNotNull]`          | Specified member is non-null after method returns             |
+
+Use these attributes only when they convey information the compiler cannot determine from
+the method body. Do not add them speculatively.
 
 ### Array vs List
 

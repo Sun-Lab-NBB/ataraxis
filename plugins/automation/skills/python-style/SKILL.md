@@ -1,7 +1,7 @@
 ---
 name: python-style
 description: >-
-  Applies Sun Lab Python coding conventions when writing, reviewing, or refactoring code. Covers
+  Applies Python coding conventions when writing, reviewing, or refactoring code. Covers
   .py files, docstrings, type annotations, naming, formatting, error handling, imports, file
   ordering, and ataraxis library preferences. Use when writing new Python code, modifying existing
   code, reviewing pull requests, or when the user asks about Python coding standards.
@@ -10,7 +10,7 @@ user-invocable: true
 
 # Python code style guide
 
-Applies Sun Lab Python coding conventions.
+Applies Python coding conventions.
 
 You MUST read this skill and load the relevant reference files before writing or modifying Python
 code. You MUST verify your changes against the checklist before submitting.
@@ -66,6 +66,41 @@ Write or modify Python code following all conventions from this file and the loa
 Complete the verification checklist at the end of this file. Every item must pass before
 submitting work. For anti-pattern examples, load
 [anti-patterns.md](references/anti-patterns.md).
+
+---
+
+## Cross-language consistency
+
+Projects span Python, C++, and C#. These conventions maximize visual and structural
+consistency across languages while respecting each language's idiomatic standards.
+
+**Shared across all languages:**
+- 120 character line limit
+- 4-space indentation (no tabs)
+- Comprehensive documentation on ALL public and private members
+- Third-person imperative mood for documentation ("Provides...", "Determines whether...")
+- Private members use underscore prefix (`_snake_case` in Python and C++, `_camelCase` in C#)
+- Full words in identifiers (no abbreviations)
+- Guard clauses preferred over deep nesting
+- Prose over bullet lists in documentation
+- No example/code blocks in documentation (they go stale)
+- I/O operations separated from processing logic
+
+**Python-specific divergences from C++:**
+- Functions and methods use snake_case (not PascalCase as in C++)
+- Constants use `_UPPER_SNAKE_CASE` (not `kPascalCase` as in C++)
+- Enum values use `UPPER_SNAKE_CASE` (not `kPascalCase` as in C++)
+- Documentation uses Google-style docstrings (not Doxygen `@tags`)
+- Error handling uses `console.error()` or `raise` (not status codes)
+- Brace style is not applicable (Python uses indentation)
+
+**Python-specific divergences from C#:**
+- Functions and methods use snake_case (not PascalCase as in C#)
+- Constants use `_UPPER_SNAKE_CASE` (not PascalCase as in C#)
+- Enum values use `UPPER_SNAKE_CASE` (not PascalCase as in C#)
+- Documentation uses Google-style docstrings (not XML `<summary>` tags)
+- Private members use `_snake_case` (not `_camelCase` as in C#)
+- Public fields use snake_case (not camelCase as in C#)
 
 ---
 
@@ -298,7 +333,7 @@ All definitions within a file follow this vertical ordering from top to bottom:
 ### Visibility ordering
 
 Public definitions appear **above** private definitions. This matches the C-family convention
-used across all Sun Lab projects (C#, C++), where the public API is presented first and
+used across all projects (C#, C++), where the public API is presented first and
 implementation details follow. Readers see the interface before the helpers that support it.
 
 ### Call-hierarchy ordering

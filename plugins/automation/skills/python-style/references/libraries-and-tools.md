@@ -1,12 +1,12 @@
 # Libraries and tools
 
-Conventions for ataraxis libraries, Numba, Click CLI, testing, and linting in Sun Lab projects.
+Conventions for ataraxis libraries, Numba, Click CLI, testing, and linting in projects.
 
 ---
 
 ## Ataraxis library preferences
 
-Sun Lab projects use a suite of ataraxis libraries that provide standardized, high-performance
+Projects use a suite of ataraxis libraries that provide standardized, high-performance
 utilities. **Prefer these libraries** over standard library alternatives or reimplementation for
 their designated tasks when the project depends on them. Projects that do not depend on
 `ataraxis-base-utilities` (such as `ataraxis-automation` itself) should use standard Python
@@ -81,7 +81,7 @@ def compute_coefficients(...) -> None:
 
 ## Click CLI conventions
 
-Sun Lab CLIs use [Click](https://click.palletsprojects.com/) with consistent patterns across all projects.
+CLIs use [Click](https://click.palletsprojects.com/) with consistent patterns across all projects.
 
 ### Group and command setup
 

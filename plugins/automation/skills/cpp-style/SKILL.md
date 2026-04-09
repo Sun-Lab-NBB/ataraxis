@@ -1,7 +1,7 @@
 ---
 name: cpp-style
 description: >-
-  Applies Sun Lab C++ coding conventions when writing, reviewing, or refactoring code. Covers .h,
+  Applies C++ coding conventions when writing, reviewing, or refactoring code. Covers .h,
   .hpp, and .cpp files, Doxygen documentation, naming, formatting, error handling, include
   directives, file ordering, template patterns, embedded (Arduino/PlatformIO) conventions, and
   Python C++ extension (nanobind/scikit-build-core) conventions. Use when writing new C++ code,
@@ -12,7 +12,7 @@ user-invocable: true
 
 # C++ code style guide
 
-Applies Sun Lab C++ coding conventions.
+Applies C++ coding conventions.
 
 You MUST read this skill and load the relevant reference files before writing or modifying C++
 code. You MUST verify your changes against the checklist before submitting.
@@ -28,7 +28,7 @@ code. You MUST verify your changes against the checklist before submitting.
 - Embedded-specific patterns (Arduino/PlatformIO, no exceptions, no dynamic allocation)
 - Python C++ extension patterns (nanobind bindings, CMake, GIL management)
 - clang-format and clang-tidy tooling conventions
-- Cross-language consistency with Python and C# Sun Lab conventions
+- Cross-language consistency with Python and C# conventions
 
 **Does not cover:**
 - README file conventions (invoke `/readme-style`)
@@ -75,7 +75,7 @@ submitting work. For anti-pattern examples, load
 
 ## Cross-language consistency
 
-Sun Lab projects span Python, C++, and C#. These conventions maximize visual and structural
+Projects span Python, C++, and C#. These conventions maximize visual and structural
 consistency across languages while respecting each language's idiomatic standards.
 
 **Shared across all languages:**
@@ -83,10 +83,15 @@ consistency across languages while respecting each language's idiomatic standard
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- Private members use underscore prefix (`_snake_case` in C++, `_camelCase` in C#)
+- Private members use underscore prefix (`_snake_case` in Python and C++, `_camelCase` in C#)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
-- Allman brace style (C++ and C#; not applicable to Python)
+- Prose over bullet lists in documentation
+- No example/code blocks in documentation (they go stale)
+- I/O operations separated from processing logic
+
+**Shared between C++ and C# only:**
+- Allman brace style (opening braces on new lines; Python uses indentation)
 
 **C++-specific divergences from Python:**
 - Methods use PascalCase; accessors use `get_`/`set_` snake_case (not bare snake_case as in Python)
@@ -105,7 +110,7 @@ consistency across languages while respecting each language's idiomatic standard
 
 ### Project archetypes
 
-Sun Lab C++ code falls into two paradigms with shared style but different constraints:
+C++ code falls into two paradigms with shared style but different constraints:
 
 - **Embedded** (Arduino/PlatformIO): No exceptions, no dynamic allocation, no RTTI, no STL heap
   containers. Uses status codes and boolean returns for error handling. Builds via PlatformIO.
@@ -346,6 +351,16 @@ All definitions within a file follow this vertical ordering from top to bottom:
 Within a class, order by visibility: `public` first, then `private`. Always write access
 modifiers explicitly.
 
+### Call-hierarchy ordering
+
+Within each visibility group, definitions should **loosely follow the order in which they are
+called** during the class's runtime. When there is no clear call hierarchy, group definitions
+**by purpose**. This matches the Python convention of ordering definitions by call sequence
+within each visibility group.
+
+For embedded modules, this naturally follows from the lifecycle: `SetupModule()` helpers first,
+then `RunActiveCommand()` dispatch helpers, then individual command methods.
+
 ### One class per file
 
 Each `.h` file should contain exactly one primary class. The file name must use snake_case and
@@ -535,6 +550,15 @@ C++ Style Compliance:
 - [ ] Inline comments use third person imperative
 - [ ] No heavy section separator blocks (// ====== or // ------)
 - [ ] No @code/@endcode example blocks in Doxygen documentation
+- [ ] Prose used in @brief details (not bullet lists)
+- [ ] Accessor docs (get_/set_) are single-sentence /// comments
+- [ ] get_/set_ used for trivial field access; PascalCase for methods with side effects
+- [ ] Static methods used when no instance state is accessed
+- [ ] Methods ordered by call hierarchy within each visibility group
+- [ ] I/O operations separated from processing logic (especially in extension code)
+- [ ] Magic numbers replaced with named static constexpr constants
+- [ ] Test functions have only @file and @brief (no @param, @returns, or @throws)
+- [ ] Linting warnings resolved (not suppressed) unless resolution adds unnecessary complexity
 - [ ] clang-format applied before commit
 - [ ] clang-tidy passes with zero warnings
 
@@ -557,4 +581,6 @@ Extension-Specific Compliance (skip for embedded projects):
 - [ ] GIL released during blocking operations (nb::gil_scoped_release)
 - [ ] CMakeLists.txt uses nanobind_add_module with NB_STATIC
 - [ ] Extension class prefixed with C (e.g., CPrecisionTimer) to distinguish from Python wrapper
+- [ ] __repr__ method exposed via nanobind using CClassName(key=value) format
+- [ ] Multi-line error messages assigned to variable before passing to throw
 ```

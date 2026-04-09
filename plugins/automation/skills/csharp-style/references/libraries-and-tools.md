@@ -1,7 +1,7 @@
 # Libraries, tools, and patterns
 
 Conventions for LINQ, resource management, async/await, testing, static analysis, and path
-handling in Sun Lab C# projects.
+handling in C# projects.
 
 ---
 
@@ -200,6 +200,73 @@ IEnumerator WaitAndReset()
 
 ---
 
+## Coroutine conventions
+
+Unity coroutines (`IEnumerator` + `StartCoroutine`) are the standard approach for frame-based
+async operations. This is the C# equivalent of the C++ state machine pattern where each stage
+performs one atomic action and returns control to the caller.
+
+### Naming
+
+Coroutine methods do not receive a suffix (unlike `Async` for `async/await` methods). Use a
+descriptive verb phrase that conveys the timed or staged nature of the operation:
+
+```csharp
+/// <summary>Waits for the specified duration then resets the zone state.</summary>
+IEnumerator WaitAndReset()
+{
+    yield return new WaitForSeconds(2f);
+    ResetState();
+}
+
+/// <summary>Fades the stimulus intensity over the specified duration.</summary>
+/// <param name="duration">The fade duration in seconds.</param>
+IEnumerator FadeStimulus(float duration)
+{
+    float elapsed = 0f;
+    while (elapsed < duration)
+    {
+        _intensity = Mathf.Lerp(1f, 0f, elapsed / duration);
+        elapsed += Time.deltaTime;
+        yield return null;
+    }
+    _intensity = 0f;
+}
+```
+
+### When to use coroutines vs alternatives
+
+| Approach                       | Use when                                                  |
+|--------------------------------|-----------------------------------------------------------|
+| Coroutine                      | Frame-based waiting, timed sequences, animation staging   |
+| `async/await`                  | True async I/O (file reads, network requests)             |
+| State tracking in `Update`     | Simple state that changes every frame without waiting     |
+
+### Guidelines
+
+- Start coroutines with `StartCoroutine()` in lifecycle methods or event handlers
+- Store `Coroutine` references when you need to cancel with `StopCoroutine()`
+- Stop all coroutines in `OnDisable()` or `OnDestroy()` to prevent orphaned execution
+- Prefer `WaitForSeconds` over manual timer tracking for simple delays
+- Use `WaitUntil(() => condition)` for condition-based waiting
+- Cache `WaitForSeconds` instances when yielding in loops to avoid per-frame allocations:
+
+```csharp
+/// <summary>The cached wait instruction for the polling interval.</summary>
+private readonly WaitForSeconds _pollWait = new WaitForSeconds(0.1f);
+
+/// <summary>Polls the sensor at a fixed interval until the threshold is met.</summary>
+IEnumerator PollSensor()
+{
+    while (_sensorValue < _threshold)
+    {
+        yield return _pollWait;
+    }
+}
+```
+
+---
+
 ## Testing conventions
 
 ### Test class naming
@@ -240,6 +307,9 @@ public void GetSegmentLengths_ValidPrefabs_ReturnsCorrectLengths()
 
 - Use "Verifies..." as the imperative mood for test summaries (matching Python convention)
 - Each test method has an XML `<summary>` tag
+- Do NOT add `<param>`, `<returns>`, or `<exception>` tags to test methods. The `<summary>`
+  tag is sufficient. This matches the Python convention of omitting Args, Returns, and Raises
+  sections from test function docstrings
 - Use the Arrange-Act-Assert pattern for test body organization
 
 ---
@@ -283,6 +353,68 @@ public float trackLength = 10f;
 
 ---
 
+## Conditional compilation
+
+### Platform and context directives
+
+Use `#if` directives for code that should only compile in specific contexts. This is the C#
+equivalent of C++ `#ifdef` for firmware variants:
+
+```csharp
+// Good - editor-only code guarded by UNITY_EDITOR
+#if UNITY_EDITOR
+/// <summary>Validates the task template in the editor before entering play mode.</summary>
+[UnityEditor.InitializeOnLoadMethod]
+private static void ValidateOnLoad()
+{
+    // Editor-only validation logic
+}
+#endif
+```
+
+### Guidelines
+
+- Use `#if UNITY_EDITOR` for editor tools, custom inspectors, and menu items
+- Use `#if UNITY_STANDALONE` or platform-specific symbols for platform-dependent code
+- Prefer `[System.Diagnostics.Conditional("DEBUG")]` over `#if DEBUG` for method-level
+  conditional compilation (cleaner and avoids call-site `#if` blocks):
+
+```csharp
+// Good - Conditional attribute (callers do not need #if guards)
+[System.Diagnostics.Conditional("DEBUG")]
+private static void LogDebugInfo(string message)
+{
+    Debug.Log($"[DEBUG] {message}");
+}
+
+// Avoid - #if DEBUG at every call site
+#if DEBUG
+Debug.Log($"[DEBUG] {message}");
+#endif
+```
+
+- Do NOT indent code inside `#if`/`#endif` blocks relative to the directive. The `#` must
+  start at column 0, and the enclosed code follows normal indentation:
+
+```csharp
+// Good - directive at column 0, code at normal indentation
+public class Task : MonoBehaviour
+{
+#if UNITY_EDITOR
+    /// <summary>The editor-only validation state.</summary>
+    private bool _editorValidated;
+#endif
+
+    /// <summary>The runtime task state.</summary>
+    private bool _isRunning;
+}
+```
+
+- Keep `#if` blocks as small as possible. Prefer extracting platform-specific logic into
+  separate methods over wrapping large blocks of code.
+
+---
+
 ## Path handling
 
 Use `System.IO.Path` methods for all path manipulation. Never use string concatenation:
@@ -303,3 +435,43 @@ string configPath = Application.dataPath + "/Configurations/" + "task.yaml";
 - Use `Path.GetFullPath()` for path normalization
 - Use `@"..."` verbatim strings for literal Windows paths in constants
 - Use `Application.dataPath`, `Application.persistentDataPath` for Unity paths
+
+---
+
+## String comparison
+
+Use ordinal comparison for internal string matching. Culture-sensitive comparison introduces
+locale-dependent behavior that can cause subtle bugs across machines:
+
+```csharp
+// Good - ordinal comparison for internal logic
+if (string.Equals(segmentName, "Segment_A", StringComparison.Ordinal))
+{
+    // Exact match
+}
+
+// Good - case-insensitive ordinal for user-facing input
+if (string.Equals(input, "yes", StringComparison.OrdinalIgnoreCase))
+{
+    // Case-insensitive match without locale issues
+}
+
+// Good - ordinal for Contains, StartsWith, EndsWith
+if (topicName.StartsWith("Gimbl/", StringComparison.Ordinal))
+{
+    // Prefix check
+}
+
+// Avoid - default comparison uses CurrentCulture (locale-dependent)
+if (segmentName == "Segment_A")  // Acceptable for simple equality in non-critical paths
+if (topicName.Contains("Gimbl"))  // Uses CurrentCulture on some .NET versions
+```
+
+### Guidelines
+
+- Use `StringComparison.Ordinal` for protocol strings, topic names, and identifiers
+- Use `StringComparison.OrdinalIgnoreCase` for case-insensitive matching
+- Simple `==` equality is acceptable for straightforward constant comparisons where locale
+  behavior is irrelevant
+- Never use `StringComparison.CurrentCulture` or `StringComparison.InvariantCulture` unless
+  displaying sorted text to users

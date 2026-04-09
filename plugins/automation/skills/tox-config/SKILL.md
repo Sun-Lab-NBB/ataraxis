@@ -1,7 +1,7 @@
 ---
 name: tox-config
 description: >-
-  Applies Sun Lab tox.ini conventions when creating or modifying tox configuration files. Covers
+  Applies tox.ini conventions when creating or modifying tox configuration files. Covers
   the mamba + uv + tox toolchain architecture, envlist patterns, environment definitions,
   dependency installation strategies, environment naming, and project archetype variations
   (full Python, reduced Python, C++ extension, C++ docs-only). Use when creating a new tox.ini,
@@ -12,7 +12,7 @@ user-invocable: true
 
 # tox.ini style guide
 
-Applies Sun Lab conventions for tox.ini configuration files that drive the development automation
+Applies conventions for tox.ini configuration files that drive the development automation
 pipeline.
 
 You MUST read this skill before creating or modifying any tox.ini file. You MUST verify your
@@ -87,7 +87,7 @@ Complete the verification checklist at the end of this file.
 
 ## Toolchain architecture
 
-Sun Lab projects use three tools together. Understanding their roles is essential for correct
+Projects use three tools together. Understanding their roles is essential for correct
 tox.ini configuration.
 
 ### mamba (environment lifecycle)
@@ -390,7 +390,7 @@ basepython = py312  # Earliest supported version controls lint/mypy ruleset
 ## Proactive behavior
 
 You should proactively offer to invoke this skill when:
-- Creating a new Sun Lab project that needs a tox.ini
+- Creating a new project that needs a tox.ini
 - The user asks about running tox, development automation, or the mamba/uv/tox toolchain
 - Adding a new tox environment or modifying an existing pipeline
 - Upgrading the ataraxis-automation version pin across downstream projects

@@ -1,13 +1,13 @@
 # Doxygen documentation and type usage
 
-Detailed conventions for C++ Doxygen documentation and type usage in Sun Lab projects.
+Detailed conventions for C++ Doxygen documentation and type usage across projects.
 
 ---
 
 ## Doxygen documentation
 
-Use Doxygen documentation comments for all public and private members. Sun Lab C++ projects use
-the `@tag` syntax (not `\tag`). This matches the Doxygen style used across all Sun Lab C++
+Use Doxygen documentation comments for all public and private members. C++ projects use
+the `@tag` syntax (not `\tag`). This matches the Doxygen style used across all C++
 libraries and parallels the Google-style docstrings in Python and XML documentation in C#.
 
 ### Comment styles
@@ -174,6 +174,26 @@ template <typename ReadObject>
 - Use `/** ... */` when the method has `@tparam`, `@param`, `@returns`, `@warning`, or `@note`
   tags
 - Virtual method overrides with unchanged semantics may use a brief `///` comment
+
+### Accessor documentation
+
+Accessor methods (`get_`/`set_` snake_case) should use single-line `///` documentation. Keep
+the summary to a single sentence. This matches the Python convention where property docstrings
+should ideally be a single sentence:
+
+```cpp
+// Good - single-sentence accessor docs
+/// Returns the size of the instance's transmission buffer, in bytes.
+[[nodiscard]] static constexpr uint16_t get_transmission_buffer_size()
+
+/// Returns the runtime status of the most recently called method.
+[[nodiscard]] uint8_t get_runtime_status() const
+
+// Avoid - multi-sentence accessor docs (move details to the class @brief instead)
+/// Returns the runtime status of the most recently called method. The status is updated
+/// after each call to SendData or ReceiveData, and tracks whether the operation succeeded.
+[[nodiscard]] uint8_t get_runtime_status() const
+```
 
 ---
 

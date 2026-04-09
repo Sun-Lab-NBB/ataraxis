@@ -1,7 +1,7 @@
 ---
 name: commit
 description: >-
-  Drafts Sun Lab style-compliant git commit messages by analyzing all local changes relative to the active branch.
+  Drafts style-compliant git commit messages by analyzing all local changes relative to the active branch.
   Use when the user asks to commit, when completing a coding task that should be committed, or when the user invokes
   /commit. Proactively offer to draft a commit message after completing substantial code changes.
 user-invocable: true
@@ -17,7 +17,7 @@ Drafts a style-compliant commit message by analyzing all local changes.
 
 **Covers:**
 - Analyzing local git changes (staged, unstaged, and untracked files)
-- Drafting commit messages that comply with Sun Lab conventions
+- Drafting commit messages that comply with conventions
 - Presenting the draft for the user to commit manually
 
 **Does not cover:**

@@ -1,6 +1,6 @@
 # Class and data patterns
 
-Conventions for Python classes, dataclasses, enums, decorator ordering, and structural patterns in Sun Lab projects.
+Conventions for Python classes, dataclasses, enums, decorator ordering, and structural patterns in projects.
 
 ---
 

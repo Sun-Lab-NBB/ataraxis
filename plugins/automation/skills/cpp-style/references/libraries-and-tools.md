@@ -1,18 +1,18 @@
 # Libraries, tools, and project patterns
 
 Conventions for Arduino/PlatformIO development, Python C++ extensions (nanobind), clang-format,
-clang-tidy, Doxygen builds, testing, and project-specific constraints in Sun Lab C++ projects.
+clang-tidy, Doxygen builds, testing, and project-specific constraints in C++ projects.
 
 ---
 
 ## Embedded constraints
 
-Sun Lab C++ projects target Arduino-compatible microcontrollers (primarily Teensy 4.1) via
+C++ projects target Arduino-compatible microcontrollers (primarily Teensy 4.1) via
 PlatformIO. The embedded environment imposes strict constraints that differ from desktop C++.
 
 ### Prohibited features
 
-The following C++ features are **prohibited** in Sun Lab embedded code:
+The following C++ features are **prohibited** in embedded code:
 
 | Feature             | Reason                                                               | Alternative                    |
 |---------------------|----------------------------------------------------------------------|--------------------------------|
@@ -26,7 +26,7 @@ The following C++ features are **prohibited** in Sun Lab embedded code:
 
 ### Custom type traits
 
-When `<type_traits>` is not available, Sun Lab libraries define minimal equivalents:
+When `<type_traits>` is not available, libraries define minimal equivalents:
 
 ```cpp
 /// Checks if two types are the same.
@@ -65,7 +65,7 @@ For complete directory trees for PlatformIO library and firmware projects, invok
 
 ### Header-only libraries
 
-Sun Lab C++ libraries are **header-only**. All code resides in `.h` files with no separate `.cpp`
+C++ libraries are **header-only**. All code resides in `.h` files with no separate `.cpp`
 implementation files. This simplifies distribution via PlatformIO's library dependency system and
 enables full template specialization at compile time.
 
@@ -144,7 +144,7 @@ static_assert(false, "Define one of the supported microcontroller targets.");
 
 ## clang-format configuration
 
-Sun Lab C++ projects use a shared `.clang-format` configuration based on the Google style with
+C++ projects use a shared `.clang-format` configuration based on the Google style with
 extensive customization for cross-language visual consistency with Python (Black formatter).
 
 The canonical `.clang-format` files are stored in `assets/embedded/` (for PlatformIO projects)
@@ -165,7 +165,7 @@ clang-format --dry-run --Werror src/*.h src/*.cpp
 
 ## clang-tidy configuration
 
-Sun Lab C++ projects use clang-tidy with `WarningsAsErrors: '*'`, treating all enabled warnings
+C++ projects use clang-tidy with `WarningsAsErrors: '*'`, treating all enabled warnings
 as build-breaking errors. The canonical configuration is stored in `assets/.clang-tidy` and is
 shared across both embedded and extension archetypes.
 
@@ -187,6 +187,32 @@ Rules:
 - Use the most specific suppression pattern possible (e.g., `*-dynamic-static-initializers`)
 - Never use blanket `// NOLINT` without a check pattern
 
+### Resolution policy
+
+Prefer resolving clang-tidy warnings over suppressing them, unless the resolution would:
+- Make the code unnecessarily complex
+- Hurt performance by adding redundant checks
+- Harm codebase readability instead of helping it
+
+This matches the Python convention for ruff and mypy resolution.
+
+### Magic numbers
+
+When clang-tidy flags magic numbers, prefer defining named `static constexpr` constants:
+
+```cpp
+// Good - named constant with documentation
+/// The minimum number of bytes required to form a valid packet.
+static constexpr uint16_t kMinimumPacketSize = 5;
+if (buffer_size < kMinimumPacketSize) { ... }
+
+// Avoid - magic number inline
+if (buffer_size < 5) { ... }
+```
+
+For values that are inherently clear from context (array indices, bit shifts, common factors),
+suppression with `// NOLINT` and a comment is acceptable.
+
 ### Running clang-tidy
 
 ```bash
@@ -201,7 +227,7 @@ clang-tidy --fix src/*.h src/*.cpp -- -I include/
 
 ## Doxygen documentation builds
 
-Sun Lab C++ libraries use Doxygen for API documentation, integrated with Sphinx via the Breathe
+C++ libraries use Doxygen for API documentation, integrated with Sphinx via the Breathe
 extension. The Doxyfile is at the project root. For Sphinx/Breathe configuration conventions,
 invoke `/api-docs`.
 
@@ -279,6 +305,48 @@ void test_send_data_exceeds_buffer_size()
 
 - Use `@file` and `@brief` at the file level with "Verifies..." imperative
 - Use comments to describe test intent when not obvious from the name
+- Do NOT add `@param`, `@returns`, or `@throws` tags to test functions. The `@file` and
+  `@brief` tags are sufficient. This matches the Python convention of omitting Args, Returns,
+  and Raises sections from test function docstrings
+
+---
+
+## I/O separation
+
+Separate I/O operations from processing logic for testability and reuse. This matches the
+Python and C# convention and is most relevant for extension code:
+
+```cpp
+// Good - I/O separated from logic
+/// Reads timer data from the hardware counter.
+int64_t ReadHardwareCounter() const
+{
+    return static_cast<int64_t>(
+        std::chrono::steady_clock::now().time_since_epoch().count()
+    );
+}
+
+/// Computes the elapsed time from the given counter values.
+int64_t ComputeElapsed(int64_t start_count, int64_t end_count) const
+{
+    return end_count - start_count;
+}
+
+// Avoid - I/O mixed with logic
+/// Reads the hardware counter and computes elapsed time.
+int64_t ReadAndComputeElapsed() const
+{
+    int64_t now = /* hardware read */;
+    return now - _start_count;  // I/O and processing combined
+}
+```
+
+### Guidelines
+
+- I/O functions should only perform I/O (read hardware, write serial, access files)
+- Processing functions should take standard data types and return standard data types
+- In embedded code, this separation is limited by hardware constraints — apply where practical
+- In extension code, this separation enables easier unit testing without hardware dependencies
 
 ---
 
@@ -323,7 +391,7 @@ routines where blocking is acceptable.
 
 ## Python C++ extension conventions
 
-Sun Lab Python libraries use C++ extensions for performance-critical operations. Extensions are
+Python libraries use C++ extensions for performance-critical operations. Extensions are
 built with nanobind and scikit-build-core, targeting desktop platforms (Windows, Linux, macOS).
 
 ### File organization
@@ -460,6 +528,49 @@ build-backend = "scikit_build_core.build"
 
 Pin exact versions for reproducible builds. The `scikit_build_core.build` backend handles CMake
 invocation automatically during `pip install`.
+
+### `__repr__` for extension classes
+
+Extension classes that are exposed to Python via nanobind should provide a `__repr__` method.
+Follow the Python `__repr__` convention of `ClassName(key=value, key=value)`:
+
+```cpp
+/// Returns a string representation of the timer instance.
+std::string Repr() const
+{
+    return "CPrecisionTimer(precision=" + _precision + ")";
+}
+```
+
+In the nanobind binding, expose `Repr` as `__repr__`:
+
+```cpp
+.def("__repr__", &CPrecisionTimer::Repr)
+```
+
+### Rules for `__repr__`
+
+- Format: `CClassName(key_attr=value, key_attr=value)`
+- Include only the most important attributes, not every internal field
+- Use the C++ class name (with `C` prefix), not the Python wrapper name
+- This matches the Python `__repr__` convention and the C# `ToString()` convention
+
+### Error message variable pattern
+
+For extension code that throws exceptions with multi-line messages, assign the message to a
+local variable before passing it. This matches the Python convention of assigning to a
+`message` variable before calling `console.error()`:
+
+```cpp
+// Good - message variable for multi-line errors
+std::string message =
+    "Unable to start timer with precision '" + precision + "'. "
+    "Use 'ns', 'us', 'ms', or 's'.";
+throw std::invalid_argument(message);
+
+// Acceptable - short single-line messages passed directly
+throw std::invalid_argument("Timer has not been started.");
+```
 
 ### STL usage in extensions
 

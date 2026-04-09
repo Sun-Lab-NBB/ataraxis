@@ -1,12 +1,12 @@
 # Anti-patterns and examples
 
-Common anti-patterns to avoid and input/output transformation examples for Sun Lab Python code.
+Common anti-patterns to avoid and input/output transformation examples for Python code.
 
 ---
 
 ## Input/output examples
 
-Transform code to match Sun Lab style:
+Transform code to match project style:
 
 | Input (What you wrote)                 | Output (Correct style)                                         |
 |----------------------------------------|----------------------------------------------------------------|
@@ -108,3 +108,34 @@ Transform code to match Sun Lab style:
 | `os.cpu_count() // N` for job slots   | No None guard, fragile            | `resolve_parallel_job_capacity()`                                |
 | `np.array([v]).view(np.uint8)` manual | Duplicated, no cache, error-prone | `convert_scalar_to_bytes()` / `convert_bytes_to_scalar()`        |
 | `np.frombuffer(data, dtype=...)` raw  | No validation, no copy safety     | `convert_bytes_to_array()` / `convert_array_to_bytes()`          |
+
+---
+
+## Comment anti-patterns
+
+| Anti-Pattern                                 | Problem                        | Solution                                    |
+|----------------------------------------------|--------------------------------|---------------------------------------------|
+| `# This function sends...`                   | First-person/third-person noun | `# Sends...` (third-person imperative)      |
+| `# ========================`                 | Visual clutter                 | Remove separator; use blank lines instead   |
+| `# ---- Section ----`                        | Visual clutter                 | Remove separator; use blank lines instead   |
+| End-of-line comment on complex logic         | Hard to scan                   | Place comment above the code block          |
+| `x = 5  # Set x to 5`                        | States the obvious             | Remove or explain *why*                     |
+| Adding docstrings to code not written by you | Unnecessary churn              | Only document your changes                  |
+| Type annotations as comments (`# type: int`) | Redundant                      | Use actual type hints in the signature      |
+
+---
+
+## Cross-language consistency violations
+
+These anti-patterns drift toward C++ or C# conventions that do not apply in Python:
+
+| Wrong (C++/C# drift)                       | Correct (Python convention)                   | Rule                                |
+|--------------------------------------------|-----------------------------------------------|-------------------------------------|
+| `def SendData(self):`                      | `def send_data(self):`                        | snake_case methods, not PascalCase  |
+| `kTimeout = 100`                           | `_TIMEOUT: int = 100`                         | _UPPER_SNAKE constants, not kPrefix |
+| `static constexpr` style `TIMEOUT = 100`   | `_TIMEOUT: int = 100` with inline docstring   | Module-level constant with type     |
+| `enum class` style `class Status(Enum):`   | `class Status(StrEnum):` or `(IntEnum):`      | Use StrEnum/IntEnum, not bare Enum  |
+| `/// Doxygen @brief comment`               | `"""Google-style docstring."""`               | Docstrings, not Doxygen             |
+| `// NOLINT` style `# type: ignore`         | `# noqa: CODE` with specific error code       | Specific suppression codes          |
+| `_camelCase` for private members           | `_snake_case` for private members             | snake_case, not camelCase           |
+| `self.publicField` (C# camelCase)          | `self._private_field` or public via property  | Private with `_` prefix             |

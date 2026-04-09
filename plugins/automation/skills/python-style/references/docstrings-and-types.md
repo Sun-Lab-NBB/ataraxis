@@ -1,6 +1,6 @@
 # Docstrings and type annotations
 
-Detailed conventions for Python docstrings and type annotations in Sun Lab projects.
+Detailed conventions for Python docstrings and type annotations in projects.
 
 ---
 

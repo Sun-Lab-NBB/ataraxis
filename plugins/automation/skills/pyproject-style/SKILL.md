@@ -1,7 +1,7 @@
 ---
 name: pyproject-style
 description: >-
-  Applies Sun Lab pyproject.toml conventions when creating or modifying pyproject.toml files. Covers
+  Applies pyproject.toml conventions when creating or modifying pyproject.toml files. Covers
   section ordering, metadata fields, dependency specifications, tool configurations (ruff, mypy,
   coverage, hatch), and classifier templates. Use when creating a new project, modifying an existing
   pyproject.toml, adding dependencies, or when the user asks about pyproject.toml conventions.
@@ -10,7 +10,7 @@ user-invocable: true
 
 # pyproject.toml style guide
 
-Applies Sun Lab conventions for pyproject.toml files.
+Applies conventions for pyproject.toml files.
 
 You MUST read this skill and load the relevant reference files before creating or modifying any
 pyproject.toml file. You MUST verify your changes against the checklist before submitting.
@@ -78,7 +78,7 @@ submitting work.
 
 ## Section ordering
 
-pyproject.toml files use the following section order. This order is mandatory for all Sun Lab
+pyproject.toml files use the following section order. This order is mandatory for all
 projects.
 
 1. `[build-system]`
@@ -165,7 +165,7 @@ lint.ignore = [
 
 ## Build system
 
-All pure-Python Sun Lab projects use hatchling:
+All pure-Python projects use hatchling:
 
 ```toml
 [build-system]
@@ -185,7 +185,7 @@ build-backend = "scikit_build_core.build"
 
 ## Version constraints
 
-Sun Lab projects use the **major-version range** pattern for all dependencies:
+Projects use the **major-version range** pattern for all dependencies:
 
 ```toml
 "numpy>=2,<3"
@@ -217,7 +217,7 @@ Use environment markers for platform-conditional dependencies:
 
 ## Project layout
 
-All Sun Lab Python projects use the **src layout**. For complete directory trees, invoke
+All Python projects use the **src layout**. For complete directory trees, invoke
 `/project-layout`.
 
 The wheel configuration always points to the src directory:
@@ -248,7 +248,7 @@ part of the distributed package.
 
 ## Proactive behavior
 
-When creating a new Sun Lab project, proactively offer to generate a pyproject.toml following
+When creating a new project, proactively offer to generate a pyproject.toml following
 these conventions. When modifying Python version support, dependencies, or tool configurations,
 proactively suggest updating the pyproject.toml to reflect the changes. After substantial
 dependency or configuration changes, proactively offer to run the verification checklist.
