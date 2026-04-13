@@ -171,6 +171,29 @@ def start_video_session(
     """
 ```
 
+### Sphinx cross-reference specifiers
+
+Sphinx specifiers (`:class:`, `:func:`, `:meth:`, `:data:`, `:attr:`) are **allowed only inside
+MCP tool docstrings**, where AI agents consume them as structured cross-references. All other
+documentation — module docstrings, class docstrings, non-MCP function and method docstrings,
+constant and attribute docstrings, and inline comments — must use plain prose. Refer to classes,
+functions, and methods by name in double backticks without a specifier prefix.
+
+```python
+# Good — MCP tool docstring (specifiers allowed)
+@mcp.tool()
+def prepare_batch_tool(session_paths: list[str]) -> dict[str, Any]:
+    """Prepares a batch using :func:`discover_jobs` and initializes a :class:`ProcessingTracker`."""
+
+# Good — non-MCP docstring (prose with backticks)
+class ActiveJob:
+    """Tracks a pending job currently executing as a ``Future`` on the shared process pool."""
+
+# Bad — non-MCP docstring using specifiers
+class ActiveJob:
+    """Tracks a pending job currently executing as a :class:`Future` on the shared process pool."""
+```
+
 ### MCP server response formatting
 
 MCP tool responses should be concise and information-dense.

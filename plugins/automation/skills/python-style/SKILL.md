@@ -478,6 +478,7 @@ Python Style Compliance:
 - [ ] No Examples sections or in-code examples in docstrings
 - [ ] Imperative mood in summaries ("Processes..." not "This method processes...")
 - [ ] Prose used instead of bullet lists in docstrings
+- [ ] No Sphinx specifiers (:class:, :func:, :meth:, :data:) outside MCP tool docstrings
 - [ ] All parameters and returns have type annotations
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
 - [ ] Type aliases use PEP 695 `type` statement syntax

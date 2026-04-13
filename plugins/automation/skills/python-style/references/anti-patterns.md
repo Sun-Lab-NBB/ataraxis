@@ -43,14 +43,15 @@ Transform code to match project style:
 
 ## Documentation anti-patterns
 
-| Anti-Pattern                         | Problem                     | Solution                             |
-|--------------------------------------|-----------------------------|--------------------------------------|
-| `"""A class that processes data."""` | Noun phrase, not imperative | `"""Processes experimental data."""` |
-| Bullet lists in docstrings           | Breaks prose flow           | Use complete sentences instead       |
-| `# Set x to 5` before `x = 5`        | States the obvious          | Remove or explain *why*              |
-| Missing dtype in `NDArray`           | Type checking fails         | Always specify `NDArray[np.float32]` |
-| `Whether to...` for bool params      | Incomplete phrasing         | Use `Determines whether to...`       |
-| `# ======` section separators        | Visual clutter              | Use blank lines to separate sections |
+| Anti-Pattern                         | Problem                     | Solution                                |
+|--------------------------------------|-----------------------------|-----------------------------------------|
+| `"""A class that processes data."""` | Noun phrase, not imperative | `"""Processes experimental data."""`    |
+| Bullet lists in docstrings           | Breaks prose flow           | Use complete sentences instead          |
+| `# Set x to 5` before `x = 5`        | States the obvious          | Remove or explain *why*                 |
+| Missing dtype in `NDArray`           | Type checking fails         | Always specify `NDArray[np.float32]`    |
+| `Whether to...` for bool params      | Incomplete phrasing         | Use `Determines whether to...`          |
+| `# ======` section separators        | Visual clutter              | Use blank lines to separate sections    |
+| `:class:` in non-MCP docstrings      | Humans parse prose better   | Use prose; specifiers in MCP tools only |
 
 ---
 
