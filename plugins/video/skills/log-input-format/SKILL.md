@@ -31,7 +31,7 @@ archives are produced, their internal structure, and source ID semantics.
 - Processing workflow or batch operations (see `/log-processing`)
 - Output data formats or frame statistics (see `/log-processing-results`)
 - Camera hardware setup or configuration (see `/camera-setup`)
-- MCP server connectivity (see `/mcp-environment-setup`)
+- MCP server connectivity (see `/video-mcp-environment-setup`)
 
 ---
 
@@ -279,7 +279,7 @@ Before running the log processing pipeline, verify these conditions:
 | `/log-processing`         | Downstream: consumes archives in the format documented here          |
 | `/log-processing-results` | Downstream: documents the output format produced from these archives |
 | `/pipeline`               | Context: reference skill for the end-to-end pipeline phases          |
-| `/mcp-environment-setup`  | Prerequisite: MCP server connectivity for discovery and processing   |
+| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for discovery and processing   |
 
 ---
 

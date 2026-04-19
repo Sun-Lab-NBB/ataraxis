@@ -26,7 +26,7 @@ the consuming library or application.
 
 **Does not cover:**
 - Camera discovery, interactive testing, or GenICam node inspection via MCP tools (see `/camera-setup`)
-- MCP server connectivity issues (see `/mcp-environment-setup`)
+- MCP server connectivity issues (see `/video-mcp-environment-setup`)
 - Binding class design, configuration dataclasses, or system architecture (consumer's responsibility)
 
 ---
@@ -284,7 +284,7 @@ cause drops when the scene changes. Consider this when selecting presets.
 | `/log-processing`         | Downstream: processes archives from VideoSystem instances                |
 | `/log-processing-results` | Downstream: analyzes frame statistics from processed archives            |
 | `/pipeline`               | Context: end-to-end orchestration and multi-camera planning              |
-| `/mcp-environment-setup`  | Prerequisite: MCP server connectivity for API verification               |
+| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for API verification               |
 
 ---
 

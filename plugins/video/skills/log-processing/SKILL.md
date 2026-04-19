@@ -31,12 +31,12 @@ extraction jobs, monitor progress, and hand off to downstream skills for output 
 - Output data formats, feather file schema, or frame statistics analysis (see `/log-processing-results`)
 - Camera hardware setup or interactive testing (see `/camera-setup`)
 - Writing VideoSystem integration code (see `/camera-interface`)
-- MCP server connectivity issues (see `/mcp-environment-setup`)
+- MCP server connectivity issues (see `/video-mcp-environment-setup`)
 
 **Handoff rules:** If the user asks about archive format, source IDs, or DataLogger output, invoke
 `/log-input-format`. If the user asks about feather file contents, frame timing statistics, frame drops, or
 data interpretation, invoke `/log-processing-results`. If MCP tools are unavailable, invoke
-`/mcp-environment-setup`.
+`/video-mcp-environment-setup`.
 
 ---
 
@@ -44,7 +44,7 @@ data interpretation, invoke `/log-processing-results`. If MCP tools are unavaila
 
 You MUST use the ataraxis-video-system MCP tools for all processing operations. Do not import log processing
 Python functions directly or run processing via CLI commands. If MCP tools are not available, invoke
-`/mcp-environment-setup` to diagnose and resolve connectivity issues.
+`/video-mcp-environment-setup` to diagnose and resolve connectivity issues.
 
 You MUST run `discover_camera_data_tool` before calling `prepare_log_processing_batch_tool` to obtain
 confirmed log directory paths and source IDs. Do not assume or guess directory paths or source IDs. You
@@ -326,7 +326,7 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 | Error Pattern                        | Action                                                        |
 |--------------------------------------|---------------------------------------------------------------|
 | Archive not found / file read errors | Verify .npz archives exist in log directory                   |
-| MCP tools unavailable                | Invoke `/mcp-environment-setup`                               |
+| MCP tools unavailable                | Invoke `/video-mcp-environment-setup`                               |
 | Out of memory                        | Reduce `worker_budget`                                        |
 | Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare      |
 
@@ -336,7 +336,7 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 | Skill                     | Role                                                            |
 |---------------------------|-----------------------------------------------------------------|
-| `/mcp-environment-setup`  | Prerequisite: MCP server connectivity                           |
+| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity                           |
 | `/camera-setup`           | Upstream: camera discovery and testing                          |
 | `/camera-interface`       | Upstream: VideoSystem integration code that produces logs       |
 | `/post-recording`         | Upstream: verifies archives before processing                   |
@@ -350,7 +350,7 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ```text
 Log Processing Workflow:
-- [ ] MCP server connected (if not, invoke `/mcp-environment-setup`)
+- [ ] MCP server connected (if not, invoke `/video-mcp-environment-setup`)
 - [ ] Archives discovered via `discover_camera_data_tool`
 - [ ] Log directories confirmed with user
 - [ ] Batch prepared via `prepare_log_processing_batch_tool`
