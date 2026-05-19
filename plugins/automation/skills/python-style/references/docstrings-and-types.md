@@ -48,6 +48,47 @@ Do not include Examples sections or in-code examples in docstrings.
 - **Returns**: Describe what is returned, not the type.
 - **Prose over lists**: Always use prose instead of bullet lists or dashes in docstrings.
 
+### Documentation quality
+
+Beyond structural rules, every comment and docstring must meet quality criteria that govern
+information density, readability, and accuracy.
+
+**Necessary minimalism**: Documentation exists to convey information the reader cannot infer
+from the code itself. Each docstring and comment must be as short as possible while still
+conveying every necessary fact. Do not pad with restatements, motivational prose, or
+implementation trivia. If a function's behavior is fully evident from a single summary line and
+the type signature, no extended description is needed.
+
+**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
+broken into smaller sentences at natural clause boundaries. Long sentences in docstrings,
+comments, and inline annotations are a strong signal of over-explanation.
+
+**Typo-free and grammatical**: Every comment, docstring, and inline annotation must be free of
+typos and grammatical errors.
+
+**Length proportionality**: Docstring length must be proportional to function complexity. A
+3-line helper with self-evident behavior does not need a multi-paragraph docstring listing
+trivia. A 200-line orchestration method warrants more documentation than a property accessor.
+
+**No type-signature restating**: Docstrings must not restate information already conveyed by
+the type signature or the parameter names. Replace "Takes an integer count and returns a
+boolean indicating success" with "Returns True when the operation succeeds." The signature
+already conveys the types.
+
+**No narrate-the-code comments**: Inline comments must explain non-obvious context, intent, or
+constraints — not narrate what the code already says. Replace `# increment counter` above
+`counter += 1` with either no comment, or a comment that explains why the increment matters at
+that point.
+
+**No stale references**: Comments must not reference closed issue numbers, removed code,
+deprecated versions, or outdated TODOs. When the code referenced by a comment is removed, the
+comment must be removed or rewritten.
+
+**Implementation accuracy**: Docstring claims must accurately describe the function's
+observable behavior, signature, parameter semantics, and return value. A docstring that says
+"returns the absolute path" for a function that returns a relative path is a defect, even when
+the code itself is correct.
+
 ### Class docstrings with attributes
 
 For classes, include an Attributes section listing all instance attributes:

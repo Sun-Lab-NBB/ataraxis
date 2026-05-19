@@ -560,6 +560,13 @@ C# Style Compliance:
 - [ ] Summary tags use third-person imperative mood ("Provides..." not "This class provides...")
 - [ ] Boolean members documented with "Determines whether..."
 - [ ] File-level XML summary comment present
+- [ ] Sentences in comments and XML docs stay under 40 words
+- [ ] XML doc length proportional to method complexity (no multi-paragraph remarks on simple properties)
+- [ ] <param> and <returns> descriptions do not restate type information
+- [ ] XML doc accurately describes the method's observable behavior
+- [ ] Comments and XML docs free of typos and grammar errors
+- [ ] Inline comments explain why, not what (no narrate-the-code comments)
+- [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
 - [ ] All lines ≤ 120 characters
 - [ ] 4-space indentation, no tabs
 - [ ] Allman brace style (opening braces on new lines)

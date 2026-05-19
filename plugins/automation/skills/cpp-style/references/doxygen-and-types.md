@@ -42,6 +42,47 @@ static uint16_t previous_readout = 0;
 - **`/** ... */` for blocks**: Use multi-line blocks for classes, methods, and complex members
 - **`@brief` required**: Every `/** ... */` block must begin with `@brief`
 
+### Documentation quality
+
+Beyond structural rules, every Doxygen comment must meet quality criteria that govern
+information density, readability, and accuracy.
+
+**Necessary minimalism**: Documentation exists to convey information the reader cannot infer
+from the code itself. Each `///` summary, `/** ... */` block, and inline comment must be as
+short as possible while still conveying every necessary fact. Do not pad with restatements,
+motivational prose, or implementation trivia. If a method's behavior is fully evident from a
+single `@brief` line and the parameter types, no additional `@details` paragraph is needed.
+
+**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
+broken into smaller sentences at natural clause boundaries. Long sentences in `@brief`,
+`@details`, and inline comments are a strong signal of over-explanation.
+
+**Typo-free and grammatical**: Every comment, Doxygen block, and inline annotation must be free
+of typos and grammatical errors.
+
+**Length proportionality**: Doxygen block length must be proportional to method complexity. A
+3-line accessor with self-evident behavior does not need a multi-paragraph block listing
+trivia. A 200-line orchestration method warrants more documentation than a getter.
+
+**No type-signature restating**: `@param` and `@returns` descriptions must not restate
+information already conveyed by the type signature or the parameter names. Replace `@param
+status_code the uint8_t status code` with `@param status_code the status code to include in
+the packet header.` The type is already on the parameter.
+
+**No narrate-the-code comments**: Inline comments must explain non-obvious context, intent, or
+constraints — not narrate what the code already says. Replace `// increment counter` above
+`counter++` with either no comment, or a comment that explains why the increment matters at
+that point.
+
+**No stale references**: Comments must not reference closed issue numbers, removed code,
+deprecated firmware versions, or outdated TODOs. When the code referenced by a comment is
+removed, the comment must be removed or rewritten.
+
+**Implementation accuracy**: `@brief` and `@returns` claims must accurately describe the
+method's observable behavior, signature, parameter semantics, and return value. A `@returns`
+that says "the absolute path" for a method that returns a relative path is a defect, even when
+the code itself is correct.
+
 ### Tag ordering
 
 Doxygen tags must appear in this order on every member. This matches the Doxygen convention used

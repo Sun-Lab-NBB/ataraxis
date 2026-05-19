@@ -49,6 +49,48 @@ void Start()
 public float occupancyDurationMs = 1000f;
 ```
 
+### Documentation quality
+
+Beyond structural rules, every XML doc comment must meet quality criteria that govern
+information density, readability, and accuracy.
+
+**Necessary minimalism**: Documentation exists to convey information the reader cannot infer
+from the code itself. Each `<summary>`, `<remarks>`, and inline comment must be as short as
+possible while still conveying every necessary fact. Do not pad with restatements, motivational
+prose, or implementation trivia. If a method's behavior is fully evident from a single
+`<summary>` line and the type signature, no additional `<remarks>` block is needed.
+
+**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
+broken into smaller sentences at natural clause boundaries. Long sentences in `<summary>`,
+`<remarks>`, and inline comments are a strong signal of over-explanation.
+
+**Typo-free and grammatical**: Every comment, XML doc tag, and inline annotation must be free
+of typos and grammatical errors.
+
+**Length proportionality**: XML doc length must be proportional to method complexity. A 3-line
+property accessor with self-evident behavior does not need a multi-paragraph `<remarks>`. A
+200-line orchestration method warrants more documentation than a getter.
+
+**No type-signature restating**: `<param>` and `<returns>` descriptions must not restate
+information already conveyed by the type signature or the parameter names. Replace
+`<param name="count">The integer count.</param>` with
+`<param name="count">The number of trials to sample.</param>`. The type is already on the
+parameter.
+
+**No narrate-the-code comments**: Inline comments must explain non-obvious context, intent, or
+constraints — not narrate what the code already says. Replace `// increment counter` above
+`counter++` with either no comment, or a comment that explains why the increment matters at
+that point.
+
+**No stale references**: Comments must not reference closed issue numbers, removed code,
+deprecated package versions, or outdated TODOs. When the code referenced by a comment is
+removed, the comment must be removed or rewritten.
+
+**Implementation accuracy**: `<summary>` and `<returns>` claims must accurately describe the
+method's observable behavior, signature, parameter semantics, and return value. A `<summary>`
+that says "Returns the absolute path" for a method that returns a relative path is a defect,
+even when the code itself is correct.
+
 ### Parameter tags
 
 Use `<param>` tags for method parameters:

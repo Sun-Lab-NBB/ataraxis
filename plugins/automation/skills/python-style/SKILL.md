@@ -479,6 +479,13 @@ Python Style Compliance:
 - [ ] Imperative mood in summaries ("Processes..." not "This method processes...")
 - [ ] Prose used instead of bullet lists in docstrings
 - [ ] No Sphinx specifiers (:class:, :func:, :meth:, :data:) outside MCP tool docstrings
+- [ ] Sentences in comments and docstrings stay under 40 words
+- [ ] Docstring length proportional to function complexity (no multi-paragraph docs on 3-line helpers)
+- [ ] Docstrings do not restate information already conveyed by the type signature
+- [ ] Docstrings accurately describe the function's observable behavior
+- [ ] Comments and docstrings free of typos and grammar errors
+- [ ] Inline comments explain why, not what (no narrate-the-code comments)
+- [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
 - [ ] All parameters and returns have type annotations
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
 - [ ] Type aliases use PEP 695 `type` statement syntax

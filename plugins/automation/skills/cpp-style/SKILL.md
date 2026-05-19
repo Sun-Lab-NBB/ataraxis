@@ -523,6 +523,13 @@ C++ Style Compliance:
 - [ ] Boolean members documented with "Determines whether..."
 - [ ] File-level Doxygen comment with @file and @brief present
 - [ ] Doxygen tag order: @brief -> @details -> @warning/@note -> @tparam -> @param -> @returns
+- [ ] Sentences in comments and Doxygen blocks stay under 40 words
+- [ ] Doxygen block length proportional to method complexity (no multi-paragraph docs on 3-line accessors)
+- [ ] @param and @returns descriptions do not restate type information
+- [ ] Doxygen accurately describes the method's observable behavior
+- [ ] Comments and Doxygen blocks free of typos and grammar errors
+- [ ] Inline comments explain why, not what (no narrate-the-code comments)
+- [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
 - [ ] All lines <= 120 characters
 - [ ] 4-space indentation, no tabs
 - [ ] Allman brace style (opening braces on new lines)
