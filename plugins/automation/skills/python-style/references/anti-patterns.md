@@ -55,6 +55,20 @@ Transform code to match project style:
 
 ---
 
+## Documentation quality anti-patterns
+
+| Anti-Pattern                                | Problem                        | Solution                                            |
+|---------------------------------------------|--------------------------------|-----------------------------------------------------|
+| Sentences over 40 words in prose            | Hard for humans to parse       | Split at clause boundaries into shorter sentences   |
+| Multi-paragraph docstring on 3-line helper  | Disproportionate to function   | Match docstring length to function complexity       |
+| Docstring restates the type signature       | Redundant information          | Describe behavior, not types                        |
+| Docstring contradicts function behavior     | Defect masquerading as docs    | Update docstring to match implementation            |
+| Stale issue numbers in comments             | Misleading after issue closure | Remove or update with current reference             |
+| Typos and grammar errors in comments        | Signals unreviewed prose       | Proofread comments and docstrings before submission |
+| Comments narrate what code obviously does   | Adds noise, no signal          | Remove or explain why the code does what it does    |
+
+---
+
 ## Naming anti-patterns
 
 | Anti-Pattern        | Problem            | Solution                     |

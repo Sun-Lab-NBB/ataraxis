@@ -145,6 +145,20 @@ public class Task : MonoBehaviour { }
 
 ---
 
+## Documentation quality violations
+
+| Wrong                                      | Correct                                   | Rule                         |
+|--------------------------------------------|-------------------------------------------|------------------------------|
+| Sentences over 40 words in prose           | Split into shorter sentences              | Sentence length cap          |
+| Multi-paragraph remarks on simple property | Match XML doc length to member complexity | Length proportionality       |
+| `<param>` restates parameter type          | Describe semantics, not types             | No type-signature restating  |
+| XML doc contradicts method behavior        | Update XML doc to match implementation    | Implementation accuracy      |
+| Stale issue numbers in comments            | Remove or update with current reference   | No stale references          |
+| Typos and grammar errors in comments       | Proofread before submission               | Typo-free and grammatical    |
+| Comments narrate what code obviously does  | Remove or explain why                     | No narrate-the-code comments |
+
+---
+
 ## Comment violations
 
 | Wrong                                        | Correct                                        | Rule                              |
