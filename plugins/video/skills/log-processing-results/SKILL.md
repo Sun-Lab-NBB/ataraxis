@@ -32,7 +32,7 @@ with users.
 - Processing workflow, batch operations, or status monitoring (see `/log-processing`)
 - Camera hardware setup or configuration (see `/camera-setup`)
 - Writing VideoSystem integration code (see `/camera-interface`)
-- MCP server connectivity issues (see `/mcp-environment-setup`)
+- MCP server connectivity issues (see `/video-mcp-environment-setup`)
 
 ---
 
@@ -276,7 +276,7 @@ To determine detailed job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), check 
 
 | Skill                    | Relationship                                                       |
 |--------------------------|--------------------------------------------------------------------|
-| `/mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access              |
+| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access              |
 | `/camera-setup`          | Upstream: MCP discovery tools that locate archives and recordings  |
 | `/camera-interface`      | Context: VideoSystem configuration determines expected frame rates |
 | `/post-recording`        | Upstream: verifies session outputs before processing               |

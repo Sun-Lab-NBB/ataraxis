@@ -28,7 +28,7 @@ that integrates MicroControllerInterface into an acquisition system, use `/micro
 - Writing MicroControllerInterface or ModuleInterface code (see `/microcontroller-interface`)
 - Extraction configuration management (see `/extraction-configuration`)
 - Log processing workflow (see `/log-processing`)
-- MCP server connectivity issues (see `/mcp-environment-setup`)
+- MCP server connectivity issues (see `/communication-mcp-environment-setup`)
 
 ---
 
@@ -254,7 +254,7 @@ advised ranges.
 | MQTT broker unreachable                           | Broker not running                    | Start the broker service                                  |
 | Assembly fails                                    | Directory has no .npy files           | Verify DataLogger was stopped and flushed                 |
 | Discovery finds no sources                        | Missing manifest files                | Use `write_microcontroller_manifest_tool` to tag sessions |
-| MCP tools unavailable                             | Server not running                    | Use `/mcp-environment-setup` to diagnose                  |
+| MCP tools unavailable                             | Server not running                    | Use `/communication-mcp-environment-setup` to diagnose                  |
 
 ---
 
@@ -268,7 +268,7 @@ advised ranges.
 | `/log-processing`            | Downstream: processes archives assembled by this skill             |
 | `/log-processing-results`    | Downstream: analyzes output from processed archives                |
 | `/pipeline`                  | Context: end-to-end orchestration and multi-controller planning    |
-| `/mcp-environment-setup`     | Prerequisite: MCP server connectivity for all tool interactions    |
+| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for all tool interactions    |
 
 ---
 

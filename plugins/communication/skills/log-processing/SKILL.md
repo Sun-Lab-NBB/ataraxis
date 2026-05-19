@@ -31,12 +31,12 @@ data extraction jobs, monitor progress, and hand off to downstream skills for ou
 - Output data formats, feather file schema, or event analysis (see `/log-processing-results`)
 - Extraction configuration management (see `/extraction-configuration`)
 - Microcontroller hardware setup or discovery (see `/microcontroller-setup`)
-- MCP server connectivity issues (see `/mcp-environment-setup`)
+- MCP server connectivity issues (see `/communication-mcp-environment-setup`)
 
 **Handoff rules:** If the user asks about archive format, source IDs, or DataLogger output, invoke
 `/log-input-format`. If the user asks about feather file contents, event distribution, or timing analysis,
 invoke `/log-processing-results`. If the user needs to create or edit an extraction config, invoke
-`/extraction-configuration`. If MCP tools are unavailable, invoke `/mcp-environment-setup`.
+`/extraction-configuration`. If MCP tools are unavailable, invoke `/communication-mcp-environment-setup`.
 
 ---
 
@@ -44,7 +44,7 @@ invoke `/log-processing-results`. If the user needs to create or edit an extract
 
 You MUST use the ataraxis-communication-interface MCP tools for all processing operations. Do not import
 log processing Python functions directly or run processing via CLI commands. If MCP tools are not available,
-invoke `/mcp-environment-setup` to diagnose and resolve connectivity issues.
+invoke `/communication-mcp-environment-setup` to diagnose and resolve connectivity issues.
 
 You MUST run `discover_microcontroller_data_tool` before calling `prepare_log_processing_batch_tool` to
 obtain confirmed log directory paths and source IDs. Do not assume or guess directory paths or source IDs.
@@ -332,7 +332,7 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 |--------------------------------------|---------------------------------------------------------------|
 | Archive not found / file read errors | Verify .npz archives exist in log directory                   |
 | Invalid extraction config            | Validate config via `/extraction-configuration`               |
-| MCP tools unavailable                | Invoke `/mcp-environment-setup`                               |
+| MCP tools unavailable                | Invoke `/communication-mcp-environment-setup`                               |
 | Out of memory                        | Reduce `worker_budget`                                        |
 | Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare      |
 
@@ -342,7 +342,7 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 | Skill                        | Role                                                             |
 |------------------------------|------------------------------------------------------------------|
-| `/mcp-environment-setup`     | Prerequisite: MCP server connectivity                            |
+| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity                            |
 | `/microcontroller-setup`     | Upstream: hardware discovery and manifest management             |
 | `/microcontroller-interface` | Upstream: code that produces the log data being processed        |
 | `/extraction-configuration`  | Upstream: extraction config that controls what data is extracted |
@@ -356,7 +356,7 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ```text
 Log Processing Workflow:
-- [ ] MCP server connected (if not, invoke `/mcp-environment-setup`)
+- [ ] MCP server connected (if not, invoke `/communication-mcp-environment-setup`)
 - [ ] Archives discovered via `discover_microcontroller_data_tool`
 - [ ] Log directories confirmed with user
 - [ ] Output directories confirmed with user

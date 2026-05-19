@@ -31,7 +31,7 @@ assembly, video validation, output completeness checks, and handoff conditions.
 - Log processing workflow or batch operations (see `/log-processing`)
 - Input archive format details or source ID semantics (see `/log-input-format`)
 - Output feather files or frame statistics analysis (see `/log-processing-results`)
-- MCP server connectivity (see `/mcp-environment-setup`)
+- MCP server connectivity (see `/video-mcp-environment-setup`)
 
 **Handoff rules:** If the user asks about archive internal format or source IDs, invoke `/log-input-format`.
 If ready for processing, invoke `/log-processing`. If asking about frame statistics after processing, invoke
@@ -225,7 +225,7 @@ Post-Recording Readiness:
 | Raw `.npy` files remain after assembly   | Assembly ran with `remove_sources=false` | Re-run with `remove_sources=true`              |
 | Frame count mismatch (video vs archive)  | Buffer flush timing or interruption      | 1-2 frames normal; large gaps indicate loss    |
 | `validate_video_file_tool` returns error | File corrupt or ffprobe unavailable      | Check FFMPEG installation; re-record if needed |
-| MCP tools unavailable                    | Server not running                       | Invoke `/mcp-environment-setup`                |
+| MCP tools unavailable                    | Server not running                       | Invoke `/video-mcp-environment-setup`                |
 
 ---
 
@@ -239,7 +239,7 @@ Post-Recording Readiness:
 | `/log-processing`         | Downstream: processes archives into frame timestamps      |
 | `/log-processing-results` | Downstream: analyzes processed frame statistics           |
 | `/pipeline`               | Context: end-to-end orchestration including this phase    |
-| `/mcp-environment-setup`  | Prerequisite: MCP server connectivity for tool access     |
+| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for tool access     |
 
 ---
 

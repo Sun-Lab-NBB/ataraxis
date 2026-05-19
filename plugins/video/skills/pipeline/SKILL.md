@@ -27,7 +27,7 @@ multi-camera setups, phase ordering, handoff conditions, and decision guidance.
 
 **Does not cover:**
 - Detailed tool usage for any individual phase (see phase-specific skills)
-- MCP server connectivity (see `/mcp-environment-setup`)
+- MCP server connectivity (see `/video-mcp-environment-setup`)
 
 **Handoff rules:** This skill dispatches to phase-specific skills at each stage. Always invoke the relevant
 skill for detailed tool usage, parameter reference, and troubleshooting.
@@ -47,7 +47,7 @@ Setup       →  Discovery   →            →  Recording  →  Processing  →
 
 ### Phase 1: Environment setup
 
-- **Skill:** `/mcp-environment-setup`
+- **Skill:** `/video-mcp-environment-setup`
 - **Actions:** Verify MCP server connectivity, check `axvs` command availability, verify Python version
 - **Handoff condition:** MCP tools accessible; `check_runtime_requirements` returns OK for all needed
   components
@@ -274,7 +274,7 @@ After processing, use `analyze_camera_frame_statistics_tool` with all camera fea
 
 ### Single USB camera, first test
 
-1. `/mcp-environment-setup` — verify MCP connectivity (if first session)
+1. `/video-mcp-environment-setup` — verify MCP connectivity (if first session)
 2. `/camera-setup` — `list_cameras` → `start_video_session` → test → `stop_video_session`
 3. `/post-recording` — verify video and archives
 4. Done (skip processing for quick test)
@@ -302,7 +302,7 @@ After processing, use `analyze_camera_frame_statistics_tool` with all camera fea
 
 | Skill                     | Role                                                   |
 |---------------------------|--------------------------------------------------------|
-| `/mcp-environment-setup`  | Phase 1: environment verification                      |
+| `/video-mcp-environment-setup`  | Phase 1: environment verification                      |
 | `/camera-setup`           | Phase 2-3: MCP-based discovery, testing, and recording |
 | `/camera-interface`       | Phase 3: code-based VideoSystem integration            |
 | `/post-recording`         | Phase 4: output verification and archive assembly      |

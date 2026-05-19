@@ -26,7 +26,7 @@ into an acquisition system, use `/camera-interface` instead.
 
 **Does not cover:**
 - Writing VideoSystem integration code (see `/camera-interface`)
-- MCP server connectivity issues (see `/mcp-environment-setup`)
+- MCP server connectivity issues (see `/video-mcp-environment-setup`)
 
 ---
 
@@ -317,7 +317,7 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 | `start_video_session` → directory error       | Output directory does not exist    | Create the directory or provide a valid path           |
 | GenICam tool errors                           | Camera not Harvesters-compatible   | GenICam tools only work with Harvesters cameras        |
 | `write_genicam_node` fails                    | Node is read-only or value invalid | Use `read_genicam_node` to check access mode and range |
-| MCP tools unavailable                         | Server not running                 | Use `/mcp-environment-setup` to diagnose               |
+| MCP tools unavailable                         | Server not running                 | Use `/video-mcp-environment-setup` to diagnose               |
 
 ---
 
@@ -331,7 +331,7 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 | `/log-processing`         | Downstream: processes archives from camera sessions               |
 | `/log-processing-results` | Downstream: analyzes frame statistics from processed archives     |
 | `/pipeline`               | Context: end-to-end orchestration and multi-camera planning       |
-| `/mcp-environment-setup`  | Prerequisite: MCP server connectivity for all tool interactions   |
+| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for all tool interactions   |
 
 ---
 

@@ -33,7 +33,7 @@ dataclasses, startup orchestration) is the responsibility of the consuming libra
   integration (see `/microcontroller:firmware-module`)
 - Microcontroller discovery, MQTT testing, or manifest management via MCP tools (see `/microcontroller-setup`)
 - Extraction configuration management (see `/extraction-configuration`)
-- MCP server connectivity issues (see `/mcp-environment-setup`)
+- MCP server connectivity issues (see `/communication-mcp-environment-setup`)
 - Binding class design, configuration dataclasses, or system architecture (consumer's responsibility)
 
 ---
@@ -568,7 +568,7 @@ Shutdown: MCI.stop() → DataLogger.stop() → assemble_log_archives()
 | `/log-processing`                  | Downstream: processes archives from MicroControllerInterface data                                                                                                 |
 | `/log-processing-results`          | Downstream: analyzes output from processed archives                                                                                                               |
 | `/pipeline`                        | Context: end-to-end orchestration and multi-controller planning                                                                                                   |
-| `/mcp-environment-setup`           | Prerequisite: MCP server connectivity for API verification                                                                                                        |
+| `/communication-mcp-environment-setup`           | Prerequisite: MCP server connectivity for API verification                                                                                                        |
 
 ---
 

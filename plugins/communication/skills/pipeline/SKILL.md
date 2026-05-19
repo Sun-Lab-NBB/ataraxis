@@ -28,7 +28,7 @@ multi-controller setups, phase ordering, handoff conditions, and decision guidan
 
 **Does not cover:**
 - Detailed tool usage for any individual phase (see phase-specific skills)
-- MCP server connectivity (see `/mcp-environment-setup`)
+- MCP server connectivity (see `/communication-mcp-environment-setup`)
 
 **Handoff rules:** This skill dispatches to phase-specific skills at each stage. Always invoke the relevant
 skill for detailed tool usage, parameter reference, and troubleshooting.
@@ -47,7 +47,7 @@ Setup       →  Discovery   →  Config      →             →  Processing  �
 
 ### Phase 1: Environment setup
 
-- **Skill:** `/mcp-environment-setup`
+- **Skill:** `/communication-mcp-environment-setup`
 - **Actions:** Verify MCP server connectivity, check `axci` command availability, verify Python version
 - **Handoff condition:** MCP tools accessible
 - **Skip condition:** MCP already verified in this session
@@ -233,7 +233,7 @@ For multi-DataLogger setups, process each DataLogger output directory as a separ
 
 ### Single microcontroller, first session
 
-1. `/mcp-environment-setup` — verify MCP connectivity (if first session)
+1. `/communication-mcp-environment-setup` — verify MCP connectivity (if first session)
 2. `/microcontroller-setup` — `list_microcontrollers` → record device path and controller ID
 3. `/microcontroller-interface` — write MicroControllerInterface code
 4. Run the recording session
@@ -265,7 +265,7 @@ For multi-DataLogger setups, process each DataLogger output directory as a separ
 
 | Skill                        | Role                                                          |
 |------------------------------|---------------------------------------------------------------|
-| `/mcp-environment-setup`     | Phase 1: environment verification                             |
+| `/communication-mcp-environment-setup`     | Phase 1: environment verification                             |
 | `/microcontroller-setup`     | Phase 2: hardware discovery and manifest management           |
 | `/extraction-configuration`  | Phase 3: extraction config creation and validation            |
 | `/microcontroller-interface` | Phase 4: MicroControllerInterface code for recording          |

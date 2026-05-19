@@ -32,7 +32,7 @@ log archives are produced, their internal structure, manifest system, and source
 - Output data formats or event analysis (see `/log-processing-results`)
 - Extraction configuration management (see `/extraction-configuration`)
 - Microcontroller hardware setup or discovery (see `/microcontroller-setup`)
-- MCP server connectivity (see `/mcp-environment-setup`)
+- MCP server connectivity (see `/communication-mcp-environment-setup`)
 
 ---
 
@@ -312,7 +312,7 @@ Before running the log processing pipeline, verify these conditions:
 | `/log-processing`            | Downstream: consumes archives in the format documented here          |
 | `/log-processing-results`    | Downstream: documents the output format produced from these archives |
 | `/pipeline`                  | Context: reference skill for the end-to-end pipeline phases          |
-| `/mcp-environment-setup`     | Prerequisite: MCP server connectivity for discovery and processing   |
+| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for discovery and processing   |
 
 ---
 

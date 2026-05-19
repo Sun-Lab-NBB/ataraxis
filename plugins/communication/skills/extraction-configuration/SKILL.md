@@ -30,7 +30,7 @@ data is extracted from log archives during the log processing pipeline.
 - Log processing workflow, batch operations, or status monitoring (see `/log-processing`)
 - Output data formats or event analysis (see `/log-processing-results`)
 - Manifest management or hardware discovery (see `/microcontroller-setup`)
-- MCP server connectivity issues (see `/mcp-environment-setup`)
+- MCP server connectivity issues (see `/communication-mcp-environment-setup`)
 
 **Handoff rules:** If the user asks about processing workflow or batch execution, invoke `/log-processing`.
 If the user asks about output data, invoke `/log-processing-results`. If the user needs to create or
@@ -42,7 +42,7 @@ inspect a manifest first, invoke `/microcontroller-setup`.
 
 You MUST use the ataraxis-communication-interface MCP tools for all configuration operations. Do not
 import configuration Python classes directly or edit YAML files manually. If MCP tools are not available,
-invoke `/mcp-environment-setup` to diagnose and resolve connectivity issues.
+invoke `/communication-mcp-environment-setup` to diagnose and resolve connectivity issues.
 
 You MUST ask the user for event codes for each module and kernel entry. Event codes are firmware-specific
 and cannot be determined by inspecting the codebase. Never guess or assume event codes.
@@ -295,7 +295,7 @@ controllers:
 | `/log-processing`            | Downstream: consumes the validated extraction config             |
 | `/log-processing-results`    | Downstream: output format depends on config targets              |
 | `/pipeline`                  | Context: extraction config is phase 3 of the end-to-end pipeline |
-| `/mcp-environment-setup`     | Prerequisite: MCP server connectivity for config tools           |
+| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for config tools           |
 
 ---
 
@@ -303,7 +303,7 @@ controllers:
 
 ```text
 Extraction Configuration:
-- [ ] MCP server connected (if not, invoke `/mcp-environment-setup`)
+- [ ] MCP server connected (if not, invoke `/communication-mcp-environment-setup`)
 - [ ] Manifest inspected to identify controllers and modules
 - [ ] Event codes obtained from user for each module and kernel entry
 - [ ] Config written via `write_extraction_config_tool`

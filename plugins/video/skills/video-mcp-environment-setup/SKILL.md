@@ -1,5 +1,5 @@
 ---
-name: mcp-environment-setup
+name: video-mcp-environment-setup
 description: >-
   Diagnoses and resolves ataraxis-video-system MCP server connectivity issues. Covers environment
   verification, command availability, Python version checks, dependency validation, and conda/pip/uv
