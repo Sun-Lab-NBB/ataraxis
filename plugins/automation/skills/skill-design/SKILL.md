@@ -5,7 +5,7 @@ description: >-
   SKILL.md structure, YAML frontmatter, formatting conventions, inter-skill relationships, scope
   declarations, and verification checklists. Use when creating new skills, modifying existing skills,
   updating CLAUDE.md files, or when the user asks about skill conventions.
-user-invocable: true
+user-invocable: false
 ---
 
 # Skill design
@@ -172,7 +172,7 @@ description: >-
   Performs in-depth codebase exploration at the start of a coding session. Builds comprehensive
   understanding of project structure, architecture, key components, and patterns. Use at session
   start or when the user asks to understand the codebase.
-user-invocable: true
+user-invocable: false
 ---
 ```
 

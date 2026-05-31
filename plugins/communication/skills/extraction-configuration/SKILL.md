@@ -5,7 +5,7 @@ description: >-
   Covers the full extraction configuration data model, MCP tools for reading, writing, and validating
   configs, event code semantics, and config lifecycle workflow. Use when creating, reading, writing, or
   validating extraction configurations for the log processing pipeline.
-user-invocable: true
+user-invocable: false
 ---
 
 # Extraction configuration reference

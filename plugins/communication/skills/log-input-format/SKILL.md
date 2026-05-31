@@ -5,7 +5,7 @@ description: >-
   DataLogger, source ID semantics, microcontroller manifest system, archive internal message layout, and
   communication protocol. Use when the user asks about log archive format, source IDs, DataLogger output,
   or why processing fails due to missing or malformed archives.
-user-invocable: true
+user-invocable: false
 ---
 
 # Log input format

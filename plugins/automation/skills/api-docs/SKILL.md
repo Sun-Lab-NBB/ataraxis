@@ -6,7 +6,7 @@ description: >-
   projects, tox build environments, and Makefile wrappers. Use when creating documentation for a
   new project, modifying existing docs/ files, adding new modules to API documentation, or when
   the user asks about documentation conventions.
-user-invocable: true
+user-invocable: false
 ---
 
 # API documentation

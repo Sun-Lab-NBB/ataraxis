@@ -6,7 +6,7 @@ description: >-
   DataLogger topology, and decision trees for hardware, configuration, and processing setup. Use when
   planning a full data collection workflow, setting up multi-controller systems, or deciding between
   MCP and code.
-user-invocable: true
+user-invocable: false
 ---
 
 # Pipeline

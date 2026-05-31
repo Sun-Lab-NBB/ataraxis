@@ -4,7 +4,7 @@ description: >-
   Orchestrates batch log processing via the ataraxis-video-system MCP server: archive discovery, batch preparation,
   job execution, progress monitoring, cancellation, and error recovery. Use when processing camera log archives,
   extracting frame timestamps, or managing batch processing jobs.
-user-invocable: true
+user-invocable: false
 ---
 
 # Log processing

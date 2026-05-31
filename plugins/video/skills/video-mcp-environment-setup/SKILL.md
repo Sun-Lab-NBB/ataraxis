@@ -5,7 +5,7 @@ description: >-
   verification, command availability, Python version checks, dependency validation, and conda/pip/uv
   environment configuration. Use when MCP tools are unavailable, when the server fails to start,
   when the user reports connection issues, or when starting a session that requires MCP tools.
-user-invocable: true
+user-invocable: false
 ---
 
 # MCP environment setup

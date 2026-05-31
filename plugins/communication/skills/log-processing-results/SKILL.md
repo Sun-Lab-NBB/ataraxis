@@ -4,7 +4,7 @@ description: >-
   Complete reference for log processing output data formats, feather file discovery, output verification,
   event distribution analysis, and interpretation guidance. Use when evaluating log processing results,
   when the user asks about extracted event data, timing statistics, or microcontroller data quality.
-user-invocable: true
+user-invocable: false
 ---
 
 # Log processing results

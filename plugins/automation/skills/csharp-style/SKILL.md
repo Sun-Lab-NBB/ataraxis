@@ -5,7 +5,7 @@ description: >-
   files, XML documentation, naming, formatting, error handling, using directives, file ordering,
   and Unity-specific patterns. Use when writing new C# code, modifying existing code, reviewing
   pull requests, or when the user asks about C# coding standards.
-user-invocable: true
+user-invocable: false
 ---
 
 # C# code style guide

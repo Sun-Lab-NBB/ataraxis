@@ -7,7 +7,7 @@ description: >-
   main.cpp integration with Kernel and Communication. Use when writing or modifying firmware module
   classes for microcontrollers, when the user asks about Module subclassing, or when implementing
   new hardware interfaces on the microcontroller side of ataraxis-communication-interface.
-user-invocable: true
+user-invocable: false
 ---
 
 # Firmware module

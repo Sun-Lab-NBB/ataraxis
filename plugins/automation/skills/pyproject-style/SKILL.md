@@ -5,7 +5,7 @@ description: >-
   section ordering, metadata fields, dependency specifications, tool configurations (ruff, mypy,
   coverage, hatch), and classifier templates. Use when creating a new project, modifying an existing
   pyproject.toml, adding dependencies, or when the user asks about pyproject.toml conventions.
-user-invocable: true
+user-invocable: false
 ---
 
 # pyproject.toml style guide

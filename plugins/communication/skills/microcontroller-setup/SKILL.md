@@ -4,7 +4,7 @@ description: >-
   Guides use of ataraxis-communication-interface MCP tools for microcontroller discovery, MQTT broker
   verification, manifest management, log archive assembly, and recording discovery. Use when discovering
   connected microcontrollers, testing MQTT connectivity, managing manifests, or assembling log archives.
-user-invocable: true
+user-invocable: false
 ---
 
 # Microcontroller setup

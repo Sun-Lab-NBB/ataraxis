@@ -4,7 +4,7 @@ description: >-
   Guides use of ataraxis-video-system MCP tools for camera discovery, runtime verification, interactive
   video session testing, and GenICam camera configuration. Use when discovering connected cameras, verifying
   system encoding requirements, testing camera acquisition, or reading and writing GenICam node values.
-user-invocable: true
+user-invocable: false
 ---
 
 # Camera setup

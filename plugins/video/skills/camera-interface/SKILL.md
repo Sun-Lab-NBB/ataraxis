@@ -4,7 +4,7 @@ description: >-
   Guides creation and configuration of VideoSystem instances for camera acquisition. Covers constructor
   parameters, lifecycle methods, system ID allocation, and encoding selection. Use when writing code
   that creates VideoSystem instances or needs to understand the VideoSystem API.
-user-invocable: true
+user-invocable: false
 ---
 
 # Camera interface

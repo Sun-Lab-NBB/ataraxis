@@ -7,7 +7,7 @@ description: >-
   files, environment directories, test directories, and documentation directory placement. Use
   when creating a new project, adding top-level directories, restructuring a project, or when the
   user asks about project directory conventions.
-user-invocable: true
+user-invocable: false
 ---
 
 # Project layout

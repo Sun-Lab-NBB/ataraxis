@@ -5,7 +5,7 @@ description: >-
   .py files, docstrings, type annotations, naming, formatting, error handling, imports, file
   ordering, and ataraxis library preferences. Use when writing new Python code, modifying existing
   code, reviewing pull requests, or when the user asks about Python coding standards.
-user-invocable: true
+user-invocable: false
 ---
 
 # Python code style guide

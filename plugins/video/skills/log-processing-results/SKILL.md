@@ -4,7 +4,7 @@ description: >-
   Complete reference for log processing output data formats, feather file discovery, frame statistics analysis,
   and interpretation guidance. Use when evaluating log processing results, when the user asks about frame timing
   data, frame drops, or camera acquisition quality.
-user-invocable: true
+user-invocable: false
 ---
 
 # Log processing results

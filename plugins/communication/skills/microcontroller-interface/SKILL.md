@@ -6,7 +6,7 @@ description: >-
   lifecycle, ModuleInterface subclassing with command and parameter sending, MQTTCommunication setup,
   system ID allocation, and DataLogger integration. Use when writing code that creates
   MicroControllerInterface or MQTTCommunication instances or needs to understand the AXCI API.
-user-invocable: true
+user-invocable: false
 ---
 
 # Microcontroller interface

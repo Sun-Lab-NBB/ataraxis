@@ -4,7 +4,7 @@ description: >-
   Orchestrates batch log processing via the ataraxis-communication-interface MCP server: archive discovery,
   batch preparation, job execution, progress monitoring, cancellation, and error recovery. Use when processing
   microcontroller log archives, extracting hardware module and kernel data, or managing batch processing jobs.
-user-invocable: true
+user-invocable: false
 ---
 
 # Log processing

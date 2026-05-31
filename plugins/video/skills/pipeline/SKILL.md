@@ -5,7 +5,7 @@ description: >-
   canonical phase ordering with handoff conditions, multi-camera planning with system ID allocation and
   DataLogger topology, and decision trees for interface, encoding, and processing configuration. Use when
   planning a full recording workflow, setting up multi-camera rigs, or deciding between MCP and code.
-user-invocable: true
+user-invocable: false
 ---
 
 # Pipeline

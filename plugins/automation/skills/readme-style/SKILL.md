@@ -5,7 +5,7 @@ description: >-
   ordering, writing style, standard section templates, badges, MCP server documentation, CLI
   documentation, and codebase cross-referencing. Use when writing a new README, updating an
   existing README, or when the user asks about README conventions.
-user-invocable: true
+user-invocable: false
 ---
 
 # README style guide

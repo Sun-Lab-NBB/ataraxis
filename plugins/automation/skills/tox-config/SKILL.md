@@ -7,7 +7,7 @@ description: >-
   (full Python, reduced Python, C++ extension, C++ docs-only). Use when creating a new tox.ini,
   modifying an existing tox.ini, adding or changing tox environments, or when the user asks about
   tox configuration, development automation, or the mamba/uv/tox toolchain.
-user-invocable: true
+user-invocable: false
 ---
 
 # tox.ini style guide

@@ -5,7 +5,7 @@ description: >-
   DataLogger and assemble_log_archives, source ID semantics, multi-logger recording structures, and
   archive internal layout. Use when the user asks about log archive format, source IDs, DataLogger output,
   or why processing fails due to missing or malformed archives.
-user-invocable: true
+user-invocable: false
 ---
 
 # Log input format

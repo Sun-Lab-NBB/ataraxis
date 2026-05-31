@@ -4,7 +4,7 @@ description: >-
   Guides post-recording verification and handoff: log archive assembly, video file validation, output
   completeness checks, and readiness assessment for downstream log processing. Use after stopping a video
   session to verify outputs before processing frame timestamps.
-user-invocable: true
+user-invocable: false
 ---
 
 # Post-recording
