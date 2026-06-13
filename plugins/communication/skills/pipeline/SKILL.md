@@ -55,7 +55,7 @@ Setup       →  Discovery   →  Config      →             →  Processing  �
 ### Phase 2: Hardware discovery
 
 - **Skill:** `/microcontroller-setup`
-- **Actions:** `list_microcontrollers`, `check_mqtt_broker`, inspect existing manifests
+- **Actions:** `list_microcontrollers_tool`, `check_mqtt_broker_tool`, inspect existing manifests
 - **Handoff condition:** Microcontrollers identified, MQTT verified (if needed), device paths recorded
 - **Decision point:** Single controller vs multi-controller (see multi-controller planning below)
 
@@ -234,7 +234,7 @@ For multi-DataLogger setups, process each DataLogger output directory as a separ
 ### Single microcontroller, first session
 
 1. `/communication-mcp-environment-setup` — verify MCP connectivity (if first session)
-2. `/microcontroller-setup` — `list_microcontrollers` → record device path and controller ID
+2. `/microcontroller-setup` — `list_microcontrollers_tool` → record device path and controller ID
 3. `/microcontroller-interface` — write MicroControllerInterface code
 4. Run the recording session
 5. `/microcontroller-setup` — `assemble_log_archives_tool` if needed

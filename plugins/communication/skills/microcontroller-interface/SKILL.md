@@ -124,7 +124,7 @@ Key constructor notes:
 - `module_interfaces` must be a non-empty tuple of `ModuleInterface` subclass instances. Each module
   interface binds to the firmware module running on the microcontroller.
 - `buffer_size` is the microcontroller's serial buffer size in bytes (from manufacturer spec).
-- `port` is the device path from `list_microcontrollers` (e.g., `/dev/ttyACM0`).
+- `port` is the device path from `list_microcontrollers_tool` (e.g., `/dev/ttyACM0`).
 - `name` is a required non-empty string written to `microcontroller_manifest.yaml` during `__init__()`,
   associating the `controller_id` with the human-readable name. The manifest enables
   `discover_microcontroller_data_tool` to identify controller-produced log archives.
@@ -525,12 +525,12 @@ Shutdown: MCI.stop() → DataLogger.stop() → assemble_log_archives()
 
 ### What MCP testing reveals for code
 
-| MCP Discovery                            | Informs Code Parameter        | How                       |
-|------------------------------------------|-------------------------------|---------------------------|
-| Device path from `list_microcontrollers` | `port`                        | Pass device path directly |
-| Microcontroller ID                       | `controller_id`               | Use as `np.uint8(id)`     |
-| Baudrate used in discovery               | `baudrate`                    | Same value                |
-| MQTT broker from `check_mqtt_broker`     | `MQTTCommunication(ip, port)` | Pass to MQTT constructor  |
+| MCP Discovery                                 | Informs Code Parameter        | How                       |
+|-----------------------------------------------|-------------------------------|---------------------------|
+| Device path from `list_microcontrollers_tool` | `port`                        | Pass device path directly |
+| Microcontroller ID                            | `controller_id`               | Use as `np.uint8(id)`     |
+| Baudrate used in discovery                    | `baudrate`                    | Same value                |
+| MQTT broker from `check_mqtt_broker_tool`     | `MQTTCommunication(ip, port)` | Pass to MQTT constructor  |
 
 ---
 
@@ -538,7 +538,7 @@ Shutdown: MCI.stop() → DataLogger.stop() → assemble_log_archives()
 
 | Symptom                                 | Likely Cause                          | Resolution                                                    |
 |-----------------------------------------|---------------------------------------|---------------------------------------------------------------|
-| Communication process fails to start    | Wrong port or baudrate                | Verify with `list_microcontrollers` MCP tool                  |
+| Communication process fails to start    | Wrong port or baudrate                | Verify with `list_microcontrollers_tool` MCP tool             |
 | Controller ID mismatch on start         | Firmware uses different ID            | Match controller_id to firmware configuration                 |
 | Module identification fails             | Module type/id mismatch               | Match ModuleInterface type/id to firmware modules             |
 | Process crashes on initialization       | DataLogger not started                | Start DataLogger before MCI initialization                    |
@@ -553,7 +553,7 @@ Shutdown: MCI.stop() → DataLogger.stop() → assemble_log_archives()
 | Error code 9 (TARGET_MODULE_NOT_FOUND)  | Module type+id not on MCU             | Verify module_type and module_id match firmware configuration |
 | Error code 10 (KEEPALIVE_TIMEOUT)       | PC missed keepalive deadline          | Check CPU load, serial bandwidth, reduce keepalive_interval   |
 | Watchdog: process prematurely shut down | Communication process crashed         | Check serial connection, inspect stderr for stack trace       |
-| MQTT connection refused                 | Broker not running or wrong host/port | Verify broker with `check_mqtt_broker` MCP tool               |
+| MQTT connection refused                 | Broker not running or wrong host/port | Verify broker with `check_mqtt_broker_tool` MCP tool          |
 
 ---
 

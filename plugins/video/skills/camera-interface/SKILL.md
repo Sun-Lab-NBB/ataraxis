@@ -204,14 +204,14 @@ H265 produces better compression at equivalent visual quality. To match quality 
 
 ### What MCP testing reveals for code
 
-| MCP Discovery                         | Informs Code Parameter             | How                                         |
-|---------------------------------------|------------------------------------|---------------------------------------------|
-| `list_cameras` output                 | `camera_interface`, `camera_index` | Interface type and index transfer directly  |
-| Camera resolution from `list_cameras` | `frame_width`, `frame_height`      | Use native resolution or override           |
-| Camera FPS from `list_cameras`        | `frame_rate`                       | Set to `None` for native, or override       |
-| `check_runtime_requirements`          | `gpu`                              | If GPU: OK, use `gpu=0`; if None, use `-1`  |
-| GenICam node values                   | Camera-level setup                 | Apply same config before VideoSystem init   |
-| MCP session success or failure        | Encoding feasibility               | If MCP session works, code session will too |
+| MCP Discovery                              | Informs Code Parameter             | How                                         |
+|--------------------------------------------|------------------------------------|---------------------------------------------|
+| `list_cameras_tool` output                 | `camera_interface`, `camera_index` | Interface type and index transfer directly  |
+| Camera resolution from `list_cameras_tool` | `frame_width`, `frame_height`      | Use native resolution or override           |
+| Camera FPS from `list_cameras_tool`        | `frame_rate`                       | Set to `None` for native, or override       |
+| `check_runtime_requirements_tool`          | `gpu`                              | If GPU: OK, use `gpu=0`; if None, use `-1`  |
+| GenICam node values                        | Camera-level setup                 | Apply same config before VideoSystem init   |
+| MCP session success or failure             | Encoding feasibility               | If MCP session works, code session will too |
 
 ### Parameter mapping
 

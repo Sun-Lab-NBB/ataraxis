@@ -41,12 +41,12 @@ relevant to hardware setup and data management. Log processing and analysis tool
 
 ### Hardware discovery
 
-| Tool                     | Purpose                                                          |
-|--------------------------|------------------------------------------------------------------|
-| `list_microcontrollers`  | Discovers serial ports and identifies connected microcontrollers |
-| `check_mqtt_broker`      | Tests MQTT broker reachability at a specified host and port      |
+| Tool                         | Purpose                                                          |
+|------------------------------|------------------------------------------------------------------|
+| `list_microcontrollers_tool` | Discovers serial ports and identifies connected microcontrollers |
+| `check_mqtt_broker_tool`     | Tests MQTT broker reachability at a specified host and port      |
 
-**`list_microcontrollers` parameters:**
+**`list_microcontrollers_tool` parameters:**
 
 | Parameter  | Type  | Default    | Description                                                     |
 |------------|-------|------------|-----------------------------------------------------------------|
@@ -69,10 +69,10 @@ Each line shows the device path, description, and one of three statuses:
 consumers to the microcontroller ecosystem over TCP. It is designed for tight integration with
 `MicroControllerInterface` — for example, allowing a separate process or machine to send commands to or
 receive data from microcontrollers via MQTT topics. It can be used standalone, but the library was
-designed with this integrated usage in mind. Use `check_mqtt_broker` to verify the broker is reachable
+designed with this integrated usage in mind. Use `check_mqtt_broker_tool` to verify the broker is reachable
 before writing code that depends on MQTT connectivity.
 
-**`check_mqtt_broker` parameters:**
+**`check_mqtt_broker_tool` parameters:**
 
 | Parameter | Type  | Default       | Description                                       |
 |-----------|-------|---------------|---------------------------------------------------|
@@ -178,7 +178,7 @@ archive_count:  Number of archives created
 
 Run this to identify which microcontrollers are connected and their IDs:
 
-1. Call `list_microcontrollers` (adjust `baudrate` if using non-default UART settings)
+1. Call `list_microcontrollers_tool` (adjust `baudrate` if using non-default UART settings)
 2. Record the device paths and controller IDs for identified microcontrollers
 3. If no microcontrollers appear:
    - Check physical USB connections
@@ -188,7 +188,7 @@ Run this to identify which microcontrollers are connected and their IDs:
 
 ### MQTT broker verification
 
-1. Call `check_mqtt_broker` with the broker's host and port
+1. Call `check_mqtt_broker_tool` with the broker's host and port
 2. If unreachable:
    - Verify the MQTT broker service is running (e.g., `systemctl status mosquitto`)
    - Check firewall rules allow connections on the specified port
@@ -223,12 +223,12 @@ When transitioning from MCP-based discovery to writing MicroControllerInterface 
 
 ### Parameter mapping
 
-| MCP Discovery                            | Code Parameter                | How                                                  |
-|------------------------------------------|-------------------------------|------------------------------------------------------|
-| Device path from `list_microcontrollers` | `port`                        | Pass the device path directly (e.g., `/dev/ttyACM0`) |
-| Microcontroller ID                       | `controller_id`               | Use the discovered ID as `np.uint8(id)`              |
-| Baudrate used in discovery               | `baudrate`                    | Same value (default: 115200)                         |
-| MQTT broker host/port                    | `MQTTCommunication(ip, port)` | Pass to MQTTCommunication constructor                |
+| MCP Discovery                                 | Code Parameter                | How                                                  |
+|-----------------------------------------------|-------------------------------|------------------------------------------------------|
+| Device path from `list_microcontrollers_tool` | `port`                        | Pass the device path directly (e.g., `/dev/ttyACM0`) |
+| Microcontroller ID                            | `controller_id`               | Use the discovered ID as `np.uint8(id)`              |
+| Baudrate used in discovery                    | `baudrate`                    | Same value (default: 115200)                         |
+| MQTT broker host/port                         | `MQTTCommunication(ip, port)` | Pass to MQTTCommunication constructor                |
 
 ### System ID semantics
 
@@ -246,15 +246,15 @@ advised ranges.
 
 ## Troubleshooting
 
-| Symptom                                           | Likely Cause                          | Resolution                                                |
-|---------------------------------------------------|---------------------------------------|-----------------------------------------------------------|
-| `list_microcontrollers` → "No valid serial ports" | No USB devices connected              | Check physical connections and USB cables                 |
-| Port shows "No microcontroller"                   | Firmware not loaded or wrong baudrate | Verify firmware and try alternate baudrate                |
-| Port shows "Connection Failed"                    | Permission denied or port in use      | Check serial port permissions; close conflicting programs |
-| MQTT broker unreachable                           | Broker not running                    | Start the broker service                                  |
-| Assembly fails                                    | Directory has no .npy files           | Verify DataLogger was stopped and flushed                 |
-| Discovery finds no sources                        | Missing manifest files                | Use `write_microcontroller_manifest_tool` to tag sessions |
-| MCP tools unavailable                             | Server not running                    | Use `/communication-mcp-environment-setup` to diagnose                  |
+| Symptom                                                | Likely Cause                          | Resolution                                                |
+|--------------------------------------------------------|---------------------------------------|-----------------------------------------------------------|
+| `list_microcontrollers_tool` → "No valid serial ports" | No USB devices connected              | Check physical connections and USB cables                 |
+| Port shows "No microcontroller"                        | Firmware not loaded or wrong baudrate | Verify firmware and try alternate baudrate                |
+| Port shows "Connection Failed"                         | Permission denied or port in use      | Check serial port permissions; close conflicting programs |
+| MQTT broker unreachable                                | Broker not running                    | Start the broker service                                  |
+| Assembly fails                                         | Directory has no .npy files           | Verify DataLogger was stopped and flushed                 |
+| Discovery finds no sources                             | Missing manifest files                | Use `write_microcontroller_manifest_tool` to tag sessions |
+| MCP tools unavailable                                  | Server not running                    | Use `/communication-mcp-environment-setup` to diagnose    |
 
 ---
 
@@ -276,8 +276,8 @@ advised ranges.
 
 ```text
 Microcontroller Setup:
-- [ ] Discovered microcontrollers via list_microcontrollers (recorded device paths and IDs)
-- [ ] Verified MQTT broker connectivity if needed (check_mqtt_broker)
+- [ ] Discovered microcontrollers via list_microcontrollers_tool (recorded device paths and IDs)
+- [ ] Verified MQTT broker connectivity if needed (check_mqtt_broker_tool)
 - [ ] Confirmed microcontroller manifests exist in DataLogger output directories
 - [ ] Assembled log archives if needed (assemble_log_archives_tool)
 - [ ] Verified recordings discoverable via discover_microcontroller_data_tool
