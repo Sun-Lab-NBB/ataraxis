@@ -257,6 +257,10 @@ envlist = docs
 - Runs `automation-cli purge-stubs` first to remove stubs that interfere with mypy.
 - Command order: `ruff format` → `ruff check --fix ./src` → `mypy ./src`.
 - Uses `dependency_groups = dev` (or `extras = dev` in legacy projects).
+- `mypy ./src` runs single-threaded by default; keep it serial for typical libraries. For large
+  codebases only (a cold `mypy` run takes several seconds), parallel checking via `-n N` is
+  available — see [mypy parallelism](references/environment-templates.md) for the rules before
+  enabling it.
 
 ### stubs
 
@@ -420,6 +424,7 @@ Lint Environment:
 - [ ] basepython set to earliest supported Python version
 - [ ] Command order: purge-stubs → ruff format → ruff check --fix → mypy
 - [ ] mypy targets ./src (not . or other paths)
+- [ ] mypy runs serial by default; -n/--num-workers added only for large projects with a measured speedup
 
 Stubs Environment:
 - [ ] depends = lint
