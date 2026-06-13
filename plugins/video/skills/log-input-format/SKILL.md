@@ -86,7 +86,7 @@ sources:
 
 - **Automatic:** `VideoSystem.__init__()` writes a manifest entry to the DataLogger output directory using
   the `name` parameter. Each VideoSystem sharing a DataLogger appends its entry to the same manifest file.
-- **MCP sessions:** `start_video_session` creates a VideoSystem with `name="live_camera"`, which writes
+- **MCP sessions:** `start_video_session_tool` creates a VideoSystem with `name="live_camera"`, which writes
   a manifest automatically.
 - **Manual:** Use `write_camera_manifest_tool` (see `/camera-setup`) to retroactively tag legacy log
   directories that predate the manifest system.

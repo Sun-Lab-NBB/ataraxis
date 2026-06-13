@@ -43,11 +43,11 @@ If ready for processing, invoke `/log-processing`. If asking about frame statist
 
 ### Session stop tool
 
-| Tool                 | Purpose                                                                       |
-|----------------------|-------------------------------------------------------------------------------|
-| `stop_video_session` | Stops the active session; returns video path, log directory; auto-assembles   |
+| Tool                      | Purpose                                                                     |
+|---------------------------|-----------------------------------------------------------------------------|
+| `stop_video_session_tool` | Stops the active session; returns video path, log directory; auto-assembles |
 
-The enhanced `stop_video_session` returns a dictionary:
+The enhanced `stop_video_session_tool` returns a dictionary:
 
 ```text
 {
@@ -131,14 +131,14 @@ output, returning a flat `sources` list.
 
 You MUST follow these steps after every recording session.
 
-1. **Stop the session** — Call `stop_video_session`. Record the returned `video_file` path and `log_directory`
+1. **Stop the session** — Call `stop_video_session_tool`. Record the returned `video_file` path and `log_directory`
    path from the response.
 
 2. **Verify video file** — Call `validate_video_file_tool` with the `video_file` path. Confirm:
    - The file exists and has non-zero `file_size_bytes`
    - `frame_count` is greater than 0
    - `codec`, `width`, `height`, and `frame_rate` match expected session parameters
-   - If `video_file` is `null`, no frames were saved (verify that `start_frame_saving` was called)
+   - If `video_file` is `null`, no frames were saved (verify that `start_frame_saving_tool` was called)
 
 3. **Verify archive assembly** — If `archives_assembled` is `true` in the stop response, call
    `discover_camera_data_tool` with the recording root to confirm archives exist for all expected
@@ -159,7 +159,7 @@ You MUST follow these steps after every recording session.
 ## Manual archive assembly
 
 Use `assemble_log_archives_tool` when:
-- The `stop_video_session` response shows `archives_assembled: false`
+- The `stop_video_session_tool` response shows `archives_assembled: false`
 - Processing log directories from code-based sessions that called `logger.stop()` without assembly
 - Recovering from partial session failures
 - Assembling archives from sessions run via the `axvs run` CLI that were interrupted before assembly
@@ -218,14 +218,14 @@ Post-Recording Readiness:
 
 | Symptom                                  | Likely Cause                             | Resolution                                     |
 |------------------------------------------|------------------------------------------|------------------------------------------------|
-| No video file in output directory        | Saving was never started                 | Verify `start_frame_saving` was called         |
+| No video file in output directory        | Saving was never started                 | Verify `start_frame_saving_tool` was called    |
 | Video file is 0 bytes                    | FFMPEG encoding failed silently          | Check FFMPEG installation; re-record           |
 | No `.npz` archives after stopping        | Auto-assembly failed or nothing logged   | Call `assemble_log_archives_tool` manually     |
-| Assembly produces empty archives         | No frame messages were logged            | Verify `start_frame_saving` was called         |
+| Assembly produces empty archives         | No frame messages were logged            | Verify `start_frame_saving_tool` was called    |
 | Raw `.npy` files remain after assembly   | Assembly ran with `remove_sources=false` | Re-run with `remove_sources=true`              |
 | Frame count mismatch (video vs archive)  | Buffer flush timing or interruption      | 1-2 frames normal; large gaps indicate loss    |
 | `validate_video_file_tool` returns error | File corrupt or ffprobe unavailable      | Check FFMPEG installation; re-record if needed |
-| MCP tools unavailable                    | Server not running                       | Invoke `/video-mcp-environment-setup`                |
+| MCP tools unavailable                    | Server not running                       | Invoke `/video-mcp-environment-setup`          |
 
 ---
 
@@ -247,7 +247,7 @@ Post-Recording Readiness:
 
 ```text
 Post-Recording Verification:
-- [ ] Video session stopped via stop_video_session
+- [ ] Video session stopped via stop_video_session_tool
 - [ ] Video file validated via validate_video_file_tool (codec, resolution, frame count, FPS)
 - [ ] Log archives assembled (.npz files present in DataLogger output directory)
 - [ ] All expected source IDs have corresponding archives

@@ -38,13 +38,13 @@ camera setup, organized into five groups. Log processing and analysis tools are 
 
 ### System verification
 
-| Tool                         | Purpose                                                            |
-|------------------------------|--------------------------------------------------------------------|
-| `check_runtime_requirements` | Verifies FFMPEG, NVIDIA GPU, and CTI file availability             |
-| `get_cti_status`             | Checks whether a GenTL Producer (.cti) file is configured          |
-| `set_cti_file`               | Configures the CTI file path for Harvesters camera support         |
+| Tool                              | Purpose                                                    |
+|-----------------------------------|------------------------------------------------------------|
+| `check_runtime_requirements_tool` | Verifies FFMPEG, NVIDIA GPU, and CTI file availability     |
+| `get_cti_status_tool`             | Checks whether a GenTL Producer (.cti) file is configured  |
+| `set_cti_file_tool`               | Configures the CTI file path for Harvesters camera support |
 
-`check_runtime_requirements` returns a pipe-separated status line:
+`check_runtime_requirements_tool` returns a pipe-separated status line:
 ```text
 FFMPEG: OK | GPU: OK | CTI: OK
 ```
@@ -55,9 +55,9 @@ FFMPEG: OK | GPU: OK | CTI: OK
 
 ### Camera discovery
 
-| Tool             | Purpose                                                                    |
-|------------------|----------------------------------------------------------------------------|
-| `list_cameras`   | Discovers all cameras accessible through OpenCV and Harvesters interfaces  |
+| Tool                | Purpose                                                                   |
+|---------------------|---------------------------------------------------------------------------|
+| `list_cameras_tool` | Discovers all cameras accessible through OpenCV and Harvesters interfaces |
 
 Output format:
 ```text
@@ -66,27 +66,27 @@ Harvesters #0: Allied Vision Mako G-040B (DEV_1234) 1936x1216@40fps
 ```
 
 Each line shows the interface type, camera index, and native resolution/frame rate. Harvesters cameras also show model
-and serial number. The camera index is the value to pass to `start_video_session` or to the `VideoSystem` constructor.
+and serial number. The camera index is the value to pass to `start_video_session_tool` or to the `VideoSystem` constructor.
 
 ### Video session management
 
-| Tool                  | Purpose                                                                        |
-|-----------------------|--------------------------------------------------------------------------------|
-| `start_video_session` | Starts camera acquisition with configurable encoding                           |
-| `stop_video_session`  | Stops active session, assembles log archives, returns output paths             |
-| `start_frame_saving`  | Begins recording acquired frames to MP4                                        |
-| `stop_frame_saving`   | Stops recording, keeps acquisition active                                      |
-| `get_session_status`  | Returns detailed session status including encoding params and output paths     |
+| Tool                       | Purpose                                                                    |
+|----------------------------|----------------------------------------------------------------------------|
+| `start_video_session_tool` | Starts camera acquisition with configurable encoding                       |
+| `stop_video_session_tool`  | Stops active session, assembles log archives, returns output paths         |
+| `start_frame_saving_tool`  | Begins recording acquired frames to MP4                                    |
+| `stop_frame_saving_tool`   | Stops recording, keeps acquisition active                                  |
+| `get_session_status_tool`  | Returns detailed session status including encoding params and output paths |
 
 Only one video session can be active at a time.
 
-**`start_video_session` parameter details:**
+**`start_video_session_tool` parameter details:**
 
 | Parameter                | Type         | Default     | Description                                                  |
 |--------------------------|--------------|-------------|--------------------------------------------------------------|
 | `output_directory`       | `str`        | (required)  | Path to directory for video output. **Always ask the user.** |
 | `interface`              | `str`        | `"opencv"`  | Camera interface: `"opencv"`, `"harvesters"`, or `"mock"`    |
-| `camera_index`           | `int`        | `0`         | Camera index from `list_cameras` output                      |
+| `camera_index`           | `int`        | `0`         | Camera index from `list_cameras_tool` output                 |
 | `width`                  | `int`        | `600`       | Frame width in pixels                                        |
 | `height`                 | `int`        | `400`       | Frame height in pixels                                       |
 | `frame_rate`             | `int`        | `30`        | Target acquisition frame rate in FPS                         |
@@ -101,14 +101,14 @@ Only one video session can be active at a time.
 See the encoding parameter guidance section below for recommendations on encoder, preset, pixel format, and
 quantization parameter selection.
 
-**`stop_video_session` return structure:**
+**`stop_video_session_tool` return structure:**
 
 ```text
 {"status": "stopped", "video_file": "/path/to/112.mp4", "log_directory": "/path/to/...",
  "archives_assembled": true, "source_ids": ["112"]}
 ```
 
-**`get_session_status` return structure:**
+**`get_session_status_tool` return structure:**
 
 Returns `{"status": "inactive"}` when no session exists. When a session is active, returns a dictionary
 with interface, resolution, frame rate, encoder, preset, pixel format, quantization parameter, GPU encoding
@@ -119,22 +119,22 @@ flag, output directory, video file path, and log directory.
 These tools are for Harvesters cameras only. They connect to the camera temporarily, perform the operation, and
 disconnect.
 
-| Tool                  | Parameters                                           | Purpose                                         |
-|-----------------------|------------------------------------------------------|-------------------------------------------------|
-| `read_genicam_node`   | `camera_index`, `node_name`                          | Reads a single node or lists all writable nodes |
-| `write_genicam_node`  | `camera_index`, `node_name`, `value`                 | Sets a GenICam node value                       |
-| `dump_genicam_config` | `camera_index`, `output_file`                        | Exports full camera config to YAML              |
-| `load_genicam_config` | `camera_index`, `config_file`, `strict_identity`     | Applies config from YAML to camera              |
+| Tool                       | Parameters                                       | Purpose                                         |
+|----------------------------|--------------------------------------------------|-------------------------------------------------|
+| `read_genicam_node_tool`   | `camera_index`, `node_name`                      | Reads a single node or lists all writable nodes |
+| `write_genicam_node_tool`  | `camera_index`, `node_name`, `value`             | Sets a GenICam node value                       |
+| `dump_genicam_config_tool` | `camera_index`, `output_file`                    | Exports full camera config to YAML              |
+| `load_genicam_config_tool` | `camera_index`, `config_file`, `strict_identity` | Applies config from YAML to camera              |
 
-**`read_genicam_node` behavior:**
+**`read_genicam_node_tool` behavior:**
 - With `node_name` provided: returns detailed metadata (type, value, access mode, range, unit, description)
 - With `node_name` empty: lists all writable nodes with current values
 
-**`write_genicam_node` behavior:**
+**`write_genicam_node_tool` behavior:**
 - The `value` parameter is always a string; it is automatically coerced to the node's native type (int, float, bool,
   or enum string)
 
-**`dump_genicam_config` / `load_genicam_config`:**
+**`dump_genicam_config_tool` / `load_genicam_config_tool`:**
 - **Always ask the user** for the `output_file` or `config_file` path before calling these tools
 - `strict_identity` (default `false`): when `true`, aborts if camera model/serial does not match the config file;
   when `false`, warns but proceeds
@@ -143,7 +143,7 @@ disconnect.
 
 Camera manifests (`camera_manifest.yaml`) identify which log archives in a DataLogger output directory were
 produced by ataraxis-video-system and associate each source ID with a human-readable name. Manifests are
-written automatically by `VideoSystem.__init__()` and by `start_video_session`. These tools provide manual
+written automatically by `VideoSystem.__init__()` and by `start_video_session_tool`. These tools provide manual
 manifest management for retroactive tagging or inspection.
 
 | Tool                         | Parameters                           | Purpose                                         |
@@ -170,19 +170,19 @@ manifest management for retroactive tagging or inspection.
 
 Run this before any camera work to verify the host system is ready:
 
-1. Call `check_runtime_requirements`
+1. Call `check_runtime_requirements_tool`
 2. If FFMPEG is missing, instruct the user to install FFMPEG n8.0+
 3. If GPU is None and hardware encoding is desired, verify NVIDIA drivers
-4. If CTI is None and Harvesters cameras are needed, call `set_cti_file` with the user's CTI path
+4. If CTI is None and Harvesters cameras are needed, call `set_cti_file_tool` with the user's CTI path
 
 ### Camera discovery
 
-1. Call `list_cameras`
+1. Call `list_cameras_tool`
 2. Record camera indices for configuration
 3. If no cameras appear:
    - Check physical USB/GigE connections
    - Verify camera drivers are installed
-   - For Harvesters: call `get_cti_status` and `set_cti_file` if needed
+   - For Harvesters: call `get_cti_status_tool` and `set_cti_file_tool` if needed
    - Check for port conflicts with other applications
 
 ### Interactive camera testing
@@ -190,11 +190,11 @@ Run this before any camera work to verify the host system is ready:
 Use this workflow to verify a camera works before writing integration code:
 
 1. Ask the user for an output directory
-2. Call `start_video_session` with the camera index from discovery
-3. Verify the session starts (check `get_session_status` returns "Running")
-4. Call `start_frame_saving` to test recording
-5. Call `stop_frame_saving` to end recording
-6. Call `stop_video_session` to release resources
+2. Call `start_video_session_tool` with the camera index from discovery
+3. Verify the session starts (check `get_session_status_tool` returns "Running")
+4. Call `start_frame_saving_tool` to test recording
+5. Call `stop_frame_saving_tool` to end recording
+6. Call `stop_video_session_tool` to release resources
 7. Verify the output .mp4 file was created in the output directory
 
 ### GenICam camera configuration
@@ -202,18 +202,18 @@ Use this workflow to verify a camera works before writing integration code:
 Use this workflow to inspect or modify Harvesters camera settings:
 
 **Inspect current configuration:**
-1. Call `read_genicam_node` with empty `node_name` to list all writable nodes
-2. Call `read_genicam_node` with a specific `node_name` for detailed metadata
+1. Call `read_genicam_node_tool` with empty `node_name` to list all writable nodes
+2. Call `read_genicam_node_tool` with a specific `node_name` for detailed metadata
 
 **Modify a single setting:**
-1. Call `read_genicam_node` to check the current value and valid range/entries
-2. Call `write_genicam_node` with the new value
-3. Call `read_genicam_node` again to confirm the change took effect
+1. Call `read_genicam_node_tool` to check the current value and valid range/entries
+2. Call `write_genicam_node_tool` with the new value
+3. Call `read_genicam_node_tool` again to confirm the change took effect
 
 **Save and restore configuration:**
 1. Ask the user for a YAML file path
-2. Call `dump_genicam_config` to export the current configuration
-3. On a different session or camera, call `load_genicam_config` to apply the saved configuration
+2. Call `dump_genicam_config_tool` to export the current configuration
+3. On a different session or camera, call `load_genicam_config_tool` to apply the saved configuration
 
 ---
 
@@ -298,8 +298,8 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 
 ### Workflow: MCP discovery to code integration
 
-1. Use `list_cameras` to discover camera indices and native resolution/FPS
-2. Use `start_video_session` to test the camera works at desired parameters
+1. Use `list_cameras_tool` to discover camera indices and native resolution/FPS
+2. Use `start_video_session_tool` to test the camera works at desired parameters
 3. Use GenICam tools to find and configure optimal camera settings (Harvesters only)
 4. Translate discoveries to VideoSystem constructor parameters using the mapping table above
 5. Use production encoding defaults (H265, SLOW, YUV444) or customize per the encoding guidance
@@ -308,16 +308,16 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 
 ## Troubleshooting
 
-| Symptom                                       | Likely Cause                       | Resolution                                             |
-|-----------------------------------------------|------------------------------------|--------------------------------------------------------|
-| `check_runtime_requirements` → FFMPEG Missing | FFMPEG not installed               | Install FFMPEG n8.0+ and ensure it is on PATH          |
-| `check_runtime_requirements` → GPU None       | No NVIDIA GPU or drivers           | Install NVIDIA drivers, or use CPU encoding (gpu=-1)   |
-| `list_cameras` returns no cameras             | No cameras connected               | Check physical connections, drivers, CTI configuration |
-| `start_video_session` → error                 | Session already active             | Call `stop_video_session` first                        |
-| `start_video_session` → directory error       | Output directory does not exist    | Create the directory or provide a valid path           |
-| GenICam tool errors                           | Camera not Harvesters-compatible   | GenICam tools only work with Harvesters cameras        |
-| `write_genicam_node` fails                    | Node is read-only or value invalid | Use `read_genicam_node` to check access mode and range |
-| MCP tools unavailable                         | Server not running                 | Use `/video-mcp-environment-setup` to diagnose               |
+| Symptom                                            | Likely Cause                       | Resolution                                                  |
+|----------------------------------------------------|------------------------------------|-------------------------------------------------------------|
+| `check_runtime_requirements_tool` → FFMPEG Missing | FFMPEG not installed               | Install FFMPEG n8.0+ and ensure it is on PATH               |
+| `check_runtime_requirements_tool` → GPU None       | No NVIDIA GPU or drivers           | Install NVIDIA drivers, or use CPU encoding (gpu=-1)        |
+| `list_cameras_tool` returns no cameras             | No cameras connected               | Check physical connections, drivers, CTI configuration      |
+| `start_video_session_tool` → error                 | Session already active             | Call `stop_video_session_tool` first                        |
+| `start_video_session_tool` → directory error       | Output directory does not exist    | Create the directory or provide a valid path                |
+| GenICam tool errors                                | Camera not Harvesters-compatible   | GenICam tools only work with Harvesters cameras             |
+| `write_genicam_node_tool` fails                    | Node is read-only or value invalid | Use `read_genicam_node_tool` to check access mode and range |
+| MCP tools unavailable                              | Server not running                 | Use `/video-mcp-environment-setup` to diagnose              |
 
 ---
 
@@ -339,9 +339,9 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 
 ```text
 Camera Setup:
-- [ ] Verified runtime requirements (FFMPEG, GPU, CTI) via check_runtime_requirements
+- [ ] Verified runtime requirements (FFMPEG, GPU, CTI) via check_runtime_requirements_tool
 - [ ] Configured CTI file if Harvesters cameras are needed
-- [ ] Discovered cameras and recorded indices via list_cameras
+- [ ] Discovered cameras and recorded indices via list_cameras_tool
 - [ ] Tested camera with interactive video session
 - [ ] Verified recording produces valid MP4 output
 - [ ] Configured GenICam nodes if using Harvesters cameras (optional)

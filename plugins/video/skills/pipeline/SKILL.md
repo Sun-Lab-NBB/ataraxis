@@ -49,14 +49,14 @@ Setup       →  Discovery   →            →  Recording  →  Processing  →
 
 - **Skill:** `/video-mcp-environment-setup`
 - **Actions:** Verify MCP server connectivity, check `axvs` command availability, verify Python version
-- **Handoff condition:** MCP tools accessible; `check_runtime_requirements` returns OK for all needed
+- **Handoff condition:** MCP tools accessible; `check_runtime_requirements_tool` returns OK for all needed
   components
 - **Skip condition:** MCP already verified in this session
 
 ### Phase 2: Camera discovery and configuration
 
 - **Skill:** `/camera-setup`
-- **Actions:** `check_runtime_requirements`, `list_cameras`, configure CTI if Harvesters, inspect and
+- **Actions:** `check_runtime_requirements_tool`, `list_cameras_tool`, configure CTI if Harvesters, inspect and
   configure GenICam nodes
 - **Handoff condition:** Camera(s) discoverable, encoding requirements met (FFMPEG OK, GPU if needed)
 - **Decision point:** Single camera vs multi-camera (see multi-camera planning below)
@@ -64,7 +64,7 @@ Setup       →  Discovery   →            →  Recording  →  Processing  →
 ### Phase 3: Recording session
 
 - **Skill:** `/camera-setup` (MCP) or `/camera-interface` (code)
-- **MCP path:** `start_video_session` → `start_frame_saving` → `stop_frame_saving` → `stop_video_session`
+- **MCP path:** `start_video_session_tool` → `start_frame_saving_tool` → `stop_frame_saving_tool` → `stop_video_session_tool`
 - **Code path:** DataLogger init/start → VideoSystem init/start → `start_frame_saving` →
   `stop_frame_saving` → `stop` → logger stop → `assemble_log_archives`
 - **Handoff condition:** Session stopped, video file(s) exist
@@ -275,7 +275,7 @@ After processing, use `analyze_camera_frame_statistics_tool` with all camera fea
 ### Single USB camera, first test
 
 1. `/video-mcp-environment-setup` — verify MCP connectivity (if first session)
-2. `/camera-setup` — `list_cameras` → `start_video_session` → test → `stop_video_session`
+2. `/camera-setup` — `list_cameras_tool` → `start_video_session_tool` → test → `stop_video_session_tool`
 3. `/post-recording` — verify video and archives
 4. Done (skip processing for quick test)
 
