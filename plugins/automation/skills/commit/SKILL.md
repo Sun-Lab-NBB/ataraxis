@@ -1,15 +1,16 @@
 ---
 name: commit
 description: >-
-  Drafts style-compliant git commit messages by analyzing all local changes relative to the active branch.
-  Use when the user asks to commit, when completing a coding task that should be committed, or when the user invokes
-  /commit. Proactively offer to draft a commit message after completing substantial code changes.
+  Stages all local changes and creates a style-compliant git commit, stopping before any push. Drafts the commit
+  message by analyzing all changes relative to the active branch, stages every change, and commits — leaving the push
+  for the user. Use when the user asks to commit, when completing a coding task that should be committed, or when the
+  user invokes /commit. Proactively offer to commit after completing substantial code changes.
 user-invocable: true
 ---
 
 # Commit
 
-Drafts a style-compliant commit message by analyzing all local changes.
+Stages all local changes and creates a style-compliant commit, stopping before push.
 
 ---
 
@@ -18,12 +19,14 @@ Drafts a style-compliant commit message by analyzing all local changes.
 **Covers:**
 - Analyzing local git changes (staged, unstaged, and untracked files)
 - Drafting commit messages that comply with conventions
-- Presenting the draft for the user to commit manually
+- Creating a working branch when committing from the default branch (with user confirmation)
+- Staging all changes and creating the commit
+- Reporting the ready-to-run push command for the user to run when ready
 
 **Does not cover:**
-- Staging or committing files (the user handles this)
-- Pushing to remote repositories
-- Creating pull requests or managing branches
+- Pushing to remote repositories (the user runs the push)
+- Creating pull requests (see `/pr`)
+- Drafting release notes (see `/release`)
 
 ---
 
@@ -38,6 +41,9 @@ Run the following git commands in parallel using the Bash tool:
 1. `git status` to see all changed, staged, and untracked files. Never use the `-uall` flag.
 2. `git diff` to see unstaged changes and `git diff --cached` to see staged changes.
 3. `git log --oneline -10` to see recent commit messages for style context.
+4. `git branch --show-current` to determine the active branch, and identify the default branch (commonly `main` or
+   `master`; confirm via `git symbolic-ref --short refs/remotes/origin/HEAD` and strip the `origin/` prefix when a
+   remote exists).
 
 ### Step 2: Analyze changes
 
@@ -51,8 +57,49 @@ Do NOT read files that are not part of the changes unless absolutely necessary t
 
 ### Step 3: Draft the commit message
 
-Generate a commit message following the style rules below. Present the draft to the user. The user will stage and
-commit manually.
+Generate a commit message following the style rules below. This message will be applied to the commit created in the
+following steps.
+
+### Step 4: Resolve the target branch
+
+Using the branch information from Step 1:
+
+- If the active branch is NOT the default branch, commit onto the active branch as-is.
+- If the active branch IS the default branch, you MUST ask the user whether to create a new branch before committing.
+  Recommend creating one (default to yes), but do NOT proceed until the user confirms. If they confirm, create and
+  switch to a descriptively named branch with `git switch -c <branch-name>` (e.g., `feature/...`, `bugfix/...`)
+  derived from the change. If they decline, commit directly onto the default branch.
+
+### Step 5: Stage all changes
+
+Stage every change — tracked modifications, deletions, and untracked files — with `git add -A`.
+
+### Step 6: Create the commit
+
+Commit the staged changes using the drafted message. To preserve exact formatting (including the blank line after the
+header and the `-- ` bullets), pass the message via standard input:
+
+```bash
+git commit -F - <<'EOF'
+<header line>
+
+-- <detail bullet>
+-- <detail bullet>
+EOF
+```
+
+For a single-line commit, include only the header line. NEVER append authorship, co-author, or attribution trailers to
+the commit message (see the content rules below).
+
+### Step 7: Hand off for push
+
+Do NOT push. Report the commit you created and surface the exact command the user can run when they decide to push:
+
+```bash
+git push -u origin <branch-name>
+```
+
+Stop there. Pushing is the supervising user's decision.
 
 ---
 
@@ -194,22 +241,25 @@ Generated with AI assistance       # Tool attribution does not belong
 | `/python-style`     | Provides Python conventions; invoke before making Python changes   |
 | `/cpp-style`        | Provides C++ conventions; invoke before making C++ changes         |
 | `/csharp-style`     | Provides C# conventions; invoke before making C# changes           |
+| `/pr`               | Drafts a pull request summary for the branch after it is committed |
+| `/release`          | Drafts release notes summarizing merged pull requests              |
 | `/explore-codebase` | Provides project context that helps write accurate commit messages |
 
 ---
 
 ## Proactive behavior
 
-After completing substantial code changes (new features, bug fixes, refactors), proactively offer to draft a commit
-message. For example: "Would you like me to draft a commit message for these changes?"
+After completing substantial code changes (new features, bug fixes, refactors), proactively offer to commit. For
+example: "Would you like me to stage and commit these changes?"
 
-Do NOT stage or commit files. Present the drafted message for the user to use manually.
+Stage and commit when invoked, but NEVER push and never offer to push automatically. Always leave the push for the
+user to perform.
 
 ---
 
 ## Verification checklist
 
-**You MUST verify the commit message against this checklist before presenting it to the user.**
+**You MUST verify the commit message against this checklist before creating the commit.**
 
 ```text
 Commit Message Compliance:
@@ -223,4 +273,16 @@ Commit Message Compliance:
 - [ ] Contains NO authorship details, co-author tags, or attribution
 - [ ] Contains NO references to tools or AI unless explicitly requested by the user
 - [ ] Contains ONLY information about the changes themselves
+```
+
+**You MUST verify the commit operation against this checklist before handing off.**
+
+```text
+Commit Execution Compliance:
+- [ ] Determined the active branch and the default branch
+- [ ] If on the default branch, asked the user before creating a new branch
+- [ ] Staged ALL changes with `git add -A`
+- [ ] Created the commit with the drafted, style-compliant message
+- [ ] Did NOT push and did NOT offer to push automatically
+- [ ] Surfaced the ready-to-run `git push -u origin <branch>` command
 ```

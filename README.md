@@ -195,6 +195,8 @@ project structure, and more.
 | `/audit-facts`          | Audits documentation files against source code for factual accuracy       |
 | `/audit-style`          | Audits files against applicable style skill checklists for compliance     |
 | `/commit`               | Drafts style-compliant git commit messages                                |
+| `/pr`                   | Drafts a style-compliant pull request summary for the active branch       |
+| `/release`              | Drafts style-compliant release notes summarizing merged pull requests     |
 | `/skill-design`         | Generates, updates, and verifies skill files and CLAUDE.md                |
 
 ### Installing for Claude Code
