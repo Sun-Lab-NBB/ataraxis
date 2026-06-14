@@ -205,6 +205,8 @@ limit = (1.0 / 2.046392675) * self._grid_sampling * factor
 - Don't add docstrings/comments to code you didn't write or modify
 - Don't add type annotations as comments (use actual type hints)
 - Don't use heavy section separator blocks (e.g., `# ======` or `# ------`)
+- Don't use IDE-specific suppression comments (e.g., PyCharm `# noinspection ...`). Remove any you encounter — only
+  ruff (`# noqa: CODE`) and mypy (`# type: ignore[code]`) suppressions are authoritative and must be preserved
 
 ---
 
@@ -509,6 +511,7 @@ Python Style Compliance:
 - [ ] Definitions ordered by call hierarchy or grouped by purpose
 - [ ] Inline comments use third person imperative
 - [ ] No heavy section separator blocks (# ====== or # ------)
+- [ ] No IDE-specific suppression comments (PyCharm # noinspection etc.); only ruff # noqa / mypy # type: ignore kept
 - [ ] Numba functions use cache=True
 - [ ] Decorator stacking order: @staticmethod/@classmethod, @njit, custom, @property
 - [ ] Dataclasses use frozen=True for immutable configs (omit for mutable state)

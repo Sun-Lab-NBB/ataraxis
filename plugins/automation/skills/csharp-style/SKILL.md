@@ -322,6 +322,9 @@ float[] measuredSegmentLengths = Utility.GetSegmentLengths(segmentPrefabs);
 - Don't use heavy section separator blocks (e.g., `// ======` or `// ------`)
 - Don't use `#region` / `#endregion` blocks (use blank lines between logical groups instead)
 - Don't use `this.` qualifier (exception: disambiguating a parameter from a field)
+- Don't use IDE-specific suppression comments (e.g., ReSharper/Rider `// ReSharper disable` or `// noinspection`).
+  Remove any you encounter — CSharpier and the EditorConfig-configured analyzers are authoritative; suppress a genuine
+  analyzer finding only with the standard `#pragma warning disable CODE` or `[SuppressMessage]`, never an IDE directive
 
 ---
 
@@ -587,6 +590,7 @@ C# Style Compliance:
 - [ ] Guard clauses / early returns preferred over deep nesting
 - [ ] Fields marked readonly when only assigned in constructor/initializer
 - [ ] No #region blocks; no this. qualifier (except disambiguation)
+- [ ] No IDE suppression comments (ReSharper/Rider // ReSharper disable etc.); use #pragma warning / [SuppressMessage]
 - [ ] One public type per file; file name matches class name
 - [ ] Unity logging uses Debug.LogError/LogWarning/Log appropriately
 - [ ] XML tag ordering: summary → remarks → typeparam → param → returns → exception

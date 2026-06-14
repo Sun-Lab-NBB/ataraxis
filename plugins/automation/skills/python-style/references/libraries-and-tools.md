@@ -217,3 +217,19 @@ When suppressing a warning, always include the specific error code:
 if mode == 3:  # noqa: PLR2004 - LICK_TRAINING mode value from VisualizerMode enum.
     ...
 ```
+
+### IDE inspection directives
+
+IDE-specific inspection-suppression comments are NOT used in this codebase and MUST be removed whenever encountered.
+The canonical example is the PyCharm/JetBrains `# noinspection ...` directive (e.g.,
+`# noinspection PyShadowingBuiltins` placed above a `copyright` assignment in a Sphinx `conf.py`).
+
+Ruff and mypy are the authoritative checkers; only their suppressions bear weight and MUST be preserved:
+
+- Ruff: `# noqa: CODE` with the specific error code (see [Using noqa](#using-noqa)).
+- Mypy: `# type: ignore[code]` with the specific error code.
+
+When a real violation cannot be resolved, suppress it with the appropriate ruff or mypy comment — never with an IDE
+directive. Files already excluded from both checkers (for example the Sphinx `conf.py`, excluded via ruff
+`extend-exclude`, and anything under the mypy `docs/` exclusion) need no suppression at all, so they MUST NOT carry
+`# noinspection` comments either.
