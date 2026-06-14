@@ -15,7 +15,6 @@ import importlib_metadata
 
 # -- Project information -----------------------------------------------------
 project = '<PROJECT_NAME>'
-# noinspection PyShadowingBuiltins
 copyright = '<YEAR>, Sun (NeuroAI) lab'
 author = '<AUTHOR>'
 # Extracts the project version from the metadata .toml file.
@@ -83,7 +82,6 @@ Use this template for projects containing only C++ source code. Note that versio
 
 # -- Project information -----------------------------------------------------
 project = '<PROJECT_NAME>'
-# noinspection PyShadowingBuiltins
 copyright = '<YEAR>, Sun (NeuroAI) lab'
 author = '<AUTHOR>'
 release = '<VERSION>'
@@ -140,7 +138,6 @@ import importlib_metadata
 
 # -- Project information -----------------------------------------------------
 project = '<PROJECT_NAME>'
-# noinspection PyShadowingBuiltins
 copyright = '<YEAR>, Sun (NeuroAI) lab'
 author = '<AUTHOR>'
 # Extracts the project version from the .toml file.

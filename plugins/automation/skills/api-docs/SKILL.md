@@ -176,6 +176,10 @@ dependencies directly to downstream project pyproject.toml files.
 - Version extraction MUST use `importlib_metadata.version()` for Python and hybrid projects.
   C++-only projects hardcode the version string.
 - Copyright format: `'YEAR, Sun (NeuroAI) lab'` where YEAR is the current year.
+- Do NOT add IDE-specific suppression comments (e.g., PyCharm `# noinspection PyShadowingBuiltins`
+  above the `copyright` assignment). `conf.py` is excluded from ruff (via `extend-exclude`) and from
+  mypy (`docs/` is excluded), so the `copyright` builtin shadow needs no suppression. See
+  `/python-style` for the framework-wide policy on IDE directives.
 - The `templates_path` and `exclude_patterns` fields are included but left at defaults
   (`['_templates']` and `[]` respectively).
 - Napoleon is configured for Google-style docstrings only (`napoleon_numpy_docstring = False`).

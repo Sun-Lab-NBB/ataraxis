@@ -187,6 +187,12 @@ Rules:
 - Use the most specific suppression pattern possible (e.g., `*-dynamic-static-initializers`)
 - Never use blanket `// NOLINT` without a check pattern
 
+### IDE inspection directives
+
+IDE-specific inspection-suppression comments (e.g., CLion/ReSharper `// noinspection` or `// ReSharper disable`
+lines) are NOT used and MUST be removed when encountered. clang-tidy is the authoritative linter; only its
+`// NOLINT(<check>)` suppressions bear weight and MUST be preserved.
+
 ### Resolution policy
 
 Prefer resolving clang-tidy warnings over suppressing them, unless the resolution would:

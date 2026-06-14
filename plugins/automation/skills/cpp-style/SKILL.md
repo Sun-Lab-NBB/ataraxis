@@ -582,6 +582,7 @@ Embedded-Specific Compliance (skip for extension projects):
 - [ ] final keyword on leaf classes that should not be subclassed
 - [ ] static constexpr for compile-time constants (not #define)
 - [ ] NOLINT comments for legitimate clang-tidy false positives only
+- [ ] No IDE inspection directives (CLion/ReSharper // noinspection etc.); only clang-tidy // NOLINT suppressions kept
 
 Extension-Specific Compliance (skip for embedded projects):
 - [ ] NB_MODULE binding block at end of file with NOLINTNEXTLINE suppression
