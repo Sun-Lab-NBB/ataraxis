@@ -158,6 +158,7 @@ project-root/
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitignore
+├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
 ├── library.json                      # PlatformIO library manifest
 ├── LICENSE                           # GPL-3.0 license
@@ -201,6 +202,7 @@ project-root/
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitignore
+├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
 ├── LICENSE                           # GPL-3.0 license
 ├── platformio.ini                    # PlatformIO build configuration

@@ -62,8 +62,8 @@ many files.
 **Large projects:** Launch 2-3 Explore subagents in parallel using the Task tool with
 `subagent_type: Explore`. Assign each subagent a different focus area:
 
-- **Subagent 1: Structure and entry points** — Phase 1 (feature discovery) and Phase 4
-  (configuration and test coverage)
+- **Subagent 1: Structure and entry points** — Phase 1 (feature discovery, including configuration)
+  and Phase 4 (test coverage and implementation details)
 - **Subagent 2: Architecture and dependencies** — Phase 2 (code flow tracing) and Phase 3
   (architecture analysis including import mapping and central component identification)
 - **Subagent 3: API surface and quality** — Public API enumeration, error handling patterns,

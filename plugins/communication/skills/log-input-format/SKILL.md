@@ -201,11 +201,22 @@ and archives. The AXCI processing pipeline only processes archives referenced in
 
 ### Message format
 
-Each entry in an `.npz` archive stores a serialized message as a byte array:
+Each entry in an `.npz` archive stores a serialized message as a byte array. The shared DataLogger
+container layout is:
+
+```text
+[source_id: 1 byte][elapsed_us: 8 bytes (uint64)][payload: N bytes]
+```
+
+Everything after the source ID and timestamp is the opaque payload, whose structure is domain-specific
+and must be parsed by the consumer. For AXCI data/state messages, the first payload byte is a `protocol`
+byte that identifies the message type:
 
 ```text
 [source_id: 1 byte][elapsed_us: 8 bytes (uint64)][protocol: 1 byte][payload: N bytes]
 ```
+
+The onset message is the exception: its payload contains only the 8-byte timestamp and no protocol byte.
 
 Archive keys follow the pattern `{source_id:03d}_{elapsed_us:020d}`, preserving the 3-digit zero-padded
 source ID and 20-digit zero-padded timestamp from the original `.npy` filenames.
@@ -223,7 +234,7 @@ source ID and 20-digit zero-padded timestamp from the original `.npy` filenames.
 
 | Type  | Identifier        | Payload                                      | Purpose                     |
 |-------|-------------------|----------------------------------------------|-----------------------------|
-| Onset | `elapsed_us == 0` | 8 bytes: int64 UTC epoch microseconds        | Absolute time reference     |
+| Onset | `elapsed_us == 0` | 8 bytes: uint64 UTC epoch microseconds       | Absolute time reference     |
 | Data  | `elapsed_us > 0`  | Protocol byte + command + event + typed data | Module/kernel data message  |
 | State | `elapsed_us > 0`  | Protocol byte + command + event              | Module/kernel state message |
 

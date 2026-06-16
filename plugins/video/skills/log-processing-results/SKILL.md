@@ -112,9 +112,9 @@ Rows are ordered chronologically. Each row corresponds to one acquired frame.
 
 ### Naming convention
 
-Files follow the pattern `camera_{source_id}_timestamps.feather` where `source_id` is the zero-padded
-system ID string from the DataLogger archive (e.g., `camera_051_timestamps.feather` for system_id=51,
-`camera_112_timestamps.feather` for an MCP session).
+Files follow the pattern `camera_{source_id}_timestamps.feather` where `source_id` is the un-padded
+string form of the integer system ID from the DataLogger archive (e.g., `camera_51_timestamps.feather`
+for system_id=51, `camera_112_timestamps.feather` for an MCP session).
 
 ### ProcessingTracker file
 

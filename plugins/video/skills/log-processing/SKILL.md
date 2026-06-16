@@ -162,7 +162,7 @@ Single-phase timestamp extraction pipeline:
 Key architectural facts:
 - **ProcessingTracker** manages job lifecycle: `SCHEDULED` → `RUNNING` → `SUCCEEDED` / `FAILED` via YAML state files
 - **Single execution session** constraint: only one batch execution can run at a time
-- **Parallel processing** activates automatically for archives with >2000 messages
+- **Parallel processing** activates automatically for archives with >=2000 messages
 - **Output layout:** All processing output is written under a `camera_timestamps/` subdirectory within the
   output directory provided by the user
 - **Output naming:** `camera_{source_id}_timestamps.feather` (Feather IPC format)
@@ -235,16 +235,17 @@ The execution tool uses **budget-based worker allocation** with a single `worker
 directly controls memory footprint (each worker spawns a separate process). Before dispatching, the tool
 probes each archive's message count and allocates workers using square root scaling:
 
-The system uses two layers of allocation:
+The system uses two cooperating mechanisms:
 
-1. **Budget division** — divides the available budget evenly among concurrent parallel jobs, snapped to
-   multiples of 5. Two 648k archives on a 128-core machine each get 60 workers.
+1. **Per-job worker count** — each parallel job is allocated exactly `ceil(sqrt(messages / 1,000))`
+   workers, snapped to a multiple of 5 (with a minimum of 5). This sqrt-derived value is the actual
+   per-job allocation. A 648k-message archive yields 25 workers.
 
-2. **Saturation floor** — a sqrt-derived minimum (`ceil(sqrt(messages / 1,000))`) prevents the budget
-   division from spreading cores too thin. If division gave each job fewer cores than the floor,
-   concurrency is reduced until each job gets at least the floor. Example floors:
+2. **Budget-limited concurrency** — the worker budget does not raise the per-job worker count; it only
+   caps how many such jobs run concurrently (`available // per_job_workers`). When many large jobs
+   compete for a limited budget, fewer groups run at once. Per-job worker counts by archive size:
 
-| Archive Size  | Saturation Floor | Typical Scenario            |
+| Archive Size  | Per-Job Workers | Typical Scenario            |
 |---------------|------------------|-----------------------------|
 | < 2,000 msgs  | 1 (sequential)   | Short recording             |
 | 10,000 msgs   | 5                | ~1.5 min at 120 fps         |
@@ -252,9 +253,8 @@ The system uses two layers of allocation:
 | 250,000 msgs  | 15               | ~35 min at 120 fps          |
 | 648,000 msgs  | 25               | 1.5 h at 120 fps            |
 
-The budget division determines the actual allocation (often much higher than the floor). The floor
-only limits concurrency when many large jobs compete for a limited budget. Two cores are reserved for
-system operations.
+The per-job worker count comes solely from square-root scaling; the worker budget governs concurrency
+(how many groups run at once), not the per-job worker count. Two cores are reserved for system operations.
 
 When `worker_budget=-1`, the system resolves the total using the host machine's available CPU cores
 via `resolve_worker_count`. Reduce `worker_budget` to limit memory footprint on constrained systems.

@@ -41,7 +41,7 @@ file discovery, schema reference, output verification, event analysis, and inter
 
 | Tool                                  | Purpose                                                               |
 |---------------------------------------|-----------------------------------------------------------------------|
-| `discover_microcontroller_data_tool`  | Discovers manifests, log archives, and processed feather outputs      |
+| `discover_microcontroller_data_tool`  | Discovers microcontroller manifests and confirmed log-archive sources |
 
 **Parameters:**
 
@@ -72,7 +72,7 @@ files[]:            Per-file verification results:
   columns:          List of column names found
   type:             "module", "kernel", or "unknown" (inferred from filename)
 total_files:        Number of feather files found
-output_directory:   Absolute path to the microcontroller_data/ directory
+output_directory:   Absolute path to the output (parent) directory that was passed in (contains the microcontroller_data/ subdirectory)
 data_path:          Absolute path to the microcontroller_data/ directory
 tracker:            ProcessingTracker status summary (if tracker exists)
 ```

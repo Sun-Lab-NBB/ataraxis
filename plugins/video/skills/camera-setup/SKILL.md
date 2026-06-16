@@ -119,12 +119,12 @@ flag, output directory, video file path, and log directory.
 These tools are for Harvesters cameras only. They connect to the camera temporarily, perform the operation, and
 disconnect.
 
-| Tool                       | Parameters                                       | Purpose                                         |
-|----------------------------|--------------------------------------------------|-------------------------------------------------|
-| `read_genicam_node_tool`   | `camera_index`, `node_name`                      | Reads a single node or lists all writable nodes |
-| `write_genicam_node_tool`  | `camera_index`, `node_name`, `value`             | Sets a GenICam node value                       |
-| `dump_genicam_config_tool` | `camera_index`, `output_file`                    | Exports full camera config to YAML              |
-| `load_genicam_config_tool` | `camera_index`, `config_file`, `strict_identity` | Applies config from YAML to camera              |
+| Tool                       | Parameters                                                            | Purpose                                         |
+|----------------------------|----------------------------------------------------------------------|-------------------------------------------------|
+| `read_genicam_node_tool`   | `camera_index`, `node_name`, `blacklisted_nodes`                     | Reads a single node or lists all writable nodes |
+| `write_genicam_node_tool`  | `camera_index`, `node_name`, `value`                                 | Sets a GenICam node value                       |
+| `dump_genicam_config_tool` | `camera_index`, `output_file`, `blacklisted_nodes`                   | Exports full camera config to YAML              |
+| `load_genicam_config_tool` | `camera_index`, `config_file`, `strict_identity`, `blacklisted_nodes` | Applies config from YAML to camera              |
 
 **`read_genicam_node_tool` behavior:**
 - With `node_name` provided: returns detailed metadata (type, value, access mode, range, unit, description)
@@ -138,6 +138,10 @@ disconnect.
 - **Always ask the user** for the `output_file` or `config_file` path before calling these tools
 - `strict_identity` (default `false`): when `true`, aborts if camera model/serial does not match the config file;
   when `false`, warns but proceeds
+
+**`blacklisted_nodes` (read/dump/load tools):**
+- Optional `list[str] | None`; when omitted, defaults to `{"CustomerIDKey", "CustomerValueKey", "TestPattern"}`
+- Pass an empty list (`[]`) to disable blacklisting and operate on all matching nodes
 
 ### Camera manifest management
 
@@ -171,7 +175,7 @@ manifest management for retroactive tagging or inspection.
 Run this before any camera work to verify the host system is ready:
 
 1. Call `check_runtime_requirements_tool`
-2. If FFMPEG is missing, instruct the user to install FFMPEG n8.0+
+2. If FFMPEG is missing, instruct the user to install FFMPEG n8.1
 3. If GPU is None and hardware encoding is desired, verify NVIDIA drivers
 4. If CTI is None and Harvesters cameras are needed, call `set_cti_file_tool` with the user's CTI path
 
@@ -191,7 +195,7 @@ Use this workflow to verify a camera works before writing integration code:
 
 1. Ask the user for an output directory
 2. Call `start_video_session_tool` with the camera index from discovery
-3. Verify the session starts (check `get_session_status_tool` returns "Running")
+3. Verify the session starts (check `get_session_status_tool` returns "running")
 4. Call `start_frame_saving_tool` to test recording
 5. Call `stop_frame_saving_tool` to end recording
 6. Call `stop_video_session_tool` to release resources
@@ -259,7 +263,9 @@ Monochrome cameras gain nothing from YUV444 since all chrominance channels are z
 | 25-35    | Low quality   | Preview and testing only                           |
 | 35-51    | Very low      | Not recommended                                    |
 
-The default QP of 15 is calibrated for H265. For H264, QP 15-20 produces equivalent visual quality.
+The default QP of 15 is calibrated for H265 and is likely too low for H264. As a rough starting point, a
+slightly higher QP (around 15-20) is a reasonable place to begin for H264; tune it for your scene and
+throughput rather than treating it as a documented equivalence.
 
 ---
 
@@ -310,7 +316,7 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 
 | Symptom                                            | Likely Cause                       | Resolution                                                  |
 |----------------------------------------------------|------------------------------------|-------------------------------------------------------------|
-| `check_runtime_requirements_tool` → FFMPEG Missing | FFMPEG not installed               | Install FFMPEG n8.0+ and ensure it is on PATH               |
+| `check_runtime_requirements_tool` → FFMPEG Missing | FFMPEG not installed               | Install FFMPEG n8.1 and ensure it is on PATH                |
 | `check_runtime_requirements_tool` → GPU None       | No NVIDIA GPU or drivers           | Install NVIDIA drivers, or use CPU encoding (gpu=-1)        |
 | `list_cameras_tool` returns no cameras             | No cameras connected               | Check physical connections, drivers, CTI configuration      |
 | `start_video_session_tool` → error                 | Session already active             | Call `stop_video_session_tool` first                        |

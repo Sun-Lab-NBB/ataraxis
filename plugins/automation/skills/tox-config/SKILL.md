@@ -70,7 +70,7 @@ Collect the project-specific values:
 |--------------------|---------------------------------------|---------------------------|
 | `{package_name}`   | Package directory name under `src/`   | `ataraxis_base_utilities` |
 | `{env_abbr}`       | Short project abbreviation            | `axbu`                    |
-| `{version}`        | Current ataraxis-automation release   | `7.1.0`                   |
+| `{version}`        | Current ataraxis-automation release   | `8.1.1`                   |
 | Python versions    | `requires-python` in `pyproject.toml` | `py312, py313, py314`     |
 | `basepython`       | Earliest supported Python version     | `py312`                   |
 | `--python-version` | Latest supported Python version       | `3.14`                    |
@@ -191,7 +191,7 @@ with a pinned ataraxis-automation version:
 ```ini
 [testenv:coverage]
 skip_install = true
-deps = ataraxis-automation==7.1.0
+deps = ataraxis-automation==8.1.1
 ```
 
 This pattern applies to: `coverage`, `docs`, `build`, `upload`, `install`, `uninstall`, `create`,
@@ -265,7 +265,8 @@ envlist = docs
 ### stubs
 
 - `depends = lint` — stubs are generated only after linting passes.
-- Runs `stubgen` with `--include-private` and `-p {package_name}`.
+- Runs `automation-cli process-typed-markers` first, then `stubgen -o stubs --include-private -p
+  {package_name} -v`, followed by `automation-cli process-stubs`.
 - After stub generation: `ruff format` → `ruff check --select I --fix ./src` to clean up stubs.
 
 ### test

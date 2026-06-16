@@ -43,14 +43,14 @@ Check the locally installed ataraxis-video-system version against the latest rel
 pip show ataraxis-video-system
 ```
 
-The current version is **3.0.0**. If a version mismatch exists, ask the user how to proceed.
+The current version is **4.0.1**. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
 
 | File                                                                 | What to Check                                   |
 |----------------------------------------------------------------------|-------------------------------------------------|
 | `../ataraxis-video-system/src/ataraxis_video_system/__init__.py`     | Exported classes, functions, and public API     |
-| `../ataraxis-video-system/src/ataraxis_video_system/video_system.py` | VideoSystem constructor parameters and methods  |
+| `../ataraxis-video-system/src/ataraxis_video_system/video/video_system.py` | VideoSystem constructor parameters and methods  |
 | Project `pyproject.toml`                                             | Current pinned version dependency               |
 
 ---
@@ -292,7 +292,7 @@ cause drops when the scene changes. Consider this when selecting presets.
 
 ```text
 Camera Interface:
-- [ ] Verified ataraxis-video-system version matches requirements (>=3.0.0)
+- [ ] Verified ataraxis-video-system version matches requirements (>=4.0.0)
 - [ ] Verified cameras are discoverable using /camera-setup workflow
 - [ ] Allocated unique system IDs in the 51-100 range (checked existing allocations)
 - [ ] DataLogger initialized and started before VideoSystem creation

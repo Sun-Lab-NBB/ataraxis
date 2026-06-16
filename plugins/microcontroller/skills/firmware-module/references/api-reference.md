@@ -1,7 +1,7 @@
 # Module base class API reference
 
 Complete API reference for the `Module` base class and supporting classes in ataraxis-micro-controller.
-All signatures are sourced from the library's header files at version 3.0.0.
+All signatures are sourced from the library's header files at version 3.0.1.
 
 ---
 

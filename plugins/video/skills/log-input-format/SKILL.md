@@ -144,8 +144,8 @@ A recording session with one DataLogger produces:
 
 ```text
 recording_root/
-├── video_051.mp4                        # Video output from VideoSystem (system_id=51)
-├── video_052.mp4                        # Video output from VideoSystem (system_id=52)
+├── 051.mp4                             # Video output from VideoSystem (system_id=51)
+├── 052.mp4                             # Video output from VideoSystem (system_id=52)
 └── session_data_log/                    # DataLogger output (instance_name="session")
     ├── camera_manifest.yaml             # Camera manifest (auto-written by VideoSystem.__init__)
     ├── 051_00000000000000000000.npy     # Raw logs (before assembly)
@@ -217,7 +217,7 @@ source ID and 20-digit zero-padded timestamp from the original `.npy` filenames.
 
 | Type  | Identifier        | Payload                               | Purpose                           |
 |-------|-------------------|---------------------------------------|-----------------------------------|
-| Onset | `elapsed_us == 0` | 8 bytes: int64 UTC epoch microseconds | Absolute time reference           |
+| Onset | `elapsed_us == 0` | 8 bytes: uint64 UTC epoch microseconds | Absolute time reference           |
 | Frame | `elapsed_us > 0`  | Empty (`payload.size == 0`)           | Frame acquisition event           |
 | Data  | `elapsed_us > 0`  | Non-empty (`payload.size > 0`)        | Generic data event (filtered out) |
 

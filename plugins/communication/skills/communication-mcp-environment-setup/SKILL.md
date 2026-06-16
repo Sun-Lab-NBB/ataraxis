@@ -38,7 +38,7 @@ defined in `pyproject.toml`:
 
 ```toml
 [project.scripts]
-axci = "ataraxis_communication_interface.cli:axci_cli"
+axci = "ataraxis_communication_interface.interfaces.cli:axci_cli"
 ```
 
 | Server                             | CLI command | Purpose                                                              |

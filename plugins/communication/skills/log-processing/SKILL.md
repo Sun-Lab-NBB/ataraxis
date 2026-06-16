@@ -245,8 +245,9 @@ probes each archive's message count and allocates workers using tier-based scali
 The system uses two layers of allocation:
 
 1. **Per-job tier assignment** — each job is assigned a worker count based on its archive's message count
-   using a sqrt-derived formula (`ceil(sqrt(messages / 1,000))`), rounded to the nearest multiple of 5.
-   This determines the per-job worker tier:
+   using a sqrt-derived formula (`ceil(sqrt(messages / 1,000))`), rounded to the nearest multiple of 5 and
+   then floored to a minimum of 5 workers (`max(5, round(raw / 5) * 5)`) for any archive that exceeds the
+   parallel-processing threshold. This determines the per-job worker tier:
 
 | Archive Size  | Worker Tier      | Typical Scenario               |
 |---------------|------------------|--------------------------------|
@@ -310,13 +311,13 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ### Preparation errors
 
-| Error                      | Resolution                                                        |
-|----------------------------|-------------------------------------------------------------------|
-| "Directory does not exist" | Verify path exists                                                |
-| "Path is not a directory"  | Verify path is a directory, not a file                            |
-| "Length mismatch"          | Ensure output_directories matches log_directories length          |
-| "Permission denied"        | Check filesystem permissions                                      |
-| "Config file not found"    | Verify extraction config path; use `/extraction-configuration`    |
+| Error                                | Resolution                                                        |
+|--------------------------------------|-------------------------------------------------------------------|
+| Non-existent / non-directory log path | Not a hard error; surfaces in the returned `invalid_paths` list. Verify the path exists and is a directory |
+| "Length mismatch"                    | Ensure output_directories matches log_directories length          |
+| "Permission denied"                  | Check filesystem permissions                                      |
+| "Extraction config not found: ..."   | Verify extraction config path; use `/extraction-configuration`    |
+| "Invalid extraction config: ..."     | Validate config via `/extraction-configuration`                   |
 
 ### Execution errors
 

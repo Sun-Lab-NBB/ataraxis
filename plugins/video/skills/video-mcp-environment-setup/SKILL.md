@@ -38,15 +38,16 @@ ataraxis-video-system provides a single MCP server accessed through the `axvs` C
 
 ```toml
 [project.scripts]
-axvs = "ataraxis_video_system.cli:axvs_cli"
+axvs = "ataraxis_video_system.interfaces.cli:axvs_cli"
 ```
 
 | Server                  | CLI command | Purpose                                                          |
 |-------------------------|-------------|------------------------------------------------------------------|
 | `ataraxis-video-system` | `axvs mcp`  | Camera discovery, video session management, log processing tools |
 
-The server accepts a `--transport` option (defaults to `stdio`). The project's `.mcp.json` configures the
-Claude assistant to launch the server automatically:
+The server accepts a `--transport` option (defaults to `stdio`). The plugin manifest
+`.claude-plugin/plugin.json` configures the Claude assistant to launch the server automatically via its
+`mcpServers` block:
 
 ```json
 {
@@ -69,7 +70,7 @@ The ataraxis video plugin's Claude integration is split across two distribution 
 | Component                          | Distributed via                   | What it provides                                                           |
 |------------------------------------|-----------------------------------|----------------------------------------------------------------------------|
 | Skills (`/camera-interface`, etc.) | ataraxis video plugin             | Skill files that guide agents through workflows                            |
-| MCP server registrations           | ataraxis video plugin             | `.mcp.json` entries that tell the Claude assistant how to start the server |
+| MCP server registrations           | ataraxis video plugin             | `plugin.json` `mcpServers` entries that tell the Claude assistant how to start the server |
 | MCP server code (`axvs mcp`)       | ataraxis-video-system pip package | The actual CLI command and server implementation                           |
 
 Installing the plugin alone registers the MCP server and makes skills available, but the server will fail to

@@ -164,7 +164,7 @@ instance.
   (e.g., encoder position updates, sensor readings, command completion signals)
 - **Kernel event codes** correspond to system-level messages (e.g., controller status, error reports,
   keepalive signals)
-- Event codes above 50 are user-defined module events; codes 1-50 are reserved for system service messages
+- Event codes above 50 are user-defined module events; codes 0-50 are reserved for system service messages
 
 The agent CANNOT determine which event codes to use by inspecting the codebase. Event codes are
 firmware-specific knowledge that must come from the user.
@@ -187,6 +187,11 @@ module entries. Record the controller IDs, module types, and module IDs.
 
 Build the config structure with all controllers and modules from the manifest but with empty event codes.
 Present the structure to the user so they can see which controllers and modules are available.
+
+No MCP tool exposes precursor generation, so the agent constructs the structure manually. A precursor
+config can also be generated programmatically via `create_extraction_config(manifest_path)` or the
+`axci config create` CLI command, which populate a controller entry for each registered controller with
+empty event codes.
 
 ### Step 4: Ask user for event codes
 

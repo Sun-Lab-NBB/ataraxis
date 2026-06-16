@@ -73,7 +73,7 @@ Check the locally available ataraxis-micro-controller version:
 cat ../ataraxis-micro-controller/library.json | grep version
 ```
 
-The current version is **3.0.0**. If a version mismatch exists, ask the user how to proceed.
+The current version is **3.0.1**. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
 
@@ -234,7 +234,7 @@ both sides when changing the parameter struct.
 ## SetupModule()
 
 Initialize hardware pins and reset parameters to defaults. This method is called by Kernel during
-`Setup()` and on PC-requested resets. You MUST avoid blocking logic:
+`Setup()` and on PC-requested resets. Avoid blocking or fail-prone logic:
 
 ```cpp
 bool SetupModule() override

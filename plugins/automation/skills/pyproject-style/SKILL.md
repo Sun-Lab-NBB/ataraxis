@@ -94,6 +94,10 @@ projects.
 11. `[tool.coverage.html]`
 12. `[tool.coverage.report]`
 
+When present, `[tool.coverage.run]` is placed either before `[tool.coverage.paths]` (e.g. for a
+coverage `omit` list) or after `[tool.coverage.report]` (e.g. for `parallel` / `concurrency`
+settings).
+
 For C-extension projects using scikit-build-core, replace the hatch build targets with
 `[tool.scikit-build]` and `[tool.cibuildwheel]` sections at positions 6-7.
 

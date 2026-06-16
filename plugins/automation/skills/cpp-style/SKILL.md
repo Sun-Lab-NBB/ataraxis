@@ -230,7 +230,7 @@ and boolean returns:
 ```cpp
 bool RunActiveCommand() override
 {
-    switch (static_cast<kModuleCommands>(GetActiveCommand()))
+    switch (static_cast<kModuleCommands>(get_active_command()))
     {
         case kModuleCommands::kCheckState: CheckState(); return true;
         default: return false;

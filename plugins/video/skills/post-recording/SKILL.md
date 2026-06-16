@@ -123,7 +123,8 @@ manual assembly tool.
 **Note:** This tool requires `camera_manifest.yaml` files to exist in DataLogger output directories.
 These manifests are written automatically by `VideoSystem.__init__()`. For each confirmed manifest
 source, the tool locates the corresponding log archive, video file, and processed timestamp feather
-output, returning a flat `sources` list.
+output, returning a flat `sources` list. The return also includes a flat `log_directories` list (which
+feeds batch `/log-processing`) plus `total_sources` and `total_log_directories` aggregate counts.
 
 ---
 
@@ -136,7 +137,8 @@ You MUST follow these steps after every recording session.
 
 2. **Verify video file** — Call `validate_video_file_tool` with the `video_file` path. Confirm:
    - The file exists and has non-zero `file_size_bytes`
-   - `frame_count` is greater than 0
+   - `frame_count` is greater than 0 (note: `frame_count` may be `null` when ffprobe cannot report
+     `nb_frames` for the container, so treat a `null` value as "unknown" rather than zero frames)
    - `codec`, `width`, `height`, and `frame_rate` match expected session parameters
    - If `video_file` is `null`, no frames were saved (verify that `start_frame_saving_tool` was called)
 
@@ -147,9 +149,12 @@ You MUST follow these steps after every recording session.
    list includes a `log_archive` path. If `archives_assembled` is `false`, call
    `assemble_log_archives_tool` with the `log_directory` path, then verify with the discovery tool.
 
-4. **Cross-reference frame counts** — Compare the video `frame_count` from `validate_video_file_tool` with the
-   archive message count from the discovery tool. These should be approximately equal (within 1-2 frames due to
-   pipeline buffering). Large discrepancies indicate data loss.
+4. **Confirm archive presence for cross-referencing** — `discover_camera_data_tool` confirms that each
+   source's `log_archive` exists but does not compute an archive message count. The genuine frame-count
+   vs. message-count cross-check (video `frame_count` from `validate_video_file_tool` against the archive
+   message count) can only be performed after `/log-processing`, where the message count becomes available.
+   They should be approximately equal (within 1-2 frames due to pipeline buffering); large discrepancies
+   indicate data loss.
 
 5. **Assess readiness** — Run through the handoff checklist below. When all conditions are met, invoke
    `/log-processing` to begin timestamp extraction.
@@ -191,8 +196,9 @@ retroactively register camera sources before running discovery.
 - Video `frame_count` should approximate the number of frame messages in the log archive minus the onset
   message (i.e., `archive_frame_messages - 1`).
 - Video `duration_seconds` should match `(last_timestamp - first_timestamp)` from processed timestamps.
-- These cross-checks can only be fully validated after log processing completes via `/log-processing-results`.
-  At this stage, use the archive message count from `discover_camera_data_tool` for a rough comparison.
+- These cross-checks can only be validated after log processing completes via `/log-processing-results`,
+  because the archive message count is not available until then. At this stage, `discover_camera_data_tool`
+  can only confirm that each source's `log_archive` path exists, not its message count.
 - Processed output (feather files and tracker) is written to a `camera_timestamps/` subdirectory under the
   output directory, not directly into the log directory.
 

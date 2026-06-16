@@ -72,15 +72,15 @@ Check the locally installed ataraxis-communication-interface version against the
 pip show ataraxis-communication-interface
 ```
 
-The current version is **5.0.0**. If a version mismatch exists, ask the user how to proceed.
+The current version is **6.0.1**. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
 
 | File                                                                                                    | What to Check                                    |
 |---------------------------------------------------------------------------------------------------------|--------------------------------------------------|
 | `../ataraxis-communication-interface/src/ataraxis_communication_interface/__init__.py`                  | Exported classes, functions, and public API      |
-| `../ataraxis-communication-interface/src/ataraxis_communication_interface/microcontroller_interface.py` | MicroControllerInterface constructor and methods |
-| `../ataraxis-communication-interface/src/ataraxis_communication_interface/communication.py`             | MQTTCommunication API                            |
+| `../ataraxis-communication-interface/src/ataraxis_communication_interface/microcontroller/interface.py` | MicroControllerInterface constructor and methods |
+| `../ataraxis-communication-interface/src/ataraxis_communication_interface/communication/mqtt.py`        | MQTTCommunication API                            |
 | Project `pyproject.toml`                                                                                | Current pinned version dependency                |
 
 ---
@@ -576,7 +576,7 @@ Shutdown: MCI.stop() → DataLogger.stop() → assemble_log_archives()
 
 ```text
 Microcontroller Interface:
-- [ ] Verified ataraxis-communication-interface version matches requirements (>=5.0.0)
+- [ ] Verified ataraxis-communication-interface version matches requirements (>=6.0.0)
 - [ ] Verified microcontrollers are discoverable using /microcontroller-setup workflow
 - [ ] Allocated unique controller IDs in the 101-150 advised range
 - [ ] DataLogger initialized and started before MicroControllerInterface creation

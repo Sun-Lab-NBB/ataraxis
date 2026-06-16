@@ -151,9 +151,9 @@ A single shared DataLogger is the preferred topology for all use cases:
 
 ```text
 DataLogger(instance_name="session")
-  ├── VideoSystem(system_id=51, name="face_camera")    → 051_log.npz + camera_manifest.yaml
-  ├── VideoSystem(system_id=52, name="body_camera")    → 052_log.npz
-  └── VideoSystem(system_id=53, name="arena_camera")   → 053_log.npz
+  ├── VideoSystem(system_id=51, name="face_camera")    → 51_log.npz + camera_manifest.yaml
+  ├── VideoSystem(system_id=52, name="body_camera")    → 52_log.npz
+  └── VideoSystem(system_id=53, name="arena_camera")   → 53_log.npz
 ```
 
 All cameras share one log directory, all timestamps are correlated, one `assemble_log_archives` call
