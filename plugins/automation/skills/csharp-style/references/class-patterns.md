@@ -254,7 +254,7 @@ public enum MessageTypes
 ### Rules
 
 - **XML documentation**: Document every enum member with a `<summary>` tag
-- **Class docstring**: Imperative mood ("Defines the...")
+- **Class summary**: Imperative mood ("Defines the...")
 - **PascalCase**: Both enum type names and values use PascalCase
 - **Trailing comma**: Include trailing comma after the last member
 - **Explicit values**: Use only when stability across versions matters (protocols, serialization)

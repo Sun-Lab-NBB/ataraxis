@@ -104,7 +104,7 @@ force-sort-within-sections = true  # Forces "as" and "from" imports for the same
 length-sort = true                 # Places shorter imports first
 ```
 
-### Universal ruff ignores
+### Universal Ruff ignores
 
 These ignores are present in all projects:
 
@@ -126,7 +126,7 @@ lint.ignore = [
 ]
 ```
 
-### Project-specific ruff ignores
+### Project-specific Ruff ignores
 
 Add these ignores only when the project requires them:
 

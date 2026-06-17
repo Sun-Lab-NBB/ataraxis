@@ -261,3 +261,129 @@ explicit Communication(Stream& communication_port);
 
 Creates a TransportLayer instance with CRC16 (polynomial 0x1021, init 0xFFFF, final XOR 0x0000).
 Reserves up to ~1 kB of RAM (~700 bytes on lower-end boards).
+
+---
+
+## Command handler patterns
+
+### Immediate command
+
+For commands that complete in a single step:
+
+```cpp
+void Echo()
+{
+    SendData(static_cast<uint8_t>(kStates::kEcho), parameters.echo_value);
+    CompleteCommand();
+}
+```
+
+You MUST call `CompleteCommand()` at the end of every command handler. Failure to do so deadlocks
+the module.
+
+### Multi-stage command with non-blocking delay
+
+For commands requiring timed steps. Stages start at 1, not 0:
+
+```cpp
+void Pulse()
+{
+    switch (get_command_stage())
+    {
+        case 1:
+            digitalWrite(kPin, HIGH);
+            SendData(static_cast<uint8_t>(kStates::kHigh));
+            AdvanceCommandStage();
+            break;
+
+        case 2:
+            if (WaitForMicros(parameters.on_duration)) AdvanceCommandStage();
+            break;
+
+        case 3:
+            digitalWrite(kPin, LOW);
+            SendData(static_cast<uint8_t>(kStates::kLow));
+            AdvanceCommandStage();
+            break;
+
+        case 4:
+            if (WaitForMicros(parameters.off_duration)) CompleteCommand();
+            break;
+
+        default: AbortCommand(); break;
+    }
+}
+```
+
+**Stage-based execution rules:**
+- Use `get_command_stage()` to read the current stage (stages start at 1)
+- Call `AdvanceCommandStage()` to move to the next stage (also resets the delay timer)
+- `WaitForMicros(duration)` returns `true` when the duration has elapsed, `false` while waiting
+- In non-blocking mode, `WaitForMicros` returns immediately with `false` if the time has not elapsed,
+  allowing other modules to execute. In blocking mode, it blocks in-place until the time has passed.
+- Call `CompleteCommand()` on the final stage
+- The `default` case should call `AbortCommand()` to handle unexpected stages
+
+### Sensor polling command
+
+For repeated sensor readings:
+
+```cpp
+void ReadSensor()
+{
+    const uint16_t value = AnalogRead(kSensorPin, parameters.pool_size);
+    SendData(static_cast<uint8_t>(kStates::kValueRead), value);
+    CompleteCommand();
+}
+```
+
+`AnalogRead(pin, pool_size)` reads and averages `pool_size` samples. Set `pool_size` to 0 or 1
+to disable averaging. `DigitalRead(pin, pool_size)` works the same way for digital pins.
+
+---
+
+## Implementation hints
+
+These are optional efficiency patterns observed in production modules. They are not required but may
+improve robustness or readability for certain hardware designs.
+
+**Constexpr pin logic for polarity-configurable modules:** When a template parameter controls whether
+hardware is normally-open vs. normally-closed (or similar polarity inversion), compute the active/inactive
+logic levels as constexpr booleans rather than branching at runtime:
+
+```cpp
+template <const uint8_t kPin, const bool kNormallyClosed>
+class ValveModule final : public Module
+{
+        static constexpr bool kOpen  = kNormallyClosed ? HIGH : LOW;
+        static constexpr bool kClose = kNormallyClosed ? LOW  : HIGH;
+    // ...
+    // Then use kOpen/kClose directly: digitalWriteFast(kPin, kOpen);
+};
+```
+
+**Sensor hysteresis for polling commands:** When a sensor-polling command runs recurrently, tracking the
+previous reading avoids flooding the PC with redundant zero or steady-state messages. Report only when
+the value crosses a meaningful threshold or when the state changes:
+
+```cpp
+void CheckSensor()
+{
+    const uint16_t value = AnalogRead(kPin, parameters.pool_size);
+    const bool above_threshold = value >= parameters.signal_threshold;
+
+    if (above_threshold)
+    {
+        SendData(static_cast<uint8_t>(kStates::kDetected), value);
+        _previous_zero = false;
+    }
+    else if (!_previous_zero)
+    {
+        SendData(static_cast<uint8_t>(kStates::kDetected), static_cast<uint16_t>(0));
+        _previous_zero = true;
+    }
+    CompleteCommand();
+}
+```
+
+This reduces serial bandwidth and log archive size without losing transition information.

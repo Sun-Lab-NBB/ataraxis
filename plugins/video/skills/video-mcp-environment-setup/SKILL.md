@@ -67,11 +67,11 @@ where ataraxis-video-system is installed must be active before launching the ass
 
 The ataraxis video plugin's Claude integration is split across two distribution channels:
 
-| Component                          | Distributed via                   | What it provides                                                           |
-|------------------------------------|-----------------------------------|----------------------------------------------------------------------------|
-| Skills (`/camera-interface`, etc.) | ataraxis video plugin             | Skill files that guide agents through workflows                            |
+| Component                          | Distributed via                   | What it provides                                                                          |
+|------------------------------------|-----------------------------------|-------------------------------------------------------------------------------------------|
+| Skills (`/camera-interface`, etc.) | ataraxis video plugin             | Skill files that guide agents through workflows                                           |
 | MCP server registrations           | ataraxis video plugin             | `plugin.json` `mcpServers` entries that tell the Claude assistant how to start the server |
-| MCP server code (`axvs mcp`)       | ataraxis-video-system pip package | The actual CLI command and server implementation                           |
+| MCP server code (`axvs mcp`)       | ataraxis-video-system pip package | The actual CLI command and server implementation                                          |
 
 Installing the plugin alone registers the MCP server and makes skills available, but the server will fail to
 start because the `axvs` CLI command is not present. The pip package must also be installed in the active

@@ -258,15 +258,15 @@ To determine detailed job status, use `get_batch_status_overview_tool` from `/lo
 
 ## Related skills
 
-| Skill                        | Relationship                                                        |
-|------------------------------|---------------------------------------------------------------------|
-| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for tool access               |
-| `/microcontroller-setup`     | Upstream: MCP discovery tools that locate archives and recordings   |
-| `/microcontroller-interface` | Upstream: code that produces the data analyzed here                 |
-| `/extraction-configuration`  | Context: extraction config determines which events appear in output |
-| `/log-input-format`          | Reference: input archive format and source ID semantics             |
-| `/log-processing`            | Upstream: processing workflow that produces this output             |
-| `/pipeline`                  | Context: results analysis is phase 6 of the end-to-end pipeline     |
+| Skill                                  | Relationship                                                        |
+|----------------------------------------|---------------------------------------------------------------------|
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access               |
+| `/microcontroller-setup`               | Upstream: MCP discovery tools that locate archives and recordings   |
+| `/microcontroller-interface`           | Upstream: code that produces the data analyzed here                 |
+| `/extraction-configuration`            | Context: extraction config determines which events appear in output |
+| `/log-input-format`                    | Reference: input archive format and source ID semantics             |
+| `/log-processing`                      | Upstream: processing workflow that produces this output             |
+| `/pipeline`                            | Context: results analysis is phase 6 of the end-to-end pipeline     |
 
 ---
 

@@ -5,7 +5,8 @@ description: >-
   instances for microcontroller communication. Covers MicroControllerInterface initialization and
   lifecycle, ModuleInterface subclassing with command and parameter sending, MQTTCommunication setup,
   system ID allocation, and DataLogger integration. Use when writing code that creates
-  MicroControllerInterface or MQTTCommunication instances or needs to understand the AXCI API.
+  MicroControllerInterface or MQTTCommunication instances or needs to understand the
+  ataraxis-communication-interface API.
 user-invocable: false
 ---
 
@@ -94,7 +95,8 @@ See [references/api-reference.md](references/api-reference.md) for the complete 
 - MQTTCommunication constructor and lifecycle methods
 - All public data classes (ModuleData, ModuleState, ModuleSourceData, MicroControllerSourceData)
 - Configuration classes (MicroControllerManifest, ExtractionConfig hierarchy)
-- Constants and utility functions
+- Constants, utility functions, the message protocol, data payload types, the keepalive mechanism,
+  DataLogger topology, and the MCP-to-code parameter bridge
 
 ---
 
@@ -328,100 +330,19 @@ MQTTCommunication() → connect() → [publish/subscribe] → disconnect()
 
 ## Message protocol
 
-All PC-microcontroller communication uses a structured message protocol with typed messages identified
-by protocol codes. Understanding this protocol is essential for debugging communication issues.
-
-### Outgoing messages (PC → microcontroller)
-
-| Protocol Code | Message Type          | Description                                               |
-|---------------|-----------------------|-----------------------------------------------------------|
-| 1             | RepeatedModuleCommand | Module command that executes recurrently at a cycle delay |
-| 2             | OneOffModuleCommand   | Module command that executes once                         |
-| 3             | DequeueModuleCommand  | Removes all queued commands from a module                 |
-| 4             | KernelCommand         | System-level command (reset, identify, keepalive)         |
-| 5             | ModuleParameters      | Sets runtime parameters on a module                       |
-
-### Incoming messages (microcontroller → PC)
-
-| Protocol Code | Message Type             | Description                                                    |
-|---------------|--------------------------|----------------------------------------------------------------|
-| 6             | ModuleData               | Module event with a typed data payload (command, event, data)  |
-| 7             | KernelData               | Kernel event with a typed data payload (command, event, data)  |
-| 8             | ModuleState              | Module event without data (command, event only)                |
-| 9             | KernelState              | Kernel event without data (command, event only)                |
-| 10            | ReceptionCode            | Acknowledgement that the microcontroller received a PC message |
-| 11            | ControllerIdentification | Microcontroller ID response during initialization              |
-| 12            | ModuleIdentification     | Module type+id response during initialization                  |
-
-### Event code ranges
-
-| Range | Owner  | Description                                                                    |
-|-------|--------|--------------------------------------------------------------------------------|
-| 1-50  | System | Reserved service codes for internal module status (errors, command completion) |
-| 51+   | User   | User-defined event codes for application-specific data and state messages      |
-
-Event codes are unique within each module and within the kernel — the same code always carries the
-same semantic meaning regardless of which command was executing when the message was sent. This means
-event codes identify the *type* of event, not a command-specific response. The extraction pipeline
-and `process_received_data()` both rely on this invariant.
-
-Messages with event codes in the user range (51+) and matching a module's `data_codes` set are
-routed to `process_received_data()`. Messages with event codes matching `error_codes` raise
-`RuntimeError` and abort the runtime.
+See [references/api-reference.md](references/api-reference.md) for the message protocol and code tables.
 
 ---
 
 ## Supported data payload types
 
-The firmware resolves prototype codes at compile time for all data transmitted via `SendData()`. The
-PC side deserializes them into numpy values. The `data_object` field in `ModuleData` and the
-`dtype`/`data` columns in processed feather files use numpy types from this table.
-
-| Numpy Type   | C++ Equivalent | Size    | Supported Element Counts                                                         |
-|--------------|----------------|---------|----------------------------------------------------------------------------------|
-| `np.bool_`   | `bool`         | 1 byte  | 1-15, 16, 24, 32, 40, 48, 52, 248                                                |
-| `np.uint8`   | `uint8_t`      | 1 byte  | 1-15, 16, 18, 20, 22, 24, 28, 32, 36, 40, 44, 48, 52, 64, 96, 128, 192, 244, 248 |
-| `np.int8`    | `int8_t`       | 1 byte  | 1-15, 16, 24, 32, 40, 48, 52, 92, 132, 172, 212, 244, 248                        |
-| `np.uint16`  | `uint16_t`     | 2 bytes | 1-15, 16, 20, 24, 26, 32, 48, 64, 96, 122, 124                                   |
-| `np.int16`   | `int16_t`      | 2 bytes | 1-15, 16, 20, 24, 26, 32, 48, 64, 96, 122, 124                                   |
-| `np.uint32`  | `uint32_t`     | 4 bytes | 1-15, 16, 20, 24, 32, 48, 62                                                     |
-| `np.int32`   | `int32_t`      | 4 bytes | 1-15, 16, 20, 24, 32, 48, 62                                                     |
-| `np.float32` | `float`        | 4 bytes | 1-15, 16, 20, 24, 32, 48, 62                                                     |
-| `np.uint64`  | `uint64_t`     | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
-| `np.int64`   | `int64_t`      | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
-| `np.float64` | `double`       | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
-
-An element count of 1 represents a scalar value. For arrays, `ModuleData.data_object` is a numpy
-array of the corresponding dtype. The maximum payload is 248 bytes; array element counts are
-constrained by `floor(248 / element_size)`. `uint8` arrays have the densest count coverage and can
-serve as a generic bytes buffer for packed structures.
+See [references/api-reference.md](references/api-reference.md) for data payload types and element counts.
 
 ---
 
 ## Keepalive mechanism
 
-The keepalive system detects communication failures between the PC and the microcontroller during
-runtime. It is optional and controlled by the `keepalive_interval` constructor parameter.
-
-**How it works:**
-1. When `keepalive_interval > 0`, the PC sends a KernelCommand (command code 5) to the
-   microcontroller at the specified interval (in milliseconds)
-2. The microcontroller's Kernel tracks the time since the last received keepalive message
-3. If the microcontroller does not receive a keepalive within its configured timeout, it performs
-   an emergency reset (all modules return to default state) and reports error code 10
-   (KEEPALIVE_TIMEOUT) via a KernelData message
-
-**When to enable:**
-- Enable keepalive for safety-critical hardware that must be reset if the PC loses communication
-  (e.g., actuators, valves, motors)
-- Disable (`keepalive_interval=0`) for passive sensors or when the microcontroller firmware does
-  not implement keepalive handling
-
-**Debugging keepalive issues:**
-- Error code 10 with a timeout duration in the data payload indicates the microcontroller
-  triggered an emergency reset due to missed keepalive messages
-- Common causes: PC process stalled, serial buffer overflow, USB disconnection, CPU contention
-  preventing the communication process from sending keepalive messages on time
+See [references/api-reference.md](references/api-reference.md) for the keepalive mechanism and debugging.
 
 ---
 
@@ -500,37 +421,13 @@ advised ranges.
 
 ## DataLogger topology
 
-A single shared DataLogger is the preferred topology:
-
-```python
-logger = DataLogger(output_directory=session_directory, instance_name="session")
-logger.start()
-
-ctrl1 = MicroControllerInterface(controller_id=np.uint8(101), data_logger=logger, ...)
-ctrl2 = MicroControllerInterface(controller_id=np.uint8(102), data_logger=logger, ...)
-```
-
-All controllers sharing one logger: correlated timestamps, single archive assembly, single processing batch.
-
-### Coordinated lifecycle ordering
-
-```text
-Startup:  DataLogger.start() → MCI.__init__() → MCI.start()
-Shutdown: MCI.stop() → DataLogger.stop() → assemble_log_archives()
-```
+See [references/api-reference.md](references/api-reference.md) for DataLogger topology and lifecycle ordering.
 
 ---
 
 ## Bridge from MCP
 
-### What MCP testing reveals for code
-
-| MCP Discovery                                 | Informs Code Parameter        | How                       |
-|-----------------------------------------------|-------------------------------|---------------------------|
-| Device path from `list_microcontrollers_tool` | `port`                        | Pass device path directly |
-| Microcontroller ID                            | `controller_id`               | Use as `np.uint8(id)`     |
-| Baudrate used in discovery                    | `baudrate`                    | Same value                |
-| MQTT broker from `check_mqtt_broker_tool`     | `MQTTCommunication(ip, port)` | Pass to MQTT constructor  |
+See [references/api-reference.md](references/api-reference.md) for the MCP-to-code parameter mapping table.
 
 ---
 
@@ -559,16 +456,16 @@ Shutdown: MCI.stop() → DataLogger.stop() → assemble_log_archives()
 
 ## Related skills
 
-| Skill                              | Relationship                                                                                                                                                      |
-|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `/microcontroller:firmware-module` | Firmware-side counterpart: use for C++ Module subclassing, command handlers, parameter structs, and main.cpp integration. Codes and parameter layouts must match. |
-| `/microcontroller-setup`           | Covers MCP-based discovery, MQTT testing, and manifest management                                                                                                 |
-| `/extraction-configuration`        | Downstream: configure extraction parameters before processing                                                                                                     |
-| `/log-input-format`                | Reference: documents archive format produced by this code                                                                                                         |
-| `/log-processing`                  | Downstream: processes archives from MicroControllerInterface data                                                                                                 |
-| `/log-processing-results`          | Downstream: analyzes output from processed archives                                                                                                               |
-| `/pipeline`                        | Context: end-to-end orchestration and multi-controller planning                                                                                                   |
-| `/communication-mcp-environment-setup`           | Prerequisite: MCP server connectivity for API verification                                                                                                        |
+| Skill                                  | Relationship                                                                                                                                                      |
+|----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/microcontroller:firmware-module`     | Firmware-side counterpart: use for C++ Module subclassing, command handlers, parameter structs, and main.cpp integration. Codes and parameter layouts must match. |
+| `/microcontroller-setup`               | Covers MCP-based discovery, MQTT testing, and manifest management                                                                                                 |
+| `/extraction-configuration`            | Downstream: configure extraction parameters before processing                                                                                                     |
+| `/log-input-format`                    | Reference: documents archive format produced by this code                                                                                                         |
+| `/log-processing`                      | Downstream: processes archives from MicroControllerInterface data                                                                                                 |
+| `/log-processing-results`              | Downstream: analyzes output from processed archives                                                                                                               |
+| `/pipeline`                            | Context: end-to-end orchestration and multi-controller planning                                                                                                   |
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for API verification                                                                                                        |
 
 ---
 

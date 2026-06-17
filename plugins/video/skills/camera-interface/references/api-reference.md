@@ -1,4 +1,4 @@
-# ataraxis-video-system API Reference
+# ataraxis-video-system API reference
 
 Complete API reference for ataraxis-video-system v3.0.0.
 
@@ -39,7 +39,7 @@ from ataraxis_video_system import (
 
 ---
 
-## VideoSystem Class
+## VideoSystem class
 
 The main orchestration class for camera acquisition and video encoding.
 
@@ -67,7 +67,7 @@ VideoSystem(
 )
 ```
 
-### Constructor Parameters
+### Constructor parameters
 
 | Parameter                | Type                        | Required | Default                      | Description                                                                                            |
 |--------------------------|-----------------------------|----------|------------------------------|--------------------------------------------------------------------------------------------------------|
@@ -146,7 +146,7 @@ stop() <-------------------------------------------------+
 
 ```python
 class CameraInterfaces(StrEnum):
-    HARVESTERS = "harvesters"  # GeniCam-compatible cameras (GigE, USB3 Vision)
+    HARVESTERS = "harvesters"  # GenICam-compatible cameras (GigE, USB3 Vision)
     OPENCV = "opencv"          # Consumer-grade USB cameras
     MOCK = "mock"              # Testing only (simulated camera)
 ```
@@ -190,7 +190,7 @@ class InputPixelFormats(StrEnum):
 
 ---
 
-## Data Classes
+## Data classes
 
 ### CameraInformation
 
@@ -275,7 +275,7 @@ log archives.
 
 ---
 
-## Discovery Functions
+## Discovery functions
 
 ### discover_camera_ids
 
@@ -305,7 +305,7 @@ Returns the configured CTI file path if valid, or None if not configured or the 
 
 ---
 
-## Utility Functions
+## Utility functions
 
 ### check_ffmpeg_availability
 
@@ -361,11 +361,11 @@ processing for worker-tier pool sharing).
 
 ---
 
-## Data Logging Format
+## Data logging format
 
 VideoSystem logs frame acquisition timestamps using the DataLogger class from ataraxis-data-structures.
 
-### Standard Log Entry
+### Standard log entry
 
 Each entry is a 1D numpy uint8 array:
 
@@ -374,7 +374,7 @@ Each entry is a 1D numpy uint8 array:
 | 0      | 1 byte  | System ID (uint8)                            |
 | 1      | 8 bytes | Timestamp (uint64, microseconds since onset) |
 
-### Onset Entry
+### Onset entry
 
 The first log entry for each VideoSystem uses a special format:
 
@@ -429,7 +429,7 @@ The first log entry for each VideoSystem uses a special format:
 | ataraxis-base-utilities    | >=6,<7        | Logging and console output             |
 | numpy                      | >=2,<3        | Array operations and system_id type    |
 | opencv-python              | >=4.13,<5     | Camera interface and frame display     |
-| harvesters                 | >=1,<2        | GeniCam camera support                 |
+| harvesters                 | >=1,<2        | GenICam camera support                 |
 
 ### External
 
@@ -439,15 +439,15 @@ The first log entry for each VideoSystem uses a special format:
 | CTI file   | No       | GenTL Producer for Harvesters cameras                  |
 | NVIDIA GPU | No       | Hardware-accelerated encoding (optional)               |
 
-### Python Version
+### Python version
 
 Requires `>=3.12,<3.15`.
 
 ---
 
-## Code Examples
+## Code examples
 
-### Basic Camera Acquisition
+### Basic camera acquisition
 
 ```python
 from pathlib import Path

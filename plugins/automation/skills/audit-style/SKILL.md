@@ -241,19 +241,19 @@ You MUST adhere to the following discipline during every audit.
 
 ## Related skills
 
-| Skill                   | Relationship                                                                             |
-|-------------------------|------------------------------------------------------------------------------------------|
-| `/audit-facts`          | Sibling audit for factual accuracy against source code                                   |
-| `/python-style`         | Provides the Python style checklist; loaded when scope contains Python files             |
-| `/cpp-style`            | Provides the C++ style checklist; loaded when scope contains C++ files                   |
-| `/csharp-style`         | Provides the C# style checklist; loaded when scope contains C# files                     |
-| `/readme-style`         | Provides the README style checklist; loaded when scope contains README files             |
-| `/pyproject-style`      | Provides the pyproject.toml style checklist; loaded when scope contains pyproject.toml   |
-| `/tox-config`           | Provides the tox.ini style checklist; loaded when scope contains tox.ini                 |
-| `/api-docs`             | Provides the Sphinx docs style checklist; loaded when scope contains docs files          |
-| `/skill-design`         | Provides the skill and CLAUDE.md style checklist; loaded when scope contains skill files |
-| `/project-layout`       | Provides the project directory style checklist; loaded when target is a project root    |
-| `/explore-codebase`     | Provides project structure context; invoke first when auditing an unfamiliar codebase   |
+| Skill               | Relationship                                                                             |
+|---------------------|------------------------------------------------------------------------------------------|
+| `/audit-facts`      | Sibling audit for factual accuracy against source code                                   |
+| `/python-style`     | Provides the Python style checklist; loaded when scope contains Python files             |
+| `/cpp-style`        | Provides the C++ style checklist; loaded when scope contains C++ files                   |
+| `/csharp-style`     | Provides the C# style checklist; loaded when scope contains C# files                     |
+| `/readme-style`     | Provides the README style checklist; loaded when scope contains README files             |
+| `/pyproject-style`  | Provides the pyproject.toml style checklist; loaded when scope contains pyproject.toml   |
+| `/tox-config`       | Provides the tox.ini style checklist; loaded when scope contains tox.ini                 |
+| `/api-docs`         | Provides the Sphinx docs style checklist; loaded when scope contains docs files          |
+| `/skill-design`     | Provides the skill and CLAUDE.md style checklist; loaded when scope contains skill files |
+| `/project-layout`   | Provides the project directory style checklist; loaded when target is a project root     |
+| `/explore-codebase` | Provides project structure context; invoke first when auditing an unfamiliar codebase    |
 
 ---
 

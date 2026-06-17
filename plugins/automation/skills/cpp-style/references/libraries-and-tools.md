@@ -603,3 +603,18 @@ Unlike embedded code, extension code may use the full C++ standard library:
 | Target platform      | Teensy / Arduino             | Windows, Linux, macOS               |
 | AccessModifierOffset | 0                            | -2 (in .clang-format)               |
 | Distribution         | Firmware images              | Binary wheels via cibuildwheel      |
+
+---
+
+## Configuration files
+
+Canonical configs are stored in [assets/](assets/). When working in a C++ project, verify that
+`.clang-format` and `.clang-tidy` in the project root match the canonical versions.
+
+- **Embedded** `.clang-format`: [assets/embedded/.clang-format](assets/embedded/.clang-format)
+- **Extension** `.clang-format`: [assets/extension/.clang-format](assets/extension/.clang-format)
+- **Shared** `.clang-tidy`: [assets/.clang-tidy](assets/.clang-tidy)
+
+The two `.clang-format` variants differ only in `AccessModifierOffset` (`0` vs `-2`) and
+`IndentAccessModifiers` (`true` vs `false`). All other settings are identical. The `.clang-tidy`
+configuration is shared across both archetypes.

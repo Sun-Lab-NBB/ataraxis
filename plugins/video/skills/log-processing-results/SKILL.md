@@ -9,9 +9,8 @@ user-invocable: false
 
 # Log processing results
 
-Complete output data format documentation for the camera timestamp extraction pipeline. Covers feather file
-discovery, schema reference, frame statistics analysis, and interpretation guidance for discussing results
-with users.
+Documents the camera timestamp extraction output data format, covering feather file discovery, schema
+reference, frame statistics analysis, and interpretation guidance for discussing results with users.
 
 ---
 
@@ -274,15 +273,15 @@ To determine detailed job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), check 
 
 ## Related skills
 
-| Skill                    | Relationship                                                       |
-|--------------------------|--------------------------------------------------------------------|
+| Skill                          | Relationship                                                       |
+|--------------------------------|--------------------------------------------------------------------|
 | `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access              |
-| `/camera-setup`          | Upstream: MCP discovery tools that locate archives and recordings  |
-| `/camera-interface`      | Context: VideoSystem configuration determines expected frame rates |
-| `/post-recording`        | Upstream: verifies session outputs before processing               |
-| `/log-input-format`      | Reference: input archive format and source ID semantics            |
-| `/log-processing`        | Upstream: processing workflow that produces this output            |
-| `/pipeline`              | Context: results analysis is phase 6 of the end-to-end pipeline    |
+| `/camera-setup`                | Upstream: MCP discovery tools that locate archives and recordings  |
+| `/camera-interface`            | Context: VideoSystem configuration determines expected frame rates |
+| `/post-recording`              | Upstream: verifies session outputs before processing               |
+| `/log-input-format`            | Reference: input archive format and source ID semantics            |
+| `/log-processing`              | Upstream: processing workflow that produces this output            |
+| `/pipeline`                    | Context: results analysis is phase 6 of the end-to-end pipeline    |
 
 ---
 

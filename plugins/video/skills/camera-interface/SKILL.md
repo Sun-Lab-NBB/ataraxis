@@ -47,11 +47,11 @@ The current version is **4.0.1**. If a version mismatch exists, ask the user how
 
 ### Step 2: API verification
 
-| File                                                                 | What to Check                                   |
-|----------------------------------------------------------------------|-------------------------------------------------|
-| `../ataraxis-video-system/src/ataraxis_video_system/__init__.py`     | Exported classes, functions, and public API     |
-| `../ataraxis-video-system/src/ataraxis_video_system/video/video_system.py` | VideoSystem constructor parameters and methods  |
-| Project `pyproject.toml`                                             | Current pinned version dependency               |
+| File                                                                       | What to Check                                  |
+|----------------------------------------------------------------------------|------------------------------------------------|
+| `../ataraxis-video-system/src/ataraxis_video_system/__init__.py`           | Exported classes, functions, and public API    |
+| `../ataraxis-video-system/src/ataraxis_video_system/video/video_system.py` | VideoSystem constructor parameters and methods |
+| Project `pyproject.toml`                                                   | Current pinned version dependency              |
 
 ---
 
@@ -276,15 +276,15 @@ cause drops when the scene changes. Consider this when selecting presets.
 
 ## Related skills
 
-| Skill                     | Relationship                                                             |
-|---------------------------|--------------------------------------------------------------------------|
-| `/camera-setup`           | Covers MCP-based camera discovery, testing, and encoding parameter guide |
-| `/post-recording`         | Downstream: verification after recording sessions                        |
-| `/log-input-format`       | Reference: documents archive format produced by VideoSystem code         |
-| `/log-processing`         | Downstream: processes archives from VideoSystem instances                |
-| `/log-processing-results` | Downstream: analyzes frame statistics from processed archives            |
-| `/pipeline`               | Context: end-to-end orchestration and multi-camera planning              |
-| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for API verification               |
+| Skill                          | Relationship                                                             |
+|--------------------------------|--------------------------------------------------------------------------|
+| `/camera-setup`                | Covers MCP-based camera discovery, testing, and encoding parameter guide |
+| `/post-recording`              | Downstream: verification after recording sessions                        |
+| `/log-input-format`            | Reference: documents archive format produced by VideoSystem code         |
+| `/log-processing`              | Downstream: processes archives from VideoSystem instances                |
+| `/log-processing-results`      | Downstream: analyzes frame statistics from processed archives            |
+| `/pipeline`                    | Context: end-to-end orchestration and multi-camera planning              |
+| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for API verification               |
 
 ---
 

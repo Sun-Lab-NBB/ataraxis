@@ -66,7 +66,8 @@ Harvesters #0: Allied Vision Mako G-040B (DEV_1234) 1936x1216@40fps
 ```
 
 Each line shows the interface type, camera index, and native resolution/frame rate. Harvesters cameras also show model
-and serial number. The camera index is the value to pass to `start_video_session_tool` or to the `VideoSystem` constructor.
+and serial number. The camera index is the value to pass to `start_video_session_tool`
+or to the `VideoSystem` constructor.
 
 ### Video session management
 
@@ -120,10 +121,10 @@ These tools are for Harvesters cameras only. They connect to the camera temporar
 disconnect.
 
 | Tool                       | Parameters                                                            | Purpose                                         |
-|----------------------------|----------------------------------------------------------------------|-------------------------------------------------|
-| `read_genicam_node_tool`   | `camera_index`, `node_name`, `blacklisted_nodes`                     | Reads a single node or lists all writable nodes |
-| `write_genicam_node_tool`  | `camera_index`, `node_name`, `value`                                 | Sets a GenICam node value                       |
-| `dump_genicam_config_tool` | `camera_index`, `output_file`, `blacklisted_nodes`                   | Exports full camera config to YAML              |
+|----------------------------|-----------------------------------------------------------------------|-------------------------------------------------|
+| `read_genicam_node_tool`   | `camera_index`, `node_name`, `blacklisted_nodes`                      | Reads a single node or lists all writable nodes |
+| `write_genicam_node_tool`  | `camera_index`, `node_name`, `value`                                  | Sets a GenICam node value                       |
+| `dump_genicam_config_tool` | `camera_index`, `output_file`, `blacklisted_nodes`                    | Exports full camera config to YAML              |
 | `load_genicam_config_tool` | `camera_index`, `config_file`, `strict_identity`, `blacklisted_nodes` | Applies config from YAML to camera              |
 
 **`read_genicam_node_tool` behavior:**
@@ -329,15 +330,15 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 
 ## Related skills
 
-| Skill                     | Relationship                                                      |
-|---------------------------|-------------------------------------------------------------------|
-| `/camera-interface`       | Covers writing VideoSystem integration code after testing via MCP |
-| `/post-recording`         | Downstream: verification after recording sessions                 |
-| `/log-input-format`       | Reference: documents the archive format produced by this workflow |
-| `/log-processing`         | Downstream: processes archives from camera sessions               |
-| `/log-processing-results` | Downstream: analyzes frame statistics from processed archives     |
-| `/pipeline`               | Context: end-to-end orchestration and multi-camera planning       |
-| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for all tool interactions   |
+| Skill                          | Relationship                                                      |
+|--------------------------------|-------------------------------------------------------------------|
+| `/camera-interface`            | Covers writing VideoSystem integration code after testing via MCP |
+| `/post-recording`              | Downstream: verification after recording sessions                 |
+| `/log-input-format`            | Reference: documents the archive format produced by this workflow |
+| `/log-processing`              | Downstream: processes archives from camera sessions               |
+| `/log-processing-results`      | Downstream: analyzes frame statistics from processed archives     |
+| `/pipeline`                    | Context: end-to-end orchestration and multi-camera planning       |
+| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for all tool interactions   |
 
 ---
 

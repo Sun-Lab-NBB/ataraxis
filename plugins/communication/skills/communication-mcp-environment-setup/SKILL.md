@@ -215,7 +215,7 @@ session.
 
 ## Proactive behavior
 
-You SHOULD proactively invoke this skill when:
+You should proactively invoke this skill when:
 - A session begins and MCP tools from the ataraxis-communication-interface server are expected but unavailable
 - Any ataraxis-communication-interface MCP tool call fails with a connection or server error
 - The user mentions issues with MCP server connectivity or environment setup

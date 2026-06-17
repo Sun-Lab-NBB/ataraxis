@@ -245,13 +245,13 @@ The system uses two cooperating mechanisms:
    caps how many such jobs run concurrently (`available // per_job_workers`). When many large jobs
    compete for a limited budget, fewer groups run at once. Per-job worker counts by archive size:
 
-| Archive Size  | Per-Job Workers | Typical Scenario            |
-|---------------|------------------|-----------------------------|
-| < 2,000 msgs  | 1 (sequential)   | Short recording             |
-| 10,000 msgs   | 5                | ~1.5 min at 120 fps         |
-| 50,000 msgs   | 10               | ~7 min at 120 fps           |
-| 250,000 msgs  | 15               | ~35 min at 120 fps          |
-| 648,000 msgs  | 25               | 1.5 h at 120 fps            |
+| Archive Size | Per-Job Workers | Typical Scenario    |
+|--------------|-----------------|---------------------|
+| < 2,000 msgs | 1 (sequential)  | Short recording     |
+| 10,000 msgs  | 5               | ~1.5 min at 120 fps |
+| 50,000 msgs  | 10              | ~7 min at 120 fps   |
+| 250,000 msgs | 15              | ~35 min at 120 fps  |
+| 648,000 msgs | 25              | 1.5 h at 120 fps    |
 
 The per-job worker count comes solely from square-root scaling; the worker budget governs concurrency
 (how many groups run at once), not the per-job worker count. Two cores are reserved for system operations.
@@ -323,26 +323,26 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ### Processing failure routing
 
-| Error Pattern                        | Action                                                        |
-|--------------------------------------|---------------------------------------------------------------|
-| Archive not found / file read errors | Verify .npz archives exist in log directory                   |
-| MCP tools unavailable                | Invoke `/video-mcp-environment-setup`                               |
-| Out of memory                        | Reduce `worker_budget`                                        |
-| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare      |
+| Error Pattern                        | Action                                                   |
+|--------------------------------------|----------------------------------------------------------|
+| Archive not found / file read errors | Verify .npz archives exist in log directory              |
+| MCP tools unavailable                | Invoke `/video-mcp-environment-setup`                    |
+| Out of memory                        | Reduce `worker_budget`                                   |
+| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare |
 
 ---
 
 ## Related skills
 
-| Skill                     | Role                                                            |
-|---------------------------|-----------------------------------------------------------------|
-| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity                           |
-| `/camera-setup`           | Upstream: camera discovery and testing                          |
-| `/camera-interface`       | Upstream: VideoSystem integration code that produces logs       |
-| `/post-recording`         | Upstream: verifies archives before processing                   |
-| `/log-input-format`       | Reference: input archive format and source ID semantics         |
-| `/log-processing-results` | Downstream: output data discovery and frame statistics analysis |
-| `/pipeline`               | Context: log processing is phase 5 of the end-to-end pipeline   |
+| Skill                          | Relationship                                                    |
+|--------------------------------|-----------------------------------------------------------------|
+| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity                           |
+| `/camera-setup`                | Upstream: camera discovery and testing                          |
+| `/camera-interface`            | Upstream: VideoSystem integration code that produces logs       |
+| `/post-recording`              | Upstream: verifies archives before processing                   |
+| `/log-input-format`            | Reference: input archive format and source ID semantics         |
+| `/log-processing-results`      | Downstream: output data discovery and frame statistics analysis |
+| `/pipeline`                    | Context: log processing is phase 5 of the end-to-end pipeline   |
 
 ---
 

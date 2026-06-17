@@ -237,15 +237,15 @@ Post-Recording Readiness:
 
 ## Related skills
 
-| Skill                     | Relationship                                              |
-|---------------------------|-----------------------------------------------------------|
-| `/camera-setup`           | Upstream: MCP session management that produces recordings |
-| `/camera-interface`       | Upstream: VideoSystem code that produces recordings       |
-| `/log-input-format`       | Reference: archive format and source ID semantics         |
-| `/log-processing`         | Downstream: processes archives into frame timestamps      |
-| `/log-processing-results` | Downstream: analyzes processed frame statistics           |
-| `/pipeline`               | Context: end-to-end orchestration including this phase    |
-| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for tool access     |
+| Skill                          | Relationship                                              |
+|--------------------------------|-----------------------------------------------------------|
+| `/camera-setup`                | Upstream: MCP session management that produces recordings |
+| `/camera-interface`            | Upstream: VideoSystem code that produces recordings       |
+| `/log-input-format`            | Reference: archive format and source ID semantics         |
+| `/log-processing`              | Downstream: processes archives into frame timestamps      |
+| `/log-processing-results`      | Downstream: analyzes processed frame statistics           |
+| `/pipeline`                    | Context: end-to-end orchestration including this phase    |
+| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access     |
 
 ---
 

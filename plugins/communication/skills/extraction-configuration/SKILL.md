@@ -292,15 +292,15 @@ controllers:
 
 ## Related skills
 
-| Skill                        | Relationship                                                     |
-|------------------------------|------------------------------------------------------------------|
-| `/microcontroller-setup`     | Upstream: manifest creation and recording discovery              |
-| `/microcontroller-interface` | Upstream: code that produces the manifests used here             |
-| `/log-input-format`          | Reference: archive format that extraction config targets         |
-| `/log-processing`            | Downstream: consumes the validated extraction config             |
-| `/log-processing-results`    | Downstream: output format depends on config targets              |
-| `/pipeline`                  | Context: extraction config is phase 3 of the end-to-end pipeline |
-| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for config tools           |
+| Skill                                  | Relationship                                                     |
+|----------------------------------------|------------------------------------------------------------------|
+| `/microcontroller-setup`               | Upstream: manifest creation and recording discovery              |
+| `/microcontroller-interface`           | Upstream: code that produces the manifests used here             |
+| `/log-input-format`                    | Reference: archive format that extraction config targets         |
+| `/log-processing`                      | Downstream: consumes the validated extraction config             |
+| `/log-processing-results`              | Downstream: output format depends on config targets              |
+| `/pipeline`                            | Context: extraction config is phase 3 of the end-to-end pipeline |
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for config tools           |
 
 ---
 

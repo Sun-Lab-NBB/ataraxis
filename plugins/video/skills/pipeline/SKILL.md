@@ -64,7 +64,8 @@ Setup       →  Discovery   →            →  Recording  →  Processing  →
 ### Phase 3: Recording session
 
 - **Skill:** `/camera-setup` (MCP) or `/camera-interface` (code)
-- **MCP path:** `start_video_session_tool` → `start_frame_saving_tool` → `stop_frame_saving_tool` → `stop_video_session_tool`
+- **MCP path:** `start_video_session_tool` → `start_frame_saving_tool` →
+  `stop_frame_saving_tool` → `stop_video_session_tool`
 - **Code path:** DataLogger init/start → VideoSystem init/start → `start_frame_saving` →
   `stop_frame_saving` → `stop` → logger stop → `assemble_log_archives`
 - **Handoff condition:** Session stopped, video file(s) exist
@@ -93,7 +94,7 @@ Setup       →  Discovery   →            →  Recording  →  Processing  →
 ### Interface selection
 
 ```text
-Does the camera support GenTL (GeniCam Transport Layer)?
+Does the camera support GenTL (GenICam Transport Layer)?
   YES → Harvesters (preferred interface; provides GenICam node control)
   NO  → Is the camera a USB webcam or consumer device?
     YES → OpenCV
@@ -300,15 +301,15 @@ After processing, use `analyze_camera_frame_statistics_tool` with all camera fea
 
 ## Related skills
 
-| Skill                     | Role                                                   |
-|---------------------------|--------------------------------------------------------|
-| `/video-mcp-environment-setup`  | Phase 1: environment verification                      |
-| `/camera-setup`           | Phase 2-3: MCP-based discovery, testing, and recording |
-| `/camera-interface`       | Phase 3: code-based VideoSystem integration            |
-| `/post-recording`         | Phase 4: output verification and archive assembly      |
-| `/log-input-format`       | Reference: archive format for troubleshooting          |
-| `/log-processing`         | Phase 5: timestamp extraction                          |
-| `/log-processing-results` | Phase 6: frame statistics and quality analysis         |
+| Skill                          | Relationship                                           |
+|--------------------------------|--------------------------------------------------------|
+| `/video-mcp-environment-setup` | Phase 1: environment verification                      |
+| `/camera-setup`                | Phase 2-3: MCP-based discovery, testing, and recording |
+| `/camera-interface`            | Phase 3: code-based VideoSystem integration            |
+| `/post-recording`              | Phase 4: output verification and archive assembly      |
+| `/log-input-format`            | Reference: archive format for troubleshooting          |
+| `/log-processing`              | Phase 5: timestamp extraction                          |
+| `/log-processing-results`      | Phase 6: frame statistics and quality analysis         |
 
 ---
 

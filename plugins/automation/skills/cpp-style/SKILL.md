@@ -31,10 +31,10 @@ code. You MUST verify your changes against the checklist before submitting.
 - Cross-language consistency with Python and C# conventions
 
 **Does not cover:**
-- README file conventions (invoke `/readme-style`)
-- Commit message conventions (invoke `/commit`)
-- Skill file and CLAUDE.md conventions (invoke `/skill-design`)
-- Codebase exploration workflows (invoke `/explore-codebase`)
+- README file conventions (see `/readme-style`)
+- Commit message conventions (see `/commit`)
+- Skill file and CLAUDE.md conventions (see `/skill-design`)
+- Codebase exploration workflows (see `/explore-codebase`)
 
 ---
 
@@ -50,14 +50,14 @@ Read this entire file. The core conventions below apply to ALL C++ code.
 
 Based on the task, load the appropriate reference files:
 
-| Task                                          | Reference to load                                           |
-|-----------------------------------------------|-------------------------------------------------------------|
-| Writing or modifying Doxygen docs / types     | [doxygen-and-types.md](references/doxygen-and-types.md)     |
-| Writing classes, templates, enums, or structs | [class-patterns.md](references/class-patterns.md)           |
-| Using Arduino/PlatformIO, clang tools, tests  | [libraries-and-tools.md](references/libraries-and-tools.md) |
-| Using nanobind extensions, CMake, GIL         | [libraries-and-tools.md](references/libraries-and-tools.md) |
-| Deploying or verifying tool config files      | [assets/](assets/) directory                                |
-| Reviewing code before submission              | [anti-patterns.md](references/anti-patterns.md)             |
+| Task                                                                                                                | Reference to load                                           |
+|---------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| Writing or modifying Doxygen docs / types, or comments                                                              | [doxygen-and-types.md](references/doxygen-and-types.md)     |
+| Writing classes, templates, enums, structs, function calls, guard clauses, or formatting (blank lines, line length) | [class-patterns.md](references/class-patterns.md)           |
+| Using Arduino/PlatformIO, clang tools, tests, or verifying config files                                             | [libraries-and-tools.md](references/libraries-and-tools.md) |
+| Using nanobind extensions, CMake, GIL                                                                               | [libraries-and-tools.md](references/libraries-and-tools.md) |
+| Deploying or verifying tool config files                                                                            | [assets/](assets/) directory                                |
+| Reviewing code before submission                                                                                    | [anti-patterns.md](references/anti-patterns.md)             |
 
 Load multiple references when the task spans multiple domains.
 
@@ -137,22 +137,22 @@ Use **full words**, not abbreviations:
 
 ### Identifiers
 
-| Element               | Convention                 | Example                                              |
-|-----------------------|----------------------------|------------------------------------------------------|
-| Classes               | PascalCase                 | `TransportLayer`, `EncoderModule`, `COBSProcessor`   |
-| Methods               | PascalCase                 | `SendData`, `ReceiveData`, `SetupModule`             |
-| Accessors             | `get_`/`set_` snake_case   | `get_buffer_size`, `set_baud_rate`                   |
-| Private members       | `_snake_case`              | `_port`, `_cobs_processor`, `_custom_parameters`     |
-| Local variables       | snake_case                 | `start_index`, `payload_size`, `new_motion`          |
-| Parameters            | snake_case                 | `module_type`, `module_id`, `baud_rate`              |
-| Constants             | `kPascalCase`              | `kTimeout`, `kSerialBufferSize`, `kCalibrationDelay` |
-| Enum types            | `kPascalCase`              | `kCustomStatusCodes`, `kModuleCommands`              |
-| Enum values           | `kPascalCase`              | `kStandby`, `kRotatedCW`, `kOpen`                    |
-| Template type params  | PascalCase                 | `PolynomialType`, `BufferType`                       |
-| Template value params | `kPascalCase`              | `kPinA`, `kMaximumTransmittedPayloadSize`            |
-| Namespaces            | snake_case                 | `axtlmc_shared_assets`, `axmc_communication_assets`  |
-| Struct members        | snake_case                 | `module_type`, `pulse_duration`, `return_code`       |
-| Macros                | UPPER_SNAKE                | `PACKED_STRUCT`, `ENCODER_USE_INTERRUPTS`            |
+| Element               | Convention               | Example                                              |
+|-----------------------|--------------------------|------------------------------------------------------|
+| Classes               | PascalCase               | `TransportLayer`, `EncoderModule`, `COBSProcessor`   |
+| Methods               | PascalCase               | `SendData`, `ReceiveData`, `SetupModule`             |
+| Accessors             | `get_`/`set_` snake_case | `get_buffer_size`, `set_baud_rate`                   |
+| Private members       | `_snake_case`            | `_port`, `_cobs_processor`, `_custom_parameters`     |
+| Local variables       | snake_case               | `start_index`, `payload_size`, `new_motion`          |
+| Parameters            | snake_case               | `module_type`, `module_id`, `baud_rate`              |
+| Constants             | `kPascalCase`            | `kTimeout`, `kSerialBufferSize`, `kCalibrationDelay` |
+| Enum types            | `kPascalCase`            | `kCustomStatusCodes`, `kModuleCommands`              |
+| Enum values           | `kPascalCase`            | `kStandby`, `kRotatedCW`, `kOpen`                    |
+| Template type params  | PascalCase               | `PolynomialType`, `BufferType`                       |
+| Template value params | `kPascalCase`            | `kPinA`, `kMaximumTransmittedPayloadSize`            |
+| Namespaces            | snake_case               | `axtlmc_shared_assets`, `axmc_communication_assets`  |
+| Struct members        | snake_case               | `module_type`, `pulse_duration`, `return_code`       |
+| Macros                | UPPER_SNAKE_CASE         | `PACKED_STRUCT`, `ENCODER_USE_INTERRUPTS`            |
 
 ### Functions
 
@@ -204,19 +204,7 @@ static constexpr int32_t kMultiplier = kInvertDirection ? -1 : 1;  // NOLINT(*-d
 
 ## Function calls
 
-Prefer clarity to brevity. For functions with multiple parameters of the same type or boolean
-parameters, use inline comments to label arguments:
-
-```cpp
-// Good - labeled arguments clarify meaning
-SendData(
-    static_cast<uint8_t>(kCustomStatusCodes::kRotatedCW),  // status_code
-    delta                                                   // value
-);
-
-// Acceptable - single argument or meaning obvious
-CompleteCommand();
-```
+See [class-patterns.md](references/class-patterns.md) for argument-labeling conventions in function calls.
 
 ---
 
@@ -264,27 +252,7 @@ Use a structured format: context ("Unable to..."), constraint ("must be..."), ac
 
 ## Comments
 
-### Inline comments
-
-- Use third person imperative ("Configures..." not "This section configures...")
-- Place above the code, not at end of line (unless short trailing comments)
-- Use comments to explain non-obvious logic or provide hardware-specific context
-
-```cpp
-// Resets the overflow tracker. The overflow accumulates insignificant motion between reporting
-// cycles to filter sensor noise while preserving real displacement.
-_overflow = 0;
-```
-
-### What to avoid
-
-- Don't reiterate the obvious (e.g., `// Set x to 5` before `x = 5`)
-- Don't add Doxygen comments to code you didn't write or modify
-- Don't use heavy section separator blocks (e.g., `// ======` or `// ------`)
-- Don't include `@code` / `@endcode` example blocks in Doxygen documentation. Examples go stale
-  as APIs evolve and create maintenance debt. Keep documentation concise — the `@brief`, `@param`,
-  and `@returns` tags are sufficient. This parallels the Python convention of not including
-  Examples sections in docstrings
+See [doxygen-and-types.md](references/doxygen-and-types.md) for inline comment conventions and what to avoid.
 
 ---
 
@@ -372,21 +340,7 @@ match the class name converted to snake_case (e.g., `transport_layer.h` contains
 
 ## Guard clauses and boolean expressions
 
-Prefer early returns (guard clauses) over deeply nested conditionals:
-
-```cpp
-void SendPulse()
-{
-    if (!kOutput)
-    {
-        AbortCommand();
-        return;
-    }
-
-    // Main logic at minimal indentation level.
-    Pulse();
-}
-```
+See [class-patterns.md](references/class-patterns.md) for guard-clause and early-return conventions.
 
 ---
 
@@ -422,70 +376,19 @@ struct CustomRuntimeParameters
 
 ## Blank lines
 
-- **One blank line** between method definitions within a class (enforced by clang-format
-  `SeparateDefinitionBlocks: Always`)
-- **One blank line** before access modifiers (`public:`, `private:`)
-- **No blank line** after an opening brace or before a closing brace
-- **One blank line** between logical groups of statements within a method
-- **One blank line** after include blocks before code
+See [class-patterns.md](references/class-patterns.md) for blank-line placement rules.
 
 ---
 
 ## Line length and formatting
 
-- Maximum line length: **120 characters** (clang-format `ColumnLimit: 120`)
-- Formatter: **clang-format** (config in `.clang-format`)
-- Linter: **clang-tidy** (config in `.clang-tidy`, `WarningsAsErrors: '*'`)
-- Brace style: **Allman** (opening braces on new lines for all constructs)
-- Indentation: **4 spaces** (no tabs)
-- Pointer/reference alignment: **Left** (`int* pointer`, `int& reference`)
-
-### Aligned assignments
-
-Consecutive assignments and macros are aligned for readability:
-
-```cpp
-_custom_parameters.report_CCW      = true;
-_custom_parameters.report_CW       = true;
-_custom_parameters.delta_threshold = 15;
-```
-
-### Template declarations
-
-Template declarations always appear on a separate line:
-
-```cpp
-template <const uint8_t kPinA, const uint8_t kPinB, const bool kInvertDirection = false>
-class EncoderModule final : public Module
-```
-
-### Short statements
-
-Short case labels and simple if/else statements may appear on a single line (enforced by
-clang-format `AllowShortCaseLabelsOnASingleLine: true`):
-
-```cpp
-case kModuleCommands::kCheckState: CheckState(); return true;
-case kModuleCommands::kReset: ResetEncoder(); return true;
-default: return false;
-
-if (kTonePin == 255) _custom_parameters.tone_duration = 0;
-```
+See [class-patterns.md](references/class-patterns.md) for line length, brace style, and statement formatting.
 
 ---
 
 ## Configuration files
 
-Canonical configs are stored in [assets/](assets/). When working in a C++ project, verify that
-`.clang-format` and `.clang-tidy` in the project root match the canonical versions.
-
-- **Embedded** `.clang-format`: [assets/embedded/.clang-format](assets/embedded/.clang-format)
-- **Extension** `.clang-format`: [assets/extension/.clang-format](assets/extension/.clang-format)
-- **Shared** `.clang-tidy`: [assets/.clang-tidy](assets/.clang-tidy)
-
-The two `.clang-format` variants differ only in `AccessModifierOffset` (`0` vs `-2`) and
-`IndentAccessModifiers` (`true` vs `false`). All other settings are identical. The `.clang-tidy`
-configuration is shared across both archetypes.
+See [libraries-and-tools.md](references/libraries-and-tools.md) for `.clang-format` and `.clang-tidy` locations.
 
 ---
 

@@ -49,7 +49,7 @@ inconsistently.
 **Wrong:** A single skill covering Python style, README formatting, commit messages, and skill
 design.
 
-**Correct:** Four separate skills (`/python-style`, `/commit`, `/skill-design`) each with a
+**Correct:** Four separate skills (`/python-style`, `/readme-style`, `/commit`, `/skill-design`) each with a
 focused scope declaration.
 
 ### Missing trigger conditions

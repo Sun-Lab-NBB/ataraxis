@@ -177,7 +177,7 @@ Release Notes Compliance:
 - [ ] Sibling-library versions confirmed by the user (sollertia only)
 - [ ] `**Major Changes:**` numbered list ordered from most to least impactful
 - [ ] Each item is past tense and ends with a period
-- [ ] Condenses many pull requests into a few impactful themes (does not list every PR)
+- [ ] Condenses many pull requests into a few impactful themes (does not list every pull request)
 - [ ] Does NOT include `## What's Changed` or `**Full Changelog**`
 - [ ] Contains NO authorship details, co-author tags, or attribution
 - [ ] Contains NO references to tools or AI unless explicitly requested by the user

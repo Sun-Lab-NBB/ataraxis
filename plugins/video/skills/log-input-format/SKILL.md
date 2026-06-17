@@ -10,7 +10,7 @@ user-invocable: false
 
 # Log input format
 
-Documents the input data format required by the camera timestamp extraction pipeline, including how log
+Documents the input data format required by the log processing pipeline, including how log
 archives are produced, their internal structure, and source ID semantics.
 
 ---
@@ -215,11 +215,11 @@ source ID and 20-digit zero-padded timestamp from the original `.npy` filenames.
 
 ### Message types
 
-| Type  | Identifier        | Payload                               | Purpose                           |
-|-------|-------------------|---------------------------------------|-----------------------------------|
+| Type  | Identifier        | Payload                                | Purpose                           |
+|-------|-------------------|----------------------------------------|-----------------------------------|
 | Onset | `elapsed_us == 0` | 8 bytes: uint64 UTC epoch microseconds | Absolute time reference           |
-| Frame | `elapsed_us > 0`  | Empty (`payload.size == 0`)           | Frame acquisition event           |
-| Data  | `elapsed_us > 0`  | Non-empty (`payload.size > 0`)        | Generic data event (filtered out) |
+| Frame | `elapsed_us > 0`  | Empty (`payload.size == 0`)            | Frame acquisition event           |
+| Data  | `elapsed_us > 0`  | Non-empty (`payload.size > 0`)         | Generic data event (filtered out) |
 
 **Onset message:** The first message in every archive has `elapsed_us=0`. Its payload contains the UTC
 epoch timestamp (microseconds since epoch) that serves as the absolute time reference. All other
@@ -229,8 +229,8 @@ timestamps in the archive are relative to this onset.
 microseconds elapsed since onset and an empty payload. The processing pipeline extracts only these
 messages.
 
-**Data messages:** Messages with non-empty payloads carry domain-specific data. The camera timestamp
-extraction pipeline filters these out (`payload.size == 0` check).
+**Data messages:** Messages with non-empty payloads carry domain-specific data. The log processing
+pipeline filters these out (`payload.size == 0` check).
 
 ### Timestamp resolution
 
@@ -271,15 +271,15 @@ Before running the log processing pipeline, verify these conditions:
 
 ## Related skills
 
-| Skill                     | Relationship                                                         |
-|---------------------------|----------------------------------------------------------------------|
-| `/camera-setup`           | Upstream: MCP sessions that produce archives in this format          |
-| `/camera-interface`       | Upstream: VideoSystem instances that produce the log data            |
-| `/post-recording`         | Upstream: validates and assembles archives in this format            |
-| `/log-processing`         | Downstream: consumes archives in the format documented here          |
-| `/log-processing-results` | Downstream: documents the output format produced from these archives |
-| `/pipeline`               | Context: reference skill for the end-to-end pipeline phases          |
-| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for discovery and processing   |
+| Skill                          | Relationship                                                         |
+|--------------------------------|----------------------------------------------------------------------|
+| `/camera-setup`                | Upstream: MCP sessions that produce archives in this format          |
+| `/camera-interface`            | Upstream: VideoSystem instances that produce the log data            |
+| `/post-recording`              | Upstream: validates and assembles archives in this format            |
+| `/log-processing`              | Downstream: consumes archives in the format documented here          |
+| `/log-processing-results`      | Downstream: documents the output format produced from these archives |
+| `/pipeline`                    | Context: reference skill for the end-to-end pipeline phases          |
+| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for discovery and processing   |
 
 ---
 

@@ -472,3 +472,29 @@ List<GameObject> corridors = new List<GameObject>();
 // Key-value mapping
 Dictionary<string, byte> cueIdentifiers = new Dictionary<string, byte>();
 ```
+
+---
+
+## Comments
+
+### Inline comments
+
+- Use third person imperative ("Configures..." not "This section configures...")
+- Place above the code, not at end of line (unless very short)
+- Use comments to explain non-obvious logic or provide context
+
+```csharp
+// Measures actual prefab lengths and compares with configuration.
+float[] measuredSegmentLengths = Utility.GetSegmentLengths(segmentPrefabs);
+```
+
+### What to avoid
+
+- Don't reiterate the obvious (e.g., `// Set x to 5` before `x = 5`)
+- Don't add XML docs to code you didn't write or modify
+- Don't use heavy section separator blocks (e.g., `// ======` or `// ------`)
+- Don't use `#region` / `#endregion` blocks (use blank lines between logical groups instead)
+- Don't use `this.` qualifier (exception: disambiguating a parameter from a field)
+- Don't use IDE-specific suppression comments (e.g., ReSharper/Rider `// ReSharper disable` or `// noinspection`).
+  Remove any you encounter — CSharpier and the EditorConfig-configured analyzers are authoritative; suppress a genuine
+  analyzer finding only with the standard `#pragma warning disable CODE` or `[SuppressMessage]`, never an IDE directive

@@ -106,7 +106,7 @@ controller-produced log archives. Directories without a `microcontroller_manifes
 discovered. Manifests also associate controller IDs with human-readable names and enumerate the hardware
 modules managed by each controller.
 
-**Key difference from axvs manifests:** AXCI manifests include a `modules` list per controller, providing
+**Key difference from AXVS manifests:** AXCI manifests include a `modules` list per controller, providing
 full hardware module metadata (type, id, name). AXVS camera manifests only have source ID and camera name.
 
 ---
@@ -188,7 +188,7 @@ recording_root/
 Each log directory is an **independent processing unit**. The discovery tool groups archives by their
 parent directory, and each directory is prepared and processed independently.
 
-### Mixed axvs and axci recording
+### Mixed AXVS and AXCI recording
 
 When microcontrollers and cameras share a DataLogger, the log directory contains both types of manifests
 and archives. The AXCI processing pipeline only processes archives referenced in the
@@ -315,15 +315,15 @@ Before running the log processing pipeline, verify these conditions:
 
 ## Related skills
 
-| Skill                        | Relationship                                                         |
-|------------------------------|----------------------------------------------------------------------|
-| `/microcontroller-setup`     | Upstream: MCP tools that assemble and discover archives              |
-| `/microcontroller-interface` | Upstream: MicroControllerInterface instances that produce log data   |
-| `/extraction-configuration`  | Context: extraction config determines which messages are extracted   |
-| `/log-processing`            | Downstream: consumes archives in the format documented here          |
-| `/log-processing-results`    | Downstream: documents the output format produced from these archives |
-| `/pipeline`                  | Context: reference skill for the end-to-end pipeline phases          |
-| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for discovery and processing   |
+| Skill                                  | Relationship                                                         |
+|----------------------------------------|----------------------------------------------------------------------|
+| `/microcontroller-setup`               | Upstream: MCP tools that assemble and discover archives              |
+| `/microcontroller-interface`           | Upstream: MicroControllerInterface instances that produce log data   |
+| `/extraction-configuration`            | Context: extraction config determines which messages are extracted   |
+| `/log-processing`                      | Downstream: consumes archives in the format documented here          |
+| `/log-processing-results`              | Downstream: documents the output format produced from these archives |
+| `/pipeline`                            | Context: reference skill for the end-to-end pipeline phases          |
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for discovery and processing   |
 
 ---
 

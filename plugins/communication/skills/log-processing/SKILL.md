@@ -111,10 +111,10 @@ directories. For legacy sessions without manifests, use `write_microcontroller_m
 
 **`execute_log_processing_jobs_tool` parameters:**
 
-| Parameter       | Type         | Default    | Description                                                                                                           |
-|-----------------|--------------|------------|-----------------------------------------------------------------------------------------------------------------------|
-| `jobs`          | `list[dict]` | (required) | Job descriptors from prepare manifest (log_directory, output_directory, tracker_path, job_id, source_id, config_path) |
-| `worker_budget` | `int`        | `-1`       | Total CPU cores for the session; -1 for automatic resolution. Controls memory footprint.                              |
+| Parameter       | Type         | Default    | Description                                                                                                             |
+|-----------------|--------------|------------|-------------------------------------------------------------------------------------------------------------------------|
+| `jobs`          | `list[dict]` | (required) | Job descriptors from execution manifest (log_directory, output_directory, tracker_path, job_id, source_id, config_path) |
+| `worker_budget` | `int`        | `-1`       | Total CPU cores for the session; -1 for automatic resolution. Controls memory footprint.                                |
 
 ### Monitoring and management tools
 
@@ -224,7 +224,7 @@ The processing workflow uses a **prepare-then-execute** model:
    the budget controls memory footprint and the system allocates workers per job automatically
    based on archive size.
 
-8. **Execute jobs** — Call `execute_log_processing_jobs_tool` with the job descriptors from the prepare
+8. **Execute jobs** — Call `execute_log_processing_jobs_tool` with the job descriptors from the execution
    manifest and confirmed resource settings.
 
 9. **Monitor progress** — Use `get_log_processing_status_tool` to check per-job progress. Optionally use
@@ -311,13 +311,13 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ### Preparation errors
 
-| Error                                | Resolution                                                        |
-|--------------------------------------|-------------------------------------------------------------------|
+| Error                                 | Resolution                                                                                                 |
+|---------------------------------------|------------------------------------------------------------------------------------------------------------|
 | Non-existent / non-directory log path | Not a hard error; surfaces in the returned `invalid_paths` list. Verify the path exists and is a directory |
-| "Length mismatch"                    | Ensure output_directories matches log_directories length          |
-| "Permission denied"                  | Check filesystem permissions                                      |
-| "Extraction config not found: ..."   | Verify extraction config path; use `/extraction-configuration`    |
-| "Invalid extraction config: ..."     | Validate config via `/extraction-configuration`                   |
+| "Length mismatch"                     | Ensure output_directories matches log_directories length                                                   |
+| "Permission denied"                   | Check filesystem permissions                                                                               |
+| "Extraction config not found: ..."    | Verify extraction config path; use `/extraction-configuration`                                             |
+| "Invalid extraction config: ..."      | Validate config via `/extraction-configuration`                                                            |
 
 ### Execution errors
 
@@ -329,27 +329,27 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ### Processing failure routing
 
-| Error Pattern                        | Action                                                        |
-|--------------------------------------|---------------------------------------------------------------|
-| Archive not found / file read errors | Verify .npz archives exist in log directory                   |
-| Invalid extraction config            | Validate config via `/extraction-configuration`               |
-| MCP tools unavailable                | Invoke `/communication-mcp-environment-setup`                               |
-| Out of memory                        | Reduce `worker_budget`                                        |
-| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare      |
+| Error Pattern                        | Action                                                   |
+|--------------------------------------|----------------------------------------------------------|
+| Archive not found / file read errors | Verify .npz archives exist in log directory              |
+| Invalid extraction config            | Validate config via `/extraction-configuration`          |
+| MCP tools unavailable                | Invoke `/communication-mcp-environment-setup`            |
+| Out of memory                        | Reduce `worker_budget`                                   |
+| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare |
 
 ---
 
 ## Related skills
 
-| Skill                        | Role                                                             |
-|------------------------------|------------------------------------------------------------------|
-| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity                            |
-| `/microcontroller-setup`     | Upstream: hardware discovery and manifest management             |
-| `/microcontroller-interface` | Upstream: code that produces the log data being processed        |
-| `/extraction-configuration`  | Upstream: extraction config that controls what data is extracted |
-| `/log-input-format`          | Reference: input archive format and source ID semantics          |
-| `/log-processing-results`    | Downstream: output data discovery and event analysis             |
-| `/pipeline`                  | Context: log processing is phase 5 of the end-to-end pipeline    |
+| Skill                                  | Relationship                                                     |
+|----------------------------------------|------------------------------------------------------------------|
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity                            |
+| `/microcontroller-setup`               | Upstream: hardware discovery and manifest management             |
+| `/microcontroller-interface`           | Upstream: code that produces the log data being processed        |
+| `/extraction-configuration`            | Upstream: extraction config that controls what data is extracted |
+| `/log-input-format`                    | Reference: input archive format and source ID semantics          |
+| `/log-processing-results`              | Downstream: output data discovery and event analysis             |
+| `/pipeline`                            | Context: log processing is phase 5 of the end-to-end pipeline    |
 
 ---
 

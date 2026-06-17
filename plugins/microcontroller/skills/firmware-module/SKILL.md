@@ -25,7 +25,7 @@ Python ModuleInterface counterpart, use `/communication:microcontroller-interfac
 - Three required virtual methods: SetupModule, SetCustomParameters, RunActiveCommand
 - Command handler patterns: immediate, multi-stage with non-blocking delay, sensor polling
 - Runtime parameter structures with `PACKED_STRUCT` macro
-- Event and status code conventions (system 0-50, user 51-250)
+- Event code conventions (system 0-50, user 51-250)
 - Sending data to PC via `SendData()` overloads
 - Template-based module design with compile-time pin configuration
 - Static assertions for compile-time validation
@@ -92,7 +92,9 @@ Read the source files to confirm the API has not changed since this skill was wr
 
 See [references/api-reference.md](references/api-reference.md) for the complete Module base class API
 including constructor parameters, ExecutionControlParameters fields, all protected utility method
-signatures, kCoreStatusCodes, Kernel constructor, and Communication constructor.
+signatures, kCoreStatusCodes, Kernel constructor, and Communication constructor. The same reference
+also holds the command handler patterns (immediate, multi-stage non-blocking delay, sensor polling)
+and the optional implementation hints.
 
 The prototype code for each `SendData()` call is resolved automatically at compile time from the C++
 type of the data object via the `ResolvePrototype` function in `axmc_shared_assets.h`. Users do not
@@ -159,7 +161,7 @@ private:
     };
 ```
 
-### Custom status codes enum
+### Custom event codes enum
 
 Custom event codes MUST use values 51-250. Values 0-50 are reserved for system use. Each event code
 MUST be unique within the module class and MUST carry the same semantic meaning regardless of which
@@ -201,14 +203,14 @@ public:
     } PACKED_STRUCT parameters;
 ```
 
-| C++ Type   | Size    | Python Equivalent | Typical Use               |
-|------------|---------|-------------------|---------------------------|
-| `bool`     | 1 byte  | `np.bool_`        | Enable flags              |
-| `uint8_t`  | 1 byte  | `np.uint8`        | Small counts, codes       |
-| `uint16_t` | 2 bytes | `np.uint16`       | ADC values, medium counts |
-| `uint32_t` | 4 bytes | `np.uint32`       | Microsecond durations     |
-| `int32_t`  | 4 bytes | `np.int32`        | Signed large values       |
-| `float`    | 4 bytes | `np.float32`      | Calibrated sensor values  |
+| C++ Type   | Size    | Numpy Equivalent | Typical Use               |
+|------------|---------|------------------|---------------------------|
+| `bool`     | 1 byte  | `np.bool_`       | Enable flags              |
+| `uint8_t`  | 1 byte  | `np.uint8`       | Small counts, codes       |
+| `uint16_t` | 2 bytes | `np.uint16`      | ADC values, medium counts |
+| `uint32_t` | 4 bytes | `np.uint32`      | Microsecond durations     |
+| `int32_t`  | 4 bytes | `np.int32`       | Signed large values       |
+| `float`    | 4 bytes | `np.float32`     | Calibrated sensor values  |
 
 **Cross-language correspondence:** The PC sends parameters as a numpy-typed tuple via
 `send_parameters()`. Each tuple element maps to the struct field at the same position:
@@ -311,79 +313,8 @@ bool RunActiveCommand() override
 
 ## Command handler patterns
 
-### Immediate command
-
-For commands that complete in a single step:
-
-```cpp
-void Echo()
-{
-    SendData(static_cast<uint8_t>(kStates::kEcho), parameters.echo_value);
-    CompleteCommand();
-}
-```
-
-You MUST call `CompleteCommand()` at the end of every command handler. Failure to do so deadlocks
-the module.
-
-### Multi-stage command with non-blocking delay
-
-For commands requiring timed steps. Stages start at 1, not 0:
-
-```cpp
-void Pulse()
-{
-    switch (get_command_stage())
-    {
-        case 1:
-            digitalWrite(kPin, HIGH);
-            SendData(static_cast<uint8_t>(kStates::kHigh));
-            AdvanceCommandStage();
-            break;
-
-        case 2:
-            if (WaitForMicros(parameters.on_duration)) AdvanceCommandStage();
-            break;
-
-        case 3:
-            digitalWrite(kPin, LOW);
-            SendData(static_cast<uint8_t>(kStates::kLow));
-            AdvanceCommandStage();
-            break;
-
-        case 4:
-            if (WaitForMicros(parameters.off_duration)) CompleteCommand();
-            break;
-
-        default: AbortCommand(); break;
-    }
-}
-```
-
-**Stage-based execution rules:**
-- Use `get_command_stage()` to read the current stage (stages start at 1)
-- Call `AdvanceCommandStage()` to move to the next stage (also resets the delay timer)
-- `WaitForMicros(duration)` returns `true` when the duration has elapsed, `false` while waiting
-- In non-blocking mode, `WaitForMicros` returns immediately with `false` if the time has not elapsed,
-  allowing other modules to execute. In blocking mode, it blocks in-place until the time has passed.
-- Call `CompleteCommand()` on the final stage
-- The `default` case should call `AbortCommand()` to handle unexpected stages
-
-### Sensor polling command
-
-For repeated sensor readings:
-
-```cpp
-void ReadSensor()
-{
-    const uint16_t value = AnalogRead(kSensorPin, parameters.pool_size);
-    SendData(static_cast<uint8_t>(kStates::kValueRead), value);
-    CompleteCommand();
-}
-```
-
-`AnalogRead(pin, pool_size)` reads and averages `pool_size` samples. Set `pool_size` to 0 or 1
-to disable averaging. `DigitalRead(pin, pool_size)` works the same way for digital pins.
+See [references/api-reference.md](references/api-reference.md) for the immediate, multi-stage
+non-blocking delay, and sensor polling command handler patterns with full code examples.
 
 ---
 
@@ -517,49 +448,9 @@ class EncoderModule final : public Module
 
 ## Implementation hints
 
-These are optional efficiency patterns observed in production modules. They are not required but may
-improve robustness or readability for certain hardware designs.
-
-**Constexpr pin logic for polarity-configurable modules:** When a template parameter controls whether
-hardware is normally-open vs. normally-closed (or similar polarity inversion), compute the active/inactive
-logic levels as constexpr booleans rather than branching at runtime:
-
-```cpp
-template <const uint8_t kPin, const bool kNormallyClosed>
-class ValveModule final : public Module
-{
-        static constexpr bool kOpen  = kNormallyClosed ? HIGH : LOW;
-        static constexpr bool kClose = kNormallyClosed ? LOW  : HIGH;
-    // ...
-    // Then use kOpen/kClose directly: digitalWriteFast(kPin, kOpen);
-};
-```
-
-**Sensor hysteresis for polling commands:** When a sensor-polling command runs recurrently, tracking the
-previous reading avoids flooding the PC with redundant zero or steady-state messages. Report only when
-the value crosses a meaningful threshold or when the state changes:
-
-```cpp
-void CheckSensor()
-{
-    const uint16_t value = AnalogRead(kPin, parameters.pool_size);
-    const bool above_threshold = value >= parameters.signal_threshold;
-
-    if (above_threshold)
-    {
-        SendData(static_cast<uint8_t>(kStates::kDetected), value);
-        _previous_zero = false;
-    }
-    else if (!_previous_zero)
-    {
-        SendData(static_cast<uint8_t>(kStates::kDetected), static_cast<uint16_t>(0));
-        _previous_zero = true;
-    }
-    CompleteCommand();
-}
-```
-
-This reduces serial bandwidth and log archive size without losing transition information.
+See [references/api-reference.md](references/api-reference.md) for optional efficiency patterns,
+including constexpr pin logic for polarity-configurable modules and sensor hysteresis for polling
+commands.
 
 ---
 
@@ -587,7 +478,7 @@ Firmware Module:
 - [ ] Static assertions at top of class body (after opening brace, before public:)
 - [ ] Constructor calls Module(module_type, module_id, communication)
 - [ ] kCommands enum defines commands with values >= 1
-- [ ] Custom status codes enum defines event codes with values 51-250
+- [ ] Custom event codes enum defines event codes with values 51-250
 - [ ] CustomRuntimeParameters struct uses PACKED_STRUCT macro
 - [ ] SetupModule() configures pins and resets parameters to defaults
 - [ ] SetCustomParameters() calls ExtractParameters() (not _communication.ExtractModuleParameters())

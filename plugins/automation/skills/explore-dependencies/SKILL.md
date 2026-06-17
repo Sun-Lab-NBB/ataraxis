@@ -12,7 +12,7 @@ user-invocable: true
 
 # Dependency exploration
 
-Explores installed ataraxis library source code to build a live API snapshot for the
+Explores installed ataraxis dependency source code to build a live API snapshot for the
 current project.
 
 You MUST run this skill before writing code that uses ataraxis library features. Static reference
@@ -33,9 +33,9 @@ available and how they work.
 
 **Does not cover:**
 - Third-party library exploration (NumPy, Click, etc.) — read their docs directly
-- Modifying dependency versions or adding new dependencies (invoke `/pyproject-style`)
-- Applying Python coding conventions (invoke `/python-style`)
-- Exploring the project's own codebase structure (invoke `/explore-codebase`)
+- Modifying dependency versions or adding new dependencies (see `/pyproject-style`)
+- Applying Python coding conventions (see `/python-style`)
+- Exploring the project's own codebase structure (see `/explore-codebase`)
 
 ---
 

@@ -29,10 +29,10 @@ pyproject.toml file. You MUST verify your changes against the checklist before s
 - Project type distinctions (core library vs application, pure-Python vs C-extension)
 
 **Does not cover:**
-- Python code style (invoke `/python-style`)
-- README file conventions (invoke `/readme-style`)
-- Commit message conventions (invoke `/commit`)
-- tox.ini configuration (invoke `/tox-config`)
+- Python code style (see `/python-style`)
+- README file conventions (see `/readme-style`)
+- Commit message conventions (see `/commit`)
+- tox.ini configuration (see `/tox-config`)
 
 ---
 

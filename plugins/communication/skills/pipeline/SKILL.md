@@ -11,7 +11,7 @@ user-invocable: false
 
 # Pipeline
 
-End-to-end orchestration reference for microcontroller data acquisition and analysis. Covers single and
+End-to-end orchestration reference for microcontroller data acquisition and analysis, covering single and
 multi-controller setups, phase ordering, handoff conditions, and decision guidance.
 
 ---
@@ -263,15 +263,15 @@ For multi-DataLogger setups, process each DataLogger output directory as a separ
 
 ## Related skills
 
-| Skill                        | Role                                                          |
-|------------------------------|---------------------------------------------------------------|
-| `/communication-mcp-environment-setup`     | Phase 1: environment verification                             |
-| `/microcontroller-setup`     | Phase 2: hardware discovery and manifest management           |
-| `/extraction-configuration`  | Phase 3: extraction config creation and validation            |
-| `/microcontroller-interface` | Phase 4: MicroControllerInterface code for recording          |
-| `/log-input-format`          | Reference: archive format for troubleshooting                 |
-| `/log-processing`            | Phase 5: data extraction                                      |
-| `/log-processing-results`    | Phase 6: output verification and event analysis               |
+| Skill                                  | Relationship                                         |
+|----------------------------------------|------------------------------------------------------|
+| `/communication-mcp-environment-setup` | Phase 1: environment verification                    |
+| `/microcontroller-setup`               | Phase 2: hardware discovery and manifest management  |
+| `/extraction-configuration`            | Phase 3: extraction config creation and validation   |
+| `/microcontroller-interface`           | Phase 4: MicroControllerInterface code for recording |
+| `/log-input-format`                    | Reference: archive format for troubleshooting        |
+| `/log-processing`                      | Phase 5: data extraction                             |
+| `/log-processing-results`              | Phase 6: output verification and event analysis      |
 
 ---
 

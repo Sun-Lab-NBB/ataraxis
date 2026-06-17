@@ -28,10 +28,10 @@ code. You MUST verify your changes against the checklist before submitting.
 - Test file conventions
 
 **Does not cover:**
-- README file conventions (invoke `/readme-style`)
-- Commit message conventions (invoke `/commit`)
-- Skill file and CLAUDE.md conventions (invoke `/skill-design`)
-- Codebase exploration workflows (invoke `/explore-codebase`)
+- README file conventions (see `/readme-style`)
+- Commit message conventions (see `/commit`)
+- Skill file and CLAUDE.md conventions (see `/skill-design`)
+- Codebase exploration workflows (see `/explore-codebase`)
 
 ---
 
@@ -47,13 +47,13 @@ Read this entire file. The core conventions below apply to ALL Python code.
 
 Based on the task, load the appropriate reference files:
 
-| Task                                     | Reference to load                                             |
-|------------------------------------------|---------------------------------------------------------------|
-| Writing or modifying docstrings/types    | [docstrings-and-types.md](references/docstrings-and-types.md) |
-| Writing classes, dataclasses, or enums   | [class-patterns.md](references/class-patterns.md)             |
-| Using ataraxis libs, Numba, Click, tests | [libraries-and-tools.md](references/libraries-and-tools.md)   |
-| Using ataraxis library features          | Invoke `/explore-dependencies` first, then load above         |
-| Reviewing code before submission         | [anti-patterns.md](references/anti-patterns.md)               |
+| Task                                                  | Reference to load                                             |
+|-------------------------------------------------------|---------------------------------------------------------------|
+| Writing or modifying docstrings/types                 | [docstrings-and-types.md](references/docstrings-and-types.md) |
+| Writing classes, dataclasses, enums, or `__init__.py` | [class-patterns.md](references/class-patterns.md)             |
+| Using ataraxis libs, Numba, Click, tests              | [libraries-and-tools.md](references/libraries-and-tools.md)   |
+| Using ataraxis library features                       | Invoke `/explore-dependencies` first, then load above         |
+| Reviewing code before submission                      | [anti-patterns.md](references/anti-patterns.md)               |
 
 Load multiple references when the task spans multiple domains.
 
@@ -250,74 +250,8 @@ from .spline_grid import SplineGrid
 
 ## \_\_init\_\_.py conventions
 
-There are two types of `__init__.py` files with different docstring requirements.
-
-### Top-level library \_\_init\_\_.py
-
-The top-level `__init__.py` (e.g., `src/library_name/__init__.py`) uses an extended docstring with
-documentation links and authors:
-
-```python
-"""Provides assets for processing and analyzing neural imaging data.
-
-See the `documentation <https://project-api-docs.netlify.app/>`_ for the description of
-available assets. See the `source code repository <https://github.com/Sun-Lab-NBB/project-name>`_
-for more details.
-
-Authors: Author Name (Handle)
-"""
-
-from .module_one import ClassOne, function_one
-from .module_two import ClassTwo, ClassThree
-
-# console.enable() belongs only in top-level application libraries (e.g., sl-experiment).
-# Component libraries must NOT enable console — the application entry point handles this.
-
-__all__ = [
-    "ClassOne",
-    "ClassThree",
-    "ClassTwo",
-    "function_one",
-]
-```
-
-### Subpackage \_\_init\_\_.py
-
-Subpackage `__init__.py` files (e.g., `src/library_name/subpackage/__init__.py`) use a single-line
-docstring only:
-
-```python
-"""Provides configuration and runtime data classes for the processing pipeline."""
-
-from .config import Config, Settings
-from .data import DataStore
-
-__all__ = [
-    "Config",
-    "DataStore",
-    "Settings",
-]
-```
-
-### Rules
-
-- **Top-level docstring**: The first line MUST be the bare project description — the same sentence
-  used in all other canonical description locations (`pyproject.toml`, `welcome.rst`, `README.md`)
-  with no language or project name prefix. Include documentation link, source repository link,
-  and authors. Email addresses in the `Authors:` line are optional and omitted by default
-- **Subpackage docstring**: Use a single-line docstring describing what the subpackage provides.
-  Do NOT include documentation links, source repository links, or authors — these belong only in
-  the top-level library `__init__.py`
-- **Console initialization**: `console.enable()` belongs only in top-level application libraries
-  that serve as the final entry point (e.g., `sl-experiment`). Component and dependency libraries
-  (e.g., `ataraxis-video-system`) must NOT call `console.enable()` — the top-level application
-  is responsible for enabling the console before any component library code runs
-- **Explicit `__all__`**: Every `__init__.py` must declare `__all__` with all public API members
-- **Alphabetical sorting**: Sort `__all__` entries alphabetically
-- **One-time configuration logic**: `__init__.py` files may contain logic that benefits from
-  being executed exactly once on import (e.g., setting the multiprocessing start method,
-  configuring environment variables for platform compatibility). Beyond that, `__init__.py` files
-  should contain only imports and `__all__`
+See [class-patterns.md](references/class-patterns.md) for top-level library and subpackage
+`__init__.py` docstring, `__all__`, and console initialization conventions.
 
 ---
 

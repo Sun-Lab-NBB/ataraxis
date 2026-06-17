@@ -117,7 +117,7 @@ total_controllers:  Number of registered controllers
 | `controller_name` | `str`        | (required) | Human-readable name for the controller                                |
 | `modules`         | `list[dict]` | (required) | Module descriptors: each must have `module_type`, `module_id`, `name` |
 
-**Important:** The agent MUST know the controller ID, name, and module details. Do not guess these values.
+**Important:** You MUST know the controller ID, name, and module details. Do not guess these values.
 Each module dictionary must have keys: `module_type` (int), `module_id` (int), `name` (str).
 
 Creates a new manifest if none exists; appends to the existing manifest otherwise.
@@ -230,7 +230,7 @@ When transitioning from MCP-based discovery to writing MicroControllerInterface 
 | Baudrate used in discovery                    | `baudrate`                    | Same value (default: 115200)                         |
 | MQTT broker host/port                         | `MQTTCommunication(ip, port)` | Pass to MQTTCommunication constructor                |
 
-### System ID semantics
+### Source ID semantics
 
 | Range   | Assignment                         | Notes                                             |
 |---------|------------------------------------|---------------------------------------------------|
@@ -260,15 +260,15 @@ advised ranges.
 
 ## Related skills
 
-| Skill                        | Relationship                                                       |
-|------------------------------|--------------------------------------------------------------------|
-| `/microcontroller-interface` | Covers writing MicroControllerInterface code after testing via MCP |
-| `/extraction-configuration`  | Downstream: configure extraction parameters before processing      |
-| `/log-input-format`          | Reference: documents the archive format produced by this workflow  |
-| `/log-processing`            | Downstream: processes archives assembled by this skill             |
-| `/log-processing-results`    | Downstream: analyzes output from processed archives                |
-| `/pipeline`                  | Context: end-to-end orchestration and multi-controller planning    |
-| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for all tool interactions    |
+| Skill                                  | Relationship                                                       |
+|----------------------------------------|--------------------------------------------------------------------|
+| `/microcontroller-interface`           | Covers writing MicroControllerInterface code after testing via MCP |
+| `/extraction-configuration`            | Downstream: configure extraction parameters before processing      |
+| `/log-input-format`                    | Reference: documents the archive format produced by this workflow  |
+| `/log-processing`                      | Downstream: processes archives assembled by this skill             |
+| `/log-processing-results`              | Downstream: analyzes output from processed archives                |
+| `/pipeline`                            | Context: end-to-end orchestration and multi-controller planning    |
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for all tool interactions    |
 
 ---
 
