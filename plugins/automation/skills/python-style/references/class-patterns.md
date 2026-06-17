@@ -350,7 +350,7 @@ Authors: Author Name (Handle)
 from .module_one import ClassOne, function_one
 from .module_two import ClassTwo, ClassThree
 
-# console.enable() belongs only in top-level application libraries (e.g., sl-experiment).
+# console.enable() belongs only in top-level application libraries (the project's entry-point package).
 # Component libraries must NOT enable console — the application entry point handles this.
 
 __all__ = [
@@ -389,7 +389,7 @@ __all__ = [
   Do NOT include documentation links, source repository links, or authors — these belong only in
   the top-level library `__init__.py`
 - **Console initialization**: `console.enable()` belongs only in top-level application libraries
-  that serve as the final entry point (e.g., `sl-experiment`). Component and dependency libraries
+  that serve as the final entry point. Component and dependency libraries
   (e.g., `ataraxis-video-system`) must NOT call `console.enable()` — the top-level application
   is responsible for enabling the console before any component library code runs
 - **Explicit `__all__`**: Every `__init__.py` must declare `__all__` with all public API members

@@ -58,11 +58,11 @@ Based on the task, load the appropriate reference files:
 
 Identify the project type to apply the correct configuration tier:
 
-| Project type | Naming pattern | MyPy mode   | Python support | Dependency style |
-|--------------|----------------|-------------|----------------|------------------|
-| Core library | `ataraxis-*`   | Full strict | `>=3.12,<3.15` | Range (`>=X,<Y`) |
-| Application  | `sl-*`         | Minimal     | `>=3.14,<3.15` | Range (`>=X,<Y`) |
-| C-extension  | Any            | Full strict | `>=3.12,<3.15` | Range (`>=X,<Y`) |
+| Project type | Naming pattern     | MyPy mode   | Python support | Dependency style |
+|--------------|--------------------|-------------|----------------|------------------|
+| Core library | `ataraxis-*`       | Full strict | `>=3.12,<3.15` | Range (`>=X,<Y`) |
+| Application  | (project-specific) | Minimal     | `>=3.14,<3.15` | Range (`>=X,<Y`) |
+| C-extension  | Any                | Full strict | `>=3.12,<3.15` | Range (`>=X,<Y`) |
 
 ### Step 4: Apply conventions
 

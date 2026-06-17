@@ -175,88 +175,87 @@ For small projects, omit sections that do not apply.
 ```markdown
 ## Project purpose
 
-Provides a reimplemented suite2p library for neural imaging analysis with multi-day cell tracking
-capabilities for the Sun Lab at Cornell University.
+Provides a camera interface library for OpenCV and GeniCam cameras with real-time FFMPEG video
+encoding, including an MCP server and CLI tools for camera management.
 
 ## Entry points and CLI commands
 
-| Entry Point     | Location                  | Description                              |
-|-----------------|---------------------------|------------------------------------------|
-| `sl-suite2p`    | pyproject.toml scripts    | Main CLI entry point                     |
-| `run`           | cli.py:run                | Executes single-day processing pipeline  |
-| `run-multiday`  | cli.py:run_multiday       | Executes multi-day tracking pipeline     |
-| `mcp`           | cli.py:mcp                | Starts the MCP server                    |
+| Entry Point    | Location               | Description                         |
+|----------------|------------------------|-------------------------------------|
+| `axvs`         | pyproject.toml scripts | Main CLI entry point                |
+| `list-cameras` | cli.py:list_cameras    | Enumerates connected cameras        |
+| `live`         | cli.py:live            | Opens a live camera preview session |
+| `mcp`          | cli.py:mcp             | Starts the MCP server               |
 
 ## Key components
 
-| Component          | Location                       | Purpose                                           |
-|--------------------|--------------------------------|---------------------------------------------------|
-| Pipeline           | src/sl_suite2p/pipeline.py     | Main single-day processing pipeline orchestration |
-| Multi-day Tracking | src/sl_suite2p/multiday/       | Cross-session cell tracking and alignment         |
-| Registration       | src/sl_suite2p/registration/   | Image registration and motion correction          |
-| Detection          | src/sl_suite2p/detection/      | Cell detection algorithms                         |
-| Configuration      | src/sl_suite2p/configuration/  | Pipeline configuration management                 |
-| MCP Server         | src/sl_suite2p/mcp/            | AI agent integration via MCP                      |
+| Component       | Location                                  | Purpose                                |
+|-----------------|-------------------------------------------|----------------------------------------|
+| VideoSystem     | src/ataraxis_video_system/video_system.py | Top-level camera acquisition lifecycle |
+| Camera backends | src/ataraxis_video_system/camera/         | OpenCV and GeniCam camera interfaces   |
+| Savers          | src/ataraxis_video_system/saver/          | FFMPEG-based video and image encoders  |
+| Configuration   | src/ataraxis_video_system/configuration/  | Acquisition and encoding settings      |
+| MCP Server      | src/ataraxis_video_system/mcp/            | AI agent integration via MCP           |
 
 ## Call chain summary
 
-`sl-suite2p run` → `cli.py:run` → `pipeline.py:run_pipeline` → `registration/register.py:register`
-→ `detection/detect.py:detect_cells` → `extraction/extract.py:extract_signals`
-→ `classification/classify.py:classify_cells` → writes output to `suite2p/` directory.
+`axvs live` → `cli.py:live` → `video_system.py:VideoSystem.start`
+→ `camera/opencv_camera.py:OpenCVCamera.connect` → `saver/video_saver.py:VideoSaver.create_encoder`
+→ writes encoded frames to the output directory.
 
 ## Import dependency map
 
 Central components (imported by 5+ modules):
-- `configuration/pipeline_config.py` — imported by pipeline, registration, detection, extraction
-- `utils/io.py` — imported by all processing modules
+- `configuration/acquisition_config.py` — imported by video_system, camera, saver
+- `camera/camera_base.py` — base class imported by all camera backends
 - `types.py` — imported by all modules for shared type definitions
 
-Dependency direction: cli → pipeline → processing modules → utils/io + configuration.
+Dependency direction: cli → video_system → camera + saver → configuration.
 
 ## Public API surface
 
 Exported from `__init__.py` via `__all__`:
-- `run_pipeline(config: PipelineConfig) -> PipelineResult`
-- `PipelineConfig` (dataclass)
-- `PipelineResult` (dataclass)
+- `VideoSystem` (class)
+- `CameraBackends` (enum)
+- `SaverBackends` (enum)
 
 ## MCP tools
 
-| Tool                | Location                   | Parameters             | Returns              |
-|---------------------|----------------------------|------------------------|----------------------|
-| `run_pipeline_tool` | mcp/processing_tools.py    | `config_path: str`     | run summary dict     |
-| `list_sessions_tool`| mcp/discovery_tools.py     | `data_directory: str`  | list of session dicts|
+| Tool                | Location               | Parameters       | Returns              |
+|---------------------|------------------------|------------------|----------------------|
+| `list_cameras_tool` | mcp/discovery_tools.py | (none)           | list of camera dicts |
+| `check_camera_tool` | mcp/discovery_tools.py | `camera_id: int` | camera status dict   |
 
 ## Configuration
 
-| Mechanism       | Location                        | Purpose                              |
-|-----------------|---------------------------------|--------------------------------------|
-| `PipelineConfig`| configuration/pipeline_config.py| Dataclass with all pipeline settings |
-| CLI arguments   | cli.py                          | Override config values at runtime    |
-| YAML config     | User-provided path              | Full pipeline configuration file     |
+| Mechanism           | Location                            | Purpose                                  |
+|---------------------|-------------------------------------|------------------------------------------|
+| `AcquisitionConfig` | configuration/acquisition_config.py | Dataclass with camera + encoder settings |
+| CLI arguments       | cli.py                              | Override config values at runtime        |
+| YAML config         | User-provided path                  | Full acquisition configuration file      |
 
 ## Test coverage
 
-| Source Module                | Test File                          | Coverage |
-|------------------------------|------------------------------------|----------|
-| pipeline.py                  | tests/pipeline_test.py             | Yes      |
-| registration/register.py     | tests/registration_test.py         | Yes      |
-| detection/detect.py          | tests/detection_test.py            | Yes      |
-| mcp/server.py                | (none)                             | Gap      |
+| Source Module           | Test File                   | Coverage |
+|-------------------------|-----------------------------|----------|
+| video_system.py         | tests/video_system_test.py  | Yes      |
+| camera/opencv_camera.py | tests/opencv_camera_test.py | Yes      |
+| saver/video_saver.py    | tests/video_saver_test.py   | Yes      |
+| mcp/server.py           | (none)                      | Gap      |
 
 ## Notable patterns
 
-- Numba-accelerated computation for image processing
+- Multiprocessing for concurrent acquisition and encoding
 - Configuration dataclasses with validation
 - MyPy strict mode with full type annotations
-- Processing modules follow a consistent register → detect → extract → classify pipeline
+- Camera backends follow a consistent connect → grab → release interface
 
 ## Areas of concern
 
 - `mcp/server.py` lacks test coverage
-- Large refactoring effort from original suite2p codebase still in progress
-- Multi-day tracking module has high cyclomatic complexity
-- Several `# type: ignore` suppressions in registration module
+- GeniCam backend requires a vendor SDK that is unavailable in CI
+- Saver module has high cyclomatic complexity
+- Several `# type: ignore` suppressions in the camera backend
 ```
 
 ---

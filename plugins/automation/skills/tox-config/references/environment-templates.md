@@ -88,14 +88,14 @@ provider, its lint environment does not need `deps = ataraxis-automation==X.Y.Z`
 #### mypy parallelism (large projects only)
 
 `mypy ./src` runs single-threaded by default. This is correct for the overwhelming majority of
-ataraxis and sollertia libraries: their `src/` is small enough that a warm, incremental `mypy` run
+ataraxis libraries and application projects: their `src/` is small enough that a warm, incremental `mypy` run
 finishes in well under a second, and the binary + SQLite incremental caches (on by default since
 mypy 2.0) already make re-runs effectively free. You MUST NOT add parallelism to a project's lint
 command by default.
 
 mypy 2.x adds experimental parallel type checking via `-n N` / `--num-workers N` (config-file key
 `num_workers`; environment override `MYPY_NUM_WORKERS`). It only helps large codebases — those
-where a *cold* `mypy ./src` takes more than a few seconds (e.g. `cindra`, `sollertia-experiment`).
+where a *cold* `mypy ./src` takes more than a few seconds (large application projects).
 For those projects only, append the flag to the lint command:
 
 ```ini
@@ -158,7 +158,7 @@ commands =
 
 **Parameterization:**
 - Python version matrix `{py312, py313, py314}`: Must match the `requires-python` range in
-  `pyproject.toml`. Core libraries (`ataraxis-*`) test 3 versions; applications (`sl-*`) may
+  `pyproject.toml`. Core libraries (`ataraxis-*`) test 3 versions; applications may
   test fewer.
 - `{package_name}` in `--cov`: The underscore-separated package name.
 - `package = wheel`: Forces the project to be built as a wheel before testing.
@@ -421,7 +421,7 @@ commands =
 
 ## Reduced Python pipeline
 
-Some Python application projects (`sl-*`) omit test and coverage environments from their envlist,
+Some Python application projects omit test and coverage environments from their envlist,
 typically because the project is an application that integrates with hardware or external systems
 and cannot be meaningfully unit-tested in isolation.
 

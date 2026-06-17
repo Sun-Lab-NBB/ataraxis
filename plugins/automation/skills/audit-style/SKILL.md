@@ -2,7 +2,7 @@
 name: audit-style
 description: >-
   Performs a thorough style-compliance audit of source code, configuration, or documentation
-  files against the applicable Sun Lab style skill checklists. Walks every line of every file
+  files against the applicable ataraxis framework style skill checklists. Walks every line of every file
   in scope and reports only non-compliant findings with verbatim checklist citations. Use when
   auditing a Python package, a config file, a README, or any project file for style,
   formatting, naming, documentation quality, or convention compliance. Use when the user
@@ -12,7 +12,7 @@ user-invocable: true
 
 # Style compliance audit
 
-Audits files against the authoritative Sun Lab style skill checklists, reporting only
+Audits files against the authoritative ataraxis framework style skill checklists, reporting only
 non-compliant findings with verbatim checklist citations.
 
 You MUST read this entire skill and load every applicable style skill checklist before starting

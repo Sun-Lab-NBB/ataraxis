@@ -12,7 +12,7 @@ Lowercase, hyphenated format matching the GitHub repository name:
 
 ```toml
 name = "ataraxis-automation"
-name = "sl-shared-assets"
+name = "project-name"
 ```
 
 The import name uses underscores (`ataraxis_automation`), while the package name uses hyphens
@@ -49,7 +49,7 @@ for the project archetype. For Python projects, these are:
 4. `README.md` one-line description (immediately after the title)
 
 ```toml
-description = "Supports tox-based development automation pipelines and provides agentic skills for Claude Code used by other Sun (NeuroAI) lab projects."
+description = "Supports tox-based development automation pipelines and provides agentic skills for Claude Code used by other ataraxis framework projects."
 ```
 
 ### readme
@@ -73,7 +73,7 @@ license-files = ["LICENSE"]
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 
-# BSD (pirt)
+# BSD
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 ```
@@ -90,7 +90,7 @@ Specifies the supported Python version range. The constraint style depends on th
 # Core libraries (ataraxis-*): Support multiple Python versions
 requires-python = ">=3.12,<3.15"
 
-# Applications (sl-*): Target a single Python version
+# Applications: Target a single Python version
 requires-python = ">=3.14,<3.15"
 ```
 
@@ -124,10 +124,10 @@ authors = [
 Repository-specific tags as a single-line or multi-line array:
 
 ```toml
-keywords = ["automation", "tox", "development-tools", "ataraxis", "sunlab"]
+keywords = ["automation", "tox", "development-tools", "ataraxis"]
 ```
 
-Include both domain-specific terms and organizational identifiers (`"ataraxis"`, `"sunlab"`).
+Include both domain-specific terms and the framework identifier (`"ataraxis"`).
 
 ---
 
@@ -151,7 +151,7 @@ All production projects use:
 "Intended Audience :: Developers",
 "Topic :: Software Development",
 
-# Scientific applications (sl-*)
+# Scientific applications
 "Intended Audience :: Science/Research",
 "Topic :: Scientific/Engineering",
 ```
@@ -269,7 +269,6 @@ Projects depending on other libraries use the same range constraint pattern:
 "ataraxis-time>=5,<6",
 "ataraxis-base-utilities>=5,<6",
 "ataraxis-data-structures>=5,<6",
-"sl-shared-assets>=7,<8",
 ```
 
 ### Platform-specific dependencies
@@ -364,7 +363,7 @@ command-name = "package_name.module:function"
 
 - Use short, memorable command names
 - Use hyphens for multi-word commands
-- Prefix with project abbreviation for namespacing (e.g., `axci-id`, `axvs`, `ss2p`)
+- Prefix with project abbreviation for namespacing (e.g., `axci-id`, `axvs`)
 
 ### Examples from projects
 
@@ -373,9 +372,6 @@ command-name = "package_name.module:function"
 | ataraxis-automation              | `automation-cli` | `ataraxis_automation.cli:cli`                      |
 | ataraxis-video-system            | `axvs`           | `ataraxis_video_system.cli:axvs_cli`               |
 | ataraxis-communication-interface | `axci-id`        | `...microcontroller_interface:identify_interfaces` |
-| sl-behavior                      | `sl-behavior`    | `sl_behavior.cli:cli`                              |
-| sl-shared-assets                 | `sl-configure`   | `sl_shared_assets.interfaces.configure:configure`  |
-| sl-suite2p                       | `ss2p`           | `sl_suite2p.interface.cli:ss2p`                    |
 
 For Click-based CLIs, point to the Click group or command object directly.
 

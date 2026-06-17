@@ -58,17 +58,15 @@ All repositories are under `https://github.com/Sun-Lab-NBB/`:
 
 ---
 
-## Downstream libraries
+## First-party application libraries
 
-Downstream libraries follow the `sl-*` naming pattern. These are application-level libraries
-built on top of the ataraxis infrastructure for specific workflows:
+A project may also depend on its own first-party application libraries — higher-level packages built
+on top of the ataraxis infrastructure for specific workflows such as experiment orchestration, data
+analysis, or acquisition tooling.
 
-- `sl-experiment` — Experiment orchestration and session management
-- `sl-suite2p` — Neural imaging analysis pipeline (reimplemented suite2p)
-- Other `sl-*` packages — Lab-specific analysis and acquisition tools
-
-These follow the same exploration workflow as ataraxis libraries: match `sl-` prefixed package
-names in `pyproject.toml`, resolve with `python -c "import ..."`, and read their `__all__` exports.
+These follow the same exploration workflow as the ataraxis libraries: match the project's first-party
+package prefix in `pyproject.toml`, resolve each with `python -c "import ..."`, and read their
+`__all__` exports.
 
 ---
 

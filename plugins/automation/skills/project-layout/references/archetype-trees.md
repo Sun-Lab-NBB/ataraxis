@@ -186,7 +186,7 @@ project-root/
 
 ## C++ PlatformIO firmware
 
-Based on `sl-micro-controllers`.
+Based on a microcontroller firmware project.
 
 ```text
 project-root/
@@ -230,7 +230,7 @@ project-root/
 
 ## C# Unity
 
-Based on `sl-unity-tasks`.
+Based on a Unity behavioral-task project.
 
 ```text
 project-root/

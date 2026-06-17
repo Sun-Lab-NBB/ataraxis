@@ -10,7 +10,7 @@ files.
 ```markdown
 # project-name
 
-Supports tox-based development automation pipelines used by other Sun (NeuroAI) lab projects.
+Supports tox-based development automation pipelines used by other ataraxis framework projects.
 ```
 
 The title must match the repository and package name (lowercase, hyphenated). The one-line
@@ -48,8 +48,7 @@ the one-line description from the first badge.
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/PACKAGE-NAME)
 ```
 
-Replace `PACKAGE-NAME` with the actual PyPI package name (e.g., `sl-shared-assets`,
-`ataraxis-time`).
+Replace `PACKAGE-NAME` with the actual PyPI package name (e.g., `ataraxis-time`).
 
 ### C++ / PlatformIO libraries
 

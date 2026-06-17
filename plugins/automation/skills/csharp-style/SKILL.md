@@ -133,7 +133,7 @@ Use **full words**, not abbreviations:
 | Constants         | PascalCase    | `LengthComparisonEpsilon`                 |
 | Enum types        | PascalCase    | `ControllerTypes`, `StimulusMode`         |
 | Enum values       | PascalCase    | `LinearTreadmill`, `OccupancyBased`       |
-| Namespaces        | PascalCase    | `Gimbl`, `SL.Config`                      |
+| Namespaces        | PascalCase    | `Gimbl`, `Project.Config`                 |
 | Interfaces        | `IPascalCase` | `IConfigurable`, `IResettable`            |
 | Type parameters   | `TPascalCase` | `TMessage`, `TConfig`                     |
 
@@ -304,7 +304,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Gimbl;
-using SL.Config;
+using Project.Config;
 ```
 
 ### `using static` directives
@@ -335,7 +335,7 @@ All definitions within a file follow this vertical ordering from top to bottom:
 
 1. **File-level XML documentation** (`/// <summary>` block describing the file)
 2. **Using directives**
-3. **Namespace declaration** (block-scoped is the project convention: `namespace SL.Config { ... }`,
+3. **Namespace declaration** (block-scoped is the project convention: `namespace Project.Config { ... }`,
    with class members indented one level inside the block). Although `assets/.editorconfig` carries
    `csharp_style_namespace_declarations = file_scoped:suggestion`, the exemplar code overrides it and
    block-scoped is the practiced form.

@@ -52,7 +52,7 @@ ecosystem, domain-to-library mappings, and import names.
 
 Read the project's `pyproject.toml` and extract all ataraxis dependencies from
 `[project.dependencies]` and `[project.optional-dependencies]`. Match package names that start
-with `ataraxis-` or `sl-`.
+with `ataraxis-` (or the project's own first-party namespace prefix).
 
 If `pyproject.toml` is not found, check for `setup.cfg`, `setup.py`, or `requirements.txt` as
 fallbacks.

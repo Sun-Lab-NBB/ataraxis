@@ -174,31 +174,31 @@ Add Ataraxis MCP servers to your Claude Code configuration (`~/.claude.json`):
 ## Claude Code Skills
 
 This repository serves as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin marketplace,
-distributing a set of agentic skills that enforce Sun Lab development conventions across all downstream projects. These
+distributing a set of agentic skills that enforce ataraxis framework development conventions across all downstream projects. These
 skills provide Claude Code with project-specific knowledge about coding style, documentation format, commit messages,
 project structure, and more.
 
 ### Available Skills
 
-| Skill                   | Description                                                               |
-|-------------------------|---------------------------------------------------------------------------|
-| `/explore-codebase`     | Performs in-depth codebase exploration at the start of a session          |
-| `/explore-dependencies` | Explores installed ataraxis/Sun Lab library APIs for dependency awareness |
-| `/python-style`         | Applies Sun Lab Python coding conventions                                 |
-| `/cpp-style`            | Applies Sun Lab C++ coding conventions                                    |
-| `/csharp-style`         | Applies Sun Lab C# coding conventions                                     |
-| `/readme-style`         | Applies Sun Lab README conventions                                        |
-| `/pyproject-style`      | Applies Sun Lab pyproject.toml conventions                                |
-| `/api-docs`             | Applies Sun Lab API documentation conventions                             |
-| `/project-layout`       | Applies Sun Lab project directory structure conventions                   |
-| `/tox-config`           | Applies Sun Lab tox.ini conventions                                       |
-| `/platformio-config`    | Applies Sun Lab platformio.ini and library.json conventions               |
-| `/audit-facts`          | Audits documentation files against source code for factual accuracy       |
-| `/audit-style`          | Audits files against applicable style skill checklists for compliance     |
-| `/commit`               | Drafts style-compliant git commit messages                                |
-| `/pr`                   | Drafts a style-compliant pull request summary for the active branch       |
-| `/release`              | Drafts style-compliant release notes summarizing merged pull requests     |
-| `/skill-design`         | Generates, updates, and verifies skill files and CLAUDE.md                |
+| Skill                   | Description                                                            |
+|-------------------------|------------------------------------------------------------------------|
+| `/explore-codebase`     | Performs in-depth codebase exploration at the start of a session       |
+| `/explore-dependencies` | Explores installed ataraxis library APIs for dependency awareness      |
+| `/python-style`         | Applies ataraxis framework Python coding conventions                   |
+| `/cpp-style`            | Applies ataraxis framework C++ coding conventions                      |
+| `/csharp-style`         | Applies ataraxis framework C# coding conventions                       |
+| `/readme-style`         | Applies ataraxis framework README conventions                          |
+| `/pyproject-style`      | Applies ataraxis framework pyproject.toml conventions                  |
+| `/api-docs`             | Applies ataraxis framework API documentation conventions               |
+| `/project-layout`       | Applies ataraxis framework project directory structure conventions     |
+| `/tox-config`           | Applies ataraxis framework tox.ini conventions                         |
+| `/platformio-config`    | Applies ataraxis framework platformio.ini and library.json conventions |
+| `/audit-facts`          | Audits documentation files against source code for factual accuracy    |
+| `/audit-style`          | Audits files against applicable style skill checklists for compliance  |
+| `/commit`               | Drafts style-compliant git commit messages                             |
+| `/pr`                   | Drafts a style-compliant pull request summary for the active branch    |
+| `/release`              | Drafts style-compliant release notes summarizing merged pull requests  |
+| `/skill-design`         | Generates, updates, and verifies skill files and CLAUDE.md             |
 
 ### Installing for Claude Code
 
@@ -276,8 +276,10 @@ AI: Created buzzer module with pulse, toggle on, and toggle off commands.
 3. **Encode recurring workflows as skills** that guide AI agents
 4. **Iterate as hardware evolves** with AI-assisted development
 
-The Sun Lab's implementation libraries (`sl-*`) serve as open-source templates for building
-custom acquisition systems.
+The Ataraxis libraries provide open-source building blocks for assembling custom acquisition
+systems. For a complete platform built on Ataraxis, see
+[Sollertia](https://github.com/Sun-Lab-NBB/sollertia) — a platform for AI-assisted data acquisition
+and management.
 
 ---
 

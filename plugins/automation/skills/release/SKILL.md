@@ -3,7 +3,7 @@ name: release
 description: >-
   Drafts style-compliant release notes by summarizing the pull requests merged since the previous release. Infers and
   recommends the release type (major, minor, or patch) for the user to confirm, then produces a numbered list of the
-  most impactful changes. Includes a sibling-library compatibility statement for sollertia releases only. Use when
+  most impactful changes. Includes a sibling-library compatibility statement for cross-dependent library sets only. Use when
   preparing a release, drafting release notes, or when the user invokes /release.
 user-invocable: true
 ---
@@ -20,7 +20,7 @@ Drafts style-compliant release notes summarizing the pull requests merged since 
 - Identifying the previous release and the pull requests merged since then
 - Inferring and recommending the release type (major, minor, patch) for user confirmation
 - Drafting release notes with a numbered list of the most impactful changes
-- Including a sibling-library compatibility statement for sollertia releases
+- Including a sibling-library compatibility statement for cross-dependent library sets
 
 **Does not cover:**
 - Creating tags, GitHub releases, or publishing (the user does this)
@@ -52,14 +52,14 @@ is silently dropped.
 If the repository has no prior release tag, summarize the full history (`git log --merges --format='%h %s%n%b'`)
 and note that this is the first release.
 
-### Step 2: Determine the platform
+### Step 2: Determine the dependency model
 
-Determine whether the project is an ataraxis library or a sollertia library from its package or repository name:
+Determine whether the project is an independent library or part of a unified, cross-dependent library set:
 
-- **sollertia-*** — the sollertia platform ships as a unified set of cross-dependent libraries, so the release notes
-  MUST include a compatibility statement (Step 4).
-- **ataraxis-*** — the ataraxis libraries are independent and have no enforced cross-dependency web, so the release
-  notes MUST NOT include a compatibility statement.
+- **Cross-dependent set** — the project ships as one of a unified set of sibling libraries released and versioned
+  together, so the release notes MUST include a compatibility statement (Step 4).
+- **Independent library** — the project (like the ataraxis libraries) has no enforced cross-dependency web, so the
+  release notes MUST NOT include a compatibility statement.
 
 ### Step 3: Infer and recommend the release type
 
@@ -75,11 +75,11 @@ For C++ PlatformIO libraries the release version is single-sourced from `library
 | Minor | New, backward-compatible features or capabilities                                        |
 | Patch | Bug fixes and minor corrections with no new features                                     |
 
-### Step 4: Resolve the compatibility statement (sollertia only)
+### Step 4: Resolve the compatibility statement (cross-dependent sets only)
 
-For sollertia releases, the compatibility statement names the sibling-library versions this release is designed to
+For cross-dependent releases, the compatibility statement names the sibling-library versions this release is designed to
 work with. You cannot reliably infer these — ask the user to confirm the compatible sibling-library versions and
-include them verbatim. For ataraxis releases, skip this step entirely.
+include them verbatim. For independent libraries, skip this step entirely.
 
 ### Step 5: Draft the release notes
 
@@ -93,7 +93,7 @@ GitHub release manually.
 ```text
 ### {Major|Minor|Patch} Release
 
-[sollertia only] This release is designed to work with <sibling-library> vN, <sibling-library> vM, ...
+[cross-dependent sets only] This release is designed to work with <sibling-library> vN, <sibling-library> vM, ...
 
 **Major Changes:**
 
@@ -104,8 +104,8 @@ GitHub release manually.
 ### Rules
 
 - The first line is `### {type} Release` using the user-confirmed type.
-- For sollertia releases, follow the header with a single compatibility sentence naming the confirmed sibling-library
-  versions. Omit this line entirely for ataraxis releases.
+- For cross-dependent releases, follow the header with a single compatibility sentence naming the confirmed sibling-library
+  versions. Omit this line entirely for independent libraries.
 - `**Major Changes:**` introduces a numbered list (`1.`, `2.`, …) of the most impactful changes, ordered from most to
   least impactful.
 - Each item is a complete, descriptive sentence in past tense (see the verb set in `/commit`) ending with a period.
@@ -116,7 +116,7 @@ GitHub release manually.
 
 ### Examples
 
-**Good (ataraxis — no compatibility statement):**
+**Good (independent library — no compatibility statement):**
 
 ```text
 ### Major Release
@@ -128,12 +128,12 @@ GitHub release manually.
 3. Added a log processing (data extraction) pipeline.
 ```
 
-**Good (sollertia — compatibility statement included):**
+**Good (cross-dependent set — compatibility statement included):**
 
 ```text
 ### Minor Release
 
-This release remains compatible with sollertia-experiment v5, sollertia-unity-tasks v3, and sollertia-forgery v1.
+This release remains compatible with `acquisition` v5, `behavior` v3, and `analysis` v1.
 
 **Major Changes:**
 
@@ -182,8 +182,8 @@ Do NOT create tags or GitHub releases. Present the drafted notes for the user to
 Release Notes Compliance:
 - [ ] First line is `### {Major|Minor|Patch} Release` with the user-confirmed type
 - [ ] Release type was recommended AND confirmed by the user
-- [ ] Compatibility statement included for sollertia releases, omitted for ataraxis releases
-- [ ] Sibling-library versions confirmed by the user (sollertia only)
+- [ ] Compatibility statement included for cross-dependent releases, omitted for independent libraries
+- [ ] Sibling-library versions confirmed by the user (cross-dependent sets only)
 - [ ] `**Major Changes:**` numbered list ordered from most to least impactful
 - [ ] Each item is past tense and ends with a period
 - [ ] Condenses many pull requests into a few impactful themes (does not list every pull request)

@@ -50,12 +50,12 @@ You MUST follow these steps when this skill is invoked.
 
 Determine which pipeline applies:
 
-| Archetype      | Envlist pattern                                                              | Key indicator                       |
-|----------------|------------------------------------------------------------------------------|-------------------------------------|
-| Full Python    | uninstall → export → lint → stubs → test → coverage → docs → build → install | `pyproject.toml` + `src/` layout    |
-| C++ extension  | Same as full Python, with Doxygen in docs and cibuildwheel in build          | `CMakeLists.txt` + `pyproject.toml` |
-| Reduced Python | Full Python minus test and coverage                                          | `sl-*` app with no unit tests       |
-| C++ docs-only  | docs only                                                                    | `platformio.ini`, no `pyproject`    |
+| Archetype      | Envlist pattern                                                              | Key indicator                          |
+|----------------|------------------------------------------------------------------------------|----------------------------------------|
+| Full Python    | uninstall → export → lint → stubs → test → coverage → docs → build → install | `pyproject.toml` + `src/` layout       |
+| C++ extension  | Same as full Python, with Doxygen in docs and cibuildwheel in build          | `CMakeLists.txt` + `pyproject.toml`    |
+| Reduced Python | Full Python minus test and coverage                                          | Application project with no unit tests |
+| C++ docs-only  | docs only                                                                    | `platformio.ini`, no `pyproject`       |
 
 ### Step 2: Load reference templates
 
@@ -226,7 +226,7 @@ envlist =
 
 ### Reduced Python pipeline
 
-Used by application projects (`sl-*`) that do not have unit tests:
+Used by application projects that do not have unit tests:
 
 ```ini
 envlist =
@@ -321,12 +321,12 @@ envlist = docs
 
 Each project has a short abbreviation used for its mamba environment name:
 
-| Pattern      | Abbreviation rule            | Example                            |
-|--------------|------------------------------|------------------------------------|
-| `ataraxis-*` | Initials of hyphenated parts | `ataraxis-base-utilities` → `axbu` |
-| `sl-*`       | Initials of hyphenated parts | `sl-shared-assets` → `slsa`        |
+| Project type                       | Abbreviation rule                                         | Example                            |
+|------------------------------------|-----------------------------------------------------------|------------------------------------|
+| Multi-repository project component | Project abbreviation + the initial of each remaining word | `ataraxis-base-utilities` → `axbu` |
+| Standalone project                 | The project name, used as-is                              | `harvester` → `harvester`          |
 
-The full environment name follows the pattern `{abbr}_dev` (e.g., `axbu_dev`). The OS suffix
+The full environment name follows the pattern `{abbr}_dev` (e.g., `axbu_dev` or `harvester_dev`). The OS suffix
 (`_lin`, `_osx`, `_win`) is appended automatically by `automation-cli` at runtime — it does NOT
 appear in tox.ini.
 
