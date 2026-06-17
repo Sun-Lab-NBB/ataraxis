@@ -64,8 +64,11 @@ Setup       →  Discovery   →  Config      →             →  Processing  �
 - **Skill:** `/extraction-configuration`
 - **Actions:** Read manifest, generate precursor config, ask user for event codes, write and validate config
 - **Handoff condition:** Validated extraction config YAML file exists
-- **Note:** This phase can be done before or after recording. For repeat experiments with the same hardware,
-  reuse an existing config.
+- **Note:** This phase can be done before or after the recording *run*, but generating a precursor config
+  from the manifest requires the MicroControllerInterface instances to have been constructed first
+  (construction writes `microcontroller_manifest.yaml`). For a brand-new hardware setup, instantiate the
+  interfaces first, or author the config by hand. For repeat experiments with the same hardware, reuse an
+  existing config.
 
 ### Phase 4: Recording session
 
@@ -224,6 +227,11 @@ All controllers sharing a DataLogger write to the same log directory and the sam
 3. `prepare_log_processing_batch_tool` creates one job per source ID with the config path
 4. Process all source IDs in a single batch for efficiency
 5. Output: multiple feather files per controller under `microcontroller_data/` subdirectory
+
+The extraction config's `controller_id` list is the authoritative selector for which archives are
+processed (the set is resolved from the config, not the manifest). Omitting a controller from the config
+silently skips it (no error or warning); every config `controller_id` must be registered in the manifest
+or processing raises ValueError. To process all controllers, the config must list every controller's ID.
 
 For multi-DataLogger setups, process each DataLogger output directory as a separate batch.
 

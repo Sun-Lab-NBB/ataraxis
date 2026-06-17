@@ -512,7 +512,8 @@ methods (operations that "do something"):
 ```cpp
 // Good - accessor for trivial field access
 /// Returns the module's type identifier.
-[[nodiscard]] uint8_t get_module_type() const { return _module_type; }
+[[nodiscard]]
+uint8_t get_module_type() const { return _module_type; }
 
 // Good - PascalCase method for operations with side effects
 /// Sends the specified data to the connected PC via the serial port.
@@ -627,6 +628,8 @@ CompleteCommand();
 - Brace style: **Allman** (opening braces on new lines for all constructs)
 - Indentation: **4 spaces** (no tabs)
 - Pointer/reference alignment: **Left** (`int* pointer`, `int& reference`)
+- Attributes (`[[nodiscard]]`, `[[maybe_unused]]`, etc.) always appear on their own line directly
+  above the declaration (clang-format `BreakAfterAttributes: Always`); do not write them inline
 
 ### Aligned assignments
 

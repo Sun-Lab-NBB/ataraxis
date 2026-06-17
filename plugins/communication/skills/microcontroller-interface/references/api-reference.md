@@ -166,7 +166,7 @@ MQTTCommunication(
 |----------------------------------|------------------------------------------|-------------------------------------------------------------------|
 | `connect()`                      | `None`                                   | Connects to broker and subscribes to monitored topics.            |
 | `disconnect()`                   | `None`                                   | Disconnects from broker. Called automatically on garbage collect. |
-| `send_data(topic, payload=None)` | `None`                                   | Publishes data to the specified MQTT topic.                       |
+| `send_data(topic, payload=None)` | `None`                                   | Publishes a payload (`str \| bytes \| bytearray \| float \| None`; `None` = empty message) to the topic. Raises `ConnectionError` if not connected. |
 | `get_data()`                     | `tuple[str, bytes \| bytearray] \| None` | Returns next received `(topic, payload)` or `None` if empty.      |
 
 ### Properties
@@ -419,6 +419,10 @@ runtime. It is optional and controlled by the `keepalive_interval` constructor p
 3. If the microcontroller does not receive a keepalive within its configured timeout, it performs
    an emergency reset (all modules return to default state) and reports error code 10
    (KEEPALIVE_TIMEOUT) via a KernelData message
+4. In the other direction, if the microcontroller does not return the keepalive acknowledgement
+   (a ReceptionCode message with reception_code 255) within one `keepalive_interval`, the PC
+   communication process issues a reset command and raises `RuntimeError`, terminating the interface.
+   This PC-side failure is distinct from and additional to the MCU-reported error code 10
 
 **When to enable:**
 - Enable keepalive for safety-critical hardware that must be reset if the PC loses communication

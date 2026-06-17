@@ -206,7 +206,8 @@ For methods with parameters that need documentation, use `/** ... */` blocks:
  * @returns true if the requested number of bytes was successfully read, false otherwise.
  */
 template <typename ReadObject>
-[[nodiscard]] bool ReadData(ReadObject& object) const
+[[nodiscard]]
+bool ReadData(ReadObject& object) const
 ```
 
 ### When to use block vs inline
@@ -225,15 +226,18 @@ should ideally be a single sentence:
 ```cpp
 // Good - single-sentence accessor docs
 /// Returns the size of the instance's transmission buffer, in bytes.
-[[nodiscard]] static constexpr uint16_t get_transmission_buffer_size()
+[[nodiscard]]
+static constexpr uint16_t get_transmission_buffer_size()
 
 /// Returns the runtime status of the most recently called method.
-[[nodiscard]] uint8_t get_runtime_status() const
+[[nodiscard]]
+uint8_t get_runtime_status() const
 
 // Avoid - multi-sentence accessor docs (move details to the class @brief instead)
 /// Returns the runtime status of the most recently called method. The status is updated
 /// after each call to SendData or ReceiveData, and tracks whether the operation succeeded.
-[[nodiscard]] uint8_t get_runtime_status() const
+[[nodiscard]]
+uint8_t get_runtime_status() const
 ```
 
 ---
@@ -342,7 +346,8 @@ const bool data_received = tl_class.ReceiveData();
 EncoderModule(const uint8_t module_type, const uint8_t module_id, Communication& communication)
 
 // [[nodiscard]] on const methods
-[[nodiscard]] bool ReadData(ReadObject& object) const
+[[nodiscard]]
+bool ReadData(ReadObject& object) const
 ```
 
 ### Integer types

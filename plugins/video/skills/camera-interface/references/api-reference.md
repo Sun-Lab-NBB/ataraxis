@@ -85,7 +85,7 @@ VideoSystem(
 | `video_encoder`          | `VideoEncoders / str`       | No       | `VideoEncoders.H265`         | Video codec: H264 or H265                                                                              |
 | `encoder_speed_preset`   | `EncoderSpeedPresets / int` | No       | `EncoderSpeedPresets.SLOW`   | Encoding speed vs quality tradeoff (1-7)                                                               |
 | `output_pixel_format`    | `OutputPixelFormats / str`  | No       | `OutputPixelFormats.YUV444`  | Output color format: YUV420 or YUV444                                                                  |
-| `quantization_parameter` | `int`                       | No       | `15`                         | Quality parameter 0-51 (lower = higher quality)                                                        |
+| `quantization_parameter` | `int`                       | No       | `15`                         | Quality parameter -1..51 (lower = higher quality); -1 defers QP to the encoder default                 |
 | `color`                  | `bool / None`               | No       | `None`                       | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
 
 **Notes:**
@@ -94,6 +94,8 @@ VideoSystem(
   identification
 - `frame_width`, `frame_height`, and `frame_rate` default to the camera's native values when set to None
 - `color` is only used by OpenCV and Mock interfaces; Harvesters cameras determine color mode from their GenICam config
+- `quantization_parameter` accepts -1 to 51 inclusive; -1 is a sentinel that defers QP choice to the
+  encoder's own default, distinct from QP 0 (near-lossless)
 - The output video file is named `{system_id:03d}.mp4` in the output directory
 
 ### Methods
@@ -386,50 +388,7 @@ The first log entry for each VideoSystem uses a special format:
 
 ---
 
-## Architecture
-
-```text
-+------------------------------------------------------------------+
-| VideoSystem                                                    |                                     |     |                           |     |
-| +------------------------------------------------------------+ |                                     |     |                           |     |
-|                                                                | Main Process                        |     |                           |     |
-|                                                                | - Initialization and configuration  |     |                           |     |
-|                                                                | - Lifecycle management (start/stop) |     |                           |     |
-|                                                                | - Frame saving control              |     |                           |     |
-| +------------------------------------------------------------+ |                                     |     |                           |     |
-|----------------------------------------------------------------|-------------------------------------|-----|---------------------------|-----|
-| v                           v                                  |                                     |     |                           |     |
-| +--------------------+   +----------------------------------+  |                                     |     |                           |     |
-|                                                                | Producer Process                    |     | Consumer Process          |     |
-|                                                                | - Camera driver                     |     | - Frame encoding (FFMPEG) |     |
-|                                                                | - Frame grabbing                    | --> | - MP4 container writing   |     |
-|                                                                | - Timestamp gen                     |     | - Live preview display    |     |
-| +--------------------+   +----------------------------------+  |                                     |     |                           |     |
-|----------------------------------------------------------------|-------------------------------------|-----|---------------------------|-----|
-| v                                                              |                                     |     |                           |     |
-| +--------------------+                                         |                                     |     |                           |     |
-|                                                                | DataLogger                          |     |                           |     |
-|                                                                | - Timestamp I/O                     |     |                           |     |
-|                                                                | - .npy file write                   |     |                           |     |
-| +--------------------+                                         |                                     |     |                           |     |
-+------------------------------------------------------------------+
-```
-
----
-
 ## Dependencies
-
-### Runtime
-
-| Package                    | Version       | Purpose                                |
-|----------------------------|---------------|----------------------------------------|
-| ataraxis-video-system      | >=3.0.0       | This library                           |
-| ataraxis-data-structures   | >=6,<7        | DataLogger, SharedMemoryArray          |
-| ataraxis-time              | >=6,<7        | Precision timing                       |
-| ataraxis-base-utilities    | >=6,<7        | Logging and console output             |
-| numpy                      | >=2,<3        | Array operations and system_id type    |
-| opencv-python              | >=4.13,<5     | Camera interface and frame display     |
-| harvesters                 | >=1,<2        | GenICam camera support                 |
 
 ### External
 
@@ -438,10 +397,6 @@ The first log entry for each VideoSystem uses a special format:
 | FFMPEG     | Yes      | Backend for H.264/H.265 video encoding                 |
 | CTI file   | No       | GenTL Producer for Harvesters cameras                  |
 | NVIDIA GPU | No       | Hardware-accelerated encoding (optional)               |
-
-### Python version
-
-Requires `>=3.12,<3.15`.
 
 ---
 

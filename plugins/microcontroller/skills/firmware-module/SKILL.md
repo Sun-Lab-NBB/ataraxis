@@ -144,6 +144,10 @@ CustomModule(
 - `module_id` identifies the specific instance within the family. Must be unique per type.
 - `communication` is the shared Communication instance created before any modules.
 
+Also declare an overriding virtual destructor — `~CustomModule() override = default;` — because the
+Kernel manages modules through `Module*` pointers; the base virtual destructor is load-bearing (see
+[references/api-reference.md](references/api-reference.md)).
+
 ---
 
 ## Code definitions
@@ -191,6 +195,7 @@ private:
 ### Runtime parameters structure
 
 Parameter structs MUST use the `PACKED_STRUCT` macro to ensure correct binary serialization with the PC.
+The struct size MUST be 1-250 bytes (compile-time enforced by a `static_assert` in `ExtractModuleParameters`).
 Field order and types must exactly match the PC-side `send_parameters()` tuple:
 
 ```cpp
@@ -257,6 +262,10 @@ bool SetupModule() override
 - Set all parameter fields to their default values
 - Return `true` on success, `false` on failure (failure bricks the controller until firmware reset)
 
+On keepalive timeout the Kernel emits kernel status 10 (`kKeepAliveTimeout`) and re-runs `Setup()`, which
+re-invokes every module's `SetupModule()` and clears all command buffers and hardware states — so
+`SetupModule()` must be safe to call repeatedly.
+
 ---
 
 ## SetCustomParameters()
@@ -315,6 +324,18 @@ bool RunActiveCommand() override
 
 See [references/api-reference.md](references/api-reference.md) for the immediate, multi-stage
 non-blocking delay, and sensor polling command handler patterns with full code examples.
+
+### Recurrent vs one-off commands
+
+The PC queues each command as either **one-off** (`kOneOffModuleCommand`) or **recurrent**
+(`kRepeatedModuleCommand`, carrying a `cycle_delay`). Write handlers identically for both — always
+call `CompleteCommand()` when the work is done — but note the runtime difference: a recurrent command
+auto-reactivates at stage 1 after its `cycle_delay`, and `CompleteCommand()` deliberately suppresses
+the `kCommandCompleted` (status 2) message for recurrent commands until they are dequeued or replaced
+(one-off commands always report completion). Expect repeated activation for recurrent commands and use
+the multi-stage non-blocking-delay / sensor-polling patterns to avoid flooding the PC. The PC sets the
+recurrence interval via `send_command(repetition_delay=...)` — see
+`communication:microcontroller-interface`.
 
 ---
 
@@ -391,6 +412,11 @@ Kernel axmc_kernel(kControllerID, axmc_communication, modules, kKeepaliveInterva
 void setup()
 {
     Serial.begin(115200);
+
+#if !defined(__AVR__)
+    analogReadResolution(12);
+#endif
+
     axmc_kernel.Setup();
 }
 
@@ -406,6 +432,7 @@ void loop()
 - Module constructor arguments: `(module_type, module_id, communication)`
 - The `modules[]` array must contain at least one element (enforced by `static_assert`)
 - `Serial.begin()` baudrate must match the PC-side `baudrate` parameter
+- Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`; AVR boards (fixed 10-bit ADC, no `analogReadResolution()`) must guard the call with `#if !defined(__AVR__)`
 
 ---
 
@@ -477,6 +504,7 @@ Firmware Module:
 - [ ] Template parameters use const keyword
 - [ ] Static assertions at top of class body (after opening brace, before public:)
 - [ ] Constructor calls Module(module_type, module_id, communication)
+- [ ] Declares an overriding virtual destructor (~CustomModule() override = default;)
 - [ ] kCommands enum defines commands with values >= 1
 - [ ] Custom event codes enum defines event codes with values 51-250
 - [ ] CustomRuntimeParameters struct uses PACKED_STRUCT macro

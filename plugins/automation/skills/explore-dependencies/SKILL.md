@@ -71,6 +71,18 @@ python -c "import <import_name>; print(<import_name>.__file__)"
 This returns the path to the package's `__init__.py`. The parent directory contains all source
 modules.
 
+Obtain the package version with the hyphenated PyPI name (not the import name); ataraxis
+`__init__.py` files do not expose `__version__`, so resolve it at runtime instead:
+
+```bash
+python -c "import importlib.metadata; print(importlib.metadata.version('<package-name>'))"
+```
+
+For C++ ataraxis libraries (ataraxis-transport-layer-mc, ataraxis-micro-controller), the
+`python -c "import ..."` resolution does not apply. Locate the source under
+`.pio/libdeps/<lib>/src` and enumerate public classes from the library's header files rather than
+from `__all__`.
+
 If a package is not installed, note it as unavailable and skip to the next dependency.
 
 ### Step 4: Enumerate public APIs

@@ -218,6 +218,9 @@ if mode == 3:  # noqa: PLR2004 - LICK_TRAINING mode value from VisualizerMode en
     ...
 ```
 
+Defensive or unreachable guard branches and hardware- or OS-dependent code paths are annotated with
+`# pragma: no cover` to satisfy the coverage gate.
+
 ### IDE inspection directives
 
 IDE-specific inspection-suppression comments are NOT used in this codebase and MUST be removed whenever encountered.

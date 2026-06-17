@@ -77,17 +77,21 @@ There is no "covered area" reduction.
 
 For each file in scope, identify the applicable style skill using the binding table:
 
-| File pattern                          | Style skill        |
-|---------------------------------------|--------------------|
-| `*.py`                                | `/python-style`    |
-| `*.cs`                                | `/csharp-style`    |
-| `*.h`, `*.hpp`, `*.cpp`               | `/cpp-style`       |
-| `README.md`                           | `/readme-style`    |
-| `pyproject.toml`                      | `/pyproject-style` |
-| `tox.ini`                             | `/tox-config`      |
-| `docs/*.rst`, `conf.py`, `Makefile`   | `/api-docs`        |
-| `SKILL.md`, `CLAUDE.md`, `AGENTS.md`  | `/skill-design`    |
-| Project directory tree                | `/project-layout`  |
+| File pattern                                                              | Style skill          |
+|---------------------------------------------------------------------------|----------------------|
+| `*.py`                                                                    | `/python-style`      |
+| `*.cs`                                                                    | `/csharp-style`      |
+| `*.h`, `*.hpp`, `*.cpp`, `.clang-format`, `.clang-tidy`, `CMakeLists.txt` | `/cpp-style`         |
+| `README.md`                                                               | `/readme-style`      |
+| `pyproject.toml`                                                          | `/pyproject-style`   |
+| `tox.ini`                                                                 | `/tox-config`        |
+| `platformio.ini`, `library.json`                                          | `/platformio-config` |
+| `docs/*.rst`, `conf.py`, `Makefile`, `make.bat`, `Doxyfile`               | `/api-docs`          |
+| `SKILL.md`, `CLAUDE.md`, `AGENTS.md`                                      | `/skill-design`      |
+| Project directory tree                                                    | `/project-layout`    |
+
+If a file in scope matches no binding row, mark it UNAUDITED in the plan and report (no
+applicable style skill) and flag no findings against it.
 
 Classify the audit tier:
 

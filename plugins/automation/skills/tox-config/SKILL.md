@@ -380,6 +380,15 @@ basepython = py312  # Earliest supported version controls lint/mypy ruleset
 
 ---
 
+## Command reference
+
+For the full list of tox environments and the underlying `automation-cli` commands (with options)
+that the pipeline runs, see [Command reference](references/environment-templates.md). Agents drive
+these via `tox -e <env>`; the `automation-cli` commands are documented there for diagnostics and
+for answering user questions.
+
+---
+
 ## Related skills
 
 | Skill              | Relationship                                                    |

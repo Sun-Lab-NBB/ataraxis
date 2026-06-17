@@ -166,6 +166,10 @@ instance.
   keepalive signals)
 - Event codes above 50 are user-defined module events; codes 0-50 are reserved for system service messages
 
+Extraction filters each module against only its own `event_codes` set (no cross-module leakage), so
+listing the same code value under two modules is safe and isolated; any message for an unlisted module or
+an unlisted event code is silently excluded from output with no error.
+
 The agent CANNOT determine which event codes to use by inspecting the codebase. Event codes are
 firmware-specific knowledge that must come from the user.
 
@@ -275,6 +279,18 @@ controllers:
 | Controller ID exists in manifest             | "Controller ID not found in manifest"           |
 | Module (type, id) pair exists in manifest    | "Module (type, id) not registered in manifest"  |
 
+### Runtime enforcement (not covered by the validate tool)
+
+The config may list only a subset of the manifest's controllers and modules (extraction is selective),
+but every `controller_id` it lists must resolve to exactly one `.npz` archive in the log directory at
+processing time. A missing archive raises `FileNotFoundError` and duplicate matching archives raise
+`ValueError`. `validate_extraction_config_tool` does NOT verify on-disk archive presence, so a structurally
+valid config can still crash `/log-processing`.
+
+The empty-`event_codes` rule is also enforced at runtime: processing raises `ValueError` if any configured
+module or kernel entry has empty `event_codes`. The `axci config create` precursor always ships empty event
+codes by design, so it must be filled in before processing.
+
 ---
 
 ## Troubleshooting
@@ -287,6 +303,20 @@ controllers:
 | Validation errors after write      | Fix the reported issues and re-validate                          |
 | Controller ID not in manifest      | Verify the controller ID matches the manifest exactly            |
 | Module not in manifest             | Check module_type and module_id match the manifest entries       |
+
+---
+
+## CLI reference (human-facing — do not invoke)
+
+> **CLI reference — for answering user questions only.** The `axci` command-line interface is a
+> **human-facing** tool. **Agents must never invoke `axci` commands** — every agent-driven operation has an
+> equivalent MCP tool (noted in the table). This section exists solely so the agent can answer user
+> questions about the CLI.
+
+| Command              | Key options                            | Purpose                                              | MCP equivalent                                       |
+|----------------------|----------------------------------------|------------------------------------------------------|------------------------------------------------------|
+| `axci config create` | `-m/--manifest-path`, `-o/--output-path` | Writes a precursor config from the manifest (empty event codes) | None (no MCP tool exposes precursor generation) |
+| `axci config show`   | `-c/--config-path`                     | Prints a config's controllers, modules, and event codes | `read_extraction_config_tool`                     |
 
 ---
 

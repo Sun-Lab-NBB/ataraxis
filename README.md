@@ -192,6 +192,7 @@ project structure, and more.
 | `/api-docs`             | Applies Sun Lab API documentation conventions                             |
 | `/project-layout`       | Applies Sun Lab project directory structure conventions                   |
 | `/tox-config`           | Applies Sun Lab tox.ini conventions                                       |
+| `/platformio-config`    | Applies Sun Lab platformio.ini and library.json conventions               |
 | `/audit-facts`          | Audits documentation files against source code for factual accuracy       |
 | `/audit-style`          | Audits files against applicable style skill checklists for compliance     |
 | `/commit`               | Drafts style-compliant git commit messages                                |

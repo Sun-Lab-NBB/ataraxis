@@ -122,6 +122,12 @@ Each module dictionary must have keys: `module_type` (int), `module_id` (int), `
 
 Creates a new manifest if none exists; appends to the existing manifest otherwise.
 
+This tool ALWAYS appends — it does not detect or replace existing entries. Calling it twice for the same
+`controller_id` creates a duplicate manifest entry, which `discover_microcontroller_data_tool` will then
+report as two separate sources (it iterates every controller in the manifest). Read the manifest first with
+`read_microcontroller_manifest_tool`; if the controller is already registered, do not call write again. To
+correct a wrong entry, edit the YAML manually.
+
 **`discover_microcontroller_data_tool` parameters:**
 
 | Parameter        | Type  | Default    | Description                                          |
@@ -161,6 +167,10 @@ running discovery.
 | `remove_sources`   | `bool` | `true`     | Delete original .npy files after assembly                    |
 | `verify_integrity` | `bool` | `false`    | Verify archive integrity before removing sources             |
 
+The defaults permanently delete the raw .npy files (`remove_sources=true`) without verifying the archive
+first (`verify_integrity=false`). For irreplaceable or legacy recordings, pass `verify_integrity=true` (and
+optionally `remove_sources=false`) to keep the raw entries until you have confirmed the archives are valid.
+
 **Return structure:**
 ```text
 status:         "assembled"
@@ -193,6 +203,9 @@ Run this to identify which microcontrollers are connected and their IDs:
    - Verify the MQTT broker service is running (e.g., `systemctl status mosquitto`)
    - Check firewall rules allow connections on the specified port
    - Verify the host address is correct
+3. A raw tool error (rather than the "not reachable" message) usually means the host/hostname could not be
+   resolved or is malformed — the underlying `connect()` only returns the friendly message for
+   connection-level failures. Verify the host string before assuming the broker service is down.
 
 ### Manifest inspection and retroactive tagging
 
@@ -202,7 +215,8 @@ Run this to identify which microcontrollers are connected and their IDs:
 
 **Retroactively tag a legacy session:**
 1. Call `write_microcontroller_manifest_tool` with the log directory, controller ID, controller name,
-   and module list
+   and module list (this always appends — read the manifest first and do not write a `controller_id`
+   that is already registered, or discovery will report it as a duplicate source)
 2. Verify by calling `read_microcontroller_manifest_tool` on the created manifest
 3. Run `discover_microcontroller_data_tool` to confirm the session is now discoverable
 
@@ -255,6 +269,20 @@ advised ranges.
 | Assembly fails                                         | Directory has no .npy files           | Verify DataLogger was stopped and flushed                 |
 | Discovery finds no sources                             | Missing manifest files                | Use `write_microcontroller_manifest_tool` to tag sessions |
 | MCP tools unavailable                                  | Server not running                    | Use `/communication-mcp-environment-setup` to diagnose    |
+
+---
+
+## CLI reference (human-facing — do not invoke)
+
+> **CLI reference — for answering user questions only.** The `axci` command-line interface is a
+> **human-facing** tool. **Agents must never invoke `axci` commands** — every agent-driven operation has an
+> equivalent MCP tool (noted in the table). This section exists solely so the agent can answer user
+> questions about the CLI.
+
+| Command     | Key options                                                     | Purpose                                             | MCP equivalent               |
+|-------------|-----------------------------------------------------------------|-----------------------------------------------------|------------------------------|
+| `axci id`   | `-b`/`--baudrate` (default 115200)                              | Discovers connected Arduino/Teensy microcontrollers | `list_microcontrollers_tool` |
+| `axci mqtt` | `-h`/`--host` (default 127.0.0.1), `-p`/`--port` (default 1883) | Checks whether an MQTT broker is reachable          | `check_mqtt_broker_tool`     |
 
 ---
 

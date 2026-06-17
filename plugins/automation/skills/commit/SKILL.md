@@ -45,6 +45,9 @@ Run the following git commands in parallel using the Bash tool:
    `master`; confirm via `git symbolic-ref --short refs/remotes/origin/HEAD` and strip the `origin/` prefix when a
    remote exists).
 
+If `git status` shows no staged, unstaged, or untracked changes, stop and report that there is nothing to commit
+rather than running `git add`/`git commit`.
+
 ### Step 2: Analyze changes
 
 Review every changed file and understand:

@@ -42,6 +42,12 @@ You MUST follow these steps when this skill is invoked.
 Quickly assess the project to select the appropriate exploration tier. Run a file count and directory
 listing to make this determination before proceeding.
 
+Ataraxis source uses GENERATED `.pyi` stubs (one per `.py`). They are purged during development
+(`tox -e lint`) and only present at release (`tox -e stubs`), so a dev tree often has none — treat
+their absence as normal, never a gap. When present, exclude `.pyi` from file counts, dependency maps,
+and test-coverage mapping, and always read the `.py` module (not the stub) for docstrings and the
+documented API. Do not spend tokens reading or editing stubs.
+
 | Tier   | Indicators                                                    | Approach                      |
 |--------|---------------------------------------------------------------|-------------------------------|
 | Small  | Single package, < 10 source files, no subpackages             | Single-pass exploration       |
@@ -87,14 +93,20 @@ combined. For large projects, phases may be distributed across parallel subagent
 
 Identify the project's entry points, boundaries, and configuration.
 
-1. **Entry points** — CLI commands, API endpoints, main functions, GUI entry points. Check
+1. **Orientation documents** — Read the repo-root `CLAUDE.md` (and `README.md`) for project purpose,
+   architecture summary, and conventions before tracing source. Treat them as orientation, not ground
+   truth for API details.
+2. **Entry points** — CLI commands, API endpoints, main functions, GUI entry points. Check
    `pyproject.toml` for `[project.scripts]` and `[project.entry-points]` sections.
-2. **Configuration mechanisms** — `pyproject.toml` settings, environment variables, CLI argument
+3. **Configuration mechanisms** — `pyproject.toml` settings, environment variables, CLI argument
    defaults, YAML/JSON/TOML config files, `.env` files, and dataclass-based configuration objects.
-3. **Public API surface** — Classes, functions, and constants exported from `__init__.py` files.
+4. **Public API surface** — Classes, functions, and constants exported from `__init__.py` files.
    Note which modules use `__all__` to restrict exports.
-4. **CLI command signatures** — For CLI-based projects, document each command's name, arguments,
+5. **CLI command signatures** — For CLI-based projects, document each command's name, arguments,
    options, and purpose.
+6. **MCP tools** — When an MCP server exists (an `interfaces/` package, `*_tools.py` modules, or an
+   `<cli> mcp` script), enumerate each MCP tool with its name, parameters, and return/output shape.
+   These tools are a major public surface for AI agents.
 
 ### Phase 2: Code flow tracing
 
@@ -128,7 +140,8 @@ Analyze the structural relationships between components.
 Examine specifics that inform future modifications.
 
 1. **Test coverage mapping** — For each source module, identify the corresponding test file(s). Note
-   any source modules that lack test coverage.
+   any source modules that lack test coverage. Ataraxis test files use the `<module>_test.py` suffix
+   (e.g. `camera_test.py` for `camera.py`), not the `test_` prefix — see `/project-layout`.
 2. **Key algorithms and data structures** — Document non-trivial algorithms, important data
    structures (dataclasses, TypedDicts, NamedTuples), and their locations.
 3. **Error handling patterns** — How errors are raised, caught, and reported to the user. Note
@@ -151,10 +164,11 @@ For small projects, omit sections that do not apply.
 4. **Call chain summary** — Entry point → layer → core logic flow for primary paths
 5. **Import dependency map** — Which modules depend on which, with central components highlighted
 6. **Public API surface** — Exported classes, functions, and constants
-7. **Configuration** — All configuration mechanisms discovered
-8. **Test coverage** — Source module → test file mapping, noting gaps
-9. **Notable patterns** — Design patterns, conventions, and cross-cutting concerns
-10. **Areas of concern** — Technical debt, complexity hotspots, missing coverage
+7. **MCP tools** — When an MCP server exists, each tool with its parameters and return/output shape
+8. **Configuration** — All configuration mechanisms discovered
+9. **Test coverage** — Source module → test file mapping, noting gaps
+10. **Notable patterns** — Design patterns, conventions, and cross-cutting concerns
+11. **Areas of concern** — Technical debt, complexity hotspots, missing coverage
 
 ### Example output
 
@@ -206,6 +220,13 @@ Exported from `__init__.py` via `__all__`:
 - `PipelineConfig` (dataclass)
 - `PipelineResult` (dataclass)
 
+## MCP tools
+
+| Tool                | Location                   | Parameters             | Returns              |
+|---------------------|----------------------------|------------------------|----------------------|
+| `run_pipeline_tool` | mcp/processing_tools.py    | `config_path: str`     | run summary dict     |
+| `list_sessions_tool`| mcp/discovery_tools.py     | `data_directory: str`  | list of session dicts|
+
 ## Configuration
 
 | Mechanism       | Location                        | Purpose                              |
@@ -218,9 +239,9 @@ Exported from `__init__.py` via `__all__`:
 
 | Source Module                | Test File                          | Coverage |
 |------------------------------|------------------------------------|----------|
-| pipeline.py                  | tests/test_pipeline.py             | Yes      |
-| registration/register.py     | tests/test_registration.py         | Yes      |
-| detection/detect.py          | tests/test_detection.py            | Yes      |
+| pipeline.py                  | tests/pipeline_test.py             | Yes      |
+| registration/register.py     | tests/registration_test.py         | Yes      |
+| detection/detect.py          | tests/detection_test.py            | Yes      |
 | mcp/server.py                | (none)                             | Gap      |
 
 ## Notable patterns
@@ -259,7 +280,9 @@ Exported from `__init__.py` via `__all__`:
 Invoke at session start to ensure full context before making changes. Prevents blind modifications
 and ensures understanding of existing patterns. When the project has ataraxis dependencies
 (check `pyproject.toml`), also invoke `/explore-dependencies` to build a live API
-snapshot of each dependency.
+snapshot of each dependency. Ataraxis dependencies may exist locally in the parent directory; when
+they do, `/explore-dependencies` should reconcile the local version against the latest GitHub release
+(`gh api repos/.../releases/latest`) before trusting its API.
 
 Do NOT make code changes during exploration. Present findings and wait for user direction.
 

@@ -124,8 +124,11 @@ For each aspect of the skill's behavior, decide the appropriate freedom level:
 
 ### Step 4: Create the directory structure
 
+In this repo every skill lives under `plugins/<plugin-name>/skills/<skill-name>/`. The plugin's
+`.claude-plugin/plugin.json` with `"skills": "./skills/"` is what registers the skills directory:
+
 ```text
-skill-name/
+plugins/<plugin-name>/skills/skill-name/
 ├── SKILL.md                  # Main instructions (always loaded)
 └── references/               # Detailed material (loaded on demand)
     └── detailed-rules.md     # Only if SKILL.md would exceed 500 lines
@@ -152,6 +155,11 @@ Follow the SKILL.md conventions below. You MUST include:
 Run through the verification checklist at the end of this skill. Then invoke the new skill in the
 current repository to verify it produces correct behavior. Test with both explicit invocation
 (`/skill-name`) and contextual descriptions to confirm the trigger conditions work.
+
+A new skill under an existing plugin needs no manual registration — the plugin.json `"skills":
+"./skills/"` glob auto-discovers it. If the new skill introduces a new plugin, add that plugin to
+the repo's `.claude-plugin/marketplace.json` `plugins` array. Adding or materially changing a
+plugin's skills should bump `version` in that plugin's `.claude-plugin/plugin.json`.
 
 ---
 

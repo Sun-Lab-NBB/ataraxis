@@ -160,6 +160,9 @@ DataLogger(instance_name="session")
 All cameras share one log directory, all timestamps are correlated, one `assemble_log_archives` call
 consolidates everything, and one processing batch covers all source IDs. Each VideoSystem writes an
 entry to `camera_manifest.yaml` during initialization, enabling manifest-based discovery downstream.
+The manifest append is not idempotent -- re-constructing a VideoSystem against an already-used output
+directory appends a duplicate source entry rather than replacing it, so use a fresh session directory
+per recording.
 
 Multiple DataLoggers should only be used if a single logger cannot handle the load, leading to excessive
 buffering. This is extremely rare in practice. When it does occur, each DataLogger creates a separate
@@ -249,7 +252,10 @@ This simplifies batch processing:
 4. Output: one feather file per camera under a `camera_timestamps/` subdirectory
    (`camera_timestamps/camera_51_timestamps.feather`, `camera_timestamps/camera_52_timestamps.feather`, etc.)
 
-For multi-DataLogger setups, process each DataLogger output directory as a separate batch.
+For multi-DataLogger setups, process each DataLogger output directory as a separate batch. This is
+enforced -- passing source IDs whose archives live in different DataLogger directories into one batch
+raises ValueError ("Each DataLogger output directory must be processed independently"). Run one discovery
+and batch per output directory.
 
 ---
 

@@ -126,6 +126,11 @@ source, the tool locates the corresponding log archive, video file, and processe
 output, returning a flat `sources` list. The return also includes a flat `log_directories` list (which
 feeds batch `/log-processing`) plus `total_sources` and `total_log_directories` aggregate counts.
 
+**Caution:** `video_file`/`timestamps_file` are resolved by a name-then-ID substring heuristic with
+path-proximity tie-breaking, not exact paths. A `None` `video_file` means "not matched", not necessarily
+"not on disk" — confirm with `validate_video_file_tool` using the path returned by the stop tool. Beware false
+matches when a camera name or the zero-padded ID appears in an unrelated `.mp4` stem under the root.
+
 ---
 
 ## Post-recording workflow
@@ -218,6 +223,10 @@ Post-Recording Readiness:
 - [ ] Archive naming matches {source_id}_log.npz pattern
 ```
 
+Video files are named `{system_id:03d}.mp4` (zero-padded to 3 digits, e.g. `001.mp4`, `042.mp4`), whereas log
+archives use the bare integer `{source_id}_log.npz` (`1_log.npz`, `42_log.npz`). The same source ID drives both;
+only the video name is padded.
+
 ---
 
 ## Troubleshooting
@@ -232,6 +241,11 @@ Post-Recording Readiness:
 | Frame count mismatch (video vs archive)  | Buffer flush timing or interruption      | 1-2 frames normal; large gaps indicate loss    |
 | `validate_video_file_tool` returns error | File corrupt or ffprobe unavailable      | Check FFMPEG installation; re-record if needed |
 | MCP tools unavailable                    | Server not running                       | Invoke `/video-mcp-environment-setup`          |
+
+A frame deficit concentrated at the **end** of a recording is a distinct case: `stop()` waits up to
+10 minutes for the saver queue to drain, then forcibly terminates the consumer and discards the
+unencoded tail with no error surfaced by the stop tool. It means the encoder could not keep up at
+shutdown — use a faster `encoder_speed_preset` or hardware encoding next time.
 
 ---
 

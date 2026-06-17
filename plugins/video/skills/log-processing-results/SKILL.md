@@ -141,7 +141,7 @@ The `analyze_camera_frame_statistics_tool` returns a dictionary with three secti
 | `last_timestamp_us`  | `int`   | Last frame timestamp (microseconds since UTC epoch)  |
 | `duration_us`        | `int`   | Total recording duration in microseconds             |
 | `duration_seconds`   | `float` | Total recording duration in seconds                  |
-| `estimated_fps`      | `float` | Estimated frame rate: `(frames - 1) / duration`      |
+| `estimated_fps`      | `float` | Estimated frame rate: `(frames - 1) / duration`; `0.0` when duration is zero (single-frame, or degenerate capture with identical timestamps) — a "cannot compute" sentinel, not a measured 0 fps |
 
 ### inter_frame_timing
 
@@ -184,6 +184,12 @@ Each entry in `drop_locations`:
 **Auto-detection algorithm:** When `drop_threshold_us=0`, the threshold is computed as 2x the median
 inter-frame interval. Gaps exceeding this threshold are classified as frame drops. The number of lost
 frames per gap is estimated by dividing the gap duration by the median interval and rounding.
+
+**Edge cases:** When `total_frames == 0`, only `basic_stats.total_frames` is returned and
+`inter_frame_timing` / `frame_drop_analysis` are empty `{}`. When `total_frames == 1`, `basic_stats` is
+fully populated but `duration_us`, `duration_seconds`, and `estimated_fps` are `0`, and the timing and
+drop sections are again empty `{}`. Check `total_frames >= 2` before indexing into `inter_frame_timing`
+or `frame_drop_analysis` to avoid `KeyError`s.
 
 ---
 

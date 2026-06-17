@@ -145,6 +145,10 @@ MicroControllerInterface() → start() → [communication active] → stop()
 - `reset_controller()` resets the microcontroller to its default state
 - `stop()` terminates the communication process and releases all resources
 
+`start()` and `stop()` are idempotent (each is a no-op if the interface is already in the target state), and
+`__del__` calls `stop()` plus the multiprocessing Manager shutdown, so a garbage-collected interface releases
+its process automatically.
+
 After `stop()`, the DataLogger can be stopped and archives assembled.
 
 ### Properties
@@ -255,6 +259,13 @@ module.send_parameters(parameter_data=(np.uint16(500), np.float32(1.5)))
 module.reset_command_queue()
 ```
 
+`send_command()`, `send_parameters()`, and `reset_command_queue()` raise `RuntimeError` until the module
+interface is passed to a `MicroControllerInterface`, which wires the input queue during `__init__()` (not
+`start()`). In addition, `send_command()` and `send_parameters()` may only be called from the main runtime
+process — calling them from the spawned communication worker process raises `RuntimeError`, because their
+message-builder caches are stripped when the interface is pickled into that process (`reset_command_queue()`
+works wherever the input queue is wired).
+
 ### Parameter struct correspondence
 
 The `parameter_data` tuple must match the firmware's `PACKED_STRUCT` field-by-field — same count, same
@@ -321,7 +332,8 @@ MQTTCommunication() → connect() → [publish/subscribe] → disconnect()
 ```
 
 - `connect()` establishes the broker connection and subscribes to monitored topics
-- `send_data(topic, payload=None)` publishes data to the specified MQTT topic
+- `send_data(topic, payload=None)` publishes a payload (`str | bytes | bytearray | float | None`, where
+  `None` publishes an empty message) to the specified MQTT topic; raises `ConnectionError` if not connected
 - `get_data()` returns the next received `(topic, payload)` tuple or `None` if empty
 - `has_data` property returns `True` if there are received messages waiting
 - `disconnect()` releases the connection (also called automatically on garbage collection)

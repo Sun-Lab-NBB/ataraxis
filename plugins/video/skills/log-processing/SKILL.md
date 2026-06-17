@@ -243,7 +243,10 @@ The system uses two cooperating mechanisms:
 
 2. **Budget-limited concurrency** — the worker budget does not raise the per-job worker count; it only
    caps how many such jobs run concurrently (`available // per_job_workers`). When many large jobs
-   compete for a limited budget, fewer groups run at once. Per-job worker counts by archive size:
+   compete for a limited budget, fewer groups run at once. Same-tier jobs are split into
+   `available // tier_workers` concurrent groups; each group reuses one process pool and runs its archives
+   sequentially, so concurrency is per-group, not strictly per-job, and surplus same-tier archives wait
+   within a group. Per-job worker counts by archive size:
 
 | Archive Size | Per-Job Workers | Typical Scenario    |
 |--------------|-----------------|---------------------|
@@ -253,8 +256,7 @@ The system uses two cooperating mechanisms:
 | 250,000 msgs | 15              | ~35 min at 120 fps  |
 | 648,000 msgs | 25              | 1.5 h at 120 fps    |
 
-The per-job worker count comes solely from square-root scaling; the worker budget governs concurrency
-(how many groups run at once), not the per-job worker count. Two cores are reserved for system operations.
+Two cores are reserved for system operations.
 
 When `worker_budget=-1`, the system resolves the total using the host machine's available CPU cores
 via `resolve_worker_count`. Reduce `worker_budget` to limit memory footprint on constrained systems.
@@ -262,6 +264,11 @@ via `resolve_worker_count`. Reduce `worker_budget` to limit memory footprint on 
 ---
 
 ## Status formatting
+
+The `get_log_processing_status_tool` response carries both an `active` flag (manager thread alive) and a
+`canceled` flag, plus a `message` of `No execution session exists.` when no session ever ran. Treat `active`
+as the completion signal and `canceled` as the cancellation/draining path (active jobs finish while no new
+jobs start). Per-job entries may also include an `executor_id`.
 
 When presenting batch status to the user, format as a table:
 
@@ -288,6 +295,10 @@ When using `get_batch_status_overview_tool` for multi-directory status:
 | /data/session1/logs/  | completed | 3         | 0      | 3     |
 | /data/session2/logs/  | failed    | 1         | 1      | 2     |
 ```
+
+The per-directory `status` is one of five labels resolved by priority — `failed` (any failed job; overrides
+all) > `completed` (all succeeded) > `processing` (any running) > `not_started` (all scheduled) > `in_progress`
+(otherwise) — plus `error` when a tracker cannot be read. A directory with 3 succeeded + 1 failed reports `failed`.
 
 ---
 
@@ -329,6 +340,21 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 | MCP tools unavailable                | Invoke `/video-mcp-environment-setup`                    |
 | Out of memory                        | Reduce `worker_budget`                                   |
 | Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare |
+
+---
+
+## CLI reference (human-facing — do not invoke)
+
+> **CLI reference — for answering user questions only.** The `axvs` command-line interface is a
+> **human-facing** tool. **Agents must never invoke `axvs` commands** — every agent-driven operation has an
+> equivalent MCP tool (noted in the table). This section exists solely so the agent can answer user
+> questions about the CLI.
+
+| Command       | Key options                                                                                              | Purpose                                                                  | MCP equivalent                                                         |
+|---------------|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|------------------------------------------------------------------------|
+| `axvs process` | `-ld/--log-directory`, `-od/--output-directory`, `-id/--job-id`, `-li/--log-id` (repeatable), `-w/--workers`, `-p/--progress` | Extracts frame timestamps from the `.npz` log archives under one directory | The prepare/execute/status batch tools documented above (`prepare_log_processing_batch_tool`, `execute_log_processing_jobs_tool`, `get_log_processing_status_tool`) |
+
+`axvs process` handles ONE log directory per invocation, whereas the MCP workflow batches many directories.
 
 ---
 

@@ -359,7 +359,8 @@ are the primary example.
 class TransportLayer
 {
     public:
-        [[nodiscard]] uint8_t get_runtime_status() const { return _runtime_status; }
+        [[nodiscard]]
+        uint8_t get_runtime_status() const { return _runtime_status; }
 
     private:
         uint8_t _runtime_status = 0;
@@ -403,6 +404,7 @@ See [libraries-and-tools.md](references/libraries-and-tools.md) for `.clang-form
 | `/skill-design`     | Provides skill file conventions; invoke for skill authoring tasks  |
 | `/explore-codebase` | Provides project context that informs style-compliant code changes |
 | `/api-docs`         | Provides Doxygen/Breathe API documentation build conventions       |
+| `/platformio-config`| Covers platformio.ini and library.json field/section conventions; cpp-style covers C++ source only |
 
 ---
 
@@ -452,6 +454,7 @@ C++ Style Compliance:
 - [ ] Include guards use LIBRARY_PREFIX_FILE_NAME_H pattern
 - [ ] Include sorting delegated to clang-format (do not manually reorder)
 - [ ] Pointer/reference alignment is left (int* pointer, int& reference)
+- [ ] Attributes ([[nodiscard]], [[maybe_unused]]) on their own line above the declaration (BreakAfterAttributes: Always)
 - [ ] Consecutive assignments aligned (AlignConsecutiveAssignments)
 - [ ] Template declarations on separate lines
 - [ ] Guard clauses / early returns preferred over deep nesting

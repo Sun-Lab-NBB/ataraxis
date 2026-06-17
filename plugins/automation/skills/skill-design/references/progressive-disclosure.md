@@ -15,7 +15,7 @@ reference material available when needed.
 ## Directory structure
 
 ```text
-skill-name/
+plugins/<plugin-name>/skills/skill-name/
 ├── SKILL.md              # Main instructions (loaded when triggered)
 ├── references/           # Detailed reference material (loaded on demand)
 │   ├── field-reference.md

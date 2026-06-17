@@ -109,6 +109,12 @@ directories. For legacy sessions without manifests, use `write_microcontroller_m
 | `output_directories` | `list[str]` | (required) | Absolute paths for per-directory output. Must match log_directories length.   |
 | `config_path`        | `str`       | (required) | Absolute path to the validated ExtractionConfig YAML file.                    |
 
+**Note:** Prepare filters `source_ids` down to those with an on-disk `{source_id}_log.npz` archive and silently
+drops the rest with no error. A directory with no matching archives returns `jobs: []`, `source_ids: []`, and
+`tracker_path: None` while still reporting `success: True`. After preparing, verify the returned source_ids/jobs
+match the requested set — a mismatch (or `tracker_path: None`) means archives are missing for the dropped IDs, not
+a failure to retry.
+
 **`execute_log_processing_jobs_tool` parameters:**
 
 | Parameter       | Type         | Default    | Description                                                                                                             |
@@ -126,6 +132,13 @@ directories. For legacy sessions without manifests, use `write_microcontroller_m
 | `reset_log_processing_jobs_tool`    | Resets specific or all jobs to SCHEDULED for retry                    |
 | `get_batch_status_overview_tool`    | Aggregate status across all log directories under root                |
 | `clean_log_processing_output_tool`  | Deletes `microcontroller_data/` subdirectories for re-processing      |
+
+**Note:** `get_log_processing_status_tool`, `get_log_processing_timing_tool`, and `cancel_log_processing_tool`
+report only on the single active in-memory execution session (the most recent `execute_log_processing_jobs_tool`
+call) and return a no-active-session response otherwise — e.g. when called before execute or after a server
+restart, even if trackers with running jobs exist on disk (status/timing return `'No execution session exists.'`;
+cancel returns `{canceled: False}` with `'No execution session is active.'`). For status of directories not in the
+active session, use `get_batch_status_overview_tool`, which reads trackers from disk.
 
 **`reset_log_processing_jobs_tool` parameters:**
 
@@ -164,6 +177,8 @@ Key architectural facts:
 - **ProcessingTracker** manages job lifecycle: `SCHEDULED` → `RUNNING` → `SUCCEEDED` / `FAILED` via YAML state files
 - **Single execution session** constraint: only one batch execution can run at a time
 - **Parallel processing** activates automatically for archives with >=2000 messages
+- **Empty archives:** an archive with zero data messages completes as `SUCCEEDED` and produces no feather files —
+  this is expected, not a failure to retry or clean
 - **ExtractionConfig** controls which modules, kernel messages, and event codes are extracted per controller
 - **Output layout:** All processing output is written under a `microcontroller_data/` subdirectory within the
   output directory provided by the user
@@ -283,6 +298,9 @@ Summary: 5/8 jobs complete | 1 running | 2 queued | 0 failed
 | 104       | SCHEDULED | --       |
 ```
 
+A job may report status `UNKNOWN` when its tracker entry is unreadable or missing — resolve by re-preparing, not
+by reset (which is for `FAILED` jobs). Status entries also carry an optional `executor_id` field.
+
 When using `get_batch_status_overview_tool` for multi-directory status:
 
 ```text
@@ -336,6 +354,21 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 | MCP tools unavailable                | Invoke `/communication-mcp-environment-setup`            |
 | Out of memory                        | Reduce `worker_budget`                                   |
 | Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare |
+
+---
+
+## CLI reference (human-facing — do not invoke)
+
+> **CLI reference — for answering user questions only.** The `axci` command-line interface is a **human-facing**
+> tool. **Agents must never invoke `axci` commands** — every agent-driven operation has an equivalent MCP tool
+> (noted in the table). This section exists solely so the agent can answer user questions about the CLI.
+
+This is the human path that the "do not run processing via CLI" instruction in Agent requirements refers to.
+`axci process` handles ONE directory per invocation, whereas the MCP workflow batches many.
+
+| Command        | Key options                                                                                                          | Purpose                                                       | MCP equivalent                                                                  |
+|----------------|----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|---------------------------------------------------------------------------------|
+| `axci process` | `-ld/--log-directory`, `-od/--output-directory`, `-c/--config`, `-id/--job-id`, `-w/--workers`, `-p/--progress/--no-progress` | Extracts module and kernel data from one directory's archives | `prepare_log_processing_batch_tool` / `execute_log_processing_jobs_tool` (batch) |
 
 ---
 

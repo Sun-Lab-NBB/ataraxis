@@ -156,6 +156,12 @@ All production projects use:
 "Topic :: Scientific/Engineering",
 ```
 
+Treat the audience/topic split above as a starting point. Choose the `Topic` classifier to match the project's domain
+rather than always defaulting to `Topic :: Software Development`. Practiced domain-specific values include
+`Topic :: Communications` (ataraxis-communication-interface, ataraxis-transport-layer-pc) and
+`Topic :: Multimedia :: Video` (ataraxis-video-system); projects without a more specific domain keep
+`Topic :: Software Development`.
+
 ### Python versions
 
 List each supported minor version individually:

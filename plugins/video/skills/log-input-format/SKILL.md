@@ -91,10 +91,14 @@ sources:
 - **Manual:** Use `write_camera_manifest_tool` (see `/camera-setup`) to retroactively tag legacy log
   directories that predate the manifest system.
 
-**Why manifests matter:** The `discover_camera_data_tool` uses manifest-based routing to
-identify axvs-produced log archives. Directories without a `camera_manifest.yaml` will not be discovered
-by this tool. Manifests also associate source IDs with human-readable names and enable the discovery tool
-to locate corresponding video files by camera name.
+**Why manifests matter:** The manifest is a hard gate for both discovery and processing.
+`discover_camera_data_tool` uses manifest-based routing to identify axvs-produced log archives, so
+directories without a `camera_manifest.yaml` will not be discovered by this tool. Beyond discovery,
+`run_log_processing_pipeline` requires the manifest as well: it raises `FileNotFoundError` when none
+is found, raises `ValueError` when it has no sources, resolves the source IDs to process from the
+manifest when `log_ids` is None, and rejects any requested `log_id` not registered in the manifest.
+Manifests also associate source IDs with human-readable names and enable the discovery tool to locate
+corresponding video files by camera name.
 
 ---
 
@@ -179,6 +183,13 @@ Each log directory is an **independent processing unit**. The discovery tool gro
 parent directory (the DataLogger output directory), and each directory is prepared and processed
 independently.
 
+Source-ID-to-archive resolution requires exactly one matching `{source_id}_log.npz` under the
+recursively searched tree (`ValueError` on duplicates), and all resolved archives must share a single
+parent directory (`ValueError` otherwise, "Each DataLogger output directory must be processed
+independently"). Therefore `run_log_processing_pipeline` must be invoked once per DataLogger output
+directory, not once per recording root, and a duplicate source ID across nested subdirectories is a
+fatal error, not a combined-processing path.
+
 ### Multiple recordings under one root
 
 The discovery tool recursively searches a root directory and groups log directories by recording root:
@@ -250,10 +261,14 @@ processing via `ProcessPoolExecutor`.
 
 Before running the log processing pipeline, verify these conditions:
 
-1. **Camera manifest present** — Log directories should contain a `camera_manifest.yaml` file for
-   `discover_camera_data_tool` to locate them. If missing, use `write_camera_manifest_tool`
-   to create one. Note: the processing pipeline itself does not require manifests — they are only
-   needed for the manifest-based discovery tool.
+1. **Camera manifest present** — Log directories MUST contain a `camera_manifest.yaml` file. The
+   manifest is required both by `discover_camera_data_tool` and by `run_log_processing_pipeline`
+   itself: the pipeline locates it via recursive `rglob` (using the first match), raises
+   `FileNotFoundError` when none is found, and raises `ValueError` when it has no source entries.
+   When `log_ids` is None the pipeline resolves the source IDs to process from the manifest, and it
+   rejects any requested `log_id` not registered in the manifest. Job IDs are a deterministic function
+   of `(job_name, source_id)`, so an "invalid job_id" error from the pipeline likewise means the source
+   ID is not registered in the manifest. If missing, use `write_camera_manifest_tool` to create one.
 
 2. **Archives assembled** — Log directories contain `.npz` files, not just raw `.npy` files. If only
    `.npy` files are present, `assemble_log_archives()` must be run first.

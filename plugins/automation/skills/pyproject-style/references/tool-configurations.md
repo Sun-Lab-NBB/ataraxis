@@ -93,6 +93,11 @@ convention = "google"
 ]
 ```
 
+When a `tests/` directory exists, add a second per-file-ignores key for test files relaxing test-specific lint
+rules. Spell the glob `**/tests/**/*.py` or `tests/**/*.py` to match the project's layout. The commonly relaxed rules
+are `S101`, `SLF001`, `PLR2004`, `ANN`/`ANN001`/`ANN201`, `D`/`D202`, `INP001`, `PT006`, and `ARG001`; the exact set
+varies per project. Each ignore carries an explanatory inline comment, as elsewhere.
+
 ### Ruff isort
 
 ```toml

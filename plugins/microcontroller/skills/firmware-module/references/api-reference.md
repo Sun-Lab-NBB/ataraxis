@@ -185,8 +185,10 @@ bool ExtractParameters(ObjectType& storage_object);
 ```
 
 Unpacks the received ModuleParameters message payload into the specified storage object. Internally
-delegates to `Communication::ExtractModuleParameters()`. Returns `true` on success, `false` on
-error (size mismatch, wrong message type, etc.).
+delegates to `Communication::ExtractModuleParameters()`, which `static_assert`s the struct size is 1-250
+bytes (compile-time error otherwise). Returns `true` on success, `false` on one of three conditions:
+`kExtractionForbidden` (message is not a ModuleParameters message), `kParameterMismatch` (received byte
+count does not equal `sizeof(struct)`), or `kParsingError` (payload parsing failed).
 
 ---
 

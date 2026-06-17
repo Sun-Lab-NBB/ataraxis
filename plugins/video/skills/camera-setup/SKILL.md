@@ -99,6 +99,12 @@ Only one video session can be active at a time.
 | `output_pixel_format`    | `str`        | `"yuv420p"` | Pixel format: `"yuv420p"` or `"yuv444p"`                     |
 | `quantization_parameter` | `int`        | `15`        | Compression quality (0 = best, 51 = worst)                   |
 
+- `interface`: `"mock"` produces synthetic frames with no hardware involvement and is intended only for
+  pipeline/library testing; to test a real camera use `"opencv"` or `"harvesters"`.
+- `display_frame_rate`: on macOS, preview display is automatically disabled regardless of this value, so the
+  absence of a preview window on macOS is expected and not a session failure. On other platforms it must not
+  exceed `frame_rate`.
+
 See the encoding parameter guidance section below for recommendations on encoder, preset, pixel format, and
 quantization parameter selection.
 
@@ -325,6 +331,29 @@ When transitioning from MCP-based testing to writing VideoSystem code, use this 
 | GenICam tool errors                                | Camera not Harvesters-compatible   | GenICam tools only work with Harvesters cameras             |
 | `write_genicam_node_tool` fails                    | Node is read-only or value invalid | Use `read_genicam_node_tool` to check access mode and range |
 | MCP tools unavailable                              | Server not running                 | Use `/video-mcp-environment-setup` to diagnose              |
+
+---
+
+## CLI reference (human-facing — do not invoke)
+
+> **CLI reference — for answering user questions only.** The `axvs` command-line interface is a **human-facing**
+> tool. **Agents must never invoke `axvs` commands** — every agent-driven operation has an equivalent MCP tool
+> (noted in the table). This section exists solely so the agent can answer user questions about the CLI.
+
+| Command                  | Key options                                                            | Purpose                                                | MCP equivalent                                                        |
+|--------------------------|-----------------------------------------------------------------------|--------------------------------------------------------|-----------------------------------------------------------------------|
+| `axvs run`               | `-i/--interface`, `-c/--camera-index`, `-g/--gpu-index`, `-o/--output-directory`, `-m/--monochrome`, `-w/--width`, `-h/--height`, `-f/--frame-rate` | Interactive single-camera live imaging test            | `start_video_session_tool` / `stop_video_session_tool`                |
+| `axvs cti set`           | `-f/--file-path`                                                       | Configures the GenICam GenTL Producer (.cti) file      | `set_cti_file_tool`                                                    |
+| `axvs cti check`         | (none)                                                                 | Verifies the configured CTI file is valid              | `get_cti_status_tool`                                                  |
+| `axvs check devices`     | (none)                                                                 | Discovers connected cameras and their indices          | `list_cameras_tool`                                                    |
+| `axvs check compatibility` | (none)                                                               | Checks FFMPEG/GPU video-encoding requirements          | `check_runtime_requirements_tool`                                     |
+| `axvs configure read`    | `-c/--camera-index`, `-n/--node-name`, `-b/--blacklisted-node`, `--no-blacklist` | Reads a GenICam node or lists writable nodes | `read_genicam_node_tool`                                              |
+| `axvs configure write`   | `-c/--camera-index`, `-n/--node-name`, `-v/--value`                    | Writes a GenICam node value                            | `write_genicam_node_tool`                                             |
+| `axvs configure dump`    | `-c/--camera-index`, `-o/--output-file`, `-b/--blacklisted-node`, `--no-blacklist` | Exports the full camera config to YAML    | `dump_genicam_config_tool`                                           |
+| `axvs configure load`    | `-c/--camera-index`, `-f/--config-file`, `--strict`, `-b/--blacklisted-node`, `--no-blacklist` | Applies a YAML config to the camera | `load_genicam_config_tool`                                          |
+
+The `axvs run` session is driven by interactive keypresses (`q` to terminate, `w` to start saving frames, `s` to
+stop saving frames) that have no MCP analogue; the MCP session is tool-driven.
 
 ---
 

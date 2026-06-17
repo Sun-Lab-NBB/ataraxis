@@ -101,9 +101,13 @@ Key constructor notes:
   Harvesters cameras, set resolution and frame rate via GenICam configuration (see `/camera-setup`)
   rather than overriding through these parameters. The VideoSystem overrides are primarily intended
   for OpenCV cameras that lack GenICam node control.
-- `display_frame_rate` defaults to `None` (preview disabled). Set to an integer FPS to enable.
+- `display_frame_rate` defaults to `None` (preview disabled). Set to a positive integer FPS not exceeding
+  the camera's acquisition frame rate to enable, else `__init__` raises `TypeError`. Frame display is
+  unsupported on macOS: it is auto-disabled (a warning is emitted), so the value has no effect there.
 - `gpu` defaults to `-1` (CPU encoding). Set to `0+` for NVIDIA GPU encoding.
-- `color` is a keyword-only parameter defaulting to `None` (auto-detect from camera).
+- `color` is a keyword-only parameter defaulting to `None`. For OpenCV and Mock, `None` resolves to
+  monochrome (`False`) — a color OpenCV camera left at `None` silently records grayscale, so pass
+  `color=True` explicitly to record color. Only Harvesters infers color/mono from the GenICam config.
 
 ### Lifecycle
 
@@ -113,7 +117,9 @@ VideoSystem() → start() → [start_frame_saving() → stop_frame_saving()] →
 
 - `start()` begins frame acquisition without saving. Useful for preview or warm-up.
 - `start_frame_saving()` / `stop_frame_saving()` toggle recording while acquisition continues.
-- `stop()` terminates acquisition and releases all resources. Must be called explicitly.
+- `stop()` terminates acquisition and releases all resources. Must be called explicitly. It blocks until
+  all buffered frames are encoded, up to a 10-minute cap; beyond that it force-kills the consumer and
+  discards remaining frames.
 
 ### System ID allocation
 

@@ -335,7 +335,10 @@ All definitions within a file follow this vertical ordering from top to bottom:
 
 1. **File-level XML documentation** (`/// <summary>` block describing the file)
 2. **Using directives**
-3. **Namespace declaration** (file-scoped preferred: `namespace SL.Config;`)
+3. **Namespace declaration** (block-scoped is the project convention: `namespace SL.Config { ... }`,
+   with class members indented one level inside the block). Although `assets/.editorconfig` carries
+   `csharp_style_namespace_declarations = file_scoped:suggestion`, the exemplar code overrides it and
+   block-scoped is the practiced form.
 4. **Enumerations** (type definitions that other code depends on)
 5. **Class declaration** with members in this order:
    a. Constants (`const` and `static readonly` fields)

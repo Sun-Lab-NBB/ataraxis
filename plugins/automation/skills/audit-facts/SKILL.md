@@ -227,6 +227,12 @@ and where.
 You MUST adhere to the following discipline during every audit.
 
 - Never invent source. If you cannot open the source after reasonable search, mark UNVERIFIABLE.
+- Facts not derivable from the audited repo's own source (external toolchain version floors,
+  installer requirements, cross-repo version pins, environment prerequisites) are authoritative
+  by default. Report them as UNVERIFIABLE only when they appear internally contradicted or stale;
+  otherwise omit them, or set the Suggested fix to "leave as-is — authoritative external
+  requirement" rather than a removal or change. `/readme-style` is the source of the canonical
+  install-section requirements (e.g. the mamba 2.3.2+ / miniforge3 floor).
 - Never paraphrase source and present it as a verbatim quote. Use the Read tool and copy.
 - Never expand scope to restructure, restyle, or refactor. This skill produces findings only.
 - Never flag style, formatting, structural, or convention issues. Those belong to

@@ -39,7 +39,7 @@ public class OccupancyZone : MonoBehaviour
 ```csharp
 // Single-line (preferred for most members)
 /// <summary>Initializes the occupancy timer.</summary>
-void Start()
+private void Start()
 
 // Multi-line (when description is long)
 /// <summary>
@@ -188,6 +188,17 @@ Rules:
 - Use `<paramref>` within exception descriptions to reference parameters
 - Order multiple `<exception>` tags alphabetically by exception type name
 - In Unity MonoBehaviour methods, prefer `Debug.LogError` over throwing (see SKILL.md)
+
+### See cref references
+
+Use `<see cref="MemberOrType"/>` inside `<summary>` and `<remarks>` to link to other fields,
+constants, methods, classes, interfaces, and generic types — not only exception types. This
+enables IDE navigation between related members:
+
+```csharp
+/// <summary>Resets the corridor to the configured <see cref="trackSeed"/> for reproducible runs.</summary>
+public void ResetZone()
+```
 
 ### Inheritdoc
 

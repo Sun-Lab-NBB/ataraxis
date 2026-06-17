@@ -39,12 +39,18 @@ Run the following git commands using the Bash tool:
 
 1. Identify the previous release tag with `git tag --sort=-v:refname` (most recent first) or
    `git describe --tags --abbrev=0`.
-2. List the pull requests merged since that tag with `git log <previous-tag>..HEAD --merges --oneline`. Each merge
-   commit names the pull request number and source branch, and its body carries the pull request title.
+2. List the pull requests merged since that tag with `git log <previous-tag>..HEAD --merges --format='%h %s%n%b'`.
+   The `Merge pull request #N from ...` subject line names only the number and source branch — the pull request
+   title and description live in the commit body, so you MUST read the body (not `--oneline`) to draft the notes.
 3. Review the aggregate change scope with `git diff <previous-tag>..HEAD --stat`.
 
-If the repository has no prior release tag, summarize the full history (`git log --merges --oneline`) and note that
-this is the first release.
+If `--merges` returns few or no results relative to the `git diff --stat` scope, the repository likely uses
+squash- or rebase-merged pull requests or direct commits to the default branch, which produce no merge commit.
+Enumerate from `git log <previous-tag>..HEAD --oneline --no-merges` instead and reconcile both so no merged work
+is silently dropped.
+
+If the repository has no prior release tag, summarize the full history (`git log --merges --format='%h %s%n%b'`)
+and note that this is the first release.
 
 ### Step 2: Determine the platform
 
@@ -59,6 +65,9 @@ Determine whether the project is an ataraxis library or a sollertia library from
 
 Infer the release type from the change set and recommend it to the user. You MUST ask the user to confirm the type
 before finalizing the notes — never decide it unilaterally.
+
+For C++ PlatformIO libraries the release version is single-sourced from `library.json` (not pyproject.toml); see
+`/platformio-config`.
 
 | Type  | Use case                                                                                 |
 |-------|------------------------------------------------------------------------------------------|

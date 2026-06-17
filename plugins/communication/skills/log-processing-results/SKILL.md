@@ -118,6 +118,10 @@ results[]:                Per-file analysis results:
 total_files:              Number of files analyzed
 ```
 
+`inter_event_timing` is `{}` when `total_rows < 2`. For an empty file, `summary` is just
+`{total_rows: 0}` (no timestamps/duration), with empty `event_distribution`, `command_distribution`, and
+`sample_rows`.
+
 ---
 
 ## Recommended query order
@@ -172,6 +176,12 @@ config's event codes.
 Multiple feather files may be produced per source ID (one per module extraction target plus an optional
 kernel file). This differs from the axvs pipeline which produces one file per source.
 
+A configured module or kernel produces a feather file **only if at least one message matched its event
+codes**; a fully empty archive produces no files at all. All of these cases still report `SUCCEEDED`. A
+missing expected file therefore means the configured event codes never fired — not data loss or a
+processing failure. Cross-check it against the event distribution (`query_extracted_events_tool`) or the
+input archive before treating it as a problem.
+
 ### ProcessingTracker file
 
 The `microcontroller_processing_tracker.yaml` file tracks job lifecycle per output directory. Each job has:
@@ -216,6 +226,10 @@ value = np.frombuffer(payload, dtype=np.dtype(dtype_str))
 
 The `dtype` column contains the numpy dtype string that was used to serialize the data on the
 microcontroller side. Common dtypes include `uint8`, `uint16`, `uint32`, `int32`, `float32`.
+
+Rows from `*_STATE` events carry null `dtype`/`data` by design — a state code reported via the `event`
+column with no payload — while `*_DATA` events carry a numpy dtype string and serialized bytes. Null is
+the expected signature of a state-report event, not corruption.
 
 ### Module vs kernel files
 
@@ -276,7 +290,8 @@ To determine detailed job status, use `get_batch_status_overview_tool` from `/lo
 Log Processing Output Completeness:
 - [ ] Output directory contains `microcontroller_data/` subdirectory
 - [ ] Feather files verified via `verify_processing_output_tool` (schema correct)
-- [ ] All expected module and kernel files present (cross-reference with extraction config)
+- [ ] All expected module and kernel files present (cross-reference with extraction config; a missing
+      file with a SUCCEEDED job means its event codes never fired, not a failure)
 - [ ] Processing tracker shows SUCCEEDED for all jobs
 - [ ] Event analysis performed via `query_extracted_events_tool`
 - [ ] Event distribution matches expected firmware event codes

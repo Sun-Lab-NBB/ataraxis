@@ -323,6 +323,7 @@ Tool Configurations:
 - [ ] Ruff: Google docstring convention
 - [ ] Ruff: isort configured (case-sensitive, combine-as-imports, etc.)
 - [ ] Ruff: __init__.py ignores F401 and F403
+- [ ] Ruff: test-file ignores present when a tests/ directory exists
 - [ ] Ruff: Each ignore has an explanatory inline comment
 - [ ] MyPy: Configuration tier matches project type (full strict or minimal)
 - [ ] MyPy: Standard exclusion list present

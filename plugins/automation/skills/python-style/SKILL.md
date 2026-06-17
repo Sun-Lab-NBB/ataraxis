@@ -88,7 +88,7 @@ consistency across languages while respecting each language's idiomatic standard
 
 **Python-specific divergences from C++:**
 - Functions and methods use snake_case (not PascalCase as in C++)
-- Constants use `_UPPER_SNAKE_CASE` (not `kPascalCase` as in C++)
+- Constants use `_UPPER_SNAKE_CASE` for private / `UPPER_SNAKE_CASE` for public (not `kPascalCase` as in C++)
 - Enum values use `UPPER_SNAKE_CASE` (not `kPascalCase` as in C++)
 - Documentation uses Google-style docstrings (not Doxygen `@tags`)
 - Error handling uses `console.error()` or `raise` (not status codes)
@@ -96,7 +96,7 @@ consistency across languages while respecting each language's idiomatic standard
 
 **Python-specific divergences from C#:**
 - Functions and methods use snake_case (not PascalCase as in C#)
-- Constants use `_UPPER_SNAKE_CASE` (not PascalCase as in C#)
+- Constants use `_UPPER_SNAKE_CASE` for private / `UPPER_SNAKE_CASE` for public (not PascalCase as in C#)
 - Enum values use `UPPER_SNAKE_CASE` (not PascalCase as in C#)
 - Documentation uses Google-style docstrings (not XML `<summary>` tags)
 - Private members use `_snake_case` (not `_camelCase` as in C#)
@@ -125,11 +125,16 @@ Use **full words**, not abbreviations:
 
 ### Constants
 
-Module-level constants with type annotations, descriptive names, and inline docstrings:
+Module-level constants with type annotations, descriptive names, and inline docstrings. Constants
+intended for export (listed in `__all__`) use bare `UPPER_SNAKE_CASE`; constants internal to a
+module use `_UPPER_SNAKE_CASE`:
 
 ```python
 _MINIMUM_SAMPLE_COUNT: int = 100
 """Minimum number of samples required for statistical validity."""
+
+MAXIMUM_QUANTIZATION_VALUE: int = 51
+"""Maximum quantization value accepted by the encoder."""
 ```
 
 ---
@@ -155,6 +160,14 @@ Exceptions:
   Note: standard `@njit` / `@jit` functions do support keyword arguments and are not exempt
   from this rule.
 
+On the signature side, make boolean flag parameters keyword-only by placing them after a `*,`
+separator, so callers must pass them by name:
+
+```python
+def transfer_directory(source: Path, destination: Path, *, verify_integrity: bool = False,
+                       remove_source: bool = False) -> None: ...
+```
+
 ---
 
 ## Error handling
@@ -175,6 +188,10 @@ def process_data(self, data: NDArray[np.float32], threshold: float) -> None:
 
 In projects that do not depend on `ataraxis-base-utilities`, use standard `raise` with the same
 message format.
+
+`console.error` is typed `NoReturn` and always raises the supplied exception, so no `raise` or
+`return` should follow it — treat it as a terminating call in guard clauses (mypy understands the
+`NoReturn` contract).
 
 ### Error message format
 
@@ -286,6 +303,13 @@ must appear **above** the functions and classes that use them.
 **Exception — dataclass-only modules**: In files whose primary product is the dataclasses
 themselves, the order is: enumerations first, then public helper functions, then private helper
 functions, then dataclasses at the bottom.
+
+### Stub files
+
+`.pyi` stub files and the `py.typed` marker are GENERATED, never hand-authored. `tox -e stubs`
+produces them and they ship with releases; never create or hand-edit a stub — change typing by
+editing the `.py` source and regenerating. If stale stubs are cluttering a dev session, purge them
+with `tox -e lint` (`automation-cli purge-stubs`).
 
 ---
 
