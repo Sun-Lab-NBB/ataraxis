@@ -1,5 +1,5 @@
-# CSharpier configuration for sl-unity-tasks
-# Provides C# formatting similar to the clang-format style used in sl-micro-controllers.
+# CSharpier configuration for C# Unity projects
+# Provides C# formatting similar to the clang-format style used in the C++ firmware projects.
 #
 # Installation:
 #   dotnet tool install -g csharpier

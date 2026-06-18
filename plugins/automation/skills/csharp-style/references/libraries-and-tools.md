@@ -475,3 +475,147 @@ if (topicName.Contains("Gimbl"))  // Uses CurrentCulture on some .NET versions
   behavior is irrelevant
 - Never use `StringComparison.CurrentCulture` or `StringComparison.InvariantCulture` unless
   displaying sorted text to users
+
+---
+
+## Function calls
+
+Prefer **named arguments** when the meaning is not obvious from the value alone:
+
+```csharp
+// Good - named arguments clarify boolean and same-type parameters
+CreateChannel(topic: "sensors/encoder", isListener: true, qosLevel: 2);
+Instantiate(prefab: segmentPrefab, position: spawnPosition, rotation: Quaternion.identity);
+
+// Acceptable - single argument or meaning obvious from type/name
+Mathf.Abs(difference);
+Debug.Log(message);
+GetComponent<MeshRenderer>();
+```
+
+Use named arguments when a method has:
+- Boolean parameters (always name them)
+- Multiple parameters of the same type
+- Parameters whose meaning is unclear from the value
+
+---
+
+## Blank lines
+
+- **One blank line** between method definitions within a class
+- **One blank line** after using directive blocks before namespace/class
+- **No blank line** after an opening brace or before a closing brace
+- **One blank line** between logical groups of statements within a method
+
+---
+
+## Line length and formatting
+
+- Maximum line length: **120 characters**
+- Formatter: **CSharpier** (config in `.csharpierrc.yaml`)
+- Style enforcement: **EditorConfig** (config in `.editorconfig`)
+- Brace style: **Allman** (opening braces on new lines for all constructs)
+- Indentation: **4 spaces** (no tabs)
+- Line endings: **LF** (Unix-style)
+
+### String formatting
+
+- Use **string interpolation** (`$"..."`) for all string formatting
+- Use verbatim strings (`@"..."`) for paths and multi-line strings
+- Use **double quotes** for all strings
+
+### Trailing commas
+
+C# does not enforce trailing commas in the same way as Python. Follow CSharpier's output for
+comma placement in multi-line constructs.
+
+### Brace rules
+
+Always use braces for control flow statements, even single-line bodies:
+
+```csharp
+// Good
+if (template == null)
+{
+    return;
+}
+
+// Acceptable for simple guard clauses
+if (!isActive)
+    return;
+```
+
+---
+
+## Tooling
+
+### CSharpier
+
+CSharpier is the primary formatter. Install and use it before committing:
+
+```bash
+dotnet tool install -g csharpier    # Install globally
+csharpier .                          # Format all files
+csharpier --check .                  # Check without modifying (CI mode)
+```
+
+Configuration lives in `.csharpierrc.yaml`:
+
+```yaml
+printWidth: 120
+useTabs: false
+tabWidth: 4
+endOfLine: lf
+```
+
+### EditorConfig
+
+The `.editorconfig` file enforces naming conventions, brace style, and spacing rules in
+IDEs. It is the source of truth for style rules that CSharpier does not cover (naming,
+`var` preferences, expression-bodied members).
+
+### CSharpier ignore
+
+The `.csharpierignore` file excludes Unity-generated directories (`Library/`, `Temp/`,
+`Logs/`) and third-party packages from formatting.
+
+---
+
+## Configuration files
+
+Canonical configs are stored in [assets/](assets/). When working in a C# project, verify that
+`.csharpierrc.yaml`, `.editorconfig`, and `.csharpierignore` in the project root match these:
+
+- [assets/.csharpierrc.yaml](assets/.csharpierrc.yaml)
+- [assets/.editorconfig](assets/.editorconfig)
+- [assets/.csharpierignore](assets/.csharpierignore)
+
+The `.csharpierignore` contains generic entries only. Individual projects may need additional
+project-specific entries (e.g., paths to auto-generated scripts).
+
+---
+
+## Guard clauses and boolean expressions
+
+Prefer early returns (guard clauses) over deeply nested conditionals. Use explicit boolean
+checks, `string.IsNullOrEmpty()` for strings, and `== null` / `!= null` for null checks:
+
+```csharp
+/// <summary>Checks if the occupancy duration has been met while the animal is in the zone.</summary>
+void Update()
+{
+    if (!isActive || boundaryDisarmed)
+        return;
+
+    if (string.IsNullOrEmpty(_zoneName))
+        return;
+
+    if (_occupancyTimer.IsRunning && inZone)
+    {
+        if (_occupancyTimer.ElapsedMilliseconds >= occupancyDurationMs)
+        {
+            OnOccupancyMet();
+        }
+    }
+}
+```

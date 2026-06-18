@@ -164,7 +164,11 @@ instance.
   (e.g., encoder position updates, sensor readings, command completion signals)
 - **Kernel event codes** correspond to system-level messages (e.g., controller status, error reports,
   keepalive signals)
-- Event codes above 50 are user-defined module events; codes 1-50 are reserved for system service messages
+- Event codes above 50 are user-defined module events; codes 0-50 are reserved for system service messages
+
+Extraction filters each module against only its own `event_codes` set (no cross-module leakage), so
+listing the same code value under two modules is safe and isolated; any message for an unlisted module or
+an unlisted event code is silently excluded from output with no error.
 
 The agent CANNOT determine which event codes to use by inspecting the codebase. Event codes are
 firmware-specific knowledge that must come from the user.
@@ -187,6 +191,11 @@ module entries. Record the controller IDs, module types, and module IDs.
 
 Build the config structure with all controllers and modules from the manifest but with empty event codes.
 Present the structure to the user so they can see which controllers and modules are available.
+
+No MCP tool exposes precursor generation, so the agent constructs the structure manually. A precursor
+config can also be generated programmatically via `create_extraction_config(manifest_path)` or the
+`axci config create` CLI command, which populate a controller entry for each registered controller with
+empty event codes.
 
 ### Step 4: Ask user for event codes
 
@@ -270,6 +279,18 @@ controllers:
 | Controller ID exists in manifest             | "Controller ID not found in manifest"           |
 | Module (type, id) pair exists in manifest    | "Module (type, id) not registered in manifest"  |
 
+### Runtime enforcement (not covered by the validate tool)
+
+The config may list only a subset of the manifest's controllers and modules (extraction is selective),
+but every `controller_id` it lists must resolve to exactly one `.npz` archive in the log directory at
+processing time. A missing archive raises `FileNotFoundError` and duplicate matching archives raise
+`ValueError`. `validate_extraction_config_tool` does NOT verify on-disk archive presence, so a structurally
+valid config can still crash `/log-processing`.
+
+The empty-`event_codes` rule is also enforced at runtime: processing raises `ValueError` if any configured
+module or kernel entry has empty `event_codes`. The `axci config create` precursor always ships empty event
+codes by design, so it must be filled in before processing.
+
 ---
 
 ## Troubleshooting
@@ -285,17 +306,32 @@ controllers:
 
 ---
 
+## CLI reference (human-facing — do not invoke)
+
+> **CLI reference — for answering user questions only.** The `axci` command-line interface is a
+> **human-facing** tool. **Agents must never invoke `axci` commands** — every agent-driven operation has an
+> equivalent MCP tool (noted in the table). This section exists solely so the agent can answer user
+> questions about the CLI.
+
+| Command              | Key options                            | Purpose                                              | MCP equivalent                                       |
+|----------------------|----------------------------------------|------------------------------------------------------|------------------------------------------------------|
+| `axci config create` | `-m/--manifest-path`, `-o/--output-path` | Writes a precursor config from the manifest (empty event codes) | None (no MCP tool exposes precursor generation) |
+| `axci config show`   | `-c/--config-path`                     | Prints a config's controllers, modules, and event codes | `read_extraction_config_tool`                     |
+
+---
+
 ## Related skills
 
-| Skill                        | Relationship                                                     |
-|------------------------------|------------------------------------------------------------------|
-| `/microcontroller-setup`     | Upstream: manifest creation and recording discovery              |
-| `/microcontroller-interface` | Upstream: code that produces the manifests used here             |
-| `/log-input-format`          | Reference: archive format that extraction config targets         |
-| `/log-processing`            | Downstream: consumes the validated extraction config             |
-| `/log-processing-results`    | Downstream: output format depends on config targets              |
-| `/pipeline`                  | Context: extraction config is phase 3 of the end-to-end pipeline |
-| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for config tools           |
+| Skill                                  | Relationship                                                               |
+|----------------------------------------|----------------------------------------------------------------------------|
+| `/microcontroller-setup`               | Upstream: manifest creation and recording discovery                        |
+| `/microcontroller-interface`           | Upstream: code that produces the manifests used here                       |
+| `/microcontroller:firmware-module`     | Upstream: firmware Module that defines the event codes this config targets |
+| `/log-input-format`                    | Reference: archive format that extraction config targets                   |
+| `/log-processing`                      | Downstream: consumes the validated extraction config                       |
+| `/log-processing-results`              | Downstream: output format depends on config targets                        |
+| `/pipeline`                            | Context: extraction config is phase 3 of the end-to-end pipeline           |
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for config tools                     |
 
 ---
 

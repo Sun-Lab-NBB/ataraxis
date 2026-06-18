@@ -1,4 +1,4 @@
-# ataraxis-video-system API Reference
+# ataraxis-video-system API reference
 
 Complete API reference for ataraxis-video-system v3.0.0.
 
@@ -39,7 +39,7 @@ from ataraxis_video_system import (
 
 ---
 
-## VideoSystem Class
+## VideoSystem class
 
 The main orchestration class for camera acquisition and video encoding.
 
@@ -67,7 +67,7 @@ VideoSystem(
 )
 ```
 
-### Constructor Parameters
+### Constructor parameters
 
 | Parameter                | Type                        | Required | Default                      | Description                                                                                            |
 |--------------------------|-----------------------------|----------|------------------------------|--------------------------------------------------------------------------------------------------------|
@@ -85,7 +85,7 @@ VideoSystem(
 | `video_encoder`          | `VideoEncoders / str`       | No       | `VideoEncoders.H265`         | Video codec: H264 or H265                                                                              |
 | `encoder_speed_preset`   | `EncoderSpeedPresets / int` | No       | `EncoderSpeedPresets.SLOW`   | Encoding speed vs quality tradeoff (1-7)                                                               |
 | `output_pixel_format`    | `OutputPixelFormats / str`  | No       | `OutputPixelFormats.YUV444`  | Output color format: YUV420 or YUV444                                                                  |
-| `quantization_parameter` | `int`                       | No       | `15`                         | Quality parameter 0-51 (lower = higher quality)                                                        |
+| `quantization_parameter` | `int`                       | No       | `15`                         | Quality parameter -1..51 (lower = higher quality); -1 defers QP to the encoder default                 |
 | `color`                  | `bool / None`               | No       | `None`                       | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
 
 **Notes:**
@@ -94,6 +94,8 @@ VideoSystem(
   identification
 - `frame_width`, `frame_height`, and `frame_rate` default to the camera's native values when set to None
 - `color` is only used by OpenCV and Mock interfaces; Harvesters cameras determine color mode from their GenICam config
+- `quantization_parameter` accepts -1 to 51 inclusive; -1 is a sentinel that defers QP choice to the
+  encoder's own default, distinct from QP 0 (near-lossless)
 - The output video file is named `{system_id:03d}.mp4` in the output directory
 
 ### Methods
@@ -146,7 +148,7 @@ stop() <-------------------------------------------------+
 
 ```python
 class CameraInterfaces(StrEnum):
-    HARVESTERS = "harvesters"  # GeniCam-compatible cameras (GigE, USB3 Vision)
+    HARVESTERS = "harvesters"  # GenICam-compatible cameras (GigE, USB3 Vision)
     OPENCV = "opencv"          # Consumer-grade USB cameras
     MOCK = "mock"              # Testing only (simulated camera)
 ```
@@ -190,7 +192,7 @@ class InputPixelFormats(StrEnum):
 
 ---
 
-## Data Classes
+## Data classes
 
 ### CameraInformation
 
@@ -240,6 +242,46 @@ config.to_yaml(file_path=Path("camera_config.yaml"))
 config = GenicamConfiguration.from_yaml(file_path=Path("camera_config.yaml"))
 ```
 
+### Programmatic GenICam configuration
+
+GenICam state is applied in code through the `HarvestersCamera` interface — the same operations the
+`/camera-setup` MCP tools (`read_genicam_node_tool`, `write_genicam_node_tool`, `dump_genicam_config_tool`,
+`load_genicam_config_tool`) perform. Two supply modes are supported:
+
+```python
+# Per-parameter targeting: write a single ReadWrite node (value is coerced to the node's native type)
+camera.set_node_value(name="ExposureTime", value="4000")
+camera.set_node_value(name="Gain", value="2.0")
+info = camera.get_node_info(name="AcquisitionFrameRate")          # -> GenicamNodeInfo(name, value)
+
+# Full-config restoration: dump every ReadWrite node, persist to YAML, re-apply later
+config = camera.get_configuration()                               # -> GenicamConfiguration
+config.to_yaml(file_path=Path("camera_config.yaml"))
+camera.apply_configuration(config=config, strict_identity=False)  # strict_identity/blacklisted_nodes are keyword-only
+```
+
+`HarvestersCamera` config method signatures:
+
+```python
+def get_node_info(self, name: str) -> GenicamNodeInfo: ...
+def get_node_description(self, name: str) -> str: ...
+def set_node_value(self, name: str, value: str) -> None: ...
+def get_configuration(self, blacklisted_nodes: frozenset[str] = DEFAULT_BLACKLISTED_NODES) -> GenicamConfiguration: ...
+def apply_configuration(self, config: GenicamConfiguration, *, strict_identity: bool = False,
+                        blacklisted_nodes: frozenset[str] = DEFAULT_BLACKLISTED_NODES) -> None: ...
+```
+
+`strict_identity=False` warns (rather than aborts) on a camera model/serial mismatch. The default
+`blacklisted_nodes` (`{CustomerIDKey, CustomerValueKey, TestPattern}`) skips vendor nodes that report
+ReadWrite access but reject writes. A connected `HarvestersCamera` is normally obtained at configuration
+time via the `/camera-setup` tools (which wrap these calls); these methods exist for advanced in-process use.
+
+The `VideoSystem` constructor accepts **no** GenICam config object: resolution and frame rate are applied
+from its `frame_width`/`frame_height`/`frame_rate` arguments at `connect()`, while exposure, gain, and other
+nodes are configured through the methods above. Because the deterministic acquisition script does not
+reconfigure nodes at runtime, apply GenICam state at configuration time and either persist it on the camera
+(save a UserSet) or re-apply a saved `GenicamConfiguration` before starting acquisition.
+
 ### CameraSourceData
 
 Stores identification data for a single camera source in a log manifest:
@@ -275,7 +317,7 @@ log archives.
 
 ---
 
-## Discovery Functions
+## Discovery functions
 
 ### discover_camera_ids
 
@@ -305,7 +347,7 @@ Returns the configured CTI file path if valid, or None if not configured or the 
 
 ---
 
-## Utility Functions
+## Utility functions
 
 ### check_ffmpeg_availability
 
@@ -361,11 +403,11 @@ processing for worker-tier pool sharing).
 
 ---
 
-## Data Logging Format
+## Data logging format
 
 VideoSystem logs frame acquisition timestamps using the DataLogger class from ataraxis-data-structures.
 
-### Standard Log Entry
+### Standard log entry
 
 Each entry is a 1D numpy uint8 array:
 
@@ -374,7 +416,7 @@ Each entry is a 1D numpy uint8 array:
 | 0      | 1 byte  | System ID (uint8)                            |
 | 1      | 8 bytes | Timestamp (uint64, microseconds since onset) |
 
-### Onset Entry
+### Onset entry
 
 The first log entry for each VideoSystem uses a special format:
 
@@ -386,50 +428,7 @@ The first log entry for each VideoSystem uses a special format:
 
 ---
 
-## Architecture
-
-```text
-+------------------------------------------------------------------+
-| VideoSystem                                                    |                                     |     |                           |     |
-| +------------------------------------------------------------+ |                                     |     |                           |     |
-|                                                                | Main Process                        |     |                           |     |
-|                                                                | - Initialization and configuration  |     |                           |     |
-|                                                                | - Lifecycle management (start/stop) |     |                           |     |
-|                                                                | - Frame saving control              |     |                           |     |
-| +------------------------------------------------------------+ |                                     |     |                           |     |
-|----------------------------------------------------------------|-------------------------------------|-----|---------------------------|-----|
-| v                           v                                  |                                     |     |                           |     |
-| +--------------------+   +----------------------------------+  |                                     |     |                           |     |
-|                                                                | Producer Process                    |     | Consumer Process          |     |
-|                                                                | - Camera driver                     |     | - Frame encoding (FFMPEG) |     |
-|                                                                | - Frame grabbing                    | --> | - MP4 container writing   |     |
-|                                                                | - Timestamp gen                     |     | - Live preview display    |     |
-| +--------------------+   +----------------------------------+  |                                     |     |                           |     |
-|----------------------------------------------------------------|-------------------------------------|-----|---------------------------|-----|
-| v                                                              |                                     |     |                           |     |
-| +--------------------+                                         |                                     |     |                           |     |
-|                                                                | DataLogger                          |     |                           |     |
-|                                                                | - Timestamp I/O                     |     |                           |     |
-|                                                                | - .npy file write                   |     |                           |     |
-| +--------------------+                                         |                                     |     |                           |     |
-+------------------------------------------------------------------+
-```
-
----
-
 ## Dependencies
-
-### Runtime
-
-| Package                    | Version       | Purpose                                |
-|----------------------------|---------------|----------------------------------------|
-| ataraxis-video-system      | >=3.0.0       | This library                           |
-| ataraxis-data-structures   | >=6,<7        | DataLogger, SharedMemoryArray          |
-| ataraxis-time              | >=6,<7        | Precision timing                       |
-| ataraxis-base-utilities    | >=6,<7        | Logging and console output             |
-| numpy                      | >=2,<3        | Array operations and system_id type    |
-| opencv-python              | >=4.13,<5     | Camera interface and frame display     |
-| harvesters                 | >=1,<2        | GeniCam camera support                 |
 
 ### External
 
@@ -439,15 +438,11 @@ The first log entry for each VideoSystem uses a special format:
 | CTI file   | No       | GenTL Producer for Harvesters cameras                  |
 | NVIDIA GPU | No       | Hardware-accelerated encoding (optional)               |
 
-### Python Version
-
-Requires `>=3.12,<3.15`.
-
 ---
 
-## Code Examples
+## Code examples
 
-### Basic Camera Acquisition
+### Basic camera acquisition
 
 ```python
 from pathlib import Path

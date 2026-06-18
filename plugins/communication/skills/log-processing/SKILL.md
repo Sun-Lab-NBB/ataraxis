@@ -109,12 +109,18 @@ directories. For legacy sessions without manifests, use `write_microcontroller_m
 | `output_directories` | `list[str]` | (required) | Absolute paths for per-directory output. Must match log_directories length.   |
 | `config_path`        | `str`       | (required) | Absolute path to the validated ExtractionConfig YAML file.                    |
 
+**Note:** Prepare filters `source_ids` down to those with an on-disk `{source_id}_log.npz` archive and silently
+drops the rest with no error. A directory with no matching archives returns `jobs: []`, `source_ids: []`, and
+`tracker_path: None` while still reporting `success: True`. After preparing, verify the returned source_ids/jobs
+match the requested set — a mismatch (or `tracker_path: None`) means archives are missing for the dropped IDs, not
+a failure to retry.
+
 **`execute_log_processing_jobs_tool` parameters:**
 
-| Parameter       | Type         | Default    | Description                                                                                                           |
-|-----------------|--------------|------------|-----------------------------------------------------------------------------------------------------------------------|
-| `jobs`          | `list[dict]` | (required) | Job descriptors from prepare manifest (log_directory, output_directory, tracker_path, job_id, source_id, config_path) |
-| `worker_budget` | `int`        | `-1`       | Total CPU cores for the session; -1 for automatic resolution. Controls memory footprint.                              |
+| Parameter       | Type         | Default    | Description                                                                                                             |
+|-----------------|--------------|------------|-------------------------------------------------------------------------------------------------------------------------|
+| `jobs`          | `list[dict]` | (required) | Job descriptors from execution manifest (log_directory, output_directory, tracker_path, job_id, source_id, config_path) |
+| `worker_budget` | `int`        | `-1`       | Total CPU cores for the session; -1 for automatic resolution. Controls memory footprint.                                |
 
 ### Monitoring and management tools
 
@@ -126,6 +132,13 @@ directories. For legacy sessions without manifests, use `write_microcontroller_m
 | `reset_log_processing_jobs_tool`    | Resets specific or all jobs to SCHEDULED for retry                    |
 | `get_batch_status_overview_tool`    | Aggregate status across all log directories under root                |
 | `clean_log_processing_output_tool`  | Deletes `microcontroller_data/` subdirectories for re-processing      |
+
+**Note:** `get_log_processing_status_tool`, `get_log_processing_timing_tool`, and `cancel_log_processing_tool`
+report only on the single active in-memory execution session (the most recent `execute_log_processing_jobs_tool`
+call) and return a no-active-session response otherwise — e.g. when called before execute or after a server
+restart, even if trackers with running jobs exist on disk (status/timing return `'No execution session exists.'`;
+cancel returns `{canceled: False}` with `'No execution session is active.'`). For status of directories not in the
+active session, use `get_batch_status_overview_tool`, which reads trackers from disk.
 
 **`reset_log_processing_jobs_tool` parameters:**
 
@@ -164,6 +177,8 @@ Key architectural facts:
 - **ProcessingTracker** manages job lifecycle: `SCHEDULED` → `RUNNING` → `SUCCEEDED` / `FAILED` via YAML state files
 - **Single execution session** constraint: only one batch execution can run at a time
 - **Parallel processing** activates automatically for archives with >=2000 messages
+- **Empty archives:** an archive with zero data messages completes as `SUCCEEDED` and produces no feather files —
+  this is expected, not a failure to retry or clean
 - **ExtractionConfig** controls which modules, kernel messages, and event codes are extracted per controller
 - **Output layout:** All processing output is written under a `microcontroller_data/` subdirectory within the
   output directory provided by the user
@@ -224,7 +239,7 @@ The processing workflow uses a **prepare-then-execute** model:
    the budget controls memory footprint and the system allocates workers per job automatically
    based on archive size.
 
-8. **Execute jobs** — Call `execute_log_processing_jobs_tool` with the job descriptors from the prepare
+8. **Execute jobs** — Call `execute_log_processing_jobs_tool` with the job descriptors from the execution
    manifest and confirmed resource settings.
 
 9. **Monitor progress** — Use `get_log_processing_status_tool` to check per-job progress. Optionally use
@@ -245,8 +260,9 @@ probes each archive's message count and allocates workers using tier-based scali
 The system uses two layers of allocation:
 
 1. **Per-job tier assignment** — each job is assigned a worker count based on its archive's message count
-   using a sqrt-derived formula (`ceil(sqrt(messages / 1,000))`), rounded to the nearest multiple of 5.
-   This determines the per-job worker tier:
+   using a sqrt-derived formula (`ceil(sqrt(messages / 1,000))`), rounded to the nearest multiple of 5 and
+   then floored to a minimum of 5 workers (`max(5, round(raw / 5) * 5)`) for any archive that exceeds the
+   parallel-processing threshold. This determines the per-job worker tier:
 
 | Archive Size  | Worker Tier      | Typical Scenario               |
 |---------------|------------------|--------------------------------|
@@ -282,6 +298,9 @@ Summary: 5/8 jobs complete | 1 running | 2 queued | 0 failed
 | 104       | SCHEDULED | --       |
 ```
 
+A job may report status `UNKNOWN` when its tracker entry is unreadable or missing — resolve by re-preparing, not
+by reset (which is for `FAILED` jobs). Status entries also carry an optional `executor_id` field.
+
 When using `get_batch_status_overview_tool` for multi-directory status:
 
 ```text
@@ -310,13 +329,13 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ### Preparation errors
 
-| Error                      | Resolution                                                        |
-|----------------------------|-------------------------------------------------------------------|
-| "Directory does not exist" | Verify path exists                                                |
-| "Path is not a directory"  | Verify path is a directory, not a file                            |
-| "Length mismatch"          | Ensure output_directories matches log_directories length          |
-| "Permission denied"        | Check filesystem permissions                                      |
-| "Config file not found"    | Verify extraction config path; use `/extraction-configuration`    |
+| Error                                 | Resolution                                                                                                 |
+|---------------------------------------|------------------------------------------------------------------------------------------------------------|
+| Non-existent / non-directory log path | Not a hard error; surfaces in the returned `invalid_paths` list. Verify the path exists and is a directory |
+| "Length mismatch"                     | Ensure output_directories matches log_directories length                                                   |
+| "Permission denied"                   | Check filesystem permissions                                                                               |
+| "Extraction config not found: ..."    | Verify extraction config path; use `/extraction-configuration`                                             |
+| "Invalid extraction config: ..."      | Validate config via `/extraction-configuration`                                                            |
 
 ### Execution errors
 
@@ -328,27 +347,42 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ### Processing failure routing
 
-| Error Pattern                        | Action                                                        |
-|--------------------------------------|---------------------------------------------------------------|
-| Archive not found / file read errors | Verify .npz archives exist in log directory                   |
-| Invalid extraction config            | Validate config via `/extraction-configuration`               |
-| MCP tools unavailable                | Invoke `/communication-mcp-environment-setup`                               |
-| Out of memory                        | Reduce `worker_budget`                                        |
-| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare      |
+| Error Pattern                        | Action                                                   |
+|--------------------------------------|----------------------------------------------------------|
+| Archive not found / file read errors | Verify .npz archives exist in log directory              |
+| Invalid extraction config            | Validate config via `/extraction-configuration`          |
+| MCP tools unavailable                | Invoke `/communication-mcp-environment-setup`            |
+| Out of memory                        | Reduce `worker_budget`                                   |
+| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare |
+
+---
+
+## CLI reference (human-facing — do not invoke)
+
+> **CLI reference — for answering user questions only.** The `axci` command-line interface is a **human-facing**
+> tool. **Agents must never invoke `axci` commands** — every agent-driven operation has an equivalent MCP tool
+> (noted in the table). This section exists solely so the agent can answer user questions about the CLI.
+
+This is the human path that the "do not run processing via CLI" instruction in Agent requirements refers to.
+`axci process` handles ONE directory per invocation, whereas the MCP workflow batches many.
+
+| Command        | Key options                                                                                                          | Purpose                                                       | MCP equivalent                                                                  |
+|----------------|----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|---------------------------------------------------------------------------------|
+| `axci process` | `-ld/--log-directory`, `-od/--output-directory`, `-c/--config`, `-id/--job-id`, `-w/--workers`, `-p/--progress/--no-progress` | Extracts module and kernel data from one directory's archives | `prepare_log_processing_batch_tool` / `execute_log_processing_jobs_tool` (batch) |
 
 ---
 
 ## Related skills
 
-| Skill                        | Role                                                             |
-|------------------------------|------------------------------------------------------------------|
-| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity                            |
-| `/microcontroller-setup`     | Upstream: hardware discovery and manifest management             |
-| `/microcontroller-interface` | Upstream: code that produces the log data being processed        |
-| `/extraction-configuration`  | Upstream: extraction config that controls what data is extracted |
-| `/log-input-format`          | Reference: input archive format and source ID semantics          |
-| `/log-processing-results`    | Downstream: output data discovery and event analysis             |
-| `/pipeline`                  | Context: log processing is phase 5 of the end-to-end pipeline    |
+| Skill                                  | Relationship                                                     |
+|----------------------------------------|------------------------------------------------------------------|
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity                            |
+| `/microcontroller-setup`               | Upstream: hardware discovery and manifest management             |
+| `/microcontroller-interface`           | Upstream: code that produces the log data being processed        |
+| `/extraction-configuration`            | Upstream: extraction config that controls what data is extracted |
+| `/log-input-format`                    | Reference: input archive format and source ID semantics          |
+| `/log-processing-results`              | Downstream: output data discovery and event analysis             |
+| `/pipeline`                            | Context: log processing is phase 5 of the end-to-end pipeline    |
 
 ---
 

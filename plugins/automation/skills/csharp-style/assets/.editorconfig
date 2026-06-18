@@ -1,5 +1,5 @@
-# EditorConfig for sl-unity-tasks
-# Provides C# formatting based on the Google style guide principles used in sl-micro-controllers.
+# EditorConfig for C# Unity projects
+# Provides C# formatting based on the Google style guide principles used in the C++ firmware projects.
 # This results in a visual style that is largely similar between C++, C#, and Python code,
 # improving cross-language developer experience.
 

@@ -1,12 +1,11 @@
 ---
 name: tox-config
 description: >-
-  Applies tox.ini conventions when creating or modifying tox configuration files. Covers
-  the mamba + uv + tox toolchain architecture, envlist patterns, environment definitions,
-  dependency installation strategies, environment naming, and project archetype variations
-  (full Python, reduced Python, C++ extension, C++ docs-only). Use when creating a new tox.ini,
-  modifying an existing tox.ini, adding or changing tox environments, or when the user asks about
-  tox configuration, development automation, or the mamba/uv/tox toolchain.
+  Applies tox.ini conventions when creating or modifying tox configuration files. Covers the
+  mamba + uv + tox toolchain, envlist patterns, environment definitions, dependency installation
+  strategies, environment naming, and project archetype variations (full Python, reduced Python,
+  C++ extension, C++ docs-only). Use when creating or modifying a tox.ini, changing tox
+  environments, or when the user asks about tox configuration or the mamba/uv/tox toolchain.
 user-invocable: false
 ---
 
@@ -50,12 +49,12 @@ You MUST follow these steps when this skill is invoked.
 
 Determine which pipeline applies:
 
-| Archetype      | Envlist pattern                                                              | Key indicator                       |
-|----------------|------------------------------------------------------------------------------|-------------------------------------|
-| Full Python    | uninstall → export → lint → stubs → test → coverage → docs → build → install | `pyproject.toml` + `src/` layout    |
-| C++ extension  | Same as full Python, with Doxygen in docs and cibuildwheel in build          | `CMakeLists.txt` + `pyproject.toml` |
-| Reduced Python | Full Python minus test and coverage                                          | `sl-*` app with no unit tests       |
-| C++ docs-only  | docs only                                                                    | `platformio.ini`, no `pyproject`    |
+| Archetype      | Envlist pattern                                                              | Key indicator                          |
+|----------------|------------------------------------------------------------------------------|----------------------------------------|
+| Full Python    | uninstall → export → lint → stubs → test → coverage → docs → build → install | `pyproject.toml` + `src/` layout       |
+| C++ extension  | Same as full Python, with Doxygen in docs and cibuildwheel in build          | `CMakeLists.txt` + `pyproject.toml`    |
+| Reduced Python | Full Python minus test and coverage                                          | Application project with no unit tests |
+| C++ docs-only  | docs only                                                                    | `platformio.ini`, no `pyproject`       |
 
 ### Step 2: Load reference templates
 
@@ -70,7 +69,7 @@ Collect the project-specific values:
 |--------------------|---------------------------------------|---------------------------|
 | `{package_name}`   | Package directory name under `src/`   | `ataraxis_base_utilities` |
 | `{env_abbr}`       | Short project abbreviation            | `axbu`                    |
-| `{version}`        | Current ataraxis-automation release   | `7.1.0`                   |
+| `{version}`        | Current ataraxis-automation release   | `8.1.1`                   |
 | Python versions    | `requires-python` in `pyproject.toml` | `py312, py313, py314`     |
 | `basepython`       | Earliest supported Python version     | `py312`                   |
 | `--python-version` | Latest supported Python version       | `3.14`                    |
@@ -191,7 +190,7 @@ with a pinned ataraxis-automation version:
 ```ini
 [testenv:coverage]
 skip_install = true
-deps = ataraxis-automation==7.1.0
+deps = ataraxis-automation==8.1.1
 ```
 
 This pattern applies to: `coverage`, `docs`, `build`, `upload`, `install`, `uninstall`, `create`,
@@ -226,7 +225,7 @@ envlist =
 
 ### Reduced Python pipeline
 
-Used by application projects (`sl-*`) that do not have unit tests:
+Used by application projects that do not have unit tests:
 
 ```ini
 envlist =
@@ -265,7 +264,8 @@ envlist = docs
 ### stubs
 
 - `depends = lint` — stubs are generated only after linting passes.
-- Runs `stubgen` with `--include-private` and `-p {package_name}`.
+- Runs `automation-cli process-typed-markers` first, then `stubgen -o stubs --include-private -p
+  {package_name} -v`, followed by `automation-cli process-stubs`.
 - After stub generation: `ruff format` → `ruff check --select I --fix ./src` to clean up stubs.
 
 ### test
@@ -320,12 +320,12 @@ envlist = docs
 
 Each project has a short abbreviation used for its mamba environment name:
 
-| Pattern      | Abbreviation rule            | Example                            |
-|--------------|------------------------------|------------------------------------|
-| `ataraxis-*` | Initials of hyphenated parts | `ataraxis-base-utilities` → `axbu` |
-| `sl-*`       | Initials of hyphenated parts | `sl-shared-assets` → `slsa`        |
+| Project type                       | Abbreviation rule                                         | Example                            |
+|------------------------------------|-----------------------------------------------------------|------------------------------------|
+| Multi-repository project component | Project abbreviation + the initial of each remaining word | `ataraxis-base-utilities` → `axbu` |
+| Standalone project                 | The project name, used as-is                              | `harvester` → `harvester`          |
 
-The full environment name follows the pattern `{abbr}_dev` (e.g., `axbu_dev`). The OS suffix
+The full environment name follows the pattern `{abbr}_dev` (e.g., `axbu_dev` or `harvester_dev`). The OS suffix
 (`_lin`, `_osx`, `_win`) is appended automatically by `automation-cli` at runtime — it does NOT
 appear in tox.ini.
 
@@ -376,6 +376,15 @@ Use inline comments sparingly, only when a setting is non-obvious:
 ```ini
 basepython = py312  # Earliest supported version controls lint/mypy ruleset
 ```
+
+---
+
+## Command reference
+
+For the full list of tox environments and the underlying `automation-cli` commands (with options)
+that the pipeline runs, see [Command reference](references/environment-templates.md). Agents drive
+these via `tox -e <env>`; the `automation-cli` commands are documented there for diagnostics and
+for answering user questions.
 
 ---
 

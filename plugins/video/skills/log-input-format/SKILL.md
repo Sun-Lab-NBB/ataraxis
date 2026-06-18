@@ -3,14 +3,14 @@ name: log-input-format
 description: >-
   Documents the input data format required by the log processing pipeline: NPZ log archives produced by
   DataLogger and assemble_log_archives, source ID semantics, multi-logger recording structures, and
-  archive internal layout. Use when the user asks about log archive format, source IDs, DataLogger output,
-  or why processing fails due to missing or malformed archives.
+  archive internal layout. Use when the user asks about camera (video-system) log archive format, source IDs,
+  DataLogger output, or why video log processing fails due to missing or malformed archives.
 user-invocable: false
 ---
 
 # Log input format
 
-Documents the input data format required by the camera timestamp extraction pipeline, including how log
+Documents the input data format required by the log processing pipeline, including how log
 archives are produced, their internal structure, and source ID semantics.
 
 ---
@@ -91,10 +91,14 @@ sources:
 - **Manual:** Use `write_camera_manifest_tool` (see `/camera-setup`) to retroactively tag legacy log
   directories that predate the manifest system.
 
-**Why manifests matter:** The `discover_camera_data_tool` uses manifest-based routing to
-identify axvs-produced log archives. Directories without a `camera_manifest.yaml` will not be discovered
-by this tool. Manifests also associate source IDs with human-readable names and enable the discovery tool
-to locate corresponding video files by camera name.
+**Why manifests matter:** The manifest is a hard gate for both discovery and processing.
+`discover_camera_data_tool` uses manifest-based routing to identify axvs-produced log archives, so
+directories without a `camera_manifest.yaml` will not be discovered by this tool. Beyond discovery,
+`run_log_processing_pipeline` requires the manifest as well: it raises `FileNotFoundError` when none
+is found, raises `ValueError` when it has no sources, resolves the source IDs to process from the
+manifest when `log_ids` is None, and rejects any requested `log_id` not registered in the manifest.
+Manifests also associate source IDs with human-readable names and enable the discovery tool to locate
+corresponding video files by camera name.
 
 ---
 
@@ -102,7 +106,7 @@ to locate corresponding video files by camera name.
 
 ### What source IDs represent
 
-A source ID is a `np.uint8` value (0–255) that identifies the hardware system that produced log data.
+A source ID is a `np.uint8` value (1-255) that identifies the hardware system that produced log data.
 In ataraxis-video-system, each `VideoSystem` instance has a `system_id` that becomes the `source_id`
 in all log entries sent to the `DataLogger`.
 
@@ -144,8 +148,8 @@ A recording session with one DataLogger produces:
 
 ```text
 recording_root/
-├── video_051.mp4                        # Video output from VideoSystem (system_id=51)
-├── video_052.mp4                        # Video output from VideoSystem (system_id=52)
+├── 051.mp4                             # Video output from VideoSystem (system_id=51)
+├── 052.mp4                             # Video output from VideoSystem (system_id=52)
 └── session_data_log/                    # DataLogger output (instance_name="session")
     ├── camera_manifest.yaml             # Camera manifest (auto-written by VideoSystem.__init__)
     ├── 051_00000000000000000000.npy     # Raw logs (before assembly)
@@ -178,6 +182,13 @@ recording_root/
 Each log directory is an **independent processing unit**. The discovery tool groups archives by their
 parent directory (the DataLogger output directory), and each directory is prepared and processed
 independently.
+
+Source-ID-to-archive resolution requires exactly one matching `{source_id}_log.npz` under the
+recursively searched tree (`ValueError` on duplicates), and all resolved archives must share a single
+parent directory (`ValueError` otherwise, "Each DataLogger output directory must be processed
+independently"). Therefore `run_log_processing_pipeline` must be invoked once per DataLogger output
+directory, not once per recording root, and a duplicate source ID across nested subdirectories is a
+fatal error, not a combined-processing path.
 
 ### Multiple recordings under one root
 
@@ -215,11 +226,11 @@ source ID and 20-digit zero-padded timestamp from the original `.npy` filenames.
 
 ### Message types
 
-| Type  | Identifier        | Payload                               | Purpose                           |
-|-------|-------------------|---------------------------------------|-----------------------------------|
-| Onset | `elapsed_us == 0` | 8 bytes: int64 UTC epoch microseconds | Absolute time reference           |
-| Frame | `elapsed_us > 0`  | Empty (`payload.size == 0`)           | Frame acquisition event           |
-| Data  | `elapsed_us > 0`  | Non-empty (`payload.size > 0`)        | Generic data event (filtered out) |
+| Type  | Identifier        | Payload                                | Purpose                           |
+|-------|-------------------|----------------------------------------|-----------------------------------|
+| Onset | `elapsed_us == 0` | 8 bytes: uint64 UTC epoch microseconds | Absolute time reference           |
+| Frame | `elapsed_us > 0`  | Empty (`payload.size == 0`)            | Frame acquisition event           |
+| Data  | `elapsed_us > 0`  | Non-empty (`payload.size > 0`)         | Generic data event (filtered out) |
 
 **Onset message:** The first message in every archive has `elapsed_us=0`. Its payload contains the UTC
 epoch timestamp (microseconds since epoch) that serves as the absolute time reference. All other
@@ -229,8 +240,8 @@ timestamps in the archive are relative to this onset.
 microseconds elapsed since onset and an empty payload. The processing pipeline extracts only these
 messages.
 
-**Data messages:** Messages with non-empty payloads carry domain-specific data. The camera timestamp
-extraction pipeline filters these out (`payload.size == 0` check).
+**Data messages:** Messages with non-empty payloads carry domain-specific data. The log processing
+pipeline filters these out (`payload.size == 0` check).
 
 ### Timestamp resolution
 
@@ -250,10 +261,14 @@ processing via `ProcessPoolExecutor`.
 
 Before running the log processing pipeline, verify these conditions:
 
-1. **Camera manifest present** — Log directories should contain a `camera_manifest.yaml` file for
-   `discover_camera_data_tool` to locate them. If missing, use `write_camera_manifest_tool`
-   to create one. Note: the processing pipeline itself does not require manifests — they are only
-   needed for the manifest-based discovery tool.
+1. **Camera manifest present** — Log directories MUST contain a `camera_manifest.yaml` file. The
+   manifest is required both by `discover_camera_data_tool` and by `run_log_processing_pipeline`
+   itself: the pipeline locates it via recursive `rglob` (using the first match), raises
+   `FileNotFoundError` when none is found, and raises `ValueError` when it has no source entries.
+   When `log_ids` is None the pipeline resolves the source IDs to process from the manifest, and it
+   rejects any requested `log_id` not registered in the manifest. Job IDs are a deterministic function
+   of `(job_name, source_id)`, so an "invalid job_id" error from the pipeline likewise means the source
+   ID is not registered in the manifest. If missing, use `write_camera_manifest_tool` to create one.
 
 2. **Archives assembled** — Log directories contain `.npz` files, not just raw `.npy` files. If only
    `.npy` files are present, `assemble_log_archives()` must be run first.
@@ -271,15 +286,15 @@ Before running the log processing pipeline, verify these conditions:
 
 ## Related skills
 
-| Skill                     | Relationship                                                         |
-|---------------------------|----------------------------------------------------------------------|
-| `/camera-setup`           | Upstream: MCP sessions that produce archives in this format          |
-| `/camera-interface`       | Upstream: VideoSystem instances that produce the log data            |
-| `/post-recording`         | Upstream: validates and assembles archives in this format            |
-| `/log-processing`         | Downstream: consumes archives in the format documented here          |
-| `/log-processing-results` | Downstream: documents the output format produced from these archives |
-| `/pipeline`               | Context: reference skill for the end-to-end pipeline phases          |
-| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for discovery and processing   |
+| Skill                          | Relationship                                                         |
+|--------------------------------|----------------------------------------------------------------------|
+| `/camera-setup`                | Upstream: MCP sessions that produce archives in this format          |
+| `/camera-interface`            | Upstream: VideoSystem instances that produce the log data            |
+| `/post-recording`              | Upstream: validates and assembles archives in this format            |
+| `/log-processing`              | Downstream: consumes archives in the format documented here          |
+| `/log-processing-results`      | Downstream: documents the output format produced from these archives |
+| `/pipeline`                    | Context: reference skill for the end-to-end pipeline phases          |
+| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for discovery and processing   |
 
 ---
 

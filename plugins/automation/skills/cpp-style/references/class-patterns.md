@@ -504,15 +504,16 @@ with `@property` accessors, while dataclass fields are public.
 This parallels the Python distinction between `@property` (simple attribute access) and
 methods (operations that "do something"):
 
-| Use                       | When                                                         |
-|---------------------------|--------------------------------------------------------------|
-| `get_`/`set_` accessor    | Returns or sets a single data member with no side effects    |
-| PascalCase method         | Performs computation, I/O, or has side effects               |
+| Use                    | When                                                      |
+|------------------------|-----------------------------------------------------------|
+| `get_`/`set_` accessor | Returns or sets a single data member with no side effects |
+| PascalCase method      | Performs computation, I/O, or has side effects            |
 
 ```cpp
 // Good - accessor for trivial field access
 /// Returns the module's type identifier.
-[[nodiscard]] uint8_t get_module_type() const { return _module_type; }
+[[nodiscard]]
+uint8_t get_module_type() const { return _module_type; }
 
 // Good - PascalCase method for operations with side effects
 /// Sends the specified data to the connected PC via the serial port.
@@ -587,3 +588,97 @@ Rules:
   third-party namespaces
 - **Libraries with `.cpp` files**: Never use `using namespace` in header files (pollutes the
   global namespace for all includers). Place `using namespace` in `.cpp` files only
+
+---
+
+## Function calls
+
+Prefer clarity to brevity. For functions with multiple parameters of the same type or boolean
+parameters, use inline comments to label arguments:
+
+```cpp
+// Good - labeled arguments clarify meaning
+SendData(
+    static_cast<uint8_t>(kCustomStatusCodes::kRotatedCW),  // status_code
+    delta                                                   // value
+);
+
+// Acceptable - single argument or meaning obvious
+CompleteCommand();
+```
+
+---
+
+## Blank lines
+
+- **One blank line** between method definitions within a class (enforced by clang-format
+  `SeparateDefinitionBlocks: Always`)
+- **One blank line** before access modifiers (`public:`, `private:`)
+- **No blank line** after an opening brace or before a closing brace
+- **One blank line** between logical groups of statements within a method
+- **One blank line** after include blocks before code
+
+---
+
+## Line length and formatting
+
+- Maximum line length: **120 characters** (clang-format `ColumnLimit: 120`)
+- Formatter: **clang-format** (config in `.clang-format`)
+- Linter: **clang-tidy** (config in `.clang-tidy`, `WarningsAsErrors: '*'`)
+- Brace style: **Allman** (opening braces on new lines for all constructs)
+- Indentation: **4 spaces** (no tabs)
+- Pointer/reference alignment: **Left** (`int* pointer`, `int& reference`)
+- Attributes (`[[nodiscard]]`, `[[maybe_unused]]`, etc.) always appear on their own line directly
+  above the declaration (clang-format `BreakAfterAttributes: Always`); do not write them inline
+
+### Aligned assignments
+
+Consecutive assignments and macros are aligned for readability:
+
+```cpp
+_custom_parameters.report_CCW      = true;
+_custom_parameters.report_CW       = true;
+_custom_parameters.delta_threshold = 15;
+```
+
+### Template declarations
+
+Template declarations always appear on a separate line:
+
+```cpp
+template <const uint8_t kPinA, const uint8_t kPinB, const bool kInvertDirection = false>
+class EncoderModule final : public Module
+```
+
+### Short statements
+
+Short case labels and simple if/else statements may appear on a single line (enforced by
+clang-format `AllowShortCaseLabelsOnASingleLine: true`):
+
+```cpp
+case kModuleCommands::kCheckState: CheckState(); return true;
+case kModuleCommands::kReset: ResetEncoder(); return true;
+default: return false;
+
+if (kTonePin == 255) _custom_parameters.tone_duration = 0;
+```
+
+---
+
+## Guard clauses and boolean expressions
+
+Prefer early returns (guard clauses) over deeply nested conditionals:
+
+```cpp
+void SendPulse()
+{
+    if (!kOutput)
+    {
+        AbortCommand();
+        return;
+    }
+
+    // Main logic at minimal indentation level.
+    Pulse();
+}
+```

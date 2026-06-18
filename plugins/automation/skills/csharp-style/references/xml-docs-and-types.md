@@ -39,7 +39,7 @@ public class OccupancyZone : MonoBehaviour
 ```csharp
 // Single-line (preferred for most members)
 /// <summary>Initializes the occupancy timer.</summary>
-void Start()
+private void Start()
 
 // Multi-line (when description is long)
 /// <summary>
@@ -188,6 +188,17 @@ Rules:
 - Use `<paramref>` within exception descriptions to reference parameters
 - Order multiple `<exception>` tags alphabetically by exception type name
 - In Unity MonoBehaviour methods, prefer `Debug.LogError` over throwing (see SKILL.md)
+
+### See cref references
+
+Use `<see cref="MemberOrType"/>` inside `<summary>` and `<remarks>` to link to other fields,
+constants, methods, classes, interfaces, and generic types — not only exception types. This
+enables IDE navigation between related members:
+
+```csharp
+/// <summary>Resets the corridor to the configured <see cref="trackSeed"/> for reproducible runs.</summary>
+public void ResetZone()
+```
 
 ### Inheritdoc
 
@@ -472,3 +483,29 @@ List<GameObject> corridors = new List<GameObject>();
 // Key-value mapping
 Dictionary<string, byte> cueIdentifiers = new Dictionary<string, byte>();
 ```
+
+---
+
+## Comments
+
+### Inline comments
+
+- Use third person imperative ("Configures..." not "This section configures...")
+- Place above the code, not at end of line (unless very short)
+- Use comments to explain non-obvious logic or provide context
+
+```csharp
+// Measures actual prefab lengths and compares with configuration.
+float[] measuredSegmentLengths = Utility.GetSegmentLengths(segmentPrefabs);
+```
+
+### What to avoid
+
+- Don't reiterate the obvious (e.g., `// Set x to 5` before `x = 5`)
+- Don't add XML docs to code you didn't write or modify
+- Don't use heavy section separator blocks (e.g., `// ======` or `// ------`)
+- Don't use `#region` / `#endregion` blocks (use blank lines between logical groups instead)
+- Don't use `this.` qualifier (exception: disambiguating a parameter from a field)
+- Don't use IDE-specific suppression comments (e.g., ReSharper/Rider `// ReSharper disable` or `// noinspection`).
+  Remove any you encounter — CSharpier and the EditorConfig-configured analyzers are authoritative; suppress a genuine
+  analyzer finding only with the standard `#pragma warning disable CODE` or `[SuppressMessage]`, never an IDE directive

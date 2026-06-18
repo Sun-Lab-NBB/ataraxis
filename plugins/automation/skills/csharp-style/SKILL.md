@@ -28,10 +28,10 @@ code. You MUST verify your changes against the checklist before submitting.
 - Cross-language consistency with C++ and Python conventions
 
 **Does not cover:**
-- README file conventions (invoke `/readme-style`)
-- Commit message conventions (invoke `/commit`)
-- Skill file and CLAUDE.md conventions (invoke `/skill-design`)
-- Codebase exploration workflows (invoke `/explore-codebase`)
+- README file conventions (see `/readme-style`)
+- Commit message conventions (see `/commit`)
+- Skill file and CLAUDE.md conventions (see `/skill-design`)
+- Codebase exploration workflows (see `/explore-codebase`)
 
 ---
 
@@ -47,13 +47,13 @@ Read this entire file. The core conventions below apply to ALL C# code.
 
 Based on the task, load the appropriate reference files:
 
-| Task                                        | Reference to load                                           |
-|---------------------------------------------|-------------------------------------------------------------|
-| Writing or modifying XML docs / type usage  | [xml-docs-and-types.md](references/xml-docs-and-types.md)   |
-| Writing classes, enums, or Unity components | [class-patterns.md](references/class-patterns.md)           |
-| Using LINQ, async, IDisposable, or testing  | [libraries-and-tools.md](references/libraries-and-tools.md) |
-| Deploying or verifying tool config files    | [assets/](assets/) directory                                |
-| Reviewing code before submission            | [anti-patterns.md](references/anti-patterns.md)             |
+| Task                                                                                                                   | Reference to load                                           |
+|------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| Writing or modifying XML docs / type usage / comments                                                                  | [xml-docs-and-types.md](references/xml-docs-and-types.md)   |
+| Writing classes, enums, or Unity components                                                                            | [class-patterns.md](references/class-patterns.md)           |
+| Using LINQ, async, IDisposable, testing; function calls, blank lines, formatting, tooling, config files, guard clauses | [libraries-and-tools.md](references/libraries-and-tools.md) |
+| Deploying or verifying tool config files                                                                               | [assets/](assets/) directory                                |
+| Reviewing code before submission                                                                                       | [anti-patterns.md](references/anti-patterns.md)             |
 
 Load multiple references when the task spans multiple domains.
 
@@ -133,7 +133,7 @@ Use **full words**, not abbreviations:
 | Constants         | PascalCase    | `LengthComparisonEpsilon`                 |
 | Enum types        | PascalCase    | `ControllerTypes`, `StimulusMode`         |
 | Enum values       | PascalCase    | `LinearTreadmill`, `OccupancyBased`       |
-| Namespaces        | PascalCase    | `Gimbl`, `SL.Config`                      |
+| Namespaces        | PascalCase    | `Gimbl`, `Project.Config`                 |
 | Interfaces        | `IPascalCase` | `IConfigurable`, `IResettable`            |
 | Type parameters   | `TPascalCase` | `TMessage`, `TConfig`                     |
 
@@ -191,23 +191,7 @@ For detailed immutability patterns (`readonly struct`, records, `in` parameters)
 
 ## Function calls
 
-Prefer **named arguments** when the meaning is not obvious from the value alone:
-
-```csharp
-// Good - named arguments clarify boolean and same-type parameters
-CreateChannel(topic: "sensors/encoder", isListener: true, qosLevel: 2);
-Instantiate(prefab: segmentPrefab, position: spawnPosition, rotation: Quaternion.identity);
-
-// Acceptable - single argument or meaning obvious from type/name
-Mathf.Abs(difference);
-Debug.Log(message);
-GetComponent<MeshRenderer>();
-```
-
-Use named arguments when a method has:
-- Boolean parameters (always name them)
-- Multiple parameters of the same type
-- Parameters whose meaning is unclear from the value
+See [libraries-and-tools.md](references/libraries-and-tools.md) for named argument conventions.
 
 ---
 
@@ -304,27 +288,7 @@ Debug.LogError("Failed to load task template from YAML file.");
 
 ## Comments
 
-### Inline comments
-
-- Use third person imperative ("Configures..." not "This section configures...")
-- Place above the code, not at end of line (unless very short)
-- Use comments to explain non-obvious logic or provide context
-
-```csharp
-// Measures actual prefab lengths and compares with configuration.
-float[] measuredSegmentLengths = Utility.GetSegmentLengths(segmentPrefabs);
-```
-
-### What to avoid
-
-- Don't reiterate the obvious (e.g., `// Set x to 5` before `x = 5`)
-- Don't add XML docs to code you didn't write or modify
-- Don't use heavy section separator blocks (e.g., `// ======` or `// ------`)
-- Don't use `#region` / `#endregion` blocks (use blank lines between logical groups instead)
-- Don't use `this.` qualifier (exception: disambiguating a parameter from a field)
-- Don't use IDE-specific suppression comments (e.g., ReSharper/Rider `// ReSharper disable` or `// noinspection`).
-  Remove any you encounter — CSharpier and the EditorConfig-configured analyzers are authoritative; suppress a genuine
-  analyzer finding only with the standard `#pragma warning disable CODE` or `[SuppressMessage]`, never an IDE directive
+See [xml-docs-and-types.md](references/xml-docs-and-types.md) for inline comment conventions and what to avoid.
 
 ---
 
@@ -340,7 +304,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Gimbl;
-using SL.Config;
+using Project.Config;
 ```
 
 ### `using static` directives
@@ -371,7 +335,10 @@ All definitions within a file follow this vertical ordering from top to bottom:
 
 1. **File-level XML documentation** (`/// <summary>` block describing the file)
 2. **Using directives**
-3. **Namespace declaration** (file-scoped preferred: `namespace SL.Config;`)
+3. **Namespace declaration** (block-scoped is the project convention: `namespace Project.Config { ... }`,
+   with class members indented one level inside the block). Although `assets/.editorconfig` carries
+   `csharp_style_namespace_declarations = file_scoped:suggestion`, the exemplar code overrides it and
+   block-scoped is the practiced form.
 4. **Enumerations** (type definitions that other code depends on)
 5. **Class declaration** with members in this order:
    a. Constants (`const` and `static readonly` fields)
@@ -410,123 +377,18 @@ message types may remain in the containing class's file.
 
 ## Guard clauses and boolean expressions
 
-Prefer early returns (guard clauses) over deeply nested conditionals. Use explicit boolean
-checks, `string.IsNullOrEmpty()` for strings, and `== null` / `!= null` for null checks:
-
-```csharp
-/// <summary>Checks if the occupancy duration has been met while the animal is in the zone.</summary>
-void Update()
-{
-    if (!isActive || boundaryDisarmed)
-        return;
-
-    if (string.IsNullOrEmpty(_zoneName))
-        return;
-
-    if (_occupancyTimer.IsRunning && inZone)
-    {
-        if (_occupancyTimer.ElapsedMilliseconds >= occupancyDurationMs)
-        {
-            OnOccupancyMet();
-        }
-    }
-}
-```
+See [libraries-and-tools.md](references/libraries-and-tools.md) for guard clause and boolean expression conventions.
 
 ---
 
 ## Blank lines
 
-- **One blank line** between method definitions within a class
-- **One blank line** after using directive blocks before namespace/class
-- **No blank line** after an opening brace or before a closing brace
-- **One blank line** between logical groups of statements within a method
+See [libraries-and-tools.md](references/libraries-and-tools.md) for blank line conventions.
 
----
+## Formatting, tooling, and configuration files
 
-## Line length and formatting
-
-- Maximum line length: **120 characters**
-- Formatter: **CSharpier** (config in `.csharpierrc.yaml`)
-- Style enforcement: **EditorConfig** (config in `.editorconfig`)
-- Brace style: **Allman** (opening braces on new lines for all constructs)
-- Indentation: **4 spaces** (no tabs)
-- Line endings: **LF** (Unix-style)
-
-### String formatting
-
-- Use **string interpolation** (`$"..."`) for all string formatting
-- Use verbatim strings (`@"..."`) for paths and multi-line strings
-- Use **double quotes** for all strings
-
-### Trailing commas
-
-C# does not enforce trailing commas in the same way as Python. Follow CSharpier's output for
-comma placement in multi-line constructs.
-
-### Brace rules
-
-Always use braces for control flow statements, even single-line bodies:
-
-```csharp
-// Good
-if (template == null)
-{
-    return;
-}
-
-// Acceptable for simple guard clauses
-if (!isActive)
-    return;
-```
-
----
-
-## Tooling
-
-### CSharpier
-
-CSharpier is the primary formatter. Install and use it before committing:
-
-```bash
-dotnet tool install -g csharpier    # Install globally
-csharpier .                          # Format all files
-csharpier --check .                  # Check without modifying (CI mode)
-```
-
-Configuration lives in `.csharpierrc.yaml`:
-
-```yaml
-printWidth: 120
-useTabs: false
-tabWidth: 4
-endOfLine: lf
-```
-
-### EditorConfig
-
-The `.editorconfig` file enforces naming conventions, brace style, and spacing rules in
-IDEs. It is the source of truth for style rules that CSharpier does not cover (naming,
-`var` preferences, expression-bodied members).
-
-### CSharpier ignore
-
-The `.csharpierignore` file excludes Unity-generated directories (`Library/`, `Temp/`,
-`Logs/`) and third-party packages from formatting.
-
----
-
-## Configuration files
-
-Canonical configs are stored in [assets/](assets/). When working in a C# project, verify that
-`.csharpierrc.yaml`, `.editorconfig`, and `.csharpierignore` in the project root match these:
-
-- [assets/.csharpierrc.yaml](assets/.csharpierrc.yaml)
-- [assets/.editorconfig](assets/.editorconfig)
-- [assets/.csharpierignore](assets/.csharpierignore)
-
-The `.csharpierignore` contains generic entries only. Individual projects may need additional
-project-specific entries (e.g., paths to auto-generated scripts).
+See [libraries-and-tools.md](references/libraries-and-tools.md) for line length, formatting, and brace
+rules; CSharpier and EditorConfig tooling; and configuration file references.
 
 ---
 

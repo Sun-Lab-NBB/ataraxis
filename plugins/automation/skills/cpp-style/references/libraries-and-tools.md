@@ -528,12 +528,15 @@ The build system section declares scikit-build-core and nanobind as build depend
 
 ```toml
 [build-system]
-requires = ["scikit-build-core==0.11.6", "nanobind==2.9.2"]
+requires = ["scikit-build-core>=0,<1", "nanobind>=2,<3"]
 build-backend = "scikit_build_core.build"
 ```
 
-Pin exact versions for reproducible builds. The `scikit_build_core.build` backend handles CMake
-invocation automatically during `pip install`.
+Constrain these Python build dependencies with major-version ranges (see `/pyproject-style`), not exact
+pins — Python dependencies track major versions, so compatible minor/patch updates are adopted
+automatically. Exact pinning is reserved for microcontroller/PlatformIO dependencies (see
+`/platformio-config`), where stringent hardware requirements make silent minor/patch bumps undesirable.
+The `scikit_build_core.build` backend handles CMake invocation automatically during `pip install`.
 
 ### `__repr__` for extension classes
 
@@ -603,3 +606,18 @@ Unlike embedded code, extension code may use the full C++ standard library:
 | Target platform      | Teensy / Arduino             | Windows, Linux, macOS               |
 | AccessModifierOffset | 0                            | -2 (in .clang-format)               |
 | Distribution         | Firmware images              | Binary wheels via cibuildwheel      |
+
+---
+
+## Configuration files
+
+Canonical configs are stored in [assets/](assets/). When working in a C++ project, verify that
+`.clang-format` and `.clang-tidy` in the project root match the canonical versions.
+
+- **Embedded** `.clang-format`: [assets/embedded/.clang-format](assets/embedded/.clang-format)
+- **Extension** `.clang-format`: [assets/extension/.clang-format](assets/extension/.clang-format)
+- **Shared** `.clang-tidy`: [assets/.clang-tidy](assets/.clang-tidy)
+
+The two `.clang-format` variants differ only in `AccessModifierOffset` (`0` vs `-2`) and
+`IndentAccessModifiers` (`true` vs `false`). All other settings are identical. The `.clang-tidy`
+configuration is shared across both archetypes.

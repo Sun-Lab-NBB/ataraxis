@@ -1,12 +1,11 @@
 ---
 name: project-layout
 description: >-
-  Applies project directory structure conventions when creating new projects, adding
-  directories, or verifying project layout. Covers the five project archetypes (Python-only,
-  Python+C++ extension, C++ PlatformIO library, C++ PlatformIO firmware, C# Unity), common root
-  files, environment directories, test directories, and documentation directory placement. Use
-  when creating a new project, adding top-level directories, restructuring a project, or when the
-  user asks about project directory conventions.
+  Applies project directory structure conventions when creating new projects, adding directories,
+  or verifying project layout. Covers the five archetypes (Python-only, Python+C++ extension, C++
+  PlatformIO library, C++ PlatformIO firmware, C# Unity), common root files, environment, test, and
+  documentation directories. Use when creating a new project, adding top-level directories,
+  restructuring a project, or when the user asks about project directory conventions.
 user-invocable: false
 ---
 
@@ -79,7 +78,7 @@ These files appear at the root of all (or most) projects:
 
 | File         | All archetypes | Purpose                                           |
 |--------------|----------------|---------------------------------------------------|
-| `LICENSE`    | Yes            | GPL-3.0 license                                   |
+| `LICENSE`    | Yes            | Apache-2.0 license                                |
 | `README.md`  | Yes            | Project documentation (see `/readme-style`)       |
 | `.gitignore` | Yes            | Git ignore patterns                               |
 | `CLAUDE.md`  | Yes            | Claude Code project instructions                  |
@@ -223,6 +222,12 @@ src/
 └── py.typed
 ```
 
+`.pyi` stub files (and the `py.typed` marker) are GENERATED artifacts, never hand-authored.
+`tox -e stubs` produces them and they ship with releases, but `tox -e lint`
+(`automation-cli purge-stubs`) removes them from the working tree during development — so their
+presence is release-phase-dependent. Do not create, hand-edit, or treat a missing `.pyi` as a
+layout violation; to change typing, edit the `.py` and regenerate.
+
 ### PlatformIO library (header-only `src/`)
 
 ```text
@@ -260,16 +265,17 @@ Assets/
 
 ## Related skills
 
-| Skill              | Relationship                                                             |
-|--------------------|--------------------------------------------------------------------------|
-| `/api-docs`        | Owns the internal `docs/` structure; this skill owns directory placement |
-| `/python-style`    | Owns file-level ordering within Python source files                      |
-| `/cpp-style`       | Owns file-level ordering within C++ source files                         |
-| `/csharp-style`    | Owns file-level ordering within C# source files                          |
-| `/pyproject-style` | Owns `pyproject.toml` structure; references `src/` layout convention     |
-| `/tox-config`      | Owns `tox.ini` conventions; `tox.ini` is a common root file              |
-| `/readme-style`    | Owns `README.md` content conventions                                     |
-| `/skill-design`    | Owns `plugins/automation/skills/` directory structure conventions        |
+| Skill                | Relationship                                                             |
+|----------------------|--------------------------------------------------------------------------|
+| `/api-docs`          | Owns the internal `docs/` structure; this skill owns directory placement |
+| `/python-style`      | Owns file-level ordering within Python source files                      |
+| `/cpp-style`         | Owns file-level ordering within C++ source files                         |
+| `/csharp-style`      | Owns file-level ordering within C# source files                          |
+| `/pyproject-style`   | Owns `pyproject.toml` structure; references `src/` layout convention     |
+| `/tox-config`        | Owns `tox.ini` conventions; `tox.ini` is a common root file              |
+| `/platformio-config` | Owns `platformio.ini` and `library.json` conventions (C++ archetypes)    |
+| `/readme-style`      | Owns `README.md` content conventions                                     |
+| `/skill-design`      | Owns `plugins/automation/skills/` directory structure conventions        |
 
 ---
 
@@ -295,7 +301,7 @@ Archetype Identification:
 - [ ] Reference tree loaded from archetype-trees.md
 
 Common Root Files:
-- [ ] LICENSE present (GPL-3.0)
+- [ ] LICENSE present (Apache-2.0)
 - [ ] README.md present
 - [ ] .gitignore present
 - [ ] CLAUDE.md present
@@ -306,6 +312,7 @@ Source Directory:
 - [ ] Python+C++ extension uses flat namespace under src/ (c_extensions/, wrapper/, etc.)
 - [ ] PlatformIO projects use src/ with header-only .h files
 - [ ] Unity projects use Assets/ with task-specific subdirectories
+- [ ] No hand-authored or stale .pyi stubs committed mid-development (stubs are generated at release time via tox -e stubs)
 
 Environment Directory:
 - [ ] Python projects have envs/ with 6 files (3 platforms x 2 files each)

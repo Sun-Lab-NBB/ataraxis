@@ -86,7 +86,7 @@ Transform code to match project style:
 |------------------------------------|--------------------------|------------------------------------------------|
 | `np.zeros((4,), np.float32)`       | Positional dtype arg     | `np.zeros((4,), dtype=np.float32)`             |
 | `raise ValueError(...)`            | Wrong error handling     | `console.error(message=..., error=ValueError)` |
-| `from typing import Optional`      | Old-style optional       | Use `Type                                      |
+| `from typing import Optional`      | Old-style optional       | Use `Type \| None`                             |
 | `@numba.njit` without `cache=True` | Recompiles every run     | `@numba.njit(cache=True)`                      |
 | Inconsistent f-string prefixes     | Confusing multi-line     | Use `f` prefix on all lines                    |
 | `'single quotes'`                  | Violates ruff formatting | Use `"double quotes"`                          |

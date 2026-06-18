@@ -325,3 +325,76 @@ result = [
   iterated once (e.g., passed directly to `sum()`, `any()`, `all()`)
 - Use explicit loops only when the loop body has **side effects** (I/O, mutation, logging) that
   do not produce a collection
+
+---
+
+## \_\_init\_\_.py conventions
+
+There are two types of `__init__.py` files with different docstring requirements.
+
+### Top-level library \_\_init\_\_.py
+
+The top-level `__init__.py` (e.g., `src/library_name/__init__.py`) uses an extended docstring with
+documentation links and authors:
+
+```python
+"""Provides assets for processing and analyzing neural imaging data.
+
+See the `documentation <https://project-api-docs.netlify.app/>`_ for the description of
+available assets. See the `source code repository <https://github.com/Sun-Lab-NBB/project-name>`_
+for more details.
+
+Authors: Author Name (Handle)
+"""
+
+from .module_one import ClassOne, function_one
+from .module_two import ClassTwo, ClassThree
+
+# console.enable() belongs only in top-level application libraries (the project's entry-point package).
+# Component libraries must NOT enable console — the application entry point handles this.
+
+__all__ = [
+    "ClassOne",
+    "ClassThree",
+    "ClassTwo",
+    "function_one",
+]
+```
+
+### Subpackage \_\_init\_\_.py
+
+Subpackage `__init__.py` files (e.g., `src/library_name/subpackage/__init__.py`) use a single-line
+docstring only:
+
+```python
+"""Provides configuration and runtime data classes for the processing pipeline."""
+
+from .config import Config, Settings
+from .data import DataStore
+
+__all__ = [
+    "Config",
+    "DataStore",
+    "Settings",
+]
+```
+
+### Rules
+
+- **Top-level docstring**: The first line MUST be the bare project description — the same sentence
+  used in all other canonical description locations (`pyproject.toml`, `welcome.rst`, `README.md`)
+  with no language or project name prefix. Include documentation link, source repository link,
+  and authors. Email addresses in the `Authors:` line are optional and omitted by default
+- **Subpackage docstring**: Use a single-line docstring describing what the subpackage provides.
+  Do NOT include documentation links, source repository links, or authors — these belong only in
+  the top-level library `__init__.py`
+- **Console initialization**: `console.enable()` belongs only in top-level application libraries
+  that serve as the final entry point. Component and dependency libraries
+  (e.g., `ataraxis-video-system`) must NOT call `console.enable()` — the top-level application
+  is responsible for enabling the console before any component library code runs
+- **Explicit `__all__`**: Every `__init__.py` must declare `__all__` with all public API members
+- **Alphabetical sorting**: Sort `__all__` entries alphabetically
+- **One-time configuration logic**: `__init__.py` files may contain logic that benefits from
+  being executed exactly once on import (e.g., setting the multiprocessing start method,
+  configuring environment variables for platform compatibility). Beyond that, `__init__.py` files
+  should contain only imports and `__all__`

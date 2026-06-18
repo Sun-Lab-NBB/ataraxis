@@ -57,7 +57,7 @@ layout within each project is:
 ```text
 project-root/
 ├── docs/
-│   ├── Makefile              # Unix Sphinx wrapper (delegates to tox)
+│   ├── Makefile              # Minimal Sphinx wrapper (builds usually run via tox)
 │   ├── make.bat              # Windows Sphinx wrapper
 │   └── source/
 │       ├── conf.py           # Sphinx configuration
@@ -181,7 +181,8 @@ dependencies directly to downstream project pyproject.toml files.
   mypy (`docs/` is excluded), so the `copyright` builtin shadow needs no suppression. See
   `/python-style` for the framework-wide policy on IDE directives.
 - The `templates_path` and `exclude_patterns` fields are included but left at defaults
-  (`['_templates']` and `[]` respectively).
+  (`['_templates']` and `[]` respectively) for Python-only and hybrid archetypes. The C++-only
+  archetype omits both fields entirely (it uses a minimal breathe-only conf.py).
 - Napoleon is configured for Google-style docstrings only (`napoleon_numpy_docstring = False`).
 - All Napoleon and `sphinx_autodoc_typehints` settings MUST match the templates exactly. See
   [conf-py-templates.md](references/conf-py-templates.md) for the full settings.

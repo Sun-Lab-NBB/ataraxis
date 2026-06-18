@@ -10,7 +10,7 @@ files.
 ```markdown
 # project-name
 
-Supports tox-based development automation pipelines used by other Sun (NeuroAI) lab projects.
+Supports tox-based development automation pipelines used by other ataraxis framework projects.
 ```
 
 The title must match the repository and package name (lowercase, hyphenated). The one-line
@@ -48,8 +48,7 @@ the one-line description from the first badge.
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/PACKAGE-NAME)
 ```
 
-Replace `PACKAGE-NAME` with the actual PyPI package name (e.g., `sl-shared-assets`,
-`ataraxis-time`).
+Replace `PACKAGE-NAME` with the actual PyPI package name (e.g., `ataraxis-time`).
 
 ### C++ / PlatformIO libraries
 
@@ -106,15 +105,17 @@ control.
 
 ## Features
 
-Optional. When present, use a bulleted list of key capabilities. The **last bullet** must state
-the license type:
+Optional. When present, use a bulleted list of key capabilities. The **first bullet** states the
+supported platforms/OS ("Supports Windows, Linux, and macOS." for PC libraries, "Supports all
+recent Arduino and Teensy architectures and platforms." for microcontroller libraries). The
+**last bullet** must state the license type:
 
 ```markdown
 ## Features
 
-- Automated environment creation and management via mamba and uv.
+- Supports Windows, Linux, and macOS.
 - Unified CLI for linting, type checking, testing, and documentation builds.
-- Cross-platform support for Windows, Linux, and macOS.
+- Automated environment creation and management via mamba and uv.
 - Apache 2.0 License.
 ```
 
@@ -211,6 +212,39 @@ Use the following command to install the library and all of its dependencies via
 ````
 
 Replace `PACKAGE-NAME` with the actual PyPI package name.
+
+### C++ / PlatformIO libraries
+
+C++ PlatformIO libraries use a Source and a `### Platformio` subsection (not `### pip`). The
+Source subsection moves the distribution's `src` contents into the consuming project's directory
+and adds the relevant `#include` directives; the Platformio subsection declares the dependency via
+`lib_deps`:
+
+```markdown
+## Installation
+
+### Source
+
+***Note,*** installation from source is ***highly discouraged*** for anyone who is not an active
+project developer.
+
+1. Download this repository to the local machine using the preferred method, such as git-cloning.
+   Use one of the [stable releases](https://github.com/Sun-Lab-NBB/PROJECT-NAME/tags).
+2. Unpack the downloaded tarball and move all 'src' contents into the appropriate destination
+   ('include,' 'src,' or 'libs') directory of the project that needs to use this library.
+3. Add the project's `#include` directives at the top of the main.cpp file and each consuming
+   header file.
+
+### Platformio
+
+1. Navigate to the project's platformio.ini file and add the following line to the target
+   environment specification: `lib_deps = inkaros/PACKAGE-NAME@^MAJOR.0.0`.
+2. Add the project's `#include` directives at the top of the main.cpp file and each consuming
+   header file.
+```
+
+Replace `PROJECT-NAME` with the repository name, `PACKAGE-NAME` with the PlatformIO registry
+package name, and `MAJOR` with the current major version.
 
 ---
 
@@ -384,6 +418,19 @@ error is encountered with any of the automation components, deleting the corresp
 directories (`.tox`, `.ruff_cache`, `.mypy_cache`, etc.) manually or via a CLI command typically
 resolves the issue.
 ````
+
+### C++ / PlatformIO variant
+
+C++ PlatformIO projects differ from the Python template above:
+
+- **Installing the Project**: install the [PlatformIO](https://platformio.org/install/integration)
+  IDE/plugin instead of mamba/tox, then run `pio project init` and (for IDEs lacking native
+  PlatformIO support) `pio project metadata`.
+- **Additional Dependencies**: Tox and Doxygen (both on the system path), used to build the API
+  documentation.
+- **Development Automation**: driven by the PlatformIO CLI; tox is reserved for tasks not covered
+  by PlatformIO, such as API documentation generation.
+- **PR gate**: the `tox`, `pio check`, and `pio test` tasks must all pass before merging.
 
 ---
 

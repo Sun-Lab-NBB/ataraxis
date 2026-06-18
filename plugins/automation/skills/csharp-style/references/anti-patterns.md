@@ -597,10 +597,10 @@ private const float Epsilon = 0.01f;
 private const int MaxRetries = 3;
 
 // Wrong - snake_case namespace from C++ convention
-namespace sl_config { }
+namespace project_config { }
 
 // Correct - PascalCase namespace
-namespace SL.Config { }
+namespace Project.Config { }
 
 // Wrong - get_/set_ accessor methods from C++ convention
 public float get_Position() { return _position; }

@@ -43,15 +43,15 @@ Check the locally installed ataraxis-video-system version against the latest rel
 pip show ataraxis-video-system
 ```
 
-The current version is **3.0.0**. If a version mismatch exists, ask the user how to proceed.
+The current version is **4.0.1**. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
 
-| File                                                                 | What to Check                                   |
-|----------------------------------------------------------------------|-------------------------------------------------|
-| `../ataraxis-video-system/src/ataraxis_video_system/__init__.py`     | Exported classes, functions, and public API     |
-| `../ataraxis-video-system/src/ataraxis_video_system/video_system.py` | VideoSystem constructor parameters and methods  |
-| Project `pyproject.toml`                                             | Current pinned version dependency               |
+| File                                                                       | What to Check                                  |
+|----------------------------------------------------------------------------|------------------------------------------------|
+| `../ataraxis-video-system/src/ataraxis_video_system/__init__.py`           | Exported classes, functions, and public API    |
+| `../ataraxis-video-system/src/ataraxis_video_system/video/video_system.py` | VideoSystem constructor parameters and methods |
+| Project `pyproject.toml`                                                   | Current pinned version dependency              |
 
 ---
 
@@ -64,7 +64,8 @@ See [references/api-reference.md](references/api-reference.md) for the complete 
 - Properties (video_file_path, started, system_id)
 - All enumerations (CameraInterfaces, VideoEncoders, EncoderSpeedPresets, OutputPixelFormats, InputPixelFormats)
 - Discovery functions (discover_camera_ids, check_cti_file, add_cti_file)
-- GenICam configuration classes (GenicamNodeInfo, GenicamConfiguration)
+- GenICam configuration classes (GenicamNodeInfo, GenicamConfiguration) and the programmatic config methods
+  (set_node_value, get_configuration, apply_configuration) that back the `/camera-setup` tools
 - Utility functions (check_ffmpeg_availability, check_gpu_availability, extract_logged_camera_timestamps)
 
 ---
@@ -100,10 +101,17 @@ Key constructor notes:
 - `frame_width`, `frame_height`, `frame_rate` default to `None` (use camera native settings). For
   Harvesters cameras, set resolution and frame rate via GenICam configuration (see `/camera-setup`)
   rather than overriding through these parameters. The VideoSystem overrides are primarily intended
-  for OpenCV cameras that lack GenICam node control.
-- `display_frame_rate` defaults to `None` (preview disabled). Set to an integer FPS to enable.
+  for OpenCV cameras that lack GenICam node control. Exposure, gain, and other GenICam nodes are applied at
+  configuration time via the `/camera-setup` tools or, in code, via the `HarvestersCamera` config methods
+  (`set_node_value`, `get_configuration`, `apply_configuration`); see the API reference. The deterministic
+  acquisition script does not reconfigure nodes at runtime.
+- `display_frame_rate` defaults to `None` (preview disabled). Set to a positive integer FPS not exceeding
+  the camera's acquisition frame rate to enable, else `__init__` raises `TypeError`. Frame display is
+  unsupported on macOS: it is auto-disabled (a warning is emitted), so the value has no effect there.
 - `gpu` defaults to `-1` (CPU encoding). Set to `0+` for NVIDIA GPU encoding.
-- `color` is a keyword-only parameter defaulting to `None` (auto-detect from camera).
+- `color` is a keyword-only parameter defaulting to `None`. For OpenCV and Mock, `None` resolves to
+  monochrome (`False`) — a color OpenCV camera left at `None` silently records grayscale, so pass
+  `color=True` explicitly to record color. Only Harvesters infers color/mono from the GenICam config.
 
 ### Lifecycle
 
@@ -113,7 +121,9 @@ VideoSystem() → start() → [start_frame_saving() → stop_frame_saving()] →
 
 - `start()` begins frame acquisition without saving. Useful for preview or warm-up.
 - `start_frame_saving()` / `stop_frame_saving()` toggle recording while acquisition continues.
-- `stop()` terminates acquisition and releases all resources. Must be called explicitly.
+- `stop()` terminates acquisition and releases all resources. Must be called explicitly. It blocks until
+  all buffered frames are encoded, up to a 10-minute cap; beyond that it force-kills the consumer and
+  discards remaining frames.
 
 ### System ID allocation
 
@@ -276,15 +286,15 @@ cause drops when the scene changes. Consider this when selecting presets.
 
 ## Related skills
 
-| Skill                     | Relationship                                                             |
-|---------------------------|--------------------------------------------------------------------------|
-| `/camera-setup`           | Covers MCP-based camera discovery, testing, and encoding parameter guide |
-| `/post-recording`         | Downstream: verification after recording sessions                        |
-| `/log-input-format`       | Reference: documents archive format produced by VideoSystem code         |
-| `/log-processing`         | Downstream: processes archives from VideoSystem instances                |
-| `/log-processing-results` | Downstream: analyzes frame statistics from processed archives            |
-| `/pipeline`               | Context: end-to-end orchestration and multi-camera planning              |
-| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity for API verification               |
+| Skill                          | Relationship                                                             |
+|--------------------------------|--------------------------------------------------------------------------|
+| `/camera-setup`                | Covers MCP-based camera discovery, testing, and encoding parameter guide |
+| `/post-recording`              | Downstream: verification after recording sessions                        |
+| `/log-input-format`            | Reference: documents archive format produced by VideoSystem code         |
+| `/log-processing`              | Downstream: processes archives from VideoSystem instances                |
+| `/log-processing-results`      | Downstream: analyzes frame statistics from processed archives            |
+| `/pipeline`                    | Context: end-to-end orchestration and multi-camera planning              |
+| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for API verification               |
 
 ---
 
@@ -292,7 +302,7 @@ cause drops when the scene changes. Consider this when selecting presets.
 
 ```text
 Camera Interface:
-- [ ] Verified ataraxis-video-system version matches requirements (>=3.0.0)
+- [ ] Verified ataraxis-video-system version matches requirements (>=4.0.0)
 - [ ] Verified cameras are discoverable using /camera-setup workflow
 - [ ] Allocated unique system IDs in the 51-100 range (checked existing allocations)
 - [ ] DataLogger initialized and started before VideoSystem creation

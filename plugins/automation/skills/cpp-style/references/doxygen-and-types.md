@@ -206,7 +206,8 @@ For methods with parameters that need documentation, use `/** ... */` blocks:
  * @returns true if the requested number of bytes was successfully read, false otherwise.
  */
 template <typename ReadObject>
-[[nodiscard]] bool ReadData(ReadObject& object) const
+[[nodiscard]]
+bool ReadData(ReadObject& object) const
 ```
 
 ### When to use block vs inline
@@ -225,15 +226,18 @@ should ideally be a single sentence:
 ```cpp
 // Good - single-sentence accessor docs
 /// Returns the size of the instance's transmission buffer, in bytes.
-[[nodiscard]] static constexpr uint16_t get_transmission_buffer_size()
+[[nodiscard]]
+static constexpr uint16_t get_transmission_buffer_size()
 
 /// Returns the runtime status of the most recently called method.
-[[nodiscard]] uint8_t get_runtime_status() const
+[[nodiscard]]
+uint8_t get_runtime_status() const
 
 // Avoid - multi-sentence accessor docs (move details to the class @brief instead)
 /// Returns the runtime status of the most recently called method. The status is updated
 /// after each call to SendData or ReceiveData, and tracks whether the operation succeeded.
-[[nodiscard]] uint8_t get_runtime_status() const
+[[nodiscard]]
+uint8_t get_runtime_status() const
 ```
 
 ---
@@ -342,7 +346,8 @@ const bool data_received = tl_class.ReceiveData();
 EncoderModule(const uint8_t module_type, const uint8_t module_id, Communication& communication)
 
 // [[nodiscard]] on const methods
-[[nodiscard]] bool ReadData(ReadObject& object) const
+[[nodiscard]]
+bool ReadData(ReadObject& object) const
 ```
 
 ### Integer types
@@ -398,3 +403,29 @@ static constexpr uint32_t kCalibrationDelay = 300000;
 
 Exception: `#define` is required for Arduino library configuration macros (e.g.,
 `ENCODER_USE_INTERRUPTS`) that must precede header inclusion.
+
+---
+
+## Comments
+
+### Inline comments
+
+- Use third person imperative ("Configures..." not "This section configures...")
+- Place above the code, not at end of line (unless short trailing comments)
+- Use comments to explain non-obvious logic or provide hardware-specific context
+
+```cpp
+// Resets the overflow tracker. The overflow accumulates insignificant motion between reporting
+// cycles to filter sensor noise while preserving real displacement.
+_overflow = 0;
+```
+
+### What to avoid
+
+- Don't reiterate the obvious (e.g., `// Set x to 5` before `x = 5`)
+- Don't add Doxygen comments to code you didn't write or modify
+- Don't use heavy section separator blocks (e.g., `// ======` or `// ------`)
+- Don't include `@code` / `@endcode` example blocks in Doxygen documentation. Examples go stale
+  as APIs evolve and create maintenance debt. Keep documentation concise — the `@brief`, `@param`,
+  and `@returns` tags are sufficient. This parallels the Python convention of not including
+  Examples sections in docstrings

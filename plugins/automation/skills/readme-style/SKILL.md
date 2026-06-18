@@ -29,9 +29,9 @@ submitting.
 - PyPI rendering compatibility
 
 **Does not cover:**
-- Python code style (invoke `/python-style`)
-- Commit message conventions (invoke `/commit`)
-- Skill file and CLAUDE.md conventions (invoke `/skill-design`)
+- Python code style (see `/python-style`)
+- Commit message conventions (see `/commit`)
+- Skill file and CLAUDE.md conventions (see `/skill-design`)
 
 ---
 

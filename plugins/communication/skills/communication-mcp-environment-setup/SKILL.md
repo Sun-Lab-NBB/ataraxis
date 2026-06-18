@@ -3,8 +3,9 @@ name: communication-mcp-environment-setup
 description: >-
   Diagnoses and resolves ataraxis-communication-interface MCP server connectivity issues. Covers environment
   verification, command availability, Python version checks, dependency validation, and conda/pip/uv
-  environment configuration. Use when MCP tools are unavailable, when the server fails to start,
-  when the user reports connection issues, or when starting a session that requires MCP tools.
+  environment configuration. Use when the axci (communication-interface) MCP tools are unavailable, when the
+  axci server fails to start, when the user reports communication-interface connection issues, or when
+  starting a session that requires the axci MCP tools.
 user-invocable: false
 ---
 
@@ -38,7 +39,7 @@ defined in `pyproject.toml`:
 
 ```toml
 [project.scripts]
-axci = "ataraxis_communication_interface.cli:axci_cli"
+axci = "ataraxis_communication_interface.interfaces.cli:axci_cli"
 ```
 
 | Server                             | CLI command | Purpose                                                              |
@@ -215,7 +216,7 @@ session.
 
 ## Proactive behavior
 
-You SHOULD proactively invoke this skill when:
+You should proactively invoke this skill when:
 - A session begins and MCP tools from the ataraxis-communication-interface server are expected but unavailable
 - Any ataraxis-communication-interface MCP tool call fails with a connection or server error
 - The user mentions issues with MCP server connectivity or environment setup

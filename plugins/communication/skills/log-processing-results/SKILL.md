@@ -41,7 +41,7 @@ file discovery, schema reference, output verification, event analysis, and inter
 
 | Tool                                  | Purpose                                                               |
 |---------------------------------------|-----------------------------------------------------------------------|
-| `discover_microcontroller_data_tool`  | Discovers manifests, log archives, and processed feather outputs      |
+| `discover_microcontroller_data_tool`  | Discovers microcontroller manifests and confirmed log-archive sources |
 
 **Parameters:**
 
@@ -72,7 +72,7 @@ files[]:            Per-file verification results:
   columns:          List of column names found
   type:             "module", "kernel", or "unknown" (inferred from filename)
 total_files:        Number of feather files found
-output_directory:   Absolute path to the microcontroller_data/ directory
+output_directory:   Absolute path to the output (parent) directory that was passed in (contains the microcontroller_data/ subdirectory)
 data_path:          Absolute path to the microcontroller_data/ directory
 tracker:            ProcessingTracker status summary (if tracker exists)
 ```
@@ -117,6 +117,10 @@ results[]:                Per-file analysis results:
   sample_rows[]:          First N rows (binary data replaced with has_data boolean)
 total_files:              Number of files analyzed
 ```
+
+`inter_event_timing` is `{}` when `total_rows < 2`. For an empty file, `summary` is just
+`{total_rows: 0}` (no timestamps/duration), with empty `event_distribution`, `command_distribution`, and
+`sample_rows`.
 
 ---
 
@@ -172,6 +176,12 @@ config's event codes.
 Multiple feather files may be produced per source ID (one per module extraction target plus an optional
 kernel file). This differs from the axvs pipeline which produces one file per source.
 
+A configured module or kernel produces a feather file **only if at least one message matched its event
+codes**; a fully empty archive produces no files at all. All of these cases still report `SUCCEEDED`. A
+missing expected file therefore means the configured event codes never fired — not data loss or a
+processing failure. Cross-check it against the event distribution (`query_extracted_events_tool`) or the
+input archive before treating it as a problem.
+
 ### ProcessingTracker file
 
 The `microcontroller_processing_tracker.yaml` file tracks job lifecycle per output directory. Each job has:
@@ -200,6 +210,19 @@ The `microcontroller_processing_tracker.yaml` file tracks job lifecycle per outp
   contention, buffering, or competing processes
 - **Very long gaps** (`max_us` >> `mean_us`) suggest intermittent communication interruptions
 
+### Message loss is not measurable post-hoc
+
+Per-message loss **cannot** be computed from extracted archives. The serial wire format carries no sequence
+or counter field, so there is no expected-vs-received count, and extraction keeps only the configured event
+codes — so a sparse `event_distribution` reflects the config, not dropped data. Do **not** report inter-event
+gaps (a large `max_us`) as "lost messages": a long gap is a timing observation, not a quantified loss.
+
+The only after-the-fact signal of a communication interruption is the Kernel keepalive-timeout status event
+(`kKeepAliveTimeout`, kernel status code 10), emitted when the Kernel stops receiving keepalive messages from
+the PC — and it appears in the kernel feather **only if that kernel event code was included in the extraction
+config**. If a run needs guaranteed-delivery accounting, that guarantee comes from the transport layer's
+runtime CRC/COBS verification during acquisition, not from post-hoc log analysis.
+
 ### Data payload reconstruction
 
 For rows where `dtype` and `data` are non-null, the original data value can be reconstructed:
@@ -216,6 +239,10 @@ value = np.frombuffer(payload, dtype=np.dtype(dtype_str))
 
 The `dtype` column contains the numpy dtype string that was used to serialize the data on the
 microcontroller side. Common dtypes include `uint8`, `uint16`, `uint32`, `int32`, `float32`.
+
+Rows from `*_STATE` events carry null `dtype`/`data` by design — a state code reported via the `event`
+column with no payload — while `*_DATA` events carry a numpy dtype string and serialized bytes. Null is
+the expected signature of a state-report event, not corruption.
 
 ### Module vs kernel files
 
@@ -258,15 +285,15 @@ To determine detailed job status, use `get_batch_status_overview_tool` from `/lo
 
 ## Related skills
 
-| Skill                        | Relationship                                                        |
-|------------------------------|---------------------------------------------------------------------|
-| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for tool access               |
-| `/microcontroller-setup`     | Upstream: MCP discovery tools that locate archives and recordings   |
-| `/microcontroller-interface` | Upstream: code that produces the data analyzed here                 |
-| `/extraction-configuration`  | Context: extraction config determines which events appear in output |
-| `/log-input-format`          | Reference: input archive format and source ID semantics             |
-| `/log-processing`            | Upstream: processing workflow that produces this output             |
-| `/pipeline`                  | Context: results analysis is phase 6 of the end-to-end pipeline     |
+| Skill                                  | Relationship                                                        |
+|----------------------------------------|---------------------------------------------------------------------|
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access               |
+| `/microcontroller-setup`               | Upstream: MCP discovery tools that locate archives and recordings   |
+| `/microcontroller-interface`           | Upstream: code that produces the data analyzed here                 |
+| `/extraction-configuration`            | Context: extraction config determines which events appear in output |
+| `/log-input-format`                    | Reference: input archive format and source ID semantics             |
+| `/log-processing`                      | Upstream: processing workflow that produces this output             |
+| `/pipeline`                            | Context: results analysis is phase 6 of the end-to-end pipeline     |
 
 ---
 
@@ -276,7 +303,8 @@ To determine detailed job status, use `get_batch_status_overview_tool` from `/lo
 Log Processing Output Completeness:
 - [ ] Output directory contains `microcontroller_data/` subdirectory
 - [ ] Feather files verified via `verify_processing_output_tool` (schema correct)
-- [ ] All expected module and kernel files present (cross-reference with extraction config)
+- [ ] All expected module and kernel files present (cross-reference with extraction config; a missing
+      file with a SUCCEEDED job means its event codes never fired, not a failure)
 - [ ] Processing tracker shows SUCCEEDED for all jobs
 - [ ] Event analysis performed via `query_extracted_events_tool`
 - [ ] Event distribution matches expected firmware event codes

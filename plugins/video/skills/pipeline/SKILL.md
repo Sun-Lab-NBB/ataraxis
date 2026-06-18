@@ -64,7 +64,8 @@ Setup       →  Discovery   →            →  Recording  →  Processing  →
 ### Phase 3: Recording session
 
 - **Skill:** `/camera-setup` (MCP) or `/camera-interface` (code)
-- **MCP path:** `start_video_session_tool` → `start_frame_saving_tool` → `stop_frame_saving_tool` → `stop_video_session_tool`
+- **MCP path:** `start_video_session_tool` → `start_frame_saving_tool` →
+  `stop_frame_saving_tool` → `stop_video_session_tool`
 - **Code path:** DataLogger init/start → VideoSystem init/start → `start_frame_saving` →
   `stop_frame_saving` → `stop` → logger stop → `assemble_log_archives`
 - **Handoff condition:** Session stopped, video file(s) exist
@@ -93,7 +94,7 @@ Setup       →  Discovery   →            →  Recording  →  Processing  →
 ### Interface selection
 
 ```text
-Does the camera support GenTL (GeniCam Transport Layer)?
+Does the camera support GenTL (GenICam Transport Layer)?
   YES → Harvesters (preferred interface; provides GenICam node control)
   NO  → Is the camera a USB webcam or consumer device?
     YES → OpenCV
@@ -136,14 +137,21 @@ for MCP encoding parameter reference.
 
 ### System ID allocation
 
+A camera's `system_id` IS its source ID at the DataLogger level: it is the value VideoSystem
+registers as the `source_id`, and it names the camera's `{system_id}_log.npz` archive (see
+`/log-input-format`). This skill uses "source ID" for the shared DataLogger namespace and `system_id`
+for the VideoSystem constructor.
+
 | Range  | Assignment                   | Notes                                                        |
 |--------|------------------------------|--------------------------------------------------------------|
 | 51-100 | Camera VideoSystem instances | One unique ID per camera; advised range for all camera code  |
 | 111    | CLI (`axvs run`)             | Fixed; interactive testing only                              |
 | 112    | MCP server sessions          | Fixed; agent-driven testing only                             |
 
-All other IDs are used by other production assets in the broader system. Camera code should stay within
-the 51-100 band. Allocate camera IDs sequentially starting at 51 (e.g., 51, 52, 53 for a 3-camera rig).
+Camera code should stay within the 51-100 band. Allocate camera IDs sequentially starting at 51 (e.g.,
+51, 52, 53 for a 3-camera rig). System IDs must be unique across **all** sources sharing a DataLogger,
+including sources from other libraries (e.g., ataraxis-communication-interface controllers in the 101-150
+range). The 51-100 band avoids collisions with those advised ranges.
 
 ### DataLogger topology
 
@@ -151,14 +159,17 @@ A single shared DataLogger is the preferred topology for all use cases:
 
 ```text
 DataLogger(instance_name="session")
-  ├── VideoSystem(system_id=51, name="face_camera")    → 051_log.npz + camera_manifest.yaml
-  ├── VideoSystem(system_id=52, name="body_camera")    → 052_log.npz
-  └── VideoSystem(system_id=53, name="arena_camera")   → 053_log.npz
+  ├── VideoSystem(system_id=51, name="face_camera")    → 51_log.npz + camera_manifest.yaml
+  ├── VideoSystem(system_id=52, name="body_camera")    → 52_log.npz
+  └── VideoSystem(system_id=53, name="arena_camera")   → 53_log.npz
 ```
 
 All cameras share one log directory, all timestamps are correlated, one `assemble_log_archives` call
 consolidates everything, and one processing batch covers all source IDs. Each VideoSystem writes an
 entry to `camera_manifest.yaml` during initialization, enabling manifest-based discovery downstream.
+The manifest append is not idempotent -- re-constructing a VideoSystem against an already-used output
+directory appends a duplicate source entry rather than replacing it, so use a fresh session directory
+per recording.
 
 Multiple DataLoggers should only be used if a single logger cannot handle the load, leading to excessive
 buffering. This is extremely rare in practice. When it does occur, each DataLogger creates a separate
@@ -248,7 +259,10 @@ This simplifies batch processing:
 4. Output: one feather file per camera under a `camera_timestamps/` subdirectory
    (`camera_timestamps/camera_51_timestamps.feather`, `camera_timestamps/camera_52_timestamps.feather`, etc.)
 
-For multi-DataLogger setups, process each DataLogger output directory as a separate batch.
+For multi-DataLogger setups, process each DataLogger output directory as a separate batch. This is
+enforced -- passing source IDs whose archives live in different DataLogger directories into one batch
+raises ValueError ("Each DataLogger output directory must be processed independently"). Run one discovery
+and batch per output directory.
 
 ---
 
@@ -300,15 +314,15 @@ After processing, use `analyze_camera_frame_statistics_tool` with all camera fea
 
 ## Related skills
 
-| Skill                     | Role                                                   |
-|---------------------------|--------------------------------------------------------|
-| `/video-mcp-environment-setup`  | Phase 1: environment verification                      |
-| `/camera-setup`           | Phase 2-3: MCP-based discovery, testing, and recording |
-| `/camera-interface`       | Phase 3: code-based VideoSystem integration            |
-| `/post-recording`         | Phase 4: output verification and archive assembly      |
-| `/log-input-format`       | Reference: archive format for troubleshooting          |
-| `/log-processing`         | Phase 5: timestamp extraction                          |
-| `/log-processing-results` | Phase 6: frame statistics and quality analysis         |
+| Skill                          | Relationship                                           |
+|--------------------------------|--------------------------------------------------------|
+| `/video-mcp-environment-setup` | Phase 1: environment verification                      |
+| `/camera-setup`                | Phase 2-3: MCP-based discovery, testing, and recording |
+| `/camera-interface`            | Phase 3: code-based VideoSystem integration            |
+| `/post-recording`              | Phase 4: output verification and archive assembly      |
+| `/log-input-format`            | Reference: archive format for troubleshooting          |
+| `/log-processing`              | Phase 5: timestamp extraction                          |
+| `/log-processing-results`      | Phase 6: frame statistics and quality analysis         |
 
 ---
 

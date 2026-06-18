@@ -3,8 +3,9 @@ name: log-input-format
 description: >-
   Documents the input data format required by the log processing pipeline: NPZ log archives produced by
   DataLogger, source ID semantics, microcontroller manifest system, archive internal message layout, and
-  communication protocol. Use when the user asks about log archive format, source IDs, DataLogger output,
-  or why processing fails due to missing or malformed archives.
+  communication protocol. Use when the user asks about microcontroller (serial) log archive format, source
+  IDs, the manifest system, DataLogger output, or why microcontroller log processing fails due to missing or
+  malformed archives.
 user-invocable: false
 ---
 
@@ -106,7 +107,14 @@ controller-produced log archives. Directories without a `microcontroller_manifes
 discovered. Manifests also associate controller IDs with human-readable names and enumerate the hardware
 modules managed by each controller.
 
-**Key difference from axvs manifests:** AXCI manifests include a `modules` list per controller, providing
+**Manifest gates, config selects:** The controller IDs to process are taken from the `ExtractionConfig`
+(`resolved_config.controllers`) and are the sole source of truth for which archives are processed — not
+the manifest or which `.npz` files exist on disk. Each config controller ID must also appear in
+`microcontroller_manifest.yaml`, or processing raises a `ValueError` listing the unregistered IDs and the
+registered set. Manifest controllers the config omits are simply not processed. The manifest only
+validates/gates; it does not select.
+
+**Key difference from AXVS manifests:** AXCI manifests include a `modules` list per controller, providing
 full hardware module metadata (type, id, name). AXVS camera manifests only have source ID and camera name.
 
 ---
@@ -188,7 +196,7 @@ recording_root/
 Each log directory is an **independent processing unit**. The discovery tool groups archives by their
 parent directory, and each directory is prepared and processed independently.
 
-### Mixed axvs and axci recording
+### Mixed AXVS and AXCI recording
 
 When microcontrollers and cameras share a DataLogger, the log directory contains both types of manifests
 and archives. The AXCI processing pipeline only processes archives referenced in the
@@ -201,11 +209,22 @@ and archives. The AXCI processing pipeline only processes archives referenced in
 
 ### Message format
 
-Each entry in an `.npz` archive stores a serialized message as a byte array:
+Each entry in an `.npz` archive stores a serialized message as a byte array. The shared DataLogger
+container layout is:
+
+```text
+[source_id: 1 byte][elapsed_us: 8 bytes (uint64)][payload: N bytes]
+```
+
+Everything after the source ID and timestamp is the opaque payload, whose structure is domain-specific
+and must be parsed by the consumer. For AXCI data/state messages, the first payload byte is a `protocol`
+byte that identifies the message type:
 
 ```text
 [source_id: 1 byte][elapsed_us: 8 bytes (uint64)][protocol: 1 byte][payload: N bytes]
 ```
+
+The onset message is the exception: its payload contains only the 8-byte timestamp and no protocol byte.
 
 Archive keys follow the pattern `{source_id:03d}_{elapsed_us:020d}`, preserving the 3-digit zero-padded
 source ID and 20-digit zero-padded timestamp from the original `.npy` filenames.
@@ -223,7 +242,7 @@ source ID and 20-digit zero-padded timestamp from the original `.npy` filenames.
 
 | Type  | Identifier        | Payload                                      | Purpose                     |
 |-------|-------------------|----------------------------------------------|-----------------------------|
-| Onset | `elapsed_us == 0` | 8 bytes: int64 UTC epoch microseconds        | Absolute time reference     |
+| Onset | `elapsed_us == 0` | 8 bytes: uint64 UTC epoch microseconds       | Absolute time reference     |
 | Data  | `elapsed_us > 0`  | Protocol byte + command + event + typed data | Module/kernel data message  |
 | State | `elapsed_us > 0`  | Protocol byte + command + event              | Module/kernel state message |
 
@@ -266,7 +285,9 @@ After the leading protocol byte, the remaining bytes follow protocol-specific la
 - **module_type** — Module family code of the sending module (module messages only)
 - **module_id** — Instance ID of the sending module (module messages only)
 - **command** — The command code the module/kernel was executing
-- **event** — The event code identifying the message type
+- **event** — The event code identifying the message type. The processing pipeline filters on the event
+  code alone (the command is recorded but not used to select messages), and firmware guarantees event
+  codes are unique within each module/kernel — see `/extraction-configuration`.
 - **prototype_code** — Identifies the numpy dtype and size of the data bytes (auto-resolved at
   compile time by the firmware library; data messages only)
 - **data** — The serialized data value (data messages only)
@@ -294,6 +315,14 @@ Before running the log processing pipeline, verify these conditions:
 
 3. **Archive naming valid** — Files match the `{source_id}_log.npz` pattern.
 
+   - **One archive per source ID** — Exactly one `{source_id}_log.npz` may exist anywhere under the
+     search root. `find_log_archive` recursively rglobs the pattern, and more than one match raises a
+     `ValueError` ("Found N matching archives, but expected exactly one") — duplicates fail, not first-wins.
+   - **Single parent directory per invocation** — All source IDs processed in one local invocation must
+     resolve to the same parent directory. If resolved archives span more than one directory,
+     `run_log_processing_pipeline` raises a `ValueError` ("span multiple directories ... Each DataLogger
+     output directory must be processed independently"). Point the pipeline at each logger directory separately.
+
 4. **Onset message present** — Each archive must contain exactly one onset message (elapsed_us=0)
    with a valid UTC epoch payload. Archives missing the onset message cannot be processed.
 
@@ -304,15 +333,15 @@ Before running the log processing pipeline, verify these conditions:
 
 ## Related skills
 
-| Skill                        | Relationship                                                         |
-|------------------------------|----------------------------------------------------------------------|
-| `/microcontroller-setup`     | Upstream: MCP tools that assemble and discover archives              |
-| `/microcontroller-interface` | Upstream: MicroControllerInterface instances that produce log data   |
-| `/extraction-configuration`  | Context: extraction config determines which messages are extracted   |
-| `/log-processing`            | Downstream: consumes archives in the format documented here          |
-| `/log-processing-results`    | Downstream: documents the output format produced from these archives |
-| `/pipeline`                  | Context: reference skill for the end-to-end pipeline phases          |
-| `/communication-mcp-environment-setup`     | Prerequisite: MCP server connectivity for discovery and processing   |
+| Skill                                  | Relationship                                                         |
+|----------------------------------------|----------------------------------------------------------------------|
+| `/microcontroller-setup`               | Upstream: MCP tools that assemble and discover archives              |
+| `/microcontroller-interface`           | Upstream: MicroControllerInterface instances that produce log data   |
+| `/extraction-configuration`            | Context: extraction config determines which messages are extracted   |
+| `/log-processing`                      | Downstream: consumes archives in the format documented here          |
+| `/log-processing-results`              | Downstream: documents the output format produced from these archives |
+| `/pipeline`                            | Context: reference skill for the end-to-end pipeline phases          |
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for discovery and processing   |
 
 ---
 

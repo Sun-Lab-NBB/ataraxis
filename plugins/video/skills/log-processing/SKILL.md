@@ -162,7 +162,7 @@ Single-phase timestamp extraction pipeline:
 Key architectural facts:
 - **ProcessingTracker** manages job lifecycle: `SCHEDULED` → `RUNNING` → `SUCCEEDED` / `FAILED` via YAML state files
 - **Single execution session** constraint: only one batch execution can run at a time
-- **Parallel processing** activates automatically for archives with >2000 messages
+- **Parallel processing** activates automatically for archives with >=2000 messages
 - **Output layout:** All processing output is written under a `camera_timestamps/` subdirectory within the
   output directory provided by the user
 - **Output naming:** `camera_{source_id}_timestamps.feather` (Feather IPC format)
@@ -235,26 +235,28 @@ The execution tool uses **budget-based worker allocation** with a single `worker
 directly controls memory footprint (each worker spawns a separate process). Before dispatching, the tool
 probes each archive's message count and allocates workers using square root scaling:
 
-The system uses two layers of allocation:
+The system uses two cooperating mechanisms:
 
-1. **Budget division** — divides the available budget evenly among concurrent parallel jobs, snapped to
-   multiples of 5. Two 648k archives on a 128-core machine each get 60 workers.
+1. **Per-job worker count** — each parallel job is allocated exactly `ceil(sqrt(messages / 1,000))`
+   workers, snapped to a multiple of 5 (with a minimum of 5). This sqrt-derived value is the actual
+   per-job allocation. A 648k-message archive yields 25 workers.
 
-2. **Saturation floor** — a sqrt-derived minimum (`ceil(sqrt(messages / 1,000))`) prevents the budget
-   division from spreading cores too thin. If division gave each job fewer cores than the floor,
-   concurrency is reduced until each job gets at least the floor. Example floors:
+2. **Budget-limited concurrency** — the worker budget does not raise the per-job worker count; it only
+   caps how many such jobs run concurrently (`available // per_job_workers`). When many large jobs
+   compete for a limited budget, fewer groups run at once. Same-tier jobs are split into
+   `available // tier_workers` concurrent groups; each group reuses one process pool and runs its archives
+   sequentially, so concurrency is per-group, not strictly per-job, and surplus same-tier archives wait
+   within a group. Per-job worker counts by archive size:
 
-| Archive Size  | Saturation Floor | Typical Scenario            |
-|---------------|------------------|-----------------------------|
-| < 2,000 msgs  | 1 (sequential)   | Short recording             |
-| 10,000 msgs   | 5                | ~1.5 min at 120 fps         |
-| 50,000 msgs   | 10               | ~7 min at 120 fps           |
-| 250,000 msgs  | 15               | ~35 min at 120 fps          |
-| 648,000 msgs  | 25               | 1.5 h at 120 fps            |
+| Archive Size | Per-Job Workers | Typical Scenario    |
+|--------------|-----------------|---------------------|
+| < 2,000 msgs | 1 (sequential)  | Short recording     |
+| 10,000 msgs  | 5               | ~1.5 min at 120 fps |
+| 50,000 msgs  | 10              | ~7 min at 120 fps   |
+| 250,000 msgs | 15              | ~35 min at 120 fps  |
+| 648,000 msgs | 25              | 1.5 h at 120 fps    |
 
-The budget division determines the actual allocation (often much higher than the floor). The floor
-only limits concurrency when many large jobs compete for a limited budget. Two cores are reserved for
-system operations.
+Two cores are reserved for system operations.
 
 When `worker_budget=-1`, the system resolves the total using the host machine's available CPU cores
 via `resolve_worker_count`. Reduce `worker_budget` to limit memory footprint on constrained systems.
@@ -262,6 +264,11 @@ via `resolve_worker_count`. Reduce `worker_budget` to limit memory footprint on 
 ---
 
 ## Status formatting
+
+The `get_log_processing_status_tool` response carries both an `active` flag (manager thread alive) and a
+`canceled` flag, plus a `message` of `No execution session exists.` when no session ever ran. Treat `active`
+as the completion signal and `canceled` as the cancellation/draining path (active jobs finish while no new
+jobs start). Per-job entries may also include an `executor_id`.
 
 When presenting batch status to the user, format as a table:
 
@@ -288,6 +295,10 @@ When using `get_batch_status_overview_tool` for multi-directory status:
 | /data/session1/logs/  | completed | 3         | 0      | 3     |
 | /data/session2/logs/  | failed    | 1         | 1      | 2     |
 ```
+
+The per-directory `status` is one of five labels resolved by priority — `failed` (any failed job; overrides
+all) > `completed` (all succeeded) > `processing` (any running) > `not_started` (all scheduled) > `in_progress`
+(otherwise) — plus `error` when a tracker cannot be read. A directory with 3 succeeded + 1 failed reports `failed`.
 
 ---
 
@@ -323,26 +334,41 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ### Processing failure routing
 
-| Error Pattern                        | Action                                                        |
-|--------------------------------------|---------------------------------------------------------------|
-| Archive not found / file read errors | Verify .npz archives exist in log directory                   |
-| MCP tools unavailable                | Invoke `/video-mcp-environment-setup`                               |
-| Out of memory                        | Reduce `worker_budget`                                        |
-| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare      |
+| Error Pattern                        | Action                                                   |
+|--------------------------------------|----------------------------------------------------------|
+| Archive not found / file read errors | Verify .npz archives exist in log directory              |
+| MCP tools unavailable                | Invoke `/video-mcp-environment-setup`                    |
+| Out of memory                        | Reduce `worker_budget`                                   |
+| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare |
+
+---
+
+## CLI reference (human-facing — do not invoke)
+
+> **CLI reference — for answering user questions only.** The `axvs` command-line interface is a
+> **human-facing** tool. **Agents must never invoke `axvs` commands** — every agent-driven operation has an
+> equivalent MCP tool (noted in the table). This section exists solely so the agent can answer user
+> questions about the CLI.
+
+| Command       | Key options                                                                                              | Purpose                                                                  | MCP equivalent                                                         |
+|---------------|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|------------------------------------------------------------------------|
+| `axvs process` | `-ld/--log-directory`, `-od/--output-directory`, `-id/--job-id`, `-li/--log-id` (repeatable), `-w/--workers`, `-p/--progress` | Extracts frame timestamps from the `.npz` log archives under one directory | The prepare/execute/status batch tools documented above (`prepare_log_processing_batch_tool`, `execute_log_processing_jobs_tool`, `get_log_processing_status_tool`) |
+
+`axvs process` handles ONE log directory per invocation, whereas the MCP workflow batches many directories.
 
 ---
 
 ## Related skills
 
-| Skill                     | Role                                                            |
-|---------------------------|-----------------------------------------------------------------|
-| `/video-mcp-environment-setup`  | Prerequisite: MCP server connectivity                           |
-| `/camera-setup`           | Upstream: camera discovery and testing                          |
-| `/camera-interface`       | Upstream: VideoSystem integration code that produces logs       |
-| `/post-recording`         | Upstream: verifies archives before processing                   |
-| `/log-input-format`       | Reference: input archive format and source ID semantics         |
-| `/log-processing-results` | Downstream: output data discovery and frame statistics analysis |
-| `/pipeline`               | Context: log processing is phase 5 of the end-to-end pipeline   |
+| Skill                          | Relationship                                                    |
+|--------------------------------|-----------------------------------------------------------------|
+| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity                           |
+| `/camera-setup`                | Upstream: camera discovery and testing                          |
+| `/camera-interface`            | Upstream: VideoSystem integration code that produces logs       |
+| `/post-recording`              | Upstream: verifies archives before processing                   |
+| `/log-input-format`            | Reference: input archive format and source ID semantics         |
+| `/log-processing-results`      | Downstream: output data discovery and frame statistics analysis |
+| `/pipeline`                    | Context: log processing is phase 5 of the end-to-end pipeline   |
 
 ---
 

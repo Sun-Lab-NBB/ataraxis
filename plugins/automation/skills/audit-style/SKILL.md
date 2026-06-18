@@ -1,18 +1,17 @@
 ---
 name: audit-style
 description: >-
-  Performs a thorough style-compliance audit of source code, configuration, or documentation
-  files against the applicable Sun Lab style skill checklists. Walks every line of every file
-  in scope and reports only non-compliant findings with verbatim checklist citations. Use when
-  auditing a Python package, a config file, a README, or any project file for style,
-  formatting, naming, documentation quality, or convention compliance. Use when the user
-  invokes /audit-style.
+  Performs a thorough style-compliance audit of source code, configuration, or documentation files
+  against the applicable ataraxis framework style skill checklists. Walks every line in scope and
+  reports only non-compliant findings with verbatim checklist citations. Use when auditing a Python
+  package, config file, README, or any project file for style, formatting, naming, or convention
+  compliance, or when the user invokes /audit-style.
 user-invocable: true
 ---
 
 # Style compliance audit
 
-Audits files against the authoritative Sun Lab style skill checklists, reporting only
+Audits files against the authoritative ataraxis framework style skill checklists, reporting only
 non-compliant findings with verbatim checklist citations.
 
 You MUST read this entire skill and load every applicable style skill checklist before starting
@@ -77,17 +76,21 @@ There is no "covered area" reduction.
 
 For each file in scope, identify the applicable style skill using the binding table:
 
-| File pattern                          | Style skill        |
-|---------------------------------------|--------------------|
-| `*.py`                                | `/python-style`    |
-| `*.cs`                                | `/csharp-style`    |
-| `*.h`, `*.hpp`, `*.cpp`               | `/cpp-style`       |
-| `README.md`                           | `/readme-style`    |
-| `pyproject.toml`                      | `/pyproject-style` |
-| `tox.ini`                             | `/tox-config`      |
-| `docs/*.rst`, `conf.py`, `Makefile`   | `/api-docs`        |
-| `SKILL.md`, `CLAUDE.md`, `AGENTS.md`  | `/skill-design`    |
-| Project directory tree                | `/project-layout`  |
+| File pattern                                                              | Style skill          |
+|---------------------------------------------------------------------------|----------------------|
+| `*.py`                                                                    | `/python-style`      |
+| `*.cs`                                                                    | `/csharp-style`      |
+| `*.h`, `*.hpp`, `*.cpp`, `.clang-format`, `.clang-tidy`, `CMakeLists.txt` | `/cpp-style`         |
+| `README.md`                                                               | `/readme-style`      |
+| `pyproject.toml`                                                          | `/pyproject-style`   |
+| `tox.ini`                                                                 | `/tox-config`        |
+| `platformio.ini`, `library.json`                                          | `/platformio-config` |
+| `docs/*.rst`, `conf.py`, `Makefile`, `make.bat`, `Doxyfile`               | `/api-docs`          |
+| `SKILL.md`, `CLAUDE.md`, `AGENTS.md`                                      | `/skill-design`      |
+| Project directory tree                                                    | `/project-layout`    |
+
+If a file in scope matches no binding row, mark it UNAUDITED in the plan and report (no
+applicable style skill) and flag no findings against it.
 
 Classify the audit tier:
 
@@ -241,19 +244,20 @@ You MUST adhere to the following discipline during every audit.
 
 ## Related skills
 
-| Skill                   | Relationship                                                                             |
-|-------------------------|------------------------------------------------------------------------------------------|
-| `/audit-facts`          | Sibling audit for factual accuracy against source code                                   |
-| `/python-style`         | Provides the Python style checklist; loaded when scope contains Python files             |
-| `/cpp-style`            | Provides the C++ style checklist; loaded when scope contains C++ files                   |
-| `/csharp-style`         | Provides the C# style checklist; loaded when scope contains C# files                     |
-| `/readme-style`         | Provides the README style checklist; loaded when scope contains README files             |
-| `/pyproject-style`      | Provides the pyproject.toml style checklist; loaded when scope contains pyproject.toml   |
-| `/tox-config`           | Provides the tox.ini style checklist; loaded when scope contains tox.ini                 |
-| `/api-docs`             | Provides the Sphinx docs style checklist; loaded when scope contains docs files          |
-| `/skill-design`         | Provides the skill and CLAUDE.md style checklist; loaded when scope contains skill files |
-| `/project-layout`       | Provides the project directory style checklist; loaded when target is a project root    |
-| `/explore-codebase`     | Provides project structure context; invoke first when auditing an unfamiliar codebase   |
+| Skill                | Relationship                                                                                     |
+|----------------------|--------------------------------------------------------------------------------------------------|
+| `/audit-facts`       | Sibling audit for factual accuracy against source code                                           |
+| `/python-style`      | Provides the Python style checklist; loaded when scope contains Python files                     |
+| `/cpp-style`         | Provides the C++ style checklist; loaded when scope contains C++ files                           |
+| `/csharp-style`      | Provides the C# style checklist; loaded when scope contains C# files                             |
+| `/readme-style`      | Provides the README style checklist; loaded when scope contains README files                     |
+| `/pyproject-style`   | Provides the pyproject.toml style checklist; loaded when scope contains pyproject.toml           |
+| `/tox-config`        | Provides the tox.ini style checklist; loaded when scope contains tox.ini                         |
+| `/platformio-config` | Provides the platformio.ini/library.json style checklist; loaded when scope contains those files |
+| `/api-docs`          | Provides the Sphinx docs style checklist; loaded when scope contains docs files                  |
+| `/skill-design`      | Provides the skill and CLAUDE.md style checklist; loaded when scope contains skill files         |
+| `/project-layout`    | Provides the project directory style checklist; loaded when target is a project root             |
+| `/explore-codebase`  | Provides project structure context; invoke first when auditing an unfamiliar codebase            |
 
 ---
 

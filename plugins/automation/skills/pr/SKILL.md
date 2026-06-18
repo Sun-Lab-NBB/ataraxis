@@ -39,9 +39,12 @@ Run the following git commands in parallel using the Bash tool:
 
 1. Determine the active branch with `git branch --show-current` and the default branch (commonly `main` or
    `master`; confirm via `git symbolic-ref --short refs/remotes/origin/HEAD` and strip the `origin/` prefix when a
-   remote exists).
-2. `git log <default-branch>..HEAD --oneline` to list the commits unique to the active branch.
-3. `git diff <default-branch>...HEAD --stat` to see the overall scope of changed files (use the three-dot form to
+   remote exists). If that command errors with `is not a symbolic ref`, run `git remote set-head origin -a` to
+   populate `origin/HEAD`, otherwise fall back to checking for `main` then `master`.
+2. If the active branch IS the default branch, stop: no pull request can be drafted from the default branch (the
+   `<default-branch>..HEAD` diff range is empty). Tell the user to switch to or create a feature branch first.
+3. `git log <default-branch>..HEAD --oneline` to list the commits unique to the active branch.
+4. `git diff <default-branch>...HEAD --stat` to see the overall scope of changed files (use the three-dot form to
    compare against the merge base).
 
 ### Step 2: Analyze the branch

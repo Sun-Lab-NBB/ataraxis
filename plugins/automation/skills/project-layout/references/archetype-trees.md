@@ -36,7 +36,7 @@ project-root/
 │       │   ├── __init__.py
 │       │   └── module.py
 │       ├── __init__.py               # Package init with public API re-exports
-│       ├── __init__.pyi              # (optional) Stub file for re-exports
+│       ├── __init__.pyi              # Generated stub for re-exports (present in releases only)
 │       ├── module.py                 # Source modules
 │       └── py.typed                  # PEP 561 marker for typed packages
 ├── tests/
@@ -45,7 +45,7 @@ project-root/
 │   └── module_test.py                # Test files use _test.py suffix
 ├── .gitignore
 ├── CLAUDE.md                         # Claude Code project instructions
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── pyproject.toml                    # Build config, metadata, tool settings
 ├── README.md                         # Project documentation
 └── tox.ini                           # Automation orchestration (lint, type, test, docs)
@@ -57,6 +57,11 @@ project-root/
   ataraxis-automation, `axbu` for ataraxis-base-utilities).
 - The `tests/` directory mirrors the `src/package_name/` structure. Test files use the `_test.py`
   suffix (e.g., `automation_test.py`).
+- `.pyi` stub files (and the `py.typed` marker) are GENERATED artifacts, never hand-authored.
+  `tox -e stubs` produces them and they ship with releases, but `tox -e lint`
+  (`automation-cli purge-stubs`) removes them from the working tree during development — so their
+  presence is release-phase-dependent. Do not create, hand-edit, or treat a missing `.pyi` as a
+  layout violation; to change typing, edit the `.py` and regenerate.
 - The `.pypirc` file may exist locally but is not committed to version control.
 - Build artifacts (`dist/`, `reports/`, `coverage.xml`) are gitignored.
 
@@ -95,13 +100,13 @@ project-root/
 │   ├── python_wrapper/               # Pure Python wrapper around C++ extension
 │   │   ├── __init__.py
 │   │   ├── wrapper_module.py         # Python class wrapping C++ class
-│   │   └── wrapper_module.pyi        # Stub file for wrapper
+│   │   └── wrapper_module.pyi        # Generated stub for wrapper (present in releases only)
 │   ├── pure_python_module/           # (optional) Additional pure Python subpackages
 │   │   ├── __init__.py
 │   │   └── module.py
 │   ├── __init__.py                   # Top-level package init
-│   ├── __init__.pyi                  # Top-level stub file
-│   ├── module_ext.pyi                # Stub for compiled C++ extension
+│   ├── __init__.pyi                  # Generated top-level stub (present in releases only)
+│   ├── module_ext.pyi                # Generated stub for compiled C++ extension (releases only)
 │   └── py.typed                      # PEP 561 marker
 ├── tests/
 │   ├── python_wrapper/               # Tests for Python wrapper
@@ -114,7 +119,7 @@ project-root/
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── CMakeLists.txt                    # CMake build config for nanobind extension
 ├── Doxyfile                          # Doxygen documentation configuration
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── pyproject.toml                    # scikit-build-core backend + metadata
 ├── README.md                         # Project documentation
 └── tox.ini                           # Automation orchestration
@@ -158,9 +163,10 @@ project-root/
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitignore
+├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
 ├── library.json                      # PlatformIO library manifest
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── platformio.ini                    # PlatformIO build configuration
 ├── README.md                         # Project documentation
 └── tox.ini                           # Documentation build automation
@@ -180,7 +186,7 @@ project-root/
 
 ## C++ PlatformIO firmware
 
-Based on `sl-micro-controllers`.
+Based on a microcontroller firmware project.
 
 ```text
 project-root/
@@ -201,8 +207,9 @@ project-root/
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitignore
+├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── platformio.ini                    # PlatformIO build configuration
 ├── README.md                         # Project documentation
 └── tox.ini                           # Documentation build automation
@@ -223,7 +230,7 @@ project-root/
 
 ## C# Unity
 
-Based on `sl-unity-tasks`.
+Based on a Unity behavioral-task project.
 
 ```text
 project-root/
@@ -254,7 +261,7 @@ project-root/
 ├── .editorconfig                     # Editor configuration (indentation, encoding)
 ├── .gitignore
 ├── CLAUDE.md                         # Claude Code project instructions
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── README.md                         # Project documentation
 └── *.slnx                            # Unity solution file
 ```

@@ -29,10 +29,10 @@ pyproject.toml file. You MUST verify your changes against the checklist before s
 - Project type distinctions (core library vs application, pure-Python vs C-extension)
 
 **Does not cover:**
-- Python code style (invoke `/python-style`)
-- README file conventions (invoke `/readme-style`)
-- Commit message conventions (invoke `/commit`)
-- tox.ini configuration (invoke `/tox-config`)
+- Python code style (see `/python-style`)
+- README file conventions (see `/readme-style`)
+- Commit message conventions (see `/commit`)
+- tox.ini configuration (see `/tox-config`)
 
 ---
 
@@ -58,11 +58,11 @@ Based on the task, load the appropriate reference files:
 
 Identify the project type to apply the correct configuration tier:
 
-| Project type | Naming pattern | MyPy mode   | Python support | Dependency style |
-|--------------|----------------|-------------|----------------|------------------|
-| Core library | `ataraxis-*`   | Full strict | `>=3.12,<3.15` | Range (`>=X,<Y`) |
-| Application  | `sl-*`         | Minimal     | `>=3.14,<3.15` | Range (`>=X,<Y`) |
-| C-extension  | Any            | Full strict | `>=3.12,<3.15` | Range (`>=X,<Y`) |
+| Project type | Naming pattern     | MyPy mode   | Python support | Dependency style |
+|--------------|--------------------|-------------|----------------|------------------|
+| Core library | `ataraxis-*`       | Full strict | `>=3.12,<3.15` | Range (`>=X,<Y`) |
+| Application  | (project-specific) | Minimal     | `>=3.14,<3.15` | Range (`>=X,<Y`) |
+| C-extension  | Any                | Full strict | `>=3.12,<3.15` | Range (`>=X,<Y`) |
 
 ### Step 4: Apply conventions
 
@@ -93,6 +93,10 @@ projects.
 10. `[tool.coverage.paths]`
 11. `[tool.coverage.html]`
 12. `[tool.coverage.report]`
+
+When present, `[tool.coverage.run]` is placed either before `[tool.coverage.paths]` (e.g. for a
+coverage `omit` list) or after `[tool.coverage.report]` (e.g. for `parallel` / `concurrency`
+settings).
 
 For C-extension projects using scikit-build-core, replace the hatch build targets with
 `[tool.scikit-build]` and `[tool.cibuildwheel]` sections at positions 6-7.
@@ -319,6 +323,7 @@ Tool Configurations:
 - [ ] Ruff: Google docstring convention
 - [ ] Ruff: isort configured (case-sensitive, combine-as-imports, etc.)
 - [ ] Ruff: __init__.py ignores F401 and F403
+- [ ] Ruff: test-file ignores present when a tests/ directory exists
 - [ ] Ruff: Each ignore has an explanatory inline comment
 - [ ] MyPy: Configuration tier matches project type (full strict or minimal)
 - [ ] MyPy: Standard exclusion list present

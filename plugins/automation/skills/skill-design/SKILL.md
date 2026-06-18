@@ -124,8 +124,11 @@ For each aspect of the skill's behavior, decide the appropriate freedom level:
 
 ### Step 4: Create the directory structure
 
+In this repo every skill lives under `plugins/<plugin-name>/skills/<skill-name>/`. The plugin's
+`.claude-plugin/plugin.json` with `"skills": "./skills/"` is what registers the skills directory:
+
 ```text
-skill-name/
+plugins/<plugin-name>/skills/skill-name/
 ├── SKILL.md                  # Main instructions (always loaded)
 └── references/               # Detailed material (loaded on demand)
     └── detailed-rules.md     # Only if SKILL.md would exceed 500 lines
@@ -152,6 +155,11 @@ Follow the SKILL.md conventions below. You MUST include:
 Run through the verification checklist at the end of this skill. Then invoke the new skill in the
 current repository to verify it produces correct behavior. Test with both explicit invocation
 (`/skill-name`) and contextual descriptions to confirm the trigger conditions work.
+
+A new skill under an existing plugin needs no manual registration — the plugin.json `"skills":
+"./skills/"` glob auto-discovers it. If the new skill introduces a new plugin, add that plugin to
+the repo's `.claude-plugin/marketplace.json` `plugins` array. Adding or materially changing a
+plugin's skills should bump `version` in that plugin's `.claude-plugin/plugin.json`.
 
 ---
 
@@ -180,7 +188,9 @@ user-invocable: false
 only, max 64 characters. Examples: `explore-codebase`, `commit`, `skill-design`.
 
 **Description**: Third person. Include what the skill does AND when to use it. End with explicit
-trigger conditions ("Use when..."). Max 1024 characters.
+trigger conditions ("Use when..."). Max 1024 characters, and keep the folded description to 5 wrapped
+lines or fewer — trim wordy descriptions to the essential coverage and triggers to avoid frontmatter
+bloat.
 
 **`user-invocable`**: Set to `true` for skills invokable via `/skill-name`. Defaults to `true`.
 
@@ -388,15 +398,15 @@ CLAUDE.md follows the same conventions as skill files with one difference:
 
 ## Related skills
 
-| Skill               | Relationship                                                         |
-|---------------------|----------------------------------------------------------------------|
-| `/python-style`     | Provides formatting conventions that skill files must also follow    |
-| `/cpp-style`        | Provides C++ conventions relevant when skills reference C++ code     |
-| `/csharp-style`     | Provides C# conventions relevant when skills reference C# code       |
-| `/project-layout`   | Provides project directory conventions; owns `skills/` placement     |
-| `/readme-style`     | Provides README conventions relevant when skills reference READMEs   |
-| `/commit`           | Should be invoked after completing skill file changes                |
-| `/explore-codebase` | Provides project context needed when writing project-specific skills |
+| Skill               | Relationship                                                                     |
+|---------------------|----------------------------------------------------------------------------------|
+| `/python-style`     | Provides formatting conventions that skill files must also follow                |
+| `/cpp-style`        | Provides C++ conventions relevant when skills reference C++ code                 |
+| `/csharp-style`     | Provides C# conventions relevant when skills reference C# code                   |
+| `/project-layout`   | Provides general project directory conventions; this skill owns `skills/` layout |
+| `/readme-style`     | Provides README conventions relevant when skills reference READMEs               |
+| `/commit`           | Should be invoked after completing skill file changes                            |
+| `/explore-codebase` | Provides project context needed when writing project-specific skills             |
 
 ---
 
@@ -411,7 +421,7 @@ Skill File Compliance:
 - [ ] YAML frontmatter with `name` and `description`
 - [ ] `user-invocable: true` set if skill is directly invocable via slash command
 - [ ] Name matches parent directory name exactly
-- [ ] Description in third person, includes what AND when to use (max 1024 chars)
+- [ ] Description in third person, includes what AND when to use (max 1024 chars, ≤ 5 wrapped lines)
 - [ ] Scope declaration present (what skill covers and does not cover)
 - [ ] Degrees of freedom appropriate (low for reproducible, high for creative tasks)
 - [ ] All lines ≤ 120 characters (tables/code blocks may exceed for clarity)

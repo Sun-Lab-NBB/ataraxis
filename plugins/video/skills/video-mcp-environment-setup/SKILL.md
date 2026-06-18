@@ -3,8 +3,9 @@ name: video-mcp-environment-setup
 description: >-
   Diagnoses and resolves ataraxis-video-system MCP server connectivity issues. Covers environment
   verification, command availability, Python version checks, dependency validation, and conda/pip/uv
-  environment configuration. Use when MCP tools are unavailable, when the server fails to start,
-  when the user reports connection issues, or when starting a session that requires MCP tools.
+  environment configuration. Use when the axvs (video-system) MCP tools are unavailable, when the axvs server
+  fails to start, when the user reports video-system connection issues, or when starting a session that
+  requires the axvs MCP tools.
 user-invocable: false
 ---
 
@@ -24,8 +25,7 @@ Diagnoses and resolves ataraxis-video-system MCP server connectivity and environ
 - Environment-specific guidance for conda, pip, and uv workflows
 
 **Does not cover:**
-- MCP tool usage for camera hardware interaction (see `/camera-setup`)
-- MCP tool usage for camera discovery and configuration (see `/camera-setup`)
+- MCP tool usage for camera discovery, configuration, and hardware interaction (see `/camera-setup`)
 - MCP tool usage for log data processing (see `/log-processing`, `/log-processing-results`)
 - ataraxis-video-system package development or contribution workflows
 
@@ -38,15 +38,16 @@ ataraxis-video-system provides a single MCP server accessed through the `axvs` C
 
 ```toml
 [project.scripts]
-axvs = "ataraxis_video_system.cli:axvs_cli"
+axvs = "ataraxis_video_system.interfaces.cli:axvs_cli"
 ```
 
 | Server                  | CLI command | Purpose                                                          |
 |-------------------------|-------------|------------------------------------------------------------------|
 | `ataraxis-video-system` | `axvs mcp`  | Camera discovery, video session management, log processing tools |
 
-The server accepts a `--transport` option (defaults to `stdio`). The project's `.mcp.json` configures the
-Claude assistant to launch the server automatically:
+The server accepts a `--transport` option (defaults to `stdio`). The plugin manifest
+`.claude-plugin/plugin.json` configures the Claude assistant to launch the server automatically via its
+`mcpServers` block:
 
 ```json
 {
@@ -66,11 +67,11 @@ where ataraxis-video-system is installed must be active before launching the ass
 
 The ataraxis video plugin's Claude integration is split across two distribution channels:
 
-| Component                          | Distributed via                   | What it provides                                                           |
-|------------------------------------|-----------------------------------|----------------------------------------------------------------------------|
-| Skills (`/camera-interface`, etc.) | ataraxis video plugin             | Skill files that guide agents through workflows                            |
-| MCP server registrations           | ataraxis video plugin             | `.mcp.json` entries that tell the Claude assistant how to start the server |
-| MCP server code (`axvs mcp`)       | ataraxis-video-system pip package | The actual CLI command and server implementation                           |
+| Component                          | Distributed via                   | What it provides                                                                          |
+|------------------------------------|-----------------------------------|-------------------------------------------------------------------------------------------|
+| Skills (`/camera-interface`, etc.) | ataraxis video plugin             | Skill files that guide agents through workflows                                           |
+| MCP server registrations           | ataraxis video plugin             | `plugin.json` `mcpServers` entries that tell the Claude assistant how to start the server |
+| MCP server code (`axvs mcp`)       | ataraxis-video-system pip package | The actual CLI command and server implementation                                          |
 
 Installing the plugin alone registers the MCP server and makes skills available, but the server will fail to
 start because the `axvs` CLI command is not present. The pip package must also be installed in the active
@@ -214,7 +215,7 @@ pick up the changes. The ataraxis video plugin will automatically configure the 
 
 ## Proactive behavior
 
-You SHOULD proactively invoke this skill when:
+You should proactively invoke this skill when:
 - A session begins and MCP tools from the ataraxis-video-system server are expected but unavailable
 - Any ataraxis-video-system MCP tool call fails with a connection or server error
 - The user mentions issues with MCP server connectivity or environment setup

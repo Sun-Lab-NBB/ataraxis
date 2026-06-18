@@ -12,7 +12,8 @@ classes inherit from MonoBehaviour.
 
 ### Lifecycle method ordering
 
-Unity lifecycle methods must appear in their natural execution order:
+Unity lifecycle methods must appear in their natural execution order. They are declared
+`private` like any other method — never rely on the implicit default:
 
 ```csharp
 /// <summary>Manages an infinite corridor VR task with probabilistic segment transitions.</summary>
@@ -23,31 +24,31 @@ public class Task : MonoBehaviour
     // Private fields
 
     /// <summary>Called once before Start. Initializes references and validates configuration.</summary>
-    void Awake()
+    private void Awake()
     {
         // Early initialization, component references
     }
 
     /// <summary>Called once after Awake. Performs setup that depends on other components.</summary>
-    void Start()
+    private void Start()
     {
         // Setup that depends on other components being initialized
     }
 
     /// <summary>Called every frame. Updates task state and checks for transitions.</summary>
-    void Update()
+    private void Update()
     {
         // Per-frame logic
     }
 
     /// <summary>Called every fixed timestep. Updates physics-dependent calculations.</summary>
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         // Physics calculations
     }
 
     /// <summary>Called when the component is destroyed. Cleans up subscriptions and resources.</summary>
-    void OnDestroy()
+    private void OnDestroy()
     {
         // Cleanup: unsubscribe events, release resources
     }
@@ -82,7 +83,7 @@ or `Start()` instead of calling `GetComponent<T>()` in `Update()`:
 private MeshRenderer _meshRenderer;
 
 /// <summary>Initializes cached component references.</summary>
-void Awake()
+private void Awake()
 {
     if (!TryGetComponent(out _meshRenderer))
     {
@@ -97,7 +98,7 @@ Unity collider callbacks follow a consistent pattern:
 
 ```csharp
 /// <summary>Called when the animal enters the trigger zone collider.</summary>
-void OnTriggerEnter(Collider other)
+private void OnTriggerEnter(Collider other)
 {
     if (!isActive)
         return;
@@ -107,7 +108,7 @@ void OnTriggerEnter(Collider other)
 }
 
 /// <summary>Called when the animal exits the trigger zone collider.</summary>
-void OnTriggerExit(Collider other)
+private void OnTriggerExit(Collider other)
 {
     if (!isActive)
         return;
@@ -133,13 +134,13 @@ while the component is active:
 private MQTTChannel _lickChannel;
 
 /// <summary>Subscribes to MQTT lick events when the component becomes active.</summary>
-void OnEnable()
+private void OnEnable()
 {
     _lickChannel.Event.AddListener(OnLickDetected);
 }
 
 /// <summary>Unsubscribes from MQTT lick events when the component becomes inactive.</summary>
-void OnDisable()
+private void OnDisable()
 {
     _lickChannel.Event.RemoveListener(OnLickDetected);
 }
@@ -151,13 +152,13 @@ Use `+=` and `-=` for C# events. Every `+=` must have a matching `-=`:
 
 ```csharp
 /// <summary>Subscribes to the zone boundary event.</summary>
-void OnEnable()
+private void OnEnable()
 {
     _occupancyZone.BoundaryDisarmed += OnBoundaryDisarmed;
 }
 
 /// <summary>Unsubscribes from the zone boundary event.</summary>
-void OnDisable()
+private void OnDisable()
 {
     _occupancyZone.BoundaryDisarmed -= OnBoundaryDisarmed;
 }
@@ -254,7 +255,7 @@ public enum MessageTypes
 ### Rules
 
 - **XML documentation**: Document every enum member with a `<summary>` tag
-- **Class docstring**: Imperative mood ("Defines the...")
+- **Class summary**: Imperative mood ("Defines the...")
 - **PascalCase**: Both enum type names and values use PascalCase
 - **Trailing comma**: Include trailing comma after the last member
 - **Explicit values**: Use only when stability across versions matters (protocols, serialization)

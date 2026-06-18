@@ -9,9 +9,8 @@ user-invocable: false
 
 # Log processing results
 
-Complete output data format documentation for the camera timestamp extraction pipeline. Covers feather file
-discovery, schema reference, frame statistics analysis, and interpretation guidance for discussing results
-with users.
+Documents the camera timestamp extraction output data format, covering feather file discovery, schema
+reference, frame statistics analysis, and interpretation guidance for discussing results with users.
 
 ---
 
@@ -112,9 +111,9 @@ Rows are ordered chronologically. Each row corresponds to one acquired frame.
 
 ### Naming convention
 
-Files follow the pattern `camera_{source_id}_timestamps.feather` where `source_id` is the zero-padded
-system ID string from the DataLogger archive (e.g., `camera_051_timestamps.feather` for system_id=51,
-`camera_112_timestamps.feather` for an MCP session).
+Files follow the pattern `camera_{source_id}_timestamps.feather` where `source_id` is the un-padded
+string form of the integer system ID from the DataLogger archive (e.g., `camera_51_timestamps.feather`
+for system_id=51, `camera_112_timestamps.feather` for an MCP session).
 
 ### ProcessingTracker file
 
@@ -142,7 +141,7 @@ The `analyze_camera_frame_statistics_tool` returns a dictionary with three secti
 | `last_timestamp_us`  | `int`   | Last frame timestamp (microseconds since UTC epoch)  |
 | `duration_us`        | `int`   | Total recording duration in microseconds             |
 | `duration_seconds`   | `float` | Total recording duration in seconds                  |
-| `estimated_fps`      | `float` | Estimated frame rate: `(frames - 1) / duration`      |
+| `estimated_fps`      | `float` | Estimated frame rate: `(frames - 1) / duration`; `0.0` when duration is zero (single-frame, or degenerate capture with identical timestamps) — a "cannot compute" sentinel, not a measured 0 fps |
 
 ### inter_frame_timing
 
@@ -185,6 +184,12 @@ Each entry in `drop_locations`:
 **Auto-detection algorithm:** When `drop_threshold_us=0`, the threshold is computed as 2x the median
 inter-frame interval. Gaps exceeding this threshold are classified as frame drops. The number of lost
 frames per gap is estimated by dividing the gap duration by the median interval and rounding.
+
+**Edge cases:** When `total_frames == 0`, only `basic_stats.total_frames` is returned and
+`inter_frame_timing` / `frame_drop_analysis` are empty `{}`. When `total_frames == 1`, `basic_stats` is
+fully populated but `duration_us`, `duration_seconds`, and `estimated_fps` are `0`, and the timing and
+drop sections are again empty `{}`. Check `total_frames >= 2` before indexing into `inter_frame_timing`
+or `frame_drop_analysis` to avoid `KeyError`s.
 
 ---
 
@@ -274,15 +279,15 @@ To determine detailed job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), check 
 
 ## Related skills
 
-| Skill                    | Relationship                                                       |
-|--------------------------|--------------------------------------------------------------------|
+| Skill                          | Relationship                                                       |
+|--------------------------------|--------------------------------------------------------------------|
 | `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access              |
-| `/camera-setup`          | Upstream: MCP discovery tools that locate archives and recordings  |
-| `/camera-interface`      | Context: VideoSystem configuration determines expected frame rates |
-| `/post-recording`        | Upstream: verifies session outputs before processing               |
-| `/log-input-format`      | Reference: input archive format and source ID semantics            |
-| `/log-processing`        | Upstream: processing workflow that produces this output            |
-| `/pipeline`              | Context: results analysis is phase 6 of the end-to-end pipeline    |
+| `/camera-setup`                | Upstream: MCP discovery tools that locate archives and recordings  |
+| `/camera-interface`            | Context: VideoSystem configuration determines expected frame rates |
+| `/post-recording`              | Upstream: verifies session outputs before processing               |
+| `/log-input-format`            | Reference: input archive format and source ID semantics            |
+| `/log-processing`              | Upstream: processing workflow that produces this output            |
+| `/pipeline`                    | Context: results analysis is phase 6 of the end-to-end pipeline    |
 
 ---
 
