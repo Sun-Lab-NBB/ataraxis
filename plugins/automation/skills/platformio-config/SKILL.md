@@ -2,11 +2,10 @@
 name: platformio-config
 description: >-
   Applies platformio.ini and library.json conventions when creating or modifying PlatformIO C++
-  project and library configuration files. Covers per-board environment sections, build flags,
-  pinned lib_deps, library.json metadata, the lib_deps<->dependencies mirroring rule, the main.cpp
-  export exclusion, and library.json as the single source of the C++ library version. Use when
-  creating or modifying platformio.ini or library.json, adding a board or dependency, or when the
-  user asks about PlatformIO configuration conventions.
+  project and library configuration files. Covers per-board environments, build flags, pinned
+  lib_deps, library.json metadata, the lib_deps<->dependencies mirroring rule, the main.cpp export
+  exclusion, and library.json as the single source of the C++ library version. Use when creating or
+  modifying these files, adding a board or dependency, or when asked about PlatformIO conventions.
 user-invocable: false
 ---
 
@@ -186,6 +185,28 @@ These are the PlatformIO development-automation commands (agent-runnable, the C+
 
 ---
 
+## Related skills
+
+| Skill                             | Relationship                                                         |
+|-----------------------------------|----------------------------------------------------------------------|
+| `/project-layout`                 | Owner of where platformio.ini/library.json sit in the C++ archetypes |
+| `/cpp-style`                      | C++ source style (scopes out these config files)                     |
+| `microcontroller:firmware-module` | The src/main.cpp harness that export excludes and the module sources |
+| `/readme-style`                   | C++ PlatformIO README Installation/Developers sections               |
+| `/release`                        | Uses library.json version as the C++ library release version         |
+
+---
+
+## Proactive behavior
+
+You should proactively offer to invoke this skill when:
+- Creating a new PlatformIO C++ library or firmware project that needs a platformio.ini or library.json
+- Adding a board environment, or adding, removing, or re-pinning a lib_deps dependency
+- Releasing a C++ library (library.json version is the single source of the release version)
+- The user asks about PlatformIO configuration or the lib_deps<->dependencies mirroring rule
+
+---
+
 ## Verification checklist
 
 ```text
@@ -201,15 +222,3 @@ PlatformIO configuration:
 - [ ] each library.json dependency's platforms array matches the boards that list it in lib_deps
 - [ ] library.json version is set (the single source of the C++ library version); platformio.ini has no version
 ```
-
----
-
-## Related skills
-
-| Skill                             | Relationship                                                         |
-|-----------------------------------|----------------------------------------------------------------------|
-| `/project-layout`                 | Owner of where platformio.ini/library.json sit in the C++ archetypes |
-| `/cpp-style`                      | C++ source style (scopes out these config files)                     |
-| `microcontroller:firmware-module` | The src/main.cpp harness that export excludes and the module sources |
-| `/readme-style`                   | C++ PlatformIO README Installation/Developers sections               |
-| `/release`                        | Uses library.json version as the C++ library release version         |

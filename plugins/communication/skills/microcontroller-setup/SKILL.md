@@ -244,7 +244,7 @@ When transitioning from MCP-based discovery to writing MicroControllerInterface 
 | Baudrate used in discovery                    | `baudrate`                    | Same value (default: 115200)                         |
 | MQTT broker host/port                         | `MQTTCommunication(ip, port)` | Pass to MQTTCommunication constructor                |
 
-### Source ID semantics
+### Controller ID semantics
 
 | Range   | Assignment                         | Notes                                             |
 |---------|------------------------------------|---------------------------------------------------|
@@ -288,15 +288,16 @@ advised ranges.
 
 ## Related skills
 
-| Skill                                  | Relationship                                                       |
-|----------------------------------------|--------------------------------------------------------------------|
-| `/microcontroller-interface`           | Covers writing MicroControllerInterface code after testing via MCP |
-| `/extraction-configuration`            | Downstream: configure extraction parameters before processing      |
-| `/log-input-format`                    | Reference: documents the archive format produced by this workflow  |
-| `/log-processing`                      | Downstream: processes archives assembled by this skill             |
-| `/log-processing-results`              | Downstream: analyzes output from processed archives                |
-| `/pipeline`                            | Context: end-to-end orchestration and multi-controller planning    |
-| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for all tool interactions    |
+| Skill                                  | Relationship                                                                    |
+|----------------------------------------|---------------------------------------------------------------------------------|
+| `/microcontroller-interface`           | Covers writing MicroControllerInterface code after testing via MCP              |
+| `/microcontroller:firmware-module`     | Firmware-side counterpart: C++ Module code that discovered controllers must run |
+| `/extraction-configuration`            | Downstream: configure extraction parameters before processing                   |
+| `/log-input-format`                    | Reference: documents the archive format produced by this workflow               |
+| `/log-processing`                      | Downstream: processes archives assembled by this skill                          |
+| `/log-processing-results`              | Downstream: analyzes output from processed archives                             |
+| `/pipeline`                            | Context: end-to-end orchestration and multi-controller planning                 |
+| `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for all tool interactions                 |
 
 ---
 

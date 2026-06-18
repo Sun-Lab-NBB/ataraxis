@@ -24,8 +24,7 @@ Diagnoses and resolves ataraxis-video-system MCP server connectivity and environ
 - Environment-specific guidance for conda, pip, and uv workflows
 
 **Does not cover:**
-- MCP tool usage for camera hardware interaction (see `/camera-setup`)
-- MCP tool usage for camera discovery and configuration (see `/camera-setup`)
+- MCP tool usage for camera discovery, configuration, and hardware interaction (see `/camera-setup`)
 - MCP tool usage for log data processing (see `/log-processing`, `/log-processing-results`)
 - ataraxis-video-system package development or contribution workflows
 
@@ -215,7 +214,7 @@ pick up the changes. The ataraxis video plugin will automatically configure the 
 
 ## Proactive behavior
 
-You SHOULD proactively invoke this skill when:
+You should proactively invoke this skill when:
 - A session begins and MCP tools from the ataraxis-video-system server are expected but unavailable
 - Any ataraxis-video-system MCP tool call fails with a connection or server error
 - The user mentions issues with MCP server connectivity or environment setup

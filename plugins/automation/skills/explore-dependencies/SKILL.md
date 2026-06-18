@@ -1,10 +1,9 @@
 ---
 name: explore-dependencies
 description: >-
-  Explores installed ataraxis dependency source code to build a live API snapshot.
-  Discovers public classes, functions, and constants exported by each dependency, identifies
-  replacement opportunities where project code reimplements existing library functionality, and
-  produces a structured dependency API snapshot. Use when starting a session on a project with
+  Explores installed ataraxis dependency source code to build a live API snapshot of the public
+  classes, functions, and constants each dependency exports, flagging where project code
+  reimplements existing library functionality. Use when starting a session on a project with
   ataraxis dependencies, before writing code that uses ataraxis library features, or when the user
   asks about available library APIs.
 user-invocable: true

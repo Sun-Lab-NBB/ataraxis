@@ -385,21 +385,10 @@ See [libraries-and-tools.md](references/libraries-and-tools.md) for guard clause
 
 See [libraries-and-tools.md](references/libraries-and-tools.md) for blank line conventions.
 
-## Line length and formatting
+## Formatting, tooling, and configuration files
 
-See [libraries-and-tools.md](references/libraries-and-tools.md) for line length, formatting, and brace rules.
-
----
-
-## Tooling
-
-See [libraries-and-tools.md](references/libraries-and-tools.md) for CSharpier and EditorConfig tooling.
-
----
-
-## Configuration files
-
-See [libraries-and-tools.md](references/libraries-and-tools.md) for configuration file references.
+See [libraries-and-tools.md](references/libraries-and-tools.md) for line length, formatting, and brace
+rules; CSharpier and EditorConfig tooling; and configuration file references.
 
 ---
 

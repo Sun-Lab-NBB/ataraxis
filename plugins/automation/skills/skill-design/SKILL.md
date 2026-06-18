@@ -188,7 +188,9 @@ user-invocable: false
 only, max 64 characters. Examples: `explore-codebase`, `commit`, `skill-design`.
 
 **Description**: Third person. Include what the skill does AND when to use it. End with explicit
-trigger conditions ("Use when..."). Max 1024 characters.
+trigger conditions ("Use when..."). Max 1024 characters, and keep the folded description to 5 wrapped
+lines or fewer — trim wordy descriptions to the essential coverage and triggers to avoid frontmatter
+bloat.
 
 **`user-invocable`**: Set to `true` for skills invokable via `/skill-name`. Defaults to `true`.
 
@@ -419,7 +421,7 @@ Skill File Compliance:
 - [ ] YAML frontmatter with `name` and `description`
 - [ ] `user-invocable: true` set if skill is directly invocable via slash command
 - [ ] Name matches parent directory name exactly
-- [ ] Description in third person, includes what AND when to use (max 1024 chars)
+- [ ] Description in third person, includes what AND when to use (max 1024 chars, ≤ 5 wrapped lines)
 - [ ] Scope declaration present (what skill covers and does not cover)
 - [ ] Degrees of freedom appropriate (low for reproducible, high for creative tasks)
 - [ ] All lines ≤ 120 characters (tables/code blocks may exceed for clarity)

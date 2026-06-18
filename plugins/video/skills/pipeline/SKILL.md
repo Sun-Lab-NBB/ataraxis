@@ -137,14 +137,21 @@ for MCP encoding parameter reference.
 
 ### System ID allocation
 
+A camera's `system_id` IS its source ID at the DataLogger level: it is the value VideoSystem
+registers as the `source_id`, and it names the camera's `{system_id}_log.npz` archive (see
+`/log-input-format`). This skill uses "source ID" for the shared DataLogger namespace and `system_id`
+for the VideoSystem constructor.
+
 | Range  | Assignment                   | Notes                                                        |
 |--------|------------------------------|--------------------------------------------------------------|
 | 51-100 | Camera VideoSystem instances | One unique ID per camera; advised range for all camera code  |
 | 111    | CLI (`axvs run`)             | Fixed; interactive testing only                              |
 | 112    | MCP server sessions          | Fixed; agent-driven testing only                             |
 
-All other IDs are used by other production assets in the broader system. Camera code should stay within
-the 51-100 band. Allocate camera IDs sequentially starting at 51 (e.g., 51, 52, 53 for a 3-camera rig).
+Camera code should stay within the 51-100 band. Allocate camera IDs sequentially starting at 51 (e.g.,
+51, 52, 53 for a 3-camera rig). System IDs must be unique across **all** sources sharing a DataLogger,
+including sources from other libraries (e.g., ataraxis-communication-interface controllers in the 101-150
+range). The 51-100 band avoids collisions with those advised ranges.
 
 ### DataLogger topology
 

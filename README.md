@@ -158,12 +158,12 @@ Add Ataraxis MCP servers to your Claude Code configuration (`~/.claude.json`):
 {
   "mcpServers": {
     "ataraxis-communication-interface": {
-      "command": "axci-mcp",
-      "args": []
+      "command": "axci",
+      "args": ["mcp"]
     },
     "ataraxis-video-system": {
-      "command": "python",
-      "args": ["-m", "ataraxis_video_system.mcp_server"]
+      "command": "axvs",
+      "args": ["mcp"]
     }
   }
 }

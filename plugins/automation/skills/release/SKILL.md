@@ -1,10 +1,10 @@
 ---
 name: release
 description: >-
-  Drafts style-compliant release notes by summarizing the pull requests merged since the previous release. Infers and
-  recommends the release type (major, minor, or patch) for the user to confirm, then produces a numbered list of the
-  most impactful changes. Includes a sibling-library compatibility statement for cross-dependent library sets only. Use when
-  preparing a release, drafting release notes, or when the user invokes /release.
+  Drafts style-compliant release notes by summarizing the pull requests merged since the previous release. Infers
+  and recommends the release type (major, minor, or patch) for the user to confirm, then produces a numbered list
+  of the most impactful changes. Includes a sibling-library compatibility statement for cross-dependent library
+  sets only. Use when preparing a release, drafting release notes, or when the user invokes /release.
 user-invocable: true
 ---
 
@@ -157,11 +157,12 @@ This release remains compatible with `acquisition` v5, `behavior` v3, and `analy
 
 ## Related skills
 
-| Skill               | Relationship                                                             |
-|---------------------|--------------------------------------------------------------------------|
-| `/commit`           | Provides the past tense verb set and punctuation conventions reused here |
-| `/pr`               | Drafts the per-branch pull request summaries that releases aggregate     |
-| `/explore-codebase` | Provides project context that helps write accurate summaries             |
+| Skill                | Relationship                                                             |
+|----------------------|--------------------------------------------------------------------------|
+| `/commit`            | Provides the past tense verb set and punctuation conventions reused here |
+| `/pr`                | Drafts the per-branch pull request summaries that releases aggregate     |
+| `/explore-codebase`  | Provides project context that helps write accurate summaries             |
+| `/platformio-config` | Owns library.json whose version field is the C++ library release version |
 
 ---
 

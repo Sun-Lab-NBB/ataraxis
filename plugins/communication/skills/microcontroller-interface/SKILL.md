@@ -1,12 +1,11 @@
 ---
 name: microcontroller-interface
 description: >-
-  Guides creation and configuration of MicroControllerInterface, ModuleInterface, and MQTTCommunication
-  instances for microcontroller communication. Covers MicroControllerInterface initialization and
-  lifecycle, ModuleInterface subclassing with command and parameter sending, MQTTCommunication setup,
-  system ID allocation, and DataLogger integration. Use when writing code that creates
-  MicroControllerInterface or MQTTCommunication instances or needs to understand the
-  ataraxis-communication-interface API.
+  Guides creation and configuration of MicroControllerInterface, ModuleInterface, and
+  MQTTCommunication instances for microcontroller communication. Covers interface initialization
+  and lifecycle, ModuleInterface subclassing with command and parameter sending, MQTTCommunication
+  setup, controller ID allocation, and DataLogger integration. Use when writing code that creates
+  MicroControllerInterface or MQTTCommunication instances or needs the ataraxis-communication-interface API.
 user-invocable: false
 ---
 
@@ -26,7 +25,7 @@ dataclasses, startup orchestration) is the responsibility of the consuming libra
 - MicroControllerInterface constructor parameters and lifecycle methods
 - ModuleInterface abstract base class and subclassing pattern
 - MQTTCommunication setup and lifecycle
-- System ID allocation and naming conventions
+- Controller ID allocation and naming conventions
 - DataLogger integration requirements
 
 **Does not cover:**
@@ -414,10 +413,11 @@ communication cycle. Verification fails if:
 
 ---
 
-## System ID allocation
+## Controller ID allocation
 
 Each MicroControllerInterface instance requires a unique `controller_id` (`np.uint8`) for DataLogger
-identification. The recommended allocation:
+identification. A controller's `controller_id` IS its source ID at the DataLogger level (see
+`/log-input-format`). The recommended allocation:
 
 | Range   | Assignment                         | Notes                                             |
 |---------|------------------------------------|---------------------------------------------------|

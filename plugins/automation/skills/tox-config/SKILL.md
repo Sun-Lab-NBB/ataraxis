@@ -1,12 +1,11 @@
 ---
 name: tox-config
 description: >-
-  Applies tox.ini conventions when creating or modifying tox configuration files. Covers
-  the mamba + uv + tox toolchain architecture, envlist patterns, environment definitions,
-  dependency installation strategies, environment naming, and project archetype variations
-  (full Python, reduced Python, C++ extension, C++ docs-only). Use when creating a new tox.ini,
-  modifying an existing tox.ini, adding or changing tox environments, or when the user asks about
-  tox configuration, development automation, or the mamba/uv/tox toolchain.
+  Applies tox.ini conventions when creating or modifying tox configuration files. Covers the
+  mamba + uv + tox toolchain, envlist patterns, environment definitions, dependency installation
+  strategies, environment naming, and project archetype variations (full Python, reduced Python,
+  C++ extension, C++ docs-only). Use when creating or modifying a tox.ini, changing tox
+  environments, or when the user asks about tox configuration or the mamba/uv/tox toolchain.
 user-invocable: false
 ---
 

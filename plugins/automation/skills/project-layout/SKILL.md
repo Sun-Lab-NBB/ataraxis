@@ -1,12 +1,11 @@
 ---
 name: project-layout
 description: >-
-  Applies project directory structure conventions when creating new projects, adding
-  directories, or verifying project layout. Covers the five project archetypes (Python-only,
-  Python+C++ extension, C++ PlatformIO library, C++ PlatformIO firmware, C# Unity), common root
-  files, environment directories, test directories, and documentation directory placement. Use
-  when creating a new project, adding top-level directories, restructuring a project, or when the
-  user asks about project directory conventions.
+  Applies project directory structure conventions when creating new projects, adding directories,
+  or verifying project layout. Covers the five archetypes (Python-only, Python+C++ extension, C++
+  PlatformIO library, C++ PlatformIO firmware, C# Unity), common root files, environment, test, and
+  documentation directories. Use when creating a new project, adding top-level directories,
+  restructuring a project, or when the user asks about project directory conventions.
 user-invocable: false
 ---
 

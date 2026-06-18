@@ -106,7 +106,7 @@ corresponding video files by camera name.
 
 ### What source IDs represent
 
-A source ID is a `np.uint8` value (0–255) that identifies the hardware system that produced log data.
+A source ID is a `np.uint8` value (1-255) that identifies the hardware system that produced log data.
 In ataraxis-video-system, each `VideoSystem` instance has a `system_id` that becomes the `source_id`
 in all log entries sent to the `DataLogger`.
 

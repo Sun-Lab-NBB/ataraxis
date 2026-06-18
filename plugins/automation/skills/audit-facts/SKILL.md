@@ -1,12 +1,11 @@
 ---
 name: audit-facts
 description: >-
-  Performs a thorough fact-check audit of documentation files against their authoritative
-  source code. Verifies every concrete claim, surfaces drift, contradictions, and substantive
-  omissions, and produces a structured findings report with verbatim source citations. Use when
-  auditing README files, CLAUDE.md, SKILL.md, Sphinx documentation, or any project
-  documentation for factual accuracy against the codebase. Use when the user invokes
-  /audit-facts.
+  Performs a thorough fact-check audit of documentation files against their authoritative source
+  code. Verifies every concrete claim and surfaces drift, contradictions, and substantive omissions
+  in a structured findings report with verbatim source citations. Use when auditing README,
+  CLAUDE.md, SKILL.md, Sphinx, or any project documentation for factual accuracy, or when the user
+  invokes /audit-facts.
 user-invocable: true
 ---
 

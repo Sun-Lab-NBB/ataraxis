@@ -3,10 +3,9 @@ name: firmware-module
 description: >-
   Guides creation of custom hardware Module subclasses in the ataraxis-micro-controller C++ firmware
   library. Covers SetupModule, SetCustomParameters, and RunActiveCommand implementation, stage-based
-  command execution, parameter structures with PACKED_STRUCT, event codes, SendData patterns, and
-  main.cpp integration with Kernel and Communication. Use when writing or modifying firmware module
-  classes for microcontrollers, when the user asks about Module subclassing, or when implementing
-  new hardware interfaces on the microcontroller side of ataraxis-communication-interface.
+  command execution, PACKED_STRUCT parameter structures, event codes, SendData patterns, and main.cpp
+  integration with Kernel and Communication. Use when writing or modifying firmware Module
+  subclasses, or when implementing the microcontroller side of an ataraxis-communication-interface module.
 user-invocable: false
 ---
 
@@ -436,48 +435,11 @@ void loop()
 
 ---
 
-## Template parameter guidelines
-
-| Type       | Use Case                          | Example                        |
-|------------|-----------------------------------|--------------------------------|
-| `uint8_t`  | Pin numbers, counts               | `kPin`, `kEncoderPinA`         |
-| `bool`     | Hardware polarity, default states | `kNormallyClosed`, `kStartOff` |
-| `uint16_t` | Larger constants (calibration)    | `kDefaultThreshold`            |
-
-Use `255` as a sentinel for optional pins:
-
-```cpp
-template <const uint8_t kTonePin = 255>
-// In implementation:
-if constexpr (kTonePin != 255) { pinMode(kTonePin, OUTPUT); }
-```
-
----
-
-## Static assertions
-
-Place static assertions at the **top of the class body**, before `public:`:
-
-```cpp
-template <const uint8_t kPinA, const uint8_t kPinB>
-class EncoderModule final : public Module
-{
-        static_assert(kPinA != kPinB, "Channel A and Channel B pins cannot be the same.");
-        static_assert(kPinA != LED_BUILTIN, "Select a different Channel A pin.");
-        static_assert(kPinB != LED_BUILTIN, "Select a different Channel B pin.");
-
-    public:
-        // ...
-};
-```
-
----
-
 ## Implementation hints
 
-See [references/api-reference.md](references/api-reference.md) for optional efficiency patterns,
-including constexpr pin logic for polarity-configurable modules and sensor hysteresis for polling
-commands.
+See [references/api-reference.md](references/api-reference.md) for template parameter type guidelines,
+static-assertion placement, and optional efficiency patterns (constexpr pin logic for
+polarity-configurable modules and sensor hysteresis for polling commands).
 
 ---
 
@@ -490,6 +452,7 @@ commands.
 | `/communication:extraction-configuration`  | Downstream: configure extraction for this module's event codes                                                                                                            |
 | `/cpp-style`                               | C++ coding conventions for firmware code                                                                                                                                  |
 | `/project-layout`                          | Project directory structure for PlatformIO firmware projects                                                                                                              |
+| `/platformio-config`                       | PlatformIO config (platformio.ini / library.json) conventions for the firmware project                                                                                    |
 
 ---
 

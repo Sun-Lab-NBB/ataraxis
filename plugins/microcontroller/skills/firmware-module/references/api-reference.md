@@ -389,3 +389,40 @@ void CheckSensor()
 ```
 
 This reduces serial bandwidth and log archive size without losing transition information.
+
+---
+
+## Template parameter guidelines
+
+| Type       | Use Case                          | Example                        |
+|------------|-----------------------------------|--------------------------------|
+| `uint8_t`  | Pin numbers, counts               | `kPin`, `kEncoderPinA`         |
+| `bool`     | Hardware polarity, default states | `kNormallyClosed`, `kStartOff` |
+| `uint16_t` | Larger constants (calibration)    | `kDefaultThreshold`            |
+
+Use `255` as a sentinel for optional pins:
+
+```cpp
+template <const uint8_t kTonePin = 255>
+// In implementation:
+if constexpr (kTonePin != 255) { pinMode(kTonePin, OUTPUT); }
+```
+
+---
+
+## Static assertions
+
+Place static assertions at the **top of the class body**, before `public:`:
+
+```cpp
+template <const uint8_t kPinA, const uint8_t kPinB>
+class EncoderModule final : public Module
+{
+        static_assert(kPinA != kPinB, "Channel A and Channel B pins cannot be the same.");
+        static_assert(kPinA != LED_BUILTIN, "Select a different Channel A pin.");
+        static_assert(kPinB != LED_BUILTIN, "Select a different Channel B pin.");
+
+    public:
+        // ...
+};
+```

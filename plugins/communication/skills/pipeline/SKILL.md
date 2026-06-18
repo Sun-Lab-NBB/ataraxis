@@ -122,6 +122,11 @@ Python code that creates MicroControllerInterface and ModuleInterface instances.
 
 ### Controller ID allocation
 
+A controller's `controller_id` IS its source ID at the DataLogger level: it is the value
+MicroControllerInterface registers as the `source_id`, and it names the controller's
+`{controller_id}_log.npz` archive (see `/log-input-format`). This skill uses "source ID" for the
+shared DataLogger namespace and `controller_id` for the MicroControllerInterface constructor.
+
 | Range   | Assignment                         | Notes                                             |
 |---------|------------------------------------|---------------------------------------------------|
 | 101-150 | MicroControllerInterface instances | Advised production range; not enforced            |

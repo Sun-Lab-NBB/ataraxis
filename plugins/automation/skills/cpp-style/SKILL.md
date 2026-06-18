@@ -1,12 +1,11 @@
 ---
 name: cpp-style
 description: >-
-  Applies C++ coding conventions when writing, reviewing, or refactoring code. Covers .h,
-  .hpp, and .cpp files, Doxygen documentation, naming, formatting, error handling, include
-  directives, file ordering, template patterns, embedded (Arduino/PlatformIO) conventions, and
-  Python C++ extension (nanobind/scikit-build-core) conventions. Use when writing new C++ code,
-  modifying existing code, reviewing pull requests, or when the user asks about C++ coding
-  standards.
+  Applies C++ coding conventions when writing, reviewing, or refactoring code. Covers .h, .hpp, and
+  .cpp files, Doxygen documentation, naming, formatting, error handling, includes, file ordering,
+  template patterns, embedded (Arduino/PlatformIO) conventions, and Python C++ extension
+  (nanobind/scikit-build-core) conventions. Use when writing or modifying C++ code, reviewing pull
+  requests, or when the user asks about C++ coding standards.
 user-invocable: false
 ---
 

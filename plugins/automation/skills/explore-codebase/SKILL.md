@@ -262,15 +262,16 @@ Exported from `__init__.py` via `__all__`:
 
 ## Related skills
 
-| Skill                   | Relationship                                                        |
-|-------------------------|---------------------------------------------------------------------|
-| `/explore-dependencies` | Explores ataraxis dependency APIs; invoke alongside this skill      |
-| `/python-style`         | Provides Python coding conventions discovered during exploration    |
-| `/cpp-style`            | Provides C++ coding conventions discovered during exploration       |
-| `/csharp-style`         | Provides C# coding conventions discovered during exploration        |
-| `/readme-style`         | Provides README conventions when exploration reveals README issues  |
-| `/commit`               | Should be invoked after completing code changes informed by context |
-| `/skill-design`         | Provides skill conventions when exploration reveals skill files     |
+| Skill                   | Relationship                                                                         |
+|-------------------------|--------------------------------------------------------------------------------------|
+| `/explore-dependencies` | Explores ataraxis dependency APIs; invoke alongside this skill                       |
+| `/python-style`         | Provides Python coding conventions discovered during exploration                     |
+| `/cpp-style`            | Provides C++ coding conventions discovered during exploration                        |
+| `/csharp-style`         | Provides C# coding conventions discovered during exploration                         |
+| `/readme-style`         | Provides README conventions when exploration reveals README issues                   |
+| `/commit`               | Should be invoked after completing code changes informed by context                  |
+| `/skill-design`         | Provides skill conventions when exploration reveals skill files                      |
+| `/project-layout`       | Provides project directory and test-naming conventions referenced during exploration |
 
 ---
 
