@@ -45,7 +45,7 @@ project-root/
 │   └── module_test.py                # Test files use _test.py suffix
 ├── .gitignore
 ├── CLAUDE.md                         # Claude Code project instructions
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── pyproject.toml                    # Build config, metadata, tool settings
 ├── README.md                         # Project documentation
 └── tox.ini                           # Automation orchestration (lint, type, test, docs)
@@ -119,7 +119,7 @@ project-root/
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── CMakeLists.txt                    # CMake build config for nanobind extension
 ├── Doxyfile                          # Doxygen documentation configuration
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── pyproject.toml                    # scikit-build-core backend + metadata
 ├── README.md                         # Project documentation
 └── tox.ini                           # Automation orchestration
@@ -166,7 +166,7 @@ project-root/
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
 ├── library.json                      # PlatformIO library manifest
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── platformio.ini                    # PlatformIO build configuration
 ├── README.md                         # Project documentation
 └── tox.ini                           # Documentation build automation
@@ -209,7 +209,7 @@ project-root/
 ├── .gitignore
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── platformio.ini                    # PlatformIO build configuration
 ├── README.md                         # Project documentation
 └── tox.ini                           # Documentation build automation
@@ -261,7 +261,7 @@ project-root/
 ├── .editorconfig                     # Editor configuration (indentation, encoding)
 ├── .gitignore
 ├── CLAUDE.md                         # Claude Code project instructions
-├── LICENSE                           # GPL-3.0 license
+├── LICENSE                           # Apache-2.0 license
 ├── README.md                         # Project documentation
 └── *.slnx                            # Unity solution file
 ```

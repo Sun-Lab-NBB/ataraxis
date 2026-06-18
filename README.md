@@ -22,8 +22,8 @@ Copyright: 2026, NeuroAI Lab, Cornell University.
 ## Features
 
 ### Hardware Discovery & Validation
-- **MCP-based device enumeration**: AI agents can query connected cameras, microcontrollers, and
-  motor controllers through structured tool interfaces.
+- **MCP-based device enumeration**: AI agents can query connected cameras and microcontrollers
+  through structured tool interfaces.
 - **Pre-session diagnostics**: Validate hardware connectivity and configuration through natural
   language queries.
 - **Real-time status checking**: Query device responsiveness, serial port status, and camera
@@ -266,6 +266,10 @@ User: ACTOR controller, pin 5
 AI: Created buzzer module with pulse, toggle on, and toggle off commands.
     Upload the firmware and update the dependency version.
 ```
+
+The generated handler drives the pin with `digitalWrite`, which suits an **active** buzzer (pin HIGH =
+sound, LOW = silent). A **passive** piezo element produces no tone from a steady HIGH and would instead
+need a `tone()`/PWM-driven handler.
 
 ---
 

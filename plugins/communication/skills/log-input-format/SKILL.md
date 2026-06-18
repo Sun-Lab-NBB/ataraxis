@@ -3,8 +3,9 @@ name: log-input-format
 description: >-
   Documents the input data format required by the log processing pipeline: NPZ log archives produced by
   DataLogger, source ID semantics, microcontroller manifest system, archive internal message layout, and
-  communication protocol. Use when the user asks about log archive format, source IDs, DataLogger output,
-  or why processing fails due to missing or malformed archives.
+  communication protocol. Use when the user asks about microcontroller (serial) log archive format, source
+  IDs, the manifest system, DataLogger output, or why microcontroller log processing fails due to missing or
+  malformed archives.
 user-invocable: false
 ---
 

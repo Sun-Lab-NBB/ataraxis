@@ -3,8 +3,8 @@ name: log-input-format
 description: >-
   Documents the input data format required by the log processing pipeline: NPZ log archives produced by
   DataLogger and assemble_log_archives, source ID semantics, multi-logger recording structures, and
-  archive internal layout. Use when the user asks about log archive format, source IDs, DataLogger output,
-  or why processing fails due to missing or malformed archives.
+  archive internal layout. Use when the user asks about camera (video-system) log archive format, source IDs,
+  DataLogger output, or why video log processing fails due to missing or malformed archives.
 user-invocable: false
 ---
 

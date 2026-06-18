@@ -528,12 +528,15 @@ The build system section declares scikit-build-core and nanobind as build depend
 
 ```toml
 [build-system]
-requires = ["scikit-build-core==0.11.6", "nanobind==2.9.2"]
+requires = ["scikit-build-core>=0,<1", "nanobind>=2,<3"]
 build-backend = "scikit_build_core.build"
 ```
 
-Pin exact versions for reproducible builds. The `scikit_build_core.build` backend handles CMake
-invocation automatically during `pip install`.
+Constrain these Python build dependencies with major-version ranges (see `/pyproject-style`), not exact
+pins — Python dependencies track major versions, so compatible minor/patch updates are adopted
+automatically. Exact pinning is reserved for microcontroller/PlatformIO dependencies (see
+`/platformio-config`), where stringent hardware requirements make silent minor/patch bumps undesirable.
+The `scikit_build_core.build` backend handles CMake invocation automatically during `pip install`.
 
 ### `__repr__` for extension classes
 

@@ -3,8 +3,9 @@ name: communication-mcp-environment-setup
 description: >-
   Diagnoses and resolves ataraxis-communication-interface MCP server connectivity issues. Covers environment
   verification, command availability, Python version checks, dependency validation, and conda/pip/uv
-  environment configuration. Use when MCP tools are unavailable, when the server fails to start,
-  when the user reports connection issues, or when starting a session that requires MCP tools.
+  environment configuration. Use when the axci (communication-interface) MCP tools are unavailable, when the
+  axci server fails to start, when the user reports communication-interface connection issues, or when
+  starting a session that requires the axci MCP tools.
 user-invocable: false
 ---
 

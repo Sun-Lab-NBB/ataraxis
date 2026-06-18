@@ -87,6 +87,8 @@ Setup       →  Discovery   →  Config      →             →  Processing  �
 
 - **Skill:** `/log-processing-results`
 - **Actions:** Verify output, analyze event distributions, interpret timing statistics
+- **Caveat:** Per-message loss is not measurable post-hoc (the wire format has no sequence field); never
+  report inter-event gaps as lost messages. See `/log-processing-results`.
 
 ---
 

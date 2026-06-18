@@ -64,7 +64,8 @@ See [references/api-reference.md](references/api-reference.md) for the complete 
 - Properties (video_file_path, started, system_id)
 - All enumerations (CameraInterfaces, VideoEncoders, EncoderSpeedPresets, OutputPixelFormats, InputPixelFormats)
 - Discovery functions (discover_camera_ids, check_cti_file, add_cti_file)
-- GenICam configuration classes (GenicamNodeInfo, GenicamConfiguration)
+- GenICam configuration classes (GenicamNodeInfo, GenicamConfiguration) and the programmatic config methods
+  (set_node_value, get_configuration, apply_configuration) that back the `/camera-setup` tools
 - Utility functions (check_ffmpeg_availability, check_gpu_availability, extract_logged_camera_timestamps)
 
 ---
@@ -100,7 +101,10 @@ Key constructor notes:
 - `frame_width`, `frame_height`, `frame_rate` default to `None` (use camera native settings). For
   Harvesters cameras, set resolution and frame rate via GenICam configuration (see `/camera-setup`)
   rather than overriding through these parameters. The VideoSystem overrides are primarily intended
-  for OpenCV cameras that lack GenICam node control.
+  for OpenCV cameras that lack GenICam node control. Exposure, gain, and other GenICam nodes are applied at
+  configuration time via the `/camera-setup` tools or, in code, via the `HarvestersCamera` config methods
+  (`set_node_value`, `get_configuration`, `apply_configuration`); see the API reference. The deterministic
+  acquisition script does not reconfigure nodes at runtime.
 - `display_frame_rate` defaults to `None` (preview disabled). Set to a positive integer FPS not exceeding
   the camera's acquisition frame rate to enable, else `__init__` raises `TypeError`. Frame display is
   unsupported on macOS: it is auto-disabled (a warning is emitted), so the value has no effect there.

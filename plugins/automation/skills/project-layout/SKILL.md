@@ -78,7 +78,7 @@ These files appear at the root of all (or most) projects:
 
 | File         | All archetypes | Purpose                                           |
 |--------------|----------------|---------------------------------------------------|
-| `LICENSE`    | Yes            | GPL-3.0 license                                   |
+| `LICENSE`    | Yes            | Apache-2.0 license                                |
 | `README.md`  | Yes            | Project documentation (see `/readme-style`)       |
 | `.gitignore` | Yes            | Git ignore patterns                               |
 | `CLAUDE.md`  | Yes            | Claude Code project instructions                  |
@@ -301,7 +301,7 @@ Archetype Identification:
 - [ ] Reference tree loaded from archetype-trees.md
 
 Common Root Files:
-- [ ] LICENSE present (GPL-3.0)
+- [ ] LICENSE present (Apache-2.0)
 - [ ] README.md present
 - [ ] .gitignore present
 - [ ] CLAUDE.md present

@@ -242,6 +242,46 @@ config.to_yaml(file_path=Path("camera_config.yaml"))
 config = GenicamConfiguration.from_yaml(file_path=Path("camera_config.yaml"))
 ```
 
+### Programmatic GenICam configuration
+
+GenICam state is applied in code through the `HarvestersCamera` interface — the same operations the
+`/camera-setup` MCP tools (`read_genicam_node_tool`, `write_genicam_node_tool`, `dump_genicam_config_tool`,
+`load_genicam_config_tool`) perform. Two supply modes are supported:
+
+```python
+# Per-parameter targeting: write a single ReadWrite node (value is coerced to the node's native type)
+camera.set_node_value(name="ExposureTime", value="4000")
+camera.set_node_value(name="Gain", value="2.0")
+info = camera.get_node_info(name="AcquisitionFrameRate")          # -> GenicamNodeInfo(name, value)
+
+# Full-config restoration: dump every ReadWrite node, persist to YAML, re-apply later
+config = camera.get_configuration()                               # -> GenicamConfiguration
+config.to_yaml(file_path=Path("camera_config.yaml"))
+camera.apply_configuration(config=config, strict_identity=False)  # strict_identity/blacklisted_nodes are keyword-only
+```
+
+`HarvestersCamera` config method signatures:
+
+```python
+def get_node_info(self, name: str) -> GenicamNodeInfo: ...
+def get_node_description(self, name: str) -> str: ...
+def set_node_value(self, name: str, value: str) -> None: ...
+def get_configuration(self, blacklisted_nodes: frozenset[str] = DEFAULT_BLACKLISTED_NODES) -> GenicamConfiguration: ...
+def apply_configuration(self, config: GenicamConfiguration, *, strict_identity: bool = False,
+                        blacklisted_nodes: frozenset[str] = DEFAULT_BLACKLISTED_NODES) -> None: ...
+```
+
+`strict_identity=False` warns (rather than aborts) on a camera model/serial mismatch. The default
+`blacklisted_nodes` (`{CustomerIDKey, CustomerValueKey, TestPattern}`) skips vendor nodes that report
+ReadWrite access but reject writes. A connected `HarvestersCamera` is normally obtained at configuration
+time via the `/camera-setup` tools (which wrap these calls); these methods exist for advanced in-process use.
+
+The `VideoSystem` constructor accepts **no** GenICam config object: resolution and frame rate are applied
+from its `frame_width`/`frame_height`/`frame_rate` arguments at `connect()`, while exposure, gain, and other
+nodes are configured through the methods above. Because the deterministic acquisition script does not
+reconfigure nodes at runtime, apply GenICam state at configuration time and either persist it on the camera
+(save a UserSet) or re-apply a saved `GenicamConfiguration` before starting acquisition.
+
 ### CameraSourceData
 
 Stores identification data for a single camera source in a log manifest:

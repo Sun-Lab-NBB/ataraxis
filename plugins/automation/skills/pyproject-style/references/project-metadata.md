@@ -65,16 +65,7 @@ readme = "README.md"
 Uses an SPDX license expression string. The `license-files` field specifies the license file:
 
 ```toml
-# GPL (most projects)
-license = "GPL-3.0-or-later"
-license-files = ["LICENSE"]
-
-# Apache (ataraxis-automation)
 license = "Apache-2.0"
-license-files = ["LICENSE"]
-
-# BSD
-license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 ```
 
@@ -363,15 +354,15 @@ command-name = "package_name.module:function"
 
 - Use short, memorable command names
 - Use hyphens for multi-word commands
-- Prefix with project abbreviation for namespacing (e.g., `axci-id`, `axvs`)
+- Prefix with project abbreviation for namespacing (e.g., `axci`, `axvs`)
 
 ### Examples from projects
 
-| Project                          | Command          | Entry point                                        |
-|----------------------------------|------------------|----------------------------------------------------|
-| ataraxis-automation              | `automation-cli` | `ataraxis_automation.cli:cli`                      |
-| ataraxis-video-system            | `axvs`           | `ataraxis_video_system.cli:axvs_cli`               |
-| ataraxis-communication-interface | `axci-id`        | `...microcontroller_interface:identify_interfaces` |
+| Project                          | Command          | Entry point                                                |
+|----------------------------------|------------------|------------------------------------------------------------|
+| ataraxis-automation              | `automation-cli` | `ataraxis_automation.cli:cli`                              |
+| ataraxis-video-system            | `axvs`           | `ataraxis_video_system.interfaces.cli:axvs_cli`            |
+| ataraxis-communication-interface | `axci`           | `ataraxis_communication_interface.interfaces.cli:axci_cli` |
 
 For Click-based CLIs, point to the Click group or command object directly.
 

@@ -210,6 +210,19 @@ The `microcontroller_processing_tracker.yaml` file tracks job lifecycle per outp
   contention, buffering, or competing processes
 - **Very long gaps** (`max_us` >> `mean_us`) suggest intermittent communication interruptions
 
+### Message loss is not measurable post-hoc
+
+Per-message loss **cannot** be computed from extracted archives. The serial wire format carries no sequence
+or counter field, so there is no expected-vs-received count, and extraction keeps only the configured event
+codes — so a sparse `event_distribution` reflects the config, not dropped data. Do **not** report inter-event
+gaps (a large `max_us`) as "lost messages": a long gap is a timing observation, not a quantified loss.
+
+The only after-the-fact signal of a communication interruption is the Kernel keepalive-timeout status event
+(`kKeepAliveTimeout`, kernel status code 10), emitted when the Kernel stops receiving keepalive messages from
+the PC — and it appears in the kernel feather **only if that kernel event code was included in the extraction
+config**. If a run needs guaranteed-delivery accounting, that guarantee comes from the transport layer's
+runtime CRC/COBS verification during acquisition, not from post-hoc log analysis.
+
 ### Data payload reconstruction
 
 For rows where `dtype` and `data` are non-null, the original data value can be reconstructed:

@@ -123,7 +123,7 @@ GitHub release manually.
 
 **Major Changes:**
 
-1. Re-licensed the library to Apache 2.0 from GPL 3.
+1. Re-licensed the library to Apache 2.0.
 2. Added MCP assets and a companion plugin that enables AI agent interfacing with all library components.
 3. Added a log processing (data extraction) pipeline.
 ```

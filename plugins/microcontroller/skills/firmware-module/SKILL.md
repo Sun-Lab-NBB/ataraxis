@@ -336,6 +336,11 @@ the multi-stage non-blocking-delay / sensor-polling patterns to avoid flooding t
 recurrence interval via `send_command(repetition_delay=...)` — see
 `communication:microcontroller-interface`.
 
+**Output-device note:** handlers that drive a pin with `digitalWrite(HIGH/LOW)` control level-driven
+(active) devices — an active buzzer sounds at HIGH and is silent at LOW, a valve or LED switches on/off.
+A device that needs a generated waveform (a **passive** piezo, a servo) needs a `tone()` / `analogWrite`
+(PWM) handler instead; `digitalWrite` alone leaves it silent or unmoving.
+
 ---
 
 ## Sending data to PC
@@ -432,6 +437,34 @@ void loop()
 - The `modules[]` array must contain at least one element (enforced by `static_assert`)
 - `Serial.begin()` baudrate must match the PC-side `baudrate` parameter
 - Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`; AVR boards (fixed 10-bit ADC, no `analogReadResolution()`) must guard the call with `#if !defined(__AVR__)`
+
+---
+
+## Build and upload
+
+Build, upload, and monitor the firmware with PlatformIO. The board environment(s) are defined in
+`platformio.ini` (see `/platformio-config`).
+
+```bash
+# Build only (compile, no upload)
+pio run
+
+# Build and upload to the board (uses the default environment)
+pio run --target upload
+
+# Target a specific board environment (e.g. teensy41) when platformio.ini defines several
+pio run --environment teensy41 --target upload
+
+# List the environments defined in platformio.ini
+pio project config
+
+# Open the serial monitor after upload (match the Serial.begin() baudrate)
+pio device monitor --baud 115200
+```
+
+After uploading, the controller runs the deterministic `RuntimeCycle()` loop and is ready for the PC-side
+`MicroControllerInterface` to connect (see `/microcontroller-interface`). Re-upload whenever the firmware
+module, its command/event codes, or its parameter struct change.
 
 ---
 

@@ -3,8 +3,9 @@ name: video-mcp-environment-setup
 description: >-
   Diagnoses and resolves ataraxis-video-system MCP server connectivity issues. Covers environment
   verification, command availability, Python version checks, dependency validation, and conda/pip/uv
-  environment configuration. Use when MCP tools are unavailable, when the server fails to start,
-  when the user reports connection issues, or when starting a session that requires MCP tools.
+  environment configuration. Use when the axvs (video-system) MCP tools are unavailable, when the axvs server
+  fails to start, when the user reports video-system connection issues, or when starting a session that
+  requires the axvs MCP tools.
 user-invocable: false
 ---
 

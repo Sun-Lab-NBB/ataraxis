@@ -179,4 +179,4 @@ Common violations in Python C++ extension (nanobind) code:
 | Accessing Python objects with GIL released          | Only access C++ state while GIL is released                | Thread safety                      |
 | `#include "nanobind/nanobind.h"`                    | `#include <nanobind/nanobind.h>`                           | Angle brackets for library headers |
 | Inline binding code mixed with class implementation | NB_MODULE block at end of file, after class                | Separation of concerns             |
-| Unpinned nanobind/scikit-build-core versions        | Pin exact versions in pyproject.toml build-system.requires | Reproducible builds                |
+| Exact-pinned nanobind/scikit-build-core in pyproject | Major-version ranges in build-system.requires (see /pyproject-style) | Python deps track major versions   |
