@@ -2,7 +2,7 @@
 
 **Bridging AI Coding Assistants and Scientific Hardware**
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 Ataraxis is an open-source framework that enables AI coding assistants to interact with laboratory
 hardware. It provides optimized hardware interface libraries, Model Context Protocol (MCP) servers
@@ -305,7 +305,7 @@ If you use Ataraxis in your research, please cite:
 
 ## License
 
-All Ataraxis libraries are released under the [GNU General Public License v3.0](LICENSE).
+All Ataraxis libraries are released under the [Apache License 2.0](LICENSE).
 
 ---
 
