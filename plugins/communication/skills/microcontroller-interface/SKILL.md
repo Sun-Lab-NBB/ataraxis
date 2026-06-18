@@ -274,7 +274,7 @@ type mapping table.
 
 ```text
 C++ struct (firmware)                    Python tuple (PC)
-─���───────────────────────────────────    ─���───────────────────────────────────
+─────────────────────────────────────    ─────────────────────────────────────
 struct CustomRuntimeParameters           send_parameters(parameter_data=(
 {                                            np.uint32(2000000),   # on_duration
         uint32_t on_duration  = ...;         np.uint32(2000000),   # off_duration
