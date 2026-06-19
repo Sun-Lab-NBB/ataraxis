@@ -2,7 +2,7 @@
 name: explore-dependencies
 description: >-
   Explores installed ataraxis dependency source code to build a live API snapshot of the public
-  classes, functions, and constants each dependency exports, flagging where project code
+  classes, functions, and constants/enums each dependency exports, flagging where project code
   reimplements existing library functionality. Use when starting a session on a project with
   ataraxis dependencies, before writing code that uses ataraxis library features, or when the user
   asks about available library APIs.
@@ -50,7 +50,9 @@ ecosystem, domain-to-library mappings, and import names.
 ### Step 2: Identify project dependencies
 
 Read the project's `pyproject.toml` and extract all ataraxis dependencies from
-`[project.dependencies]` and `[project.optional-dependencies]`. Match package names that start
+`[project.dependencies]`, `[project.optional-dependencies]`, and `[dependency-groups]` (PEP 735;
+ataraxis projects place dev dependencies such as `ataraxis-automation` in `[dependency-groups]`, not
+under `[project.optional-dependencies]` — see `/pyproject-style`). Match package names that start
 with `ataraxis-` (or the project's own first-party namespace prefix).
 
 If `pyproject.toml` is not found, check for `setup.cfg`, `setup.py`, or `requirements.txt` as
@@ -77,21 +79,40 @@ Obtain the package version with the hyphenated PyPI name (not the import name); 
 python -c "import importlib.metadata; print(importlib.metadata.version('<package-name>'))"
 ```
 
+**Reconcile local or editable checkouts.** When a dependency's resolved `__file__` falls outside
+`site-packages` (e.g. it points to a sibling or parent directory), it is a local or editable checkout
+that may be ahead of or behind the published release. Look up the dependency's GitHub repository from
+[library-catalog.md](references/library-catalog.md) — do NOT hardcode the `Sun-Lab-NBB` org, since
+first-party application libraries may live under a different owner; skip any dependency with no
+cataloged repository — then compare the local version against the latest release:
+
+```bash
+gh api repos/<owner>/<repo>/releases/latest --jq .tag_name
+```
+
+Flag any drift between the local checkout and the latest release before treating the local API as
+authoritative.
+
 For C++ ataraxis libraries (ataraxis-transport-layer-mc, ataraxis-micro-controller), the
-`python -c "import ..."` resolution does not apply. Locate the source under
-`.pio/libdeps/<lib>/src` and enumerate public classes from the library's header files rather than
-from `__all__`.
+`python -c "import ..."` resolution does not apply. Locate the source under `.pio/libdeps/<lib>/src`,
+read the library version from the `version` field of the library's `library.json` (not
+`importlib.metadata`), and enumerate public classes from the library's header files rather than from
+`__all__` (see Step 4).
 
 If a package is not installed, note it as unavailable and skip to the next dependency.
 
 ### Step 4: Enumerate public APIs
 
-For each installed dependency:
+For each installed Python dependency:
 
 1. Read the package's `__init__.py` file
 2. Extract the `__all__` list to identify all public exports
 3. For each exported name, identify whether it is a class, function, constant, or enum
 4. Group exports by category (classes, functions, constants/enums)
+
+For C++ dependencies there is no `__init__.py` or `__all__`. Instead, read the public header files
+under `.pio/libdeps/<lib>/src` and enumerate the public classes, structs, and enums they declare,
+grouping them the same way.
 
 ### Step 5: Read API details
 
@@ -132,6 +153,10 @@ discovered dependency APIs:
 
 Report each replacement opportunity with the file location and the suggested library alternative.
 
+Treat the table above as starter heuristics, not an authoritative catalog. Before recommending any
+replacement, confirm the named symbol appears in the `__all__` exports enumerated in Step 4 (and in
+the signature read in Step 5); never suggest a symbol absent from the live snapshot.
+
 ### Step 7: Produce the dependency API snapshot
 
 Present the results using the output format below. This snapshot gives the agent (and user) a
@@ -171,6 +196,9 @@ Organize the snapshot by library, with sections for each dependency.
 | `EnumName`      | `enum` | Members: `MEMBER_A`, `MEMBER_B`, ... |
 ```
 
+For C++ libraries, replace the `**Import:**` line with an `**Include:**` line naming the header (e.g.
+`#include "transport_layer.h"`) and set `**Source:**` to the `.pio/libdeps/<lib>/src` location.
+
 ### Replacement opportunities section
 
 After all per-library sections, include a summary of replacement opportunities:
@@ -190,9 +218,12 @@ If no replacement opportunities are found, state: "No replacement opportunities 
 
 ## Handling large dependencies
 
-For dependencies with many exports (15+ public names), use the Task tool with
-`subagent_type: Explore` to parallelize the API reading. Assign one subagent per large library
-to read source files concurrently.
+For dependencies with many exports (15+ public names), or when several dependencies must be read or
+the total export count across all dependencies is large, use the Agent tool with the `Explore` agent
+type to parallelize the API reading. Launch at most 2-3 Explore subagents, batching libraries across
+them rather than one subagent per library. Instruct each subagent to return ONLY the structured
+snapshot rows for its assigned libraries (signatures plus one-line summaries), never raw source
+bodies.
 
 For small dependencies (fewer than 15 exports), read the APIs directly without subagents.
 
@@ -200,12 +231,13 @@ For small dependencies (fewer than 15 exports), read the APIs directly without s
 
 ## Related skills
 
-| Skill               | Relationship                                                        |
-|---------------------|---------------------------------------------------------------------|
-| `/python-style`     | Requires this skill before writing code that uses ataraxis features |
-| `/pyproject-style`  | Manages dependency versions and additions; defer dependency changes |
-| `/explore-codebase` | Explores project structure; complements dependency exploration      |
-| `/commit`           | Invoke after completing code changes informed by the API snapshot   |
+| Skill               | Relationship                                                             |
+|---------------------|--------------------------------------------------------------------------|
+| `/python-style`     | Requires this skill before writing code that uses ataraxis features      |
+| `/cpp-style`        | Provides C++ conventions for ataraxis libraries explored here            |
+| `/pyproject-style`  | Manages dependency versions and additions; defer dependency changes      |
+| `/explore-codebase` | Explores project structure; invoke alongside this skill at session start |
+| `/commit`           | Invoke after completing code changes informed by the API snapshot        |
 
 ---
 
@@ -226,14 +258,16 @@ proceeding to code changes. Wait for user acknowledgment before modifying code.
 
 ```text
 Dependency Exploration Compliance:
-- [ ] All ataraxis dependencies identified from pyproject.toml
+- [ ] All ataraxis dependencies identified (incl. [dependency-groups], not just [project.dependencies])
 - [ ] Each installed dependency's source location resolved
+- [ ] Local/editable checkouts reconciled against latest GitHub release where a repo is cataloged
 - [ ] Unavailable packages noted and skipped
-- [ ] __all__ exports read for each installed dependency
+- [ ] __all__ exports read for each installed Python dependency
+- [ ] C++ (.pio/libdeps) dependencies enumerated from header files where applicable
 - [ ] Public classes documented with constructors and public methods
 - [ ] Public functions documented with signatures and summaries
 - [ ] Constants and enums documented with types and members
-- [ ] Replacement opportunities scanned and reported
+- [ ] Replacement opportunities reported with file:line location and concrete suggested replacement
 - [ ] Output organized by library with consistent table format
 - [ ] Snapshot includes version numbers where available
 - [ ] No code modifications made during exploration
