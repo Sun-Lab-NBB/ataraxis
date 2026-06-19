@@ -367,23 +367,9 @@ arrays of those types at supported element counts up to the 248-byte payload cap
 arrays offer the densest count coverage and can serve as a generic bytes buffer for sending
 arbitrary packed structures via `uint8_t[sizeof(MyStruct)]`.
 
-The following table lists all supported data types and element counts. An element count of 1 represents
-a scalar value; counts greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`).
-Unsupported (type, count) combinations trigger a compile-time error via `static_assert`.
-
-| C++ Type   | Size    | Numpy Equivalent | Supported Element Counts                                                         |
-|------------|---------|------------------|----------------------------------------------------------------------------------|
-| `bool`     | 1 byte  | `np.bool_`       | 1-15, 16, 24, 32, 40, 48, 52, 248                                                |
-| `uint8_t`  | 1 byte  | `np.uint8`       | 1-15, 16, 18, 20, 22, 24, 28, 32, 36, 40, 44, 48, 52, 64, 96, 128, 192, 244, 248 |
-| `int8_t`   | 1 byte  | `np.int8`        | 1-15, 16, 24, 32, 40, 48, 52, 92, 132, 172, 212, 244, 248                        |
-| `uint16_t` | 2 bytes | `np.uint16`      | 1-15, 16, 20, 24, 26, 32, 48, 64, 96, 122, 124                                   |
-| `int16_t`  | 2 bytes | `np.int16`       | 1-15, 16, 20, 24, 26, 32, 48, 64, 96, 122, 124                                   |
-| `uint32_t` | 4 bytes | `np.uint32`      | 1-15, 16, 20, 24, 32, 48, 62                                                     |
-| `int32_t`  | 4 bytes | `np.int32`       | 1-15, 16, 20, 24, 32, 48, 62                                                     |
-| `float`    | 4 bytes | `np.float32`     | 1-15, 16, 20, 24, 32, 48, 62                                                     |
-| `uint64_t` | 8 bytes | `np.uint64`      | 1-15, 16, 20, 24, 31                                                             |
-| `int64_t`  | 8 bytes | `np.int64`       | 1-15, 16, 20, 24, 31                                                             |
-| `double`   | 8 bytes | `np.float64`     | 1-15, 16, 20, 24, 31                                                             |
+Each scalar type supports a type-specific set of array element counts (a count of 1 is a scalar);
+unsupported (type, count) combinations trigger a compile-time `static_assert`. For the full supported
+data-type and element-count table, see [api-reference.md](references/api-reference.md).
 
 **Error handling:** If transmission fails, `SendData()` automatically attempts to send an error message
 and turns on the built-in LED. Do not use the LED-connected pin in your module to avoid interference.
@@ -436,35 +422,18 @@ void loop()
 - Module constructor arguments: `(module_type, module_id, communication)`
 - The `modules[]` array must contain at least one element (enforced by `static_assert`)
 - `Serial.begin()` baudrate must match the PC-side `baudrate` parameter
-- Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`; AVR boards (fixed 10-bit ADC, no `analogReadResolution()`) must guard the call with `#if !defined(__AVR__)`
+- Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`; AVR
+  boards (fixed 10-bit ADC, no `analogReadResolution()`) must guard the call with
+  `#if !defined(__AVR__)`
 
 ---
 
 ## Build and upload
 
-Build, upload, and monitor the firmware with PlatformIO. The board environment(s) are defined in
-`platformio.ini` (see `/platformio-config`).
-
-```bash
-# Build only (compile, no upload)
-pio run
-
-# Build and upload to the board (uses the default environment)
-pio run --target upload
-
-# Target a specific board environment (e.g. teensy41) when platformio.ini defines several
-pio run --environment teensy41 --target upload
-
-# List the environments defined in platformio.ini
-pio project config
-
-# Open the serial monitor after upload (match the Serial.begin() baudrate)
-pio device monitor --baud 115200
-```
-
-After uploading, the controller runs the deterministic `RuntimeCycle()` loop and is ready for the PC-side
-`MicroControllerInterface` to connect (see `/microcontroller-interface`). Re-upload whenever the firmware
-module, its command/event codes, or its parameter struct change.
+Build, upload, and monitor the firmware with PlatformIO (board environments are defined in
+`platformio.ini`; see `/platformio-config`). For the full `pio` command set, see
+[api-reference.md](references/api-reference.md). Re-upload whenever the firmware module, its
+command/event codes, or its parameter struct change.
 
 ---
 

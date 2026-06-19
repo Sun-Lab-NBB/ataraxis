@@ -67,14 +67,28 @@ be invoked explicitly by the user or by another skill.
 
 ### `allowed-tools`
 
-Restricts which tools the agent can use while the skill is active. Useful for safety-scoped or
-read-only skills.
+Pre-approves the listed tools (skips the permission prompt) while the skill is active. It does NOT
+restrict the tool pool — every other tool remains callable and normal permission settings still
+apply. To make a skill read-only, use `disallowed-tools` or run it with `context: fork` plus
+`agent: Explore` (the Explore agent denies Write/Edit).
 
-| Property | Value                                |
-|----------|--------------------------------------|
-| Type     | String (space-delimited tool names)  |
-| Default  | All tools available                  |
-| Example  | `Read, Grep, Glob` (read-only skill) |
+| Property | Value                                                    |
+|----------|----------------------------------------------------------|
+| Type     | String (space/comma-delimited) or YAML list              |
+| Default  | No tools pre-approved (normal permissions apply)         |
+| Example  | `Read Grep Glob` or `Bash(git add *) Bash(git commit *)` |
+
+### `disallowed-tools`
+
+Removes the listed tools from the agent's available pool while the skill is active. Use for
+autonomous or read-only skills that must never call certain tools. The restriction clears on the
+next user message.
+
+| Property | Value                                       |
+|----------|---------------------------------------------|
+| Type     | String (space/comma-delimited) or YAML list |
+| Default  | No tools removed                            |
+| Example  | `Write Edit` (read-only skill)              |
 
 ### `argument-hint`
 

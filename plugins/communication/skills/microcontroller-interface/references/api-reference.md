@@ -162,12 +162,12 @@ MQTTCommunication(
 
 ### Methods
 
-| Method                           | Returns                                  | Description                                                       |
-|----------------------------------|------------------------------------------|-------------------------------------------------------------------|
-| `connect()`                      | `None`                                   | Connects to broker and subscribes to monitored topics.            |
-| `disconnect()`                   | `None`                                   | Disconnects from broker. Called automatically on garbage collect. |
-| `send_data(topic, payload=None)` | `None`                                   | Publishes a payload (`str \| bytes \| bytearray \| float \| None`; `None` = empty message) to the topic. Raises `ConnectionError` if not connected. |
-| `get_data()`                     | `tuple[str, bytes \| bytearray] \| None` | Returns next received `(topic, payload)` or `None` if empty.      |
+| Method                           | Returns                     | Description                                                                                                                                         |
+|----------------------------------|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `connect()`                      | `None`                      | Connects to broker and subscribes to monitored topics.                                                                                              |
+| `disconnect()`                   | `None`                      | Disconnects from broker. Called automatically on garbage collect.                                                                                   |
+| `send_data(topic, payload=None)` | `None`                      | Publishes a payload (`str \| bytes \| bytearray \| float \| None`; `None` = empty message) to the topic. Raises `ConnectionError` if not connected. |
+| `get_data()`                     | `tuple[str, bytes] \| None` | Returns next received `(topic, payload)` or `None` if empty.                                                                                        |
 
 ### Properties
 

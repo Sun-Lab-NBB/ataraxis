@@ -254,15 +254,16 @@ This simplifies batch processing:
 
 1. `discover_camera_data_tool` finds the manifest and identifies all confirmed sources (e.g., 51, 52, 53)
    with their camera names, log archives, video files, and feather outputs in one flat `sources` list
-2. `prepare_log_processing_batch_tool` creates one job per source ID (pass confirmed `source_ids` from discovery)
+2. `prepare_log_processing_batch_tool` creates one job per source ID (see `/log-processing` for its full
+   signature)
 3. Process all source IDs in a single batch for efficiency
 4. Output: one feather file per camera under a `camera_timestamps/` subdirectory
    (`camera_timestamps/camera_51_timestamps.feather`, `camera_timestamps/camera_52_timestamps.feather`, etc.)
 
-For multi-DataLogger setups, process each DataLogger output directory as a separate batch. This is
-enforced -- passing source IDs whose archives live in different DataLogger directories into one batch
-raises ValueError ("Each DataLogger output directory must be processed independently"). Run one discovery
-and batch per output directory.
+For multi-DataLogger setups, process each DataLogger output directory as a separate batch: run one
+discovery and one batch per output directory. The MCP batch tools do not reject cross-directory inputs,
+so this separation is a convention you must follow. (The CLI `axvs process` command does enforce it,
+raising ValueError "Each DataLogger output directory must be processed independently".)
 
 ---
 

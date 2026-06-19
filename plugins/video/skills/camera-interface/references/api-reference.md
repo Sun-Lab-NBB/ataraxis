@@ -1,6 +1,6 @@
 # ataraxis-video-system API reference
 
-Complete API reference for ataraxis-video-system v3.0.0.
+Complete API reference for ataraxis-video-system v4.0.1.
 
 ---
 
@@ -384,7 +384,7 @@ source IDs, and runs extraction jobs. For MCP-based batch processing, use `/log-
 
 ### extract_logged_camera_timestamps (internal)
 
-Not exported in `__all__`; import directly from `ataraxis_video_system.log_processing` if needed.
+Not exported in `__all__`; import directly from `ataraxis_video_system.video.log_processing` if needed.
 
 ```python
 def extract_logged_camera_timestamps(

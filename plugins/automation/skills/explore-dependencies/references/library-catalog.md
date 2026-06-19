@@ -7,7 +7,7 @@ which library covers which domain, resolve import names, and identify dependenci
 
 ## Ataraxis libraries
 
-Nine core libraries maintained under the Sun-Lab-NBB GitHub organization.
+Core libraries maintained under the Sun-Lab-NBB GitHub organization.
 
 ### Python libraries
 

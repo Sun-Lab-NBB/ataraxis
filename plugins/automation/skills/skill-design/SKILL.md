@@ -178,9 +178,9 @@ reference including all optional fields, see
 name: explore-codebase
 description: >-
   Performs in-depth codebase exploration at the start of a coding session. Builds comprehensive
-  understanding of project structure, architecture, key components, and patterns. Use at session
-  start or when the user asks to understand the codebase.
-user-invocable: false
+  understanding of project structure, architecture, key components, and patterns. Use when starting
+  a new session or when the user asks to understand the codebase or its architecture.
+user-invocable: true
 ---
 ```
 
@@ -345,7 +345,7 @@ Skill files use two voice styles:
 - **Descriptive content**: Third person imperative. Example: "Extracts zone positions from
   configuration files."
 - **Agent directives**: Second person with "You MUST", "You should". Example: "You MUST use the
-  Task tool." This deliberate use of strong directives ensures reproducible, consistent behavior
+  Agent tool." This deliberate use of strong directives ensures reproducible, consistent behavior
   across sessions and is an intentional project convention.
 
 ### Sentence case

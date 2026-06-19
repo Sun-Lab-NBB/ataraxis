@@ -37,10 +37,17 @@ Performs thorough, structured codebase exploration to build deep understanding b
 
 You MUST follow these steps when this skill is invoked.
 
-### Step 1: Determine project size
+### Step 1: Determine project archetype and size
 
-Quickly assess the project to select the appropriate exploration tier. Run a file count and directory
-listing to make this determination before proceeding.
+First detect the project archetype (Python-only, Python + C++ extension, C++ PlatformIO library or
+firmware, or C# Unity) using the indicator table in `/project-layout`; do not re-derive those
+indicators here. The archetype determines which entry points, manifests, and source extensions the
+phases target (see "Archetype-specific signals" after the phases).
+
+Then select the exploration tier. Count first-party source modules with a scoped command rather than
+listing the whole tree — e.g. `find src -name "*.py" | wc -l` (Python) or
+`find . -name "*.cpp" -o -name "*.h" | wc -l` (C++/PlatformIO) — paired with a top-level directory
+listing.
 
 Ataraxis source uses GENERATED `.pyi` stubs (one per `.py`). They are purged during development
 (`tox -e lint`) and only present at release (`tox -e stubs`), so a dev tree often has none — treat
@@ -48,11 +55,15 @@ their absence as normal, never a gap. When present, exclude `.pyi` from file cou
 and test-coverage mapping, and always read the `.py` module (not the stub) for docstrings and the
 documented API. Do not spend tokens reading or editing stubs.
 
-| Tier   | Indicators                                                    | Approach                      |
-|--------|---------------------------------------------------------------|-------------------------------|
-| Small  | Single package, < 10 source files, no subpackages             | Single-pass exploration       |
-| Medium | Multiple packages or 10-50 source files                       | Structured four-phase         |
-| Large  | Monorepo, 50+ source files, multiple entry points, MCP server | Parallel subagent exploration |
+| Tier   | Indicators                                               | Approach                      |
+|--------|----------------------------------------------------------|-------------------------------|
+| Small  | Single package, < 10 source files, no subpackages        | Single-pass exploration       |
+| Medium | Multiple packages, or 10-50 source files                 | Structured four-phase         |
+| Large  | 50+ source files AND (monorepo OR multiple entry points) | Parallel subagent exploration |
+
+An MCP server alone does NOT force the Large tier — MCP servers are common on single-package ataraxis
+libraries. When indicators conflict, choose the lower tier (fewer subagents) unless the source-file
+count alone clearly exceeds 50.
 
 ### Step 2: Execute exploration
 
@@ -62,18 +73,18 @@ Follow the approach for the determined tier.
 where appropriate to keep exploration concise.
 
 **Medium projects:** Execute all four exploration phases sequentially, giving each phase focused
-attention. Use the Task tool with `subagent_type: Explore` for any phase that requires reading
+attention. Use the Agent tool with the `Explore` agent type for any phase that requires reading
 many files.
 
-**Large projects:** Launch 2-3 Explore subagents in parallel using the Task tool with
-`subagent_type: Explore`. Assign each subagent a different focus area:
+**Large projects:** Launch 2-3 Explore subagents in parallel using the Agent tool with the
+`Explore` agent type. Assign each subagent a disjoint focus area so no surface is explored twice:
 
-- **Subagent 1: Structure and entry points** — Phase 1 (feature discovery, including configuration)
-  and Phase 4 (test coverage and implementation details)
-- **Subagent 2: Architecture and dependencies** — Phase 2 (code flow tracing) and Phase 3
-  (architecture analysis including import mapping and central component identification)
-- **Subagent 3: API surface and quality** — Public API enumeration, error handling patterns,
-  technical debt indicators
+- **Subagent 1: Structure, entry points, and configuration** — Phase 1 (feature discovery and
+  configuration), excluding the public API and MCP surfaces assigned to Subagent 3
+- **Subagent 2: Architecture and code flow** — Phase 2 (code flow tracing) and Phase 3 (architecture
+  analysis including import mapping and central component identification)
+- **Subagent 3: API surface, MCP tools, and quality** — public API enumeration, MCP-tools
+  enumeration, and Phase 4 (test coverage, error handling patterns, technical debt indicators)
 
 Synthesize the subagent findings into a unified summary.
 
@@ -151,6 +162,23 @@ Examine specifics that inform future modifications.
 
 ---
 
+## Archetype-specific signals
+
+The four phases are language-agnostic; only the concrete signals change by archetype (see
+`/project-layout` for archetype indicators). Substitute the following, then apply the matching style
+skill (`/python-style`, `/cpp-style`, or `/csharp-style`):
+
+| Archetype          | Entry points / manifest                          | Public API source              |
+|--------------------|--------------------------------------------------|--------------------------------|
+| Python (+ C++ ext) | `pyproject.toml` scripts, `__init__.py`          | `__all__` exports              |
+| C++ PlatformIO     | `library.json`, `platformio.ini`, `src/main.cpp` | public classes in header files |
+| C# Unity           | `Assets/`, `ProjectSettings/`, `*.slnx`          | `MonoBehaviour` entry points   |
+
+For C++ projects, enumerate the public surface from header files rather than `__all__`, read the
+version from `library.json` (not `pyproject.toml`), and map tests to the PlatformIO `test/` directory.
+
+---
+
 ## Output format
 
 Present findings using the following structure. Include all sections for medium and large projects.
@@ -172,91 +200,8 @@ For small projects, omit sections that do not apply.
 
 ### Example output
 
-```markdown
-## Project purpose
-
-Provides a camera interface library for OpenCV and GeniCam cameras with real-time FFMPEG video
-encoding, including an MCP server and CLI tools for camera management.
-
-## Entry points and CLI commands
-
-| Entry Point    | Location               | Description                         |
-|----------------|------------------------|-------------------------------------|
-| `axvs`         | pyproject.toml scripts | Main CLI entry point                |
-| `list-cameras` | cli.py:list_cameras    | Enumerates connected cameras        |
-| `live`         | cli.py:live            | Opens a live camera preview session |
-| `mcp`          | cli.py:mcp             | Starts the MCP server               |
-
-## Key components
-
-| Component       | Location                                  | Purpose                                |
-|-----------------|-------------------------------------------|----------------------------------------|
-| VideoSystem     | src/ataraxis_video_system/video_system.py | Top-level camera acquisition lifecycle |
-| Camera backends | src/ataraxis_video_system/camera/         | OpenCV and GeniCam camera interfaces   |
-| Savers          | src/ataraxis_video_system/saver/          | FFMPEG-based video and image encoders  |
-| Configuration   | src/ataraxis_video_system/configuration/  | Acquisition and encoding settings      |
-| MCP Server      | src/ataraxis_video_system/mcp/            | AI agent integration via MCP           |
-
-## Call chain summary
-
-`axvs live` → `cli.py:live` → `video_system.py:VideoSystem.start`
-→ `camera/opencv_camera.py:OpenCVCamera.connect` → `saver/video_saver.py:VideoSaver.create_encoder`
-→ writes encoded frames to the output directory.
-
-## Import dependency map
-
-Central components (imported by 5+ modules):
-- `configuration/acquisition_config.py` — imported by video_system, camera, saver
-- `camera/camera_base.py` — base class imported by all camera backends
-- `types.py` — imported by all modules for shared type definitions
-
-Dependency direction: cli → video_system → camera + saver → configuration.
-
-## Public API surface
-
-Exported from `__init__.py` via `__all__`:
-- `VideoSystem` (class)
-- `CameraBackends` (enum)
-- `SaverBackends` (enum)
-
-## MCP tools
-
-| Tool                | Location               | Parameters       | Returns              |
-|---------------------|------------------------|------------------|----------------------|
-| `list_cameras_tool` | mcp/discovery_tools.py | (none)           | list of camera dicts |
-| `check_camera_tool` | mcp/discovery_tools.py | `camera_id: int` | camera status dict   |
-
-## Configuration
-
-| Mechanism           | Location                            | Purpose                                  |
-|---------------------|-------------------------------------|------------------------------------------|
-| `AcquisitionConfig` | configuration/acquisition_config.py | Dataclass with camera + encoder settings |
-| CLI arguments       | cli.py                              | Override config values at runtime        |
-| YAML config         | User-provided path                  | Full acquisition configuration file      |
-
-## Test coverage
-
-| Source Module           | Test File                   | Coverage |
-|-------------------------|-----------------------------|----------|
-| video_system.py         | tests/video_system_test.py  | Yes      |
-| camera/opencv_camera.py | tests/opencv_camera_test.py | Yes      |
-| saver/video_saver.py    | tests/video_saver_test.py   | Yes      |
-| mcp/server.py           | (none)                      | Gap      |
-
-## Notable patterns
-
-- Multiprocessing for concurrent acquisition and encoding
-- Configuration dataclasses with validation
-- MyPy strict mode with full type annotations
-- Camera backends follow a consistent connect → grab → release interface
-
-## Areas of concern
-
-- `mcp/server.py` lacks test coverage
-- GeniCam backend requires a vendor SDK that is unavailable in CI
-- Saver module has high cyclomatic complexity
-- Several `# type: ignore` suppressions in the camera backend
-```
+For a complete worked example of this output format, see
+[example-output.md](references/example-output.md).
 
 ---
 
@@ -279,10 +224,9 @@ Exported from `__init__.py` via `__all__`:
 
 Invoke at session start to ensure full context before making changes. Prevents blind modifications
 and ensures understanding of existing patterns. When the project has ataraxis dependencies
-(check `pyproject.toml`), also invoke `/explore-dependencies` to build a live API
-snapshot of each dependency. Ataraxis dependencies may exist locally in the parent directory; when
-they do, `/explore-dependencies` should reconcile the local version against the latest GitHub release
-(`gh api repos/.../releases/latest`) before trusting its API.
+(check `pyproject.toml`), also invoke `/explore-dependencies` to build a live API snapshot of each
+dependency, including reconciliation of any local or editable checkouts against the latest GitHub
+release.
 
 Do NOT make code changes during exploration. Present findings and wait for user direction.
 
@@ -300,6 +244,7 @@ Exploration Output Compliance:
 - [ ] Call chains traced from entry points through core logic (file:function references)
 - [ ] Import dependencies mapped with central components highlighted
 - [ ] Public API surface enumerated (exported classes, functions, constants)
+- [ ] MCP tools enumerated with parameters and return/output shape when an MCP server exists
 - [ ] Configuration mechanisms documented (pyproject.toml, env vars, config files, dataclasses)
 - [ ] Test files mapped to source modules with coverage gaps noted
 - [ ] Design patterns and cross-cutting concerns documented
