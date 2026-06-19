@@ -17,7 +17,7 @@ limits, or model errors never disrupt a running experiment.
 Authored by [Ivan Kondratyev](https://github.com/Inkaros).
 Copyright: 2026, NeuroAI Lab, Cornell University.
 
----
+___
 
 ## Features
 
@@ -50,7 +50,7 @@ Copyright: 2026, NeuroAI Lab, Cornell University.
 - **Validated configurations**: Pre-runtime parameter validation ensures reliable data collection.
 - **Reproducible execution**: Configuration files capture complete experimental setups.
 
----
+___
 
 ## Architecture
 
@@ -68,7 +68,7 @@ Copyright: 2026, NeuroAI Lab, Cornell University.
 │               ▼                 │                   │                       │
 │    ┌─────────────────────┐      │                   ▼                       │
 │    │  Skills & MCP       │      │      ┌─────────────────────────┐          │
-│    │  Discovery Tools    │ ─────┼────▶│ Ataraxis Libraries      │          │
+│    │  Discovery Tools    │ ─────┼────▶ │ Ataraxis Libraries      │          │
 │    └──────────┬──────────┘      │      └────────────┬────────────┘          │
 │               │                 │                   │                       │
 │               ▼                 │                   ▼                       │
@@ -83,7 +83,7 @@ Copyright: 2026, NeuroAI Lab, Cornell University.
 └─────────────────────────────────┴───────────────────────────────────────────┘
 ```
 
----
+___
 
 ## Libraries
 
@@ -108,7 +108,7 @@ Transport layer implementation for host computers, providing bidirectional commu
 microcontrollers over USB/UART serial interfaces using COBS encoding and CRC verification.
 
 **[ataraxis-transport-layer-mc](https://github.com/Sun-Lab-NBB/ataraxis-transport-layer-mc)** (C++)
-Transport layer for Arduino and Teensy microcontrollers, enabling bidirectional serial
+Transport layer implementation for Arduino and Teensy microcontrollers, enabling bidirectional serial
 communication with PC clients using COBS encoding and configurable CRC support.
 
 **[ataraxis-micro-controller](https://github.com/Sun-Lab-NBB/ataraxis-micro-controller)** (C++)
@@ -129,7 +129,7 @@ helper methods for time conversion and UTC timestamp handling.
 Classes for storing, manipulating, and sharing data between processes. Includes SharedMemoryArray,
 YamlConfig, and DataLogger for scalable multi-process data storage.
 
----
+___
 
 ## Getting Started
 
@@ -150,83 +150,156 @@ lib_deps =
     Sun-Lab-NBB/ataraxis-transport-layer-mc
 ```
 
-### MCP Server Configuration
+___
 
-Add Ataraxis MCP servers to your Claude Code configuration (`~/.claude.json`):
+## Claude Code Plugins
 
-```json
-{
-  "mcpServers": {
-    "ataraxis-communication-interface": {
-      "command": "axci",
-      "args": ["mcp"]
-    },
-    "ataraxis-video-system": {
-      "command": "axvs",
-      "args": ["mcp"]
-    }
-  }
-}
-```
+This repository serves as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin
+marketplace. It distributes four plugins that together form the framework's agentic surface:
+domain-specific *skills* that encode expert workflows and coding conventions, and *MCP servers* that
+expose laboratory hardware to AI agents for structured discovery and control. Installing a plugin
+makes its skills available to Claude Code and, for the plugins that bundle an MCP server, registers
+that server automatically — no manual client configuration is required.
 
----
+| Plugin            | MCP Server                         | Focus                                                                                             |
+|-------------------|------------------------------------|---------------------------------------------------------------------------------------------------|
+| `automation`      | —                                  | Development skills enforcing coding style, documentation, project structure, and git conventions. |
+| `communication`   | `ataraxis-communication-interface` | Microcontroller communication, data extraction, and log processing workflows.                     |
+| `video`           | `ataraxis-video-system`            | Camera acquisition, recording, and frame-timing log processing workflows.                         |
+| `microcontroller` | —                                  | Firmware module implementation for custom microcontroller hardware.                               |
 
-## Claude Code Skills
+### Installation
 
-This repository serves as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin marketplace,
-distributing a set of agentic skills that enforce ataraxis framework development conventions across all downstream projects. These
-skills provide Claude Code with project-specific knowledge about coding style, documentation format, commit messages,
-project structure, and more.
+Claude Code installs plugins through its built-in marketplace system. First, add the ataraxis
+marketplace:
 
-### Available Skills
+`/plugin marketplace add Sun-Lab-NBB/ataraxis`
 
-| Skill                   | Description                                                            |
+Then install any combination of the four plugins:
+
+`/plugin install automation@ataraxis`
+
+`/plugin install communication@ataraxis`
+
+`/plugin install video@ataraxis`
+
+`/plugin install microcontroller@ataraxis`
+
+Alternatively, run `/plugin`, open the **Discover** tab, and select the plugins to install
+interactively.
+
+***Note,*** installing the `communication` or `video` plugin automatically registers its bundled MCP
+server (started via `axci mcp` and `axvs mcp`, respectively). No manual edits to `~/.claude.json` are
+required. When a plugin is enabled mid-session, run `/reload-plugins` to connect its MCP server.
+
+Each plugin can be installed at a different scope, depending on the intended use:
+- **user** (default): available across all projects for the current user.
+- **project**: shared with all developers via version control (stored in `.claude/settings.json`).
+- **local**: project-specific and gitignored (stored in `.claude/settings.local.json`).
+
+To select a scope during installation, use the CLI form:
+`claude plugin install automation@ataraxis --scope project`.
+
+### Skill Invocation
+
+Most skills are deliberately **not** user-invocable. They encode background conventions and workflow
+knowledge that AI coding agents pick up and apply automatically whenever a task matches the skill's
+description — there is nothing to type. The per-plugin tables below enumerate these skills for
+reference.
+
+A small subset of skills is user-invocable: they perform discrete, on-demand actions and can be
+typed directly as slash commands. All of them are provided by the `automation` plugin.
+
+| Command                 | Description                                                            |
 |-------------------------|------------------------------------------------------------------------|
 | `/explore-codebase`     | Performs in-depth codebase exploration at the start of a session       |
 | `/explore-dependencies` | Explores installed ataraxis library APIs for dependency awareness      |
-| `/python-style`         | Applies ataraxis framework Python coding conventions                   |
-| `/cpp-style`            | Applies ataraxis framework C++ coding conventions                      |
-| `/csharp-style`         | Applies ataraxis framework C# coding conventions                       |
-| `/readme-style`         | Applies ataraxis framework README conventions                          |
-| `/pyproject-style`      | Applies ataraxis framework pyproject.toml conventions                  |
-| `/api-docs`             | Applies ataraxis framework API documentation conventions               |
-| `/project-layout`       | Applies ataraxis framework project directory structure conventions     |
-| `/tox-config`           | Applies ataraxis framework tox.ini conventions                         |
-| `/platformio-config`    | Applies ataraxis framework platformio.ini and library.json conventions |
 | `/audit-facts`          | Audits documentation files against source code for factual accuracy    |
 | `/audit-style`          | Audits files against applicable style skill checklists for compliance  |
 | `/commit`               | Drafts style-compliant git commit messages                             |
 | `/pr`                   | Drafts a style-compliant pull request summary for the active branch    |
 | `/release`              | Drafts style-compliant release notes summarizing merged pull requests  |
-| `/skill-design`         | Generates, updates, and verifies skill files and CLAUDE.md             |
 
-### Installing for Claude Code
+### automation
 
-Claude Code supports plugin installation through its built-in marketplace system. To install the skills:
+Shared development-convention skills used across Ataraxis and derived projects. This plugin does not
+provide an MCP server.
 
-1. Open Claude Code and add the ataraxis marketplace by running:
-`/plugin marketplace add Sun-Lab-NBB/ataraxis`
-2. Install the automation plugin from the marketplace:
-`/plugin install automation@ataraxis`
+| Skill                  | Description                                                            |
+|------------------------|------------------------------------------------------------------------|
+| `explore-codebase`     | Performs in-depth codebase exploration at the start of a session       |
+| `explore-dependencies` | Explores installed ataraxis library APIs for dependency awareness      |
+| `python-style`         | Applies ataraxis framework Python coding conventions                   |
+| `cpp-style`            | Applies ataraxis framework C++ coding conventions                      |
+| `csharp-style`         | Applies ataraxis framework C# coding conventions                       |
+| `readme-style`         | Applies ataraxis framework README conventions                          |
+| `pyproject-style`      | Applies ataraxis framework pyproject.toml conventions                  |
+| `api-docs`             | Applies ataraxis framework API documentation conventions               |
+| `project-layout`       | Applies ataraxis framework project directory structure conventions     |
+| `tox-config`           | Applies ataraxis framework tox.ini conventions                         |
+| `platformio-config`    | Applies ataraxis framework platformio.ini and library.json conventions |
+| `audit-facts`          | Audits documentation files against source code for factual accuracy    |
+| `audit-style`          | Audits files against applicable style skill checklists for compliance  |
+| `commit`               | Drafts style-compliant git commit messages                             |
+| `pr`                   | Drafts a style-compliant pull request summary for the active branch    |
+| `release`              | Drafts style-compliant release notes summarizing merged pull requests  |
+| `skill-design`         | Generates, updates, and verifies skill files and CLAUDE.md             |
 
-Alternatively, use the interactive plugin manager by running `/plugin`, navigating to the **Discover** tab, and
-selecting the `automation` plugin.
+### communication
 
-***Note,*** the plugin can be installed at different scopes depending on the intended use:
-- **user** (default): Available across all projects for the current user.
-- **project**: Shared with all developers via version control (stored in `.claude/settings.json`).
-- **local**: Project-specific and gitignored (stored in `.claude/settings.local.json`).
+Microcontroller communication and data-processing skills for
+[ataraxis-communication-interface](https://github.com/Sun-Lab-NBB/ataraxis-communication-interface).
+Bundles the `ataraxis-communication-interface` MCP server for hardware discovery, manifest
+management, and batch log processing.
 
-To specify a scope during installation, use the CLI form: `claude plugin install automation@ataraxis --scope project`
+| Skill                                 | Description                                                            |
+|---------------------------------------|------------------------------------------------------------------------|
+| `microcontroller-interface`           | Guides MicroControllerInterface, ModuleInterface, and MQTT setup       |
+| `microcontroller-setup`               | Discovers microcontrollers and manages manifests via MCP tools         |
+| `extraction-configuration`            | Creates and validates ExtractionConfig for the log processing pipeline |
+| `log-input-format`                    | Documents the NPZ log archive input format and source ID semantics     |
+| `log-processing`                      | Orchestrates batch log processing via the MCP server                   |
+| `log-processing-results`              | Interprets extracted event data and timing statistics                  |
+| `pipeline`                            | Orchestrates the end-to-end data acquisition and analysis pipeline     |
+| `communication-mcp-environment-setup` | Diagnoses and resolves MCP server connectivity issues                  |
+
+### video
+
+Camera acquisition and frame-timing skills for
+[ataraxis-video-system](https://github.com/Sun-Lab-NBB/ataraxis-video-system). Bundles the
+`ataraxis-video-system` MCP server for camera discovery, interactive session testing, and batch log
+processing.
+
+| Skill                         | Description                                                          |
+|-------------------------------|----------------------------------------------------------------------|
+| `camera-interface`            | Guides creation and configuration of VideoSystem instances           |
+| `camera-setup`                | Discovers cameras and configures GenICam nodes via MCP tools         |
+| `log-input-format`            | Documents the NPZ log archive input format and source ID semantics   |
+| `log-processing`              | Orchestrates batch frame-timestamp log processing via the MCP server |
+| `log-processing-results`      | Interprets frame timing data, frame drops, and acquisition quality   |
+| `pipeline`                    | Orchestrates the end-to-end recording and analysis pipeline          |
+| `post-recording`              | Verifies recording outputs and prepares them for log processing      |
+| `video-mcp-environment-setup` | Diagnoses and resolves MCP server connectivity issues                |
+
+### microcontroller
+
+Firmware development skills for
+[ataraxis-micro-controller](https://github.com/Sun-Lab-NBB/ataraxis-micro-controller). This plugin
+does not provide an MCP server.
+
+| Skill             | Description                                                          |
+|-------------------|----------------------------------------------------------------------|
+| `firmware-module` | Guides creation of custom hardware Module subclasses in C++ firmware |
 
 ### Compatibility
 
-These skills are designed for [Claude Code](https://docs.anthropic.com/en/docs/claude-code), the official CLI tool from
+These plugins are designed for [Claude Code](https://docs.anthropic.com/en/docs/claude-code), the official CLI tool from
 Anthropic. The plugin marketplace system is a Claude Code feature and is not currently available in other Claude
-distributions such as Claude Desktop or the Claude web interface. However, the skill files themselves are plain Markdown
-and can be referenced manually in any context that supports custom instructions or system prompts.
+distributions such as Claude Desktop or the Claude web interface. The bundled MCP servers can be registered with any
+MCP-capable client, and the skill files themselves are plain Markdown that can be referenced manually in any context 
+that supports custom instructions or system prompts.
 
----
+___
 
 ## Example Workflows
 
@@ -267,15 +340,11 @@ AI: Created buzzer module with pulse, toggle on, and toggle off commands.
     Upload the firmware and update the dependency version.
 ```
 
-The generated handler drives the pin with `digitalWrite`, which suits an **active** buzzer (pin HIGH =
-sound, LOW = silent). A **passive** piezo element produces no tone from a steady HIGH and would instead
-need a `tone()`/PWM-driven handler.
-
----
+___
 
 ## Adoption Roadmap
 
-1. **Install core libraries** and configure MCP servers
+1. **Install core libraries** and Claude Code plugins
 2. **Create lab-specific configuration schemas** using existing templates
 3. **Encode recurring workflows as skills** that guide AI agents
 4. **Iterate as hardware evolves** with AI-assisted development
@@ -285,7 +354,7 @@ systems. For a complete platform built on Ataraxis, see
 [Sollertia](https://github.com/Sun-Lab-NBB/sollertia) — a platform for AI-assisted data acquisition
 and management.
 
----
+___
 
 ## Citation
 
@@ -296,18 +365,18 @@ If you use Ataraxis in your research, please cite:
   title={Ataraxis: Bridging AI Coding Assistants and Scientific Hardware},
   author={Kondratyev, Ivan and Sun, Weinan},
   journal={},
-  year={2025},
+  year={2026},
   institution={Cornell University, Department of Neurobiology and Behavior}
 }
 ```
 
----
+___
 
 ## License
 
 All Ataraxis libraries are released under the [Apache License 2.0](LICENSE).
 
----
+___
 
 ## Acknowledgments
 
