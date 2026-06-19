@@ -170,6 +170,24 @@ scalar types and C-style arrays at type-specific element counts up to the 248-by
 `uint8_t` arrays have the densest count support and can be used as a generic bytes buffer. On
 failure, automatically attempts to send an error message and turns on the built-in LED.
 
+The following table lists all supported data types and element counts. An element count of 1 is a
+scalar; counts greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`). Unsupported
+(type, count) combinations trigger a compile-time `static_assert` error.
+
+| C++ Type   | Size    | Numpy Equivalent | Supported Element Counts                                                         |
+|------------|---------|------------------|----------------------------------------------------------------------------------|
+| `bool`     | 1 byte  | `np.bool_`       | 1-15, 16, 24, 32, 40, 48, 52, 248                                                |
+| `uint8_t`  | 1 byte  | `np.uint8`       | 1-15, 16, 18, 20, 22, 24, 28, 32, 36, 40, 44, 48, 52, 64, 96, 128, 192, 244, 248 |
+| `int8_t`   | 1 byte  | `np.int8`        | 1-15, 16, 24, 32, 40, 48, 52, 92, 132, 172, 212, 244, 248                        |
+| `uint16_t` | 2 bytes | `np.uint16`      | 1-15, 16, 20, 24, 26, 32, 48, 64, 96, 122, 124                                   |
+| `int16_t`  | 2 bytes | `np.int16`       | 1-15, 16, 20, 24, 26, 32, 48, 64, 96, 122, 124                                   |
+| `uint32_t` | 4 bytes | `np.uint32`      | 1-15, 16, 20, 24, 32, 48, 62                                                     |
+| `int32_t`  | 4 bytes | `np.int32`       | 1-15, 16, 20, 24, 32, 48, 62                                                     |
+| `float`    | 4 bytes | `np.float32`     | 1-15, 16, 20, 24, 32, 48, 62                                                     |
+| `uint64_t` | 8 bytes | `np.uint64`      | 1-15, 16, 20, 24, 31                                                             |
+| `int64_t`  | 8 bytes | `np.int64`       | 1-15, 16, 20, 24, 31                                                             |
+| `double`   | 8 bytes | `np.float64`     | 1-15, 16, 20, 24, 31                                                             |
+
 ```cpp
 void SendData(const uint8_t event_code) const;
 ```
@@ -426,3 +444,31 @@ class EncoderModule final : public Module
         // ...
 };
 ```
+
+---
+
+## Build and upload
+
+Build, upload, and monitor the firmware with PlatformIO. The board environment(s) are defined in
+`platformio.ini` (see `/platformio-config`).
+
+```bash
+# Build only (compile, no upload)
+pio run
+
+# Build and upload to the board (uses the default environment)
+pio run --target upload
+
+# Target a specific board environment (e.g. teensy41) when platformio.ini defines several
+pio run --environment teensy41 --target upload
+
+# List the environments defined in platformio.ini
+pio project config
+
+# Open the serial monitor after upload (match the Serial.begin() baudrate)
+pio device monitor --baud 115200
+```
+
+After uploading, the controller runs the deterministic `RuntimeCycle()` loop and is ready for the
+PC-side `MicroControllerInterface` to connect (see `/microcontroller-interface`). Re-upload whenever
+the firmware module, its command/event codes, or its parameter struct change.

@@ -299,7 +299,7 @@ codes by design, so it must be filled in before processing.
 |------------------------------------|------------------------------------------------------------------|
 | "Config file not found"            | Verify the config path exists                                    |
 | "Unable to read extraction config" | Check YAML syntax; regenerate if corrupted                       |
-| "Invalid module descriptor"        | Ensure each module has `module_type`, `module_id`, `event_codes` |
+| "Invalid controller data"          | Ensure each module has `module_type`, `module_id`, `event_codes` |
 | Validation errors after write      | Fix the reported issues and re-validate                          |
 | Controller ID not in manifest      | Verify the controller ID matches the manifest exactly            |
 | Module not in manifest             | Check module_type and module_id match the manifest entries       |

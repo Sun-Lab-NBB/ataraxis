@@ -145,7 +145,10 @@ You MUST follow these steps after every recording session.
    - `frame_count` is greater than 0 (note: `frame_count` may be `null` when ffprobe cannot report
      `nb_frames` for the container, so treat a `null` value as "unknown" rather than zero frames)
    - `codec`, `width`, `height`, and `frame_rate` match expected session parameters
-   - If `video_file` is `null`, no frames were saved (verify that `start_frame_saving_tool` was called)
+   - A `null` `video_file` means the session had no output directory / no saver configured
+     (`output_directory` was `None` at construction); a non-null path that fails
+     `validate_video_file_tool` with "File not found" is the signal that `start_frame_saving_tool` was
+     never called and no `.mp4` was written
 
 3. **Verify archive assembly** — If `archives_assembled` is `true` in the stop response, call
    `discover_camera_data_tool` with the recording root to confirm archives exist for all expected
@@ -272,6 +275,7 @@ Post-Recording Verification:
 - [ ] Log archives assembled (.npz files present in DataLogger output directory)
 - [ ] All expected source IDs have corresponding archives
 - [ ] No raw .npy files remain in log directory
-- [ ] Frame count cross-referenced between video metadata and archive message count
+- [ ] Archive presence confirmed for all source IDs (frame-count vs message-count cross-check deferred
+      to /log-processing-results)
 - [ ] Handoff conditions met for /log-processing
 ```

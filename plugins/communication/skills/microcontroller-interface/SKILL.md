@@ -193,10 +193,14 @@ class EncoderInterface(ModuleInterface):
             module_type=np.uint8(1),
             module_id=np.uint8(1),
             name="encoder",
-            error_codes={np.uint8(2), np.uint8(3)},
+            error_codes={np.uint8(53), np.uint8(54)},
             data_codes={np.uint8(51), np.uint8(52)},
         )
 ```
+
+Both `error_codes` and `data_codes` MUST be in the user range (51+). Event codes 1-50 are intercepted
+as system service messages before per-module routing, so codes in that range never reach the custom
+error or data paths.
 
 | Parameter     | Type                   | Default   | Description                                      |
 |---------------|------------------------|-----------|--------------------------------------------------|
