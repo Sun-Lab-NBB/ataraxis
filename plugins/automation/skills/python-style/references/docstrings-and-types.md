@@ -89,6 +89,22 @@ observable behavior, signature, parameter semantics, and return value. A docstri
 "returns the absolute path" for a function that returns a relative path is a defect, even when
 the code itself is correct.
 
+**Separator punctuation**: Within docstring and comment prose, only the full stop and the comma
+separate clauses. Do not use a semicolon, and do not use an em-dash as a separator whether it is
+typed `--`, `—`, or `–`. A colon is allowed where it is lexically appropriate, such as a docstring
+section header or introducing an explanation or list. A single hyphen in a compound word, a list
+marker, or a numeric range is not an em-dash and is fine. This rule governs prose only. Code stays
+exempt, so a `;` in a PEP 508 dependency marker, a `--flag` in a CLI reference, or a `--` argument
+separator is left as written.
+
+**Positive description**: State what the code does and what is currently true. Do not define
+behavior by contrast with what it does not do ("does X, not Y", "works by X rather than Y"), and
+do not frame it against former behavior ("previously", "used to", "no longer"). The one exception
+is a contrast that is load-bearing because it corrects a counter-intuitive but likely assumption,
+and it must carry its reason. For example, "Iterates over columns rather than rows, because the
+columnar store keeps each column contiguous in memory." Without that reason, drop the contrast and
+keep only the positive statement.
+
 ### Class docstrings with attributes
 
 For classes, include an Attributes section listing all instance attributes:
@@ -163,6 +179,13 @@ Follow the same imperative mood pattern as other docstrings:
 ```python
 """Provides assets for processing and analyzing neural imaging data."""
 ```
+
+The module docstring description is a lean, cohesive chunk of at most 5 sentences. It states what
+the module provides and, where relevant, why it lives where it does. Detailed material, such as
+methodology, caveats, interpretation guidance, and rationale, belongs in the docstrings of the
+functions, classes, enums, and constants the module defines. Keep the module docstring itself to
+that lean description. A multi-paragraph module docstring or a module-level `Notes:` section is a
+violation, so relocate each detail to the member it concerns.
 
 ### CLI command docstrings
 

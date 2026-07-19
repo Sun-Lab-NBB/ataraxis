@@ -352,6 +352,17 @@ Skill files use two voice styles:
 
 Use sentence case for all section headers ("Verification checklist", not "Verification Checklist").
 
+### Prose punctuation and positive description
+
+Prose in skill files and CLAUDE.md follows the same two rules the language style skills apply to
+code documentation. First, only the full stop and the comma separate clauses. Do not use a
+semicolon or an em-dash (`--`, `—`, or `–`) as a separator, and use a colon only where it is
+lexically appropriate. A single hyphen stays available as a list marker, inside a table, and in
+compound words, so bulleted change lists are unaffected. Second, state what a thing does and what
+is currently true. Avoid framing by what it is not or what it used to be, and keep a "not Y"
+contrast only when it is load-bearing because it corrects a counter-intuitive assumption, giving
+its reason.
+
 ---
 
 ## CLAUDE.md conventions
@@ -436,6 +447,8 @@ Skill File Compliance:
 - [ ] Inter-skill references documented if applicable
 - [ ] Verification checklist included
 - [ ] Terminology consistent (no synonyms or overloaded terms)
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
+- [ ] Prose states what the skill does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] No auxiliary documentation files (README.md, CHANGELOG.md, etc.)
 ```
 
@@ -455,5 +468,7 @@ CLAUDE.md Compliance:
 - [ ] Technical claims cross-referenced against codebase
 - [ ] New skills listed in Available Skills table
 - [ ] No personality instructions or generic advice
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
+- [ ] Prose states what is currently true, not what it is not or used to be (contrast only when load-bearing)
 - [ ] No stale references to removed files or features
 ```

@@ -218,6 +218,16 @@ dependencies directly to downstream project pyproject.toml files.
   GitHub repository.
 - Footer: explicit RST link targets for the GitHub repo and Sun lab URLs.
 
+### Prose punctuation and positive description
+
+Documentation prose in `welcome.rst`, `index.rst`, and other RST source follows the framework prose
+conventions. Prose uses only the full stop and the comma to separate clauses. Do not use a semicolon
+or an em-dash (`--`, `—`, or `–`) as a separator, and use a colon only where it is lexically
+appropriate. A single hyphen stays available as a list marker, in tables, and in compound words.
+State what the subject does and what is currently true. Do not frame it by what it is not or what it
+used to be, and keep a "not Y" contrast only when it is load-bearing because it corrects a
+counter-intuitive assumption, giving its reason.
+
 ### tox.ini docs environment
 
 For the complete tox.ini conventions and all other environment definitions, invoke `/tox-config`.
@@ -335,4 +345,6 @@ API Documentation Compliance:
 - [ ] Makefile and make.bat present in docs/
 - [ ] No Sphinx dependencies added directly to downstream pyproject.toml
 - [ ] Documentation URL follows https://PROJECT-api-docs.netlify.app/ convention
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
+- [ ] Prose states what the component does, not what it is not or used to be (contrast only when load-bearing)
 ```

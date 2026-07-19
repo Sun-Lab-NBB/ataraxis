@@ -172,6 +172,9 @@ Always end commit messages (header and every bullet) with a period.
 
 Focus on *what* was changed and *why*, not *how*. Be specific and descriptive.
 
+Commit-message prose is exempt from the project-wide separator rule, so it may use `--` and `-` bullet lists, for
+example when referencing CLI flags or listing changes. Still prefer a positive description of what changed.
+
 ---
 
 ## Examples

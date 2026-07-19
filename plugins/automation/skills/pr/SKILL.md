@@ -72,6 +72,10 @@ The summary is a concise bulleted list of the most impactful changes the branch 
 - Summarize; do NOT reproduce every commit. Bundle minor changes into a single bullet
   (e.g., `-- Fixed various documentation and code style inconsistencies.`).
 
+PR-body prose is exempt from the project-wide separator rule and may use `--` and `-` bullet lists, for example
+when referencing CLI flags or listing changes, while still preferring positive, present-tense description of
+what changed.
+
 **Example:**
 
 ```text

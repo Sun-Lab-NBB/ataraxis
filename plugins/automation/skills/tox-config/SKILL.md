@@ -377,6 +377,16 @@ Use inline comments sparingly, only when a setting is non-obvious:
 basepython = py312  # Earliest supported version controls lint/mypy ruleset
 ```
 
+### Prose punctuation and positive description
+
+These rules apply to every description field, comment, and prose passage in the tox.ini and this skill.
+
+Prose uses only the full stop and the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`, or
+`–`) as a separator, and use a colon only where it is lexically appropriate. A single hyphen stays available as a
+list marker, in tables, and in compound words. State what the subject does and what is currently true. Do not frame
+it by what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing because it
+corrects a counter-intuitive assumption, giving its reason.
+
 ---
 
 ## Command reference
@@ -470,4 +480,6 @@ Formatting:
 - [ ] Every environment has a description field
 - [ ] Block comments above [tox] section
 - [ ] No duplicate environment definitions
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
+- [ ] Prose states what the setting does, not what it is not or used to be (contrast only when load-bearing)
 ```

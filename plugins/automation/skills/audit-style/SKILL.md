@@ -137,7 +137,10 @@ typos, grammar errors, and docstring length disproportionate to function complex
 include docstrings that restate the type signature and comments that narrate obvious code
 behavior. Common content issues are sentences exceeding 40 words and stale references such as
 closed issues, removed code, or outdated version markers. Docstring claims that contradict the
-function's signature or observable behavior also qualify.
+function's signature or observable behavior also qualify. They further include prose that separates
+clauses with a semicolon or an em-dash where only full stops and commas belong, together with
+contrastive or historical framing ("does X, not Y" or "formerly did Y") that should state present
+behavior positively.
 
 **Dimension C — Cross-file consistency:** Naming, ordering, and idiom drift across the file
 set. Examples include the same field named differently in two sibling classes, or one module

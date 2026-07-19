@@ -126,6 +126,15 @@ The method will return a tuple of timestamps.
 `***Critical!***` for dangerous operations or essential requirements. Do not use GitHub-specific
 alert syntax (`> [!NOTE]`) as it does not render on PyPI.
 
+### Prose punctuation and positive description
+
+Prose uses only the full stop and the comma to separate clauses. Do not use a semicolon or an
+em-dash (`--`, `—`, or `–`) as a separator, and use a colon only where it is lexically appropriate.
+A single hyphen stays available as a list marker, in tables, and in compound words. State what the
+library does and what is currently true. Do not frame it by what it is not or what it used to be,
+and keep a "not Y" contrast only when it is load-bearing because it corrects a counter-intuitive
+assumption, giving its reason.
+
 ---
 
 ## Horizontal rules
@@ -253,6 +262,8 @@ Style:
 - [ ] Present tense as default
 - [ ] `***Note,***` / `***Warning!***` for callouts (not GitHub alerts)
 - [ ] No GitHub-specific features (alerts, details/summary, picture, task lists)
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
+- [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
 
 Quality:
 - [ ] All images have meaningful alt text
