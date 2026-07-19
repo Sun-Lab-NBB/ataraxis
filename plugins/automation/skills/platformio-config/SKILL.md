@@ -142,6 +142,16 @@ library exposes a single header (`"transport_layer.h"`).
 `src/main.cpp` is the local build/test harness (see `microcontroller:firmware-module`) and must never
 be shipped to consumers, even though it lives under `src/`.
 
+### Prose punctuation and positive description
+
+The `description` field and any configuration comments follow the project prose rules. Prose uses
+only the full stop and the comma to separate clauses. Do not use a semicolon or an em-dash (`--`,
+`—`, or `–`) as a separator, and use a colon only where it is lexically appropriate. A single hyphen
+stays available as a list marker, in tables, and in compound words. State what the subject does and
+what is currently true. Do not frame it by what it is not or what it used to be, and keep a
+"not Y" contrast only when it is load-bearing because it corrects a counter-intuitive assumption,
+giving its reason.
+
 ---
 
 ## The lib_deps <-> dependencies mirroring rule
@@ -221,4 +231,6 @@ PlatformIO configuration:
 - [ ] library.json dependencies mirror platformio.ini lib_deps (same owner/name/version)
 - [ ] each library.json dependency's platforms array matches the boards that list it in lib_deps
 - [ ] library.json version is set (the single source of the C++ library version); platformio.ini has no version
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
+- [ ] Prose states what the configuration does, not what it is not or used to be (contrast only when load-bearing)
 ```

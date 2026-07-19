@@ -85,6 +85,8 @@ consistency across languages while respecting each language's idiomatic standard
 - Prose over bullet lists in documentation
 - No example/code blocks in documentation (they go stale)
 - I/O operations separated from processing logic
+- Only full stops and commas separate clauses in documentation prose (no semicolons, no em-dashes)
+- State what the code does now, not what it avoids doing or formerly did (positive description)
 
 **Python-specific divergences from C++:**
 - Functions and methods use snake_case (not PascalCase as in C++)
@@ -446,6 +448,9 @@ Python Style Compliance:
 - [ ] Comments and docstrings free of typos and grammar errors
 - [ ] Inline comments explain why, not what (no narrate-the-code comments)
 - [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and code syntax exempt)
+- [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] Module docstring description is at most 5 sentences, with detail relocated into the members it documents
 - [ ] All parameters and returns have type annotations
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
 - [ ] Type aliases use PEP 695 `type` statement syntax
