@@ -173,8 +173,12 @@ dependencies directly to downstream project pyproject.toml files.
 
 ### conf.py rules
 
-- Version extraction MUST use `importlib_metadata.version()` for Python and hybrid projects.
-  C++-only projects hardcode the version string.
+- Version extraction MUST use the standard library `importlib.metadata` for Python and hybrid
+  projects. C++-only projects hardcode the version string.
+- The import MUST be written as `import importlib.metadata` and the call MUST stay module-qualified,
+  as `importlib.metadata.version()`. Sphinx reads every module-level name in `conf.py` that matches
+  a configuration key, and `version` is such a key, so the `from importlib.metadata import version`
+  form would make Sphinx adopt the function object as the project version.
 - Copyright format: `'YEAR, Sun (NeuroAI) lab'` where YEAR is the current year.
 - Do NOT add IDE-specific suppression comments (e.g., PyCharm `# noinspection PyShadowingBuiltins`
   above the `copyright` assignment). `conf.py` is excluded from ruff (via `extend-exclude`) and from
@@ -324,7 +328,7 @@ API Documentation Compliance:
 - [ ] Directory structure matches convention (docs/source/ with conf.py, index.rst, welcome.rst, api.rst)
 - [ ] conf.py uses correct extension stack for the archetype
 - [ ] conf.py uses correct extension ordering
-- [ ] Version extracted via importlib_metadata (Python/hybrid) or hardcoded (C++-only)
+- [ ] Version extracted via module-qualified importlib.metadata (Python/hybrid) or hardcoded (C++-only)
 - [ ] Copyright uses current year and 'Sun (NeuroAI) lab' format
 - [ ] Napoleon configured for Google-style only (numpy disabled)
 - [ ] All sphinx_autodoc_typehints settings present and correct (Python/hybrid)
