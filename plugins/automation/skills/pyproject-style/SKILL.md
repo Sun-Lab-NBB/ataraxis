@@ -330,6 +330,9 @@ Tool Configurations:
 - [ ] Ruff: target-version matches lowest supported Python
 - [ ] Ruff: src = ["src"]
 - [ ] Ruff: lint.select = ["ALL"] with project-specific ignores
+- [ ] Ruff: lint.ignore carries the complete shared corpus, then a project-specific section below a blank line
+- [ ] Ruff: Test per-file-ignores use the tests/**/*.py glob and carry the complete shared test corpus
+- [ ] Ruff: Security rules S602, S607, and SLF001 stay in the project-specific section, out of both corpora
 - [ ] Ruff: format uses double quotes, space indentation
 - [ ] Ruff: Google docstring convention
 - [ ] Ruff: isort configured (case-sensitive, combine-as-imports, etc.)
