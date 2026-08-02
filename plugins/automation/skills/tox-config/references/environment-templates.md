@@ -168,7 +168,11 @@ commands =
 ```ini
 # Note: the 'xml' and 'html' commands run with '--fail-under=0' so that both reports are always
 # written to the 'reports' directory. The trailing 'report' command applies the 100% coverage gate
-# configured in the pyproject.toml file and prints the statements that remain uncovered.
+# configured in the pyproject.toml file and prints the statements that remain uncovered. Every
+# reporting command also combines any data files it finds, so all of them run with
+# '--keep-combined' to preserve the per-version data files consumed by the 'combine' command.
+# Without the flag, the first reporting command deletes those files and the task only succeeds
+# once per test run.
 [testenv:coverage]
 skip_install = true
 description =
@@ -181,9 +185,9 @@ depends = {py312, py313, py314}-test
 commands =
     junitparser merge --glob reports/pytest.xml.* reports/pytest.xml
     coverage combine --keep
-    coverage xml --fail-under=0
-    coverage html --fail-under=0
-    coverage report
+    coverage xml --fail-under=0 --keep-combined
+    coverage html --fail-under=0 --keep-combined
+    coverage report --keep-combined
 ```
 
 **Parameterization:**
@@ -196,6 +200,15 @@ command, so the `{pyXXX}-test` environments enforce it through `pytest --cov` as
 modules stay outside the measured corpus through the `omit` list in `[tool.coverage.run]`, and
 individual unreachable statements carry `# pragma: no cover`. See `/pyproject-style` for both
 mechanisms.
+
+**Data file retention:** `coverage combine --keep` writes the combined record while retaining the
+per-version data files. Each reporting command that follows performs its own implicit combine, so
+`xml`, `html`, and `report` all carry `--keep-combined` to hand the same set of data files to the
+command after them. The `[tool.coverage.paths]` section of `pyproject.toml` maps both the POSIX and
+the Windows virtual environment layouts onto `src/`, which is what allows the per-version records to
+merge into one record per source file. See `/pyproject-style` for that mapping. The flag requires
+coverage 7.15 or newer, which every project receives through the pinned ataraxis-automation
+dependency of this environment.
 
 **Self-hosting exception:** ataraxis-automation omits `skip_install` and `deps` since it provides
 these tools itself.

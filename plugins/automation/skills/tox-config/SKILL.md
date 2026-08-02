@@ -285,6 +285,10 @@ envlist = docs
   trailing `coverage report` command applies the `fail_under = 100` gate declared in
   `pyproject.toml`. See `/pyproject-style` for the gate and for the `omit` list that keeps interface
   modules out of the measured corpus.
+- The `xml`, `html`, and `report` commands each pass `--keep-combined` so that every command in the
+  sequence receives the same set of per-version data files. Each reporting command performs its own
+  implicit combine, and the flag preserves the data files it consumes. See `/pyproject-style` for
+  the `[tool.coverage.paths]` mapping that merges those files into one record per source file.
 
 ### docs
 
@@ -469,6 +473,7 @@ Coverage Environment:
 - [ ] depends matches the test environment Python version matrix
 - [ ] Merges junit XML, combines coverage, generates xml and html with --fail-under=0
 - [ ] A trailing coverage report command applies the 100% gate declared in pyproject.toml
+- [ ] The xml, html, and report commands each pass --keep-combined
 
 Docs Environment:
 - [ ] depends = uninstall

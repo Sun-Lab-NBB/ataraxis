@@ -308,8 +308,16 @@ omit = [
 # This is used by the 'test' tox tasks to aggregate coverage data produced during pytest runtimes.
 [tool.coverage.paths]
 
-# Maps coverage measured in site-packages to source files in src
-source = ["src/", ".tox/*/lib/python*/site-packages/"]
+# Maps coverage measured in site-packages to source files in src. The second pattern matches the POSIX virtual
+# environment layout and the third matches the Windows layout, which omits the 'python*' path component. Both are
+# required for the 'coverage' task to merge the data measured by each 'test' task into a single record per source file.
+# Without the merge, every statement is judged against a single python version, so any statement that only executes on
+# some of the tested versions is misreported as uncovered.
+source = [
+    "src/",
+    ".tox/*/lib/python*/site-packages/",
+    ".tox/*/Lib/site-packages/",
+]
 
 # Same as above, specifies the output directory for the coverage .html report
 [tool.coverage.html]
@@ -336,6 +344,13 @@ tox environment passes `--fail-under=0` to its artifact-writing commands so that
 reports are always written, and applies the gate through a trailing `coverage report` call. See
 `/tox-config` for that command sequence.
 
+The `source` list in `[tool.coverage.paths]` carries one entry per virtual environment layout the
+project is tested on. POSIX hosts place installed packages under `lib/python*/site-packages/` and
+Windows hosts place them under `Lib/site-packages/`, so both patterns stay in the list for every
+project regardless of the host it is currently developed on. The `coverage` tox environment relies
+on this mapping to fold the per-version data files into one record per source file, which is what
+lets a statement reached on a single tested python version count as covered.
+
 ### Choosing between omit and pragma
 
 Two mechanisms remove code from the coverage requirement. Choose between them by the size of the
@@ -355,7 +370,7 @@ and cheaper to maintain than annotating each of its members. The modules that qu
 - `__main__.py`, and similar process entry points.
 
 Write each `omit` pattern with a leading wildcard so that it matches both the `src/` tree and the
-`.tox/*/lib/python*/site-packages/` copy that the test environments measure, for example
+`site-packages` copy that the test environments measure on any host, for example
 `"*/package_name/cli.py"`. A module listed in `omit` carries no `# pragma: no cover` comments,
 because the whole file already sits outside the measured corpus.
 

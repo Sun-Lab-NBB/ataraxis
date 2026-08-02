@@ -346,6 +346,7 @@ Tool Configurations:
 - [ ] Coverage: fail_under = 100 and show_missing = true set in [tool.coverage.report]
 - [ ] Coverage: [tool.coverage.run] omit lists every interface module excluded from measurement in full
 - [ ] Coverage: omit patterns start with a wildcard so they match the src/ and site-packages copies
+- [ ] Coverage: [tool.coverage.paths] source lists src/ plus the POSIX and Windows site-packages layouts
 - [ ] Coverage: modules listed in omit carry no per-line pragma: no cover comments
 
 Formatting:
