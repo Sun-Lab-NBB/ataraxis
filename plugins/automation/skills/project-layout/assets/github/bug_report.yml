@@ -7,7 +7,7 @@ body:
     attributes:
       label: Version
       description: The release version or the commit SHA of the project that exhibits the bug.
-      placeholder: 9.0.0
+      placeholder: 1.2.3
     validations:
       required: true
 
@@ -40,8 +40,9 @@ body:
       description: >-
         The minimal sequence of commands or code that reproduces the bug, starting from a clean project state.
       placeholder: |-
-        1. Run `tox -e lint` in a project that has no src/ directory.
-        2. Observe the traceback included below.
+        1. Install the project into a clean environment.
+        2. Call the command or function shown below with the listed arguments.
+        3. Observe the error reported in the Output section.
     validations:
       required: true
 

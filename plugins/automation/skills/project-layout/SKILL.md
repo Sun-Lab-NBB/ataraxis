@@ -216,6 +216,11 @@ verbatim, which keeps the corpus consistent as it spreads across repositories. T
 asks for the environment as free text, so one form serves Python, PlatformIO, and Unity projects
 alike.
 
+The example values inside the form placeholders are illustrative. They show the shape of a useful
+answer rather than the state of any one project, so the version, environment, and reproduction
+examples stay as the asset spells them. A placeholder tailored to the host repository goes stale at
+its next release, which is the reason the corpus keeps them generic.
+
 `config.yml` carries a single substitution. Replace the `{project}` placeholder in the API
 documentation link with the repository name, which produces the Netlify address that serves the
 project's API documentation:
