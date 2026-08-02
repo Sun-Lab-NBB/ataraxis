@@ -93,10 +93,33 @@ convention = "google"
 ]
 ```
 
-When a `tests/` directory exists, add a second per-file-ignores key for test files relaxing test-specific lint
-rules. Spell the glob `**/tests/**/*.py` or `tests/**/*.py` to match the project's layout. The commonly relaxed rules
-are `S101`, `SLF001`, `PLR2004`, `ANN`/`ANN001`/`ANN201`, `D`/`D202`, `INP001`, `PT006`, and `ARG001`; the exact set
-varies per project. Each ignore carries an explanatory inline comment, as elsewhere.
+When a `tests/` directory exists, add a second per-file-ignores key for test files. Spell the glob as
+`tests/**/*.py`, which matches both direct children of `tests/` and files nested in its subdirectories. The shared
+test corpus below is present in every project, followed by any project-specific entries:
+
+```toml
+"tests/**/*.py" = [
+    # Shared test corpus. These entries are present in every Ataraxis framework and Sollertia platform project.
+    "S101",    # Tests assert by design
+    "PLR2004", # Expected values are clearer inline than as named constants
+    "INP001",  # The test directory is not an importable package
+    "SLF001",  # Tests exercise private module members directly
+    "PT006",   # Parametrize argument names are declared as a single comma-separated string
+    "ARG001",  # Pytest injects fixtures that individual tests may not reference
+    "D",       # Test names and inline comments carry the intent that docstrings carry in library code
+    "ANN",     # Test functions and mock helpers do not need annotations
+
+    # Project-specific
+    "S106",    # Token arguments in tests carry fake values
+]
+```
+
+`D` and `ANN` are family prefixes rather than individual codes. Test files trip a wide and shifting set of members of
+both families, so the prefixes keep the list stable as tests are added. `SLF001` belongs in the corpus because tests
+are the sole sanctioned exception to the rule that private members stay inside the module that defines them.
+
+These entries take effect only when the lint task passes the test directory to `ruff check`. A lint task that checks
+`./src` alone leaves the whole key inert. See `/tox-config` for the lint task definition.
 
 ### Ruff isort
 
@@ -111,16 +134,21 @@ length-sort = true                 # Places shorter imports first
 
 ### Universal Ruff ignores
 
-These ignores are present in all projects:
+Every project carries the same shared corpus, followed by a project-specific section. A category comment heads each
+section and a blank line separates them, matching the layout used for dependency arrays:
 
 ```toml
 lint.ignore = [
+    # Shared corpus. These entries are present in every Ataraxis framework and Sollertia platform project.
     "W291",    # Conflicts with docstring formatting
+    "ANN401",  # While suboptimal, ANY is a helpful type when used with caution
+    "BLE001",  # Broad exception handling is necessary at library boundaries
     "C901",    # Sometimes complex functions are necessary
-    "PLR0913", # Sometimes complex functions are necessary
-    "PLR0912", # Sometimes complex functions are necessary
-    "PLR0915", # Sometimes complex type definitions are necessary
     "PLR0911", # Sometimes complex return graphs are necessary
+    "PLR0912", # Sometimes complex functions are necessary
+    "PLR0913", # Sometimes complex functions are necessary
+    "PLR0915", # Sometimes complex type definitions are necessary
+    "PLR0917", # Call sites pass keyword arguments, so the positional count is immaterial
     "COM812",  # Conflicts with the formatter
     "ISC001",  # Conflicts with the formatter
     "PT001",   # https://github.com/astral-sh/ruff/issues/8796#issuecomment-182590771
@@ -128,27 +156,45 @@ lint.ignore = [
     "D107",    # __init__ is documented inside the main class docstring where applicable
     "D205",    # Bugs out for file descriptions
     "PLW0603", # While global statement usage is not ideal, it streamlines certain development patterns
+    "TID252",  # Conflicts with the library import management strategy
+    "CPY001",  # The license is declared in the LICENSE file and the project metadata
+
+    # Project-specific
+    "S602",    # Subprocess calls with shell=True are necessary to drive mamba and uv
 ]
 ```
 
+The corpus stays complete in every project, including where a given rule never fires. Because `lint.select = ["ALL"]`
+adopts each new ruff release automatically, a complete corpus keeps a newly stabilized rule from breaking the lint
+task over a question the framework has already settled. Four entries rest on a framework-level decision:
+
+| Ignore    | Framework decision it records                                                                        |
+|-----------|------------------------------------------------------------------------------------------------------|
+| `CPY001`  | Licensing is declared in the `LICENSE` file and the `license` and `license-files` metadata fields    |
+| `TID252`  | The import convention requires parent-relative imports, which this rule bans                         |
+| `PLR0917` | `PLR0913` already covers argument counts, so the positional-only variant restates a settled question |
+| `ANN401`  | `Any` is available where a signature genuinely needs it                                              |
+
 ### Project-specific Ruff ignores
 
-Add these ignores only when the project requires them:
+Add these ignores only when the project requires them. Place them in the project-specific section, below the corpus:
 
-| Ignore   | Reason                                | Projects using it                          |
-|----------|---------------------------------------|--------------------------------------------|
-| `ANN401` | `Any` type is needed                  | ataraxis-automation                        |
-| `BLE001` | Blind exception catching is necessary | ataraxis-automation, ataraxis-video-system |
-| `S602`   | Subprocess calls are needed           | ataraxis-automation, ataraxis-video-system |
-| `S607`   | Partial executable paths are needed   | ataraxis-automation                        |
-| `FBT001` | Positional boolean arguments (UI)     | ataraxis-communication-interface           |
-| `FBT002` | Boolean default values (UI)           | ataraxis-communication-interface           |
-| `FBT003` | Boolean positional in function calls  | application projects                       |
-| `SLF001` | Private member access is necessary    | ataraxis-communication-interface           |
-| `SIM115` | Non-context-manager file operations   | application projects                       |
-| `TID252` | Relative imports required             | ataraxis-video-system                      |
-| `T201`   | Print statements are needed           | application projects                       |
-| `W293`   | Whitespace in UI formatting           | application projects                       |
+| Ignore   | Reason                                                      |
+|----------|-------------------------------------------------------------|
+| `S602`   | Subprocess calls with `shell=True` are needed               |
+| `S607`   | Partial executable paths are needed                         |
+| `SLF001` | Private member access is needed outside tests               |
+| `FBT001` | Positional boolean arguments are needed                     |
+| `FBT002` | Boolean default values are needed                           |
+| `FBT003` | Boolean positional values in calls are needed               |
+| `SIM115` | File operations outside a context manager are needed        |
+| `T201`   | Print statements are needed                                 |
+| `W293`   | Whitespace in UI formatting is needed                       |
+| `TRY301` | Raising inside a helper is needed to build a full traceback |
+
+Keep the security rules `S602`, `S607`, and `SLF001` out of the corpus. Each reports a genuine risk in a project that
+has no reason to trip it, and `SLF001` in particular enforces the rule that private members stay inside the module
+that defines them.
 
 ### Ruff unused arguments
 
@@ -286,7 +332,7 @@ exclude_lines = [
 
 `fail_under` applies to every command that renders a report, so `pytest --cov`, `coverage report`,
 `coverage xml`, and `coverage html` all fail once the measured total drops below 100. The `coverage`
-tox environment passes `--fail-under=0` to its artifact-writing commands so that the html and xml
+tox environment passes `--fail-under=0` to its artifact-writing commands so that the HTML and XML
 reports are always written, and applies the gate through a trailing `coverage report` call. See
 `/tox-config` for that command sequence.
 
@@ -296,7 +342,7 @@ Two mechanisms remove code from the coverage requirement. Choose between them by
 target.
 
 | Target                                                   | Mechanism                  | Declared in            |
-|-----------------------------------------------------------|----------------------------|------------------------|
+|----------------------------------------------------------|----------------------------|------------------------|
 | A whole module that the test suite never exercises       | `[tool.coverage.run] omit` | `pyproject.toml`       |
 | A statement or branch inside an otherwise-covered module | `# pragma: no cover`       | The source line itself |
 

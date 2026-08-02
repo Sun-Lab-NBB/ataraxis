@@ -150,7 +150,8 @@ public class Task : MonoBehaviour { }
 | Wrong                                      | Correct                                   | Rule                         |
 |--------------------------------------------|-------------------------------------------|------------------------------|
 | Sentences over 40 words in prose           | Split into shorter sentences              | Sentence length cap          |
-| Multi-paragraph remarks on simple property | Match XML doc length to member complexity | Length proportionality       |
+| XML doc length driven by method length     | Match length to conceptual difficulty     | Length proportionality       |
+| XML doc explains where it is called        | Describe what the member does             | Behavioral scope             |
 | `<param>` restates parameter type          | Describe semantics, not types             | No type-signature restating  |
 | XML doc contradicts method behavior        | Update XML doc to match implementation    | Implementation accuracy      |
 | Stale issue numbers in comments            | Remove or update with current reference   | No stale references          |

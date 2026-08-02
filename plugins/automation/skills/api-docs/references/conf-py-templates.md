@@ -11,14 +11,14 @@ Use this template for projects containing only Python source code.
 
 ```python
 # Configuration file for the Sphinx documentation builder.
-import importlib_metadata
+import importlib.metadata
 
 # -- Project information -----------------------------------------------------
 project = '<PROJECT_NAME>'
 copyright = '<YEAR>, Sun (NeuroAI) lab'
 author = '<AUTHOR>'
 # Extracts the project version from the metadata .toml file.
-release = importlib_metadata.version("<PROJECT_NAME>")
+release = importlib.metadata.version("<PROJECT_NAME>")
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -74,8 +74,9 @@ authors, use `authors = ['Name1', 'Name2']` (plural field name with a list value
 
 ## C++-only archetype
 
-Use this template for projects containing only C++ source code. Note that version is hardcoded
-(no importlib_metadata) and `skip_install = true` is set in the tox docs environment.
+Use this template for projects containing only C++ source code. The version is hardcoded because a
+C++-only project installs no Python distribution for `importlib.metadata` to query, and
+`skip_install = true` is set in the tox docs environment.
 
 ```python
 # Configuration file for the Sphinx documentation builder.
@@ -134,14 +135,14 @@ Python configuration with Breathe integration.
 
 ```python
 # Configuration file for the Sphinx documentation builder.
-import importlib_metadata
+import importlib.metadata
 
 # -- Project information -----------------------------------------------------
 project = '<PROJECT_NAME>'
 copyright = '<YEAR>, Sun (NeuroAI) lab'
 author = '<AUTHOR>'
 # Extracts the project version from the .toml file.
-release = importlib_metadata.version("<PROJECT_NAME>")
+release = importlib.metadata.version("<PROJECT_NAME>")
 
 # -- General configuration ---------------------------------------------------
 extensions = [

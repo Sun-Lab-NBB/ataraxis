@@ -87,6 +87,8 @@ For each file in scope, identify the applicable style skill using the binding ta
 | `platformio.ini`, `library.json`                                          | `/platformio-config` |
 | `docs/*.rst`, `conf.py`, `Makefile`, `make.bat`, `Doxyfile`               | `/api-docs`          |
 | `SKILL.md`, `CLAUDE.md`, `AGENTS.md`                                      | `/skill-design`      |
+| `.github/ISSUE_TEMPLATE/*.yml`                                            | `/project-layout`    |
+| `envs/*`                                                                  | `/project-layout`    |
 | Project directory tree                                                    | `/project-layout`    |
 
 If a file in scope matches no binding row, mark it UNAUDITED in the plan and report (no
@@ -133,9 +135,12 @@ loaded style skill's main checklist.
 
 **Dimension B — Comment and docstring quality:** Apply the loaded style skill's docstring and
 comment checklist to every comment, docstring, and inline annotation. Typical findings include
-typos, grammar errors, and docstring length disproportionate to function complexity. They also
-include docstrings that restate the type signature and comments that narrate obvious code
-behavior. Common content issues are sentences exceeding 40 words and stale references such as
+typos, grammar errors, and prose padded with restatements or trivia the reader can infer from the
+code. They also include documentation whose length tracks the size of the code instead of the
+difficulty of understanding it, docstrings that restate the type signature, and comments that
+narrate obvious code behavior. Documentation that describes how the asset is used in the project,
+such as the pipeline stage that calls it or the feature that depends on it, is a finding whenever
+the text leaves the behavior of the asset itself. Common content issues are sentences exceeding 40 words and stale references such as
 closed issues, removed code, or outdated version markers. Docstring claims that contradict the
 function's signature or observable behavior also qualify. They further include prose that separates
 clauses with a semicolon or an em-dash where only full stops and commas belong, together with
@@ -259,7 +264,7 @@ You MUST adhere to the following discipline during every audit.
 | `/platformio-config` | Provides the platformio.ini/library.json style checklist; loaded when scope contains those files |
 | `/api-docs`          | Provides the Sphinx docs style checklist; loaded when scope contains docs files                  |
 | `/skill-design`      | Provides the skill and CLAUDE.md style checklist; loaded when scope contains skill files         |
-| `/project-layout`    | Provides the project directory style checklist; loaded when target is a project root             |
+| `/project-layout`    | Provides the directory and issue template checklist, loaded for project roots and .github        |
 | `/explore-codebase`  | Provides project structure context; invoke first when auditing an unfamiliar codebase            |
 
 ---

@@ -60,6 +60,19 @@ possible while still conveying every necessary fact. Do not pad with restatement
 prose, or implementation trivia. If a method's behavior is fully evident from a single
 `<summary>` line and the type signature, no additional `<remarks>` block is needed.
 
+**Behavioral scope**: An XML doc describes what the member does, and it stops there. Leave out how
+the member is deployed in the project, which scene or task calls it, which feature depends on it,
+and why it was introduced. That context belongs to the file-level summary, the README, or the API
+documentation, and it goes stale the moment the call sites change. A method that computes a
+position documents the position it computes, leaving the component that later applies it
+undocumented here.
+
+One exception applies. An XML doc may state that an input arrives in a specific format produced by
+a named peer method, but only when that expectation is genuinely counter-intuitive, contradicts the
+usual convention, or is exceptional enough that the reader is lost without it. State the constraint
+and its reason in one sentence. An input that behaves the way a reader already expects needs no
+such note.
+
 **Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
 broken into smaller sentences at natural clause boundaries. Long sentences in `<summary>`,
 `<remarks>`, and inline comments are a strong signal of over-explanation.
@@ -67,9 +80,13 @@ broken into smaller sentences at natural clause boundaries. Long sentences in `<
 **Typo-free and grammatical**: Every comment, XML doc tag, and inline annotation must be free
 of typos and grammatical errors.
 
-**Length proportionality**: XML doc length must be proportional to method complexity. A 3-line
-property accessor with self-evident behavior does not need a multi-paragraph `<remarks>`. A
-200-line orchestration method warrants more documentation than a getter.
+**Length proportionality**: XML doc length must be proportional to how hard the code is to
+understand, which is independent of how many lines it occupies. A long method that carries out one
+straightforward task needs a short `<summary>`, because its size alone gives the reader nothing
+extra to learn. A short method warrants a longer description when its behavior is counter-intuitive
+or hard to derive, such as one built on dense bit manipulation, an unusual algorithm, or a
+non-obvious invariant. Judge the documentation against the difficulty of the idea and keep it to
+what the reader is unable to work out from the code.
 
 **No type-signature restating**: `<param>` and `<returns>` descriptions must not restate
 information already conveyed by the type signature or the parameter names. Replace

@@ -59,6 +59,18 @@ conveying every necessary fact. Do not pad with restatements, motivational prose
 implementation trivia. If a function's behavior is fully evident from a single summary line and
 the type signature, no extended description is needed.
 
+**Behavioral scope**: A docstring describes what the function does, and it stops there. Leave out
+how the function is deployed in the project, which pipeline stage calls it, which feature depends
+on it, and why it was introduced. That context belongs to the module docstring, the README, or the
+API documentation, and it goes stale the moment the call sites change. A function that resolves a
+path documents the path it resolves, leaving the command that later consumes it undocumented here.
+
+One exception applies. A docstring may state that an input arrives in a specific format produced
+by a named peer function, but only when that expectation is genuinely counter-intuitive,
+contradicts the usual convention, or is exceptional enough that the reader is lost without it.
+State the constraint and its reason in one sentence. An input that behaves the way a reader
+already expects needs no such note.
+
 **Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
 broken into smaller sentences at natural clause boundaries. Long sentences in docstrings,
 comments, and inline annotations are a strong signal of over-explanation.
@@ -66,9 +78,13 @@ comments, and inline annotations are a strong signal of over-explanation.
 **Typo-free and grammatical**: Every comment, docstring, and inline annotation must be free of
 typos and grammatical errors.
 
-**Length proportionality**: Docstring length must be proportional to function complexity. A
-3-line helper with self-evident behavior does not need a multi-paragraph docstring listing
-trivia. A 200-line orchestration method warrants more documentation than a property accessor.
+**Length proportionality**: Docstring length must be proportional to how hard the code is to
+understand, which is independent of how many lines it occupies. A long function that carries out
+one straightforward task needs a short docstring, because its size alone gives the reader nothing
+extra to learn. A short function warrants a longer description when its behavior is
+counter-intuitive or hard to derive, such as one built on dense bit manipulation, an unusual
+algorithm, or a non-obvious invariant. Judge the documentation against the difficulty of the idea
+and keep it to what the reader is unable to work out from the code.
 
 **No type-signature restating**: Docstrings must not restate information already conveyed by
 the type signature or the parameter names. Replace "Takes an integer count and returns a

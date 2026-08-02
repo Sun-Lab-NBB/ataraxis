@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: API documentation
+    url: https://{project}-api-docs.netlify.app/
+    about: Consult the API documentation before opening an issue.
+  - name: AI development assets
+    url: https://github.com/Sun-Lab-NBB/ataraxis/issues
+    about: Report issues with Claude Code skills and other AI development assets in the ataraxis repository.

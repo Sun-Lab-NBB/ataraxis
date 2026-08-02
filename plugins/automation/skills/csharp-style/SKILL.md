@@ -428,7 +428,10 @@ C# Style Compliance:
 - [ ] Boolean members documented with "Determines whether..."
 - [ ] File-level XML summary comment present
 - [ ] Sentences in comments and XML docs stay under 40 words
-- [ ] XML doc length proportional to method complexity (no multi-paragraph remarks on simple properties)
+- [ ] Documentation carries only facts the reader cannot infer from the code (no padding or trivia)
+- [ ] XML docs describe what the code does, with project usage and call-site context left out
+- [ ] Peer-format expectations documented only when counter-intuitive enough to mislead the reader
+- [ ] XML doc length proportional to conceptual difficulty, not to how long the method is
 - [ ] <param> and <returns> descriptions do not restate type information
 - [ ] XML doc accurately describes the method's observable behavior
 - [ ] Comments and XML docs free of typos and grammar errors

@@ -430,7 +430,10 @@ C++ Style Compliance:
 - [ ] File-level Doxygen comment with @file and @brief present
 - [ ] Doxygen tag order: @brief -> @details -> @warning/@note -> @tparam -> @param -> @returns
 - [ ] Sentences in comments and Doxygen blocks stay under 40 words
-- [ ] Doxygen block length proportional to method complexity (no multi-paragraph docs on 3-line accessors)
+- [ ] Documentation carries only facts the reader cannot infer from the code (no padding or trivia)
+- [ ] Doxygen blocks describe what the code does, with project usage and call-site context left out
+- [ ] Peer-format expectations documented only when counter-intuitive enough to mislead the reader
+- [ ] Doxygen block length proportional to conceptual difficulty, not to how long the method is
 - [ ] @param and @returns descriptions do not restate type information
 - [ ] Doxygen accurately describes the method's observable behavior
 - [ ] Comments and Doxygen blocks free of typos and grammar errors

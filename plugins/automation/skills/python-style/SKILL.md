@@ -442,7 +442,10 @@ Python Style Compliance:
 - [ ] Prose used instead of bullet lists in docstrings
 - [ ] No Sphinx specifiers (:class:, :func:, :meth:, :data:) outside MCP tool docstrings
 - [ ] Sentences in comments and docstrings stay under 40 words
-- [ ] Docstring length proportional to function complexity (no multi-paragraph docs on 3-line helpers)
+- [ ] Documentation carries only facts the reader cannot infer from the code (no padding or trivia)
+- [ ] Docstrings describe what the code does, with project usage and call-site context left out
+- [ ] Peer-format expectations documented only when counter-intuitive enough to mislead the reader
+- [ ] Docstring length proportional to conceptual difficulty, not to how long the function is
 - [ ] Docstrings do not restate information already conveyed by the type signature
 - [ ] Docstrings accurately describe the function's observable behavior
 - [ ] Comments and docstrings free of typos and grammar errors
