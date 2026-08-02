@@ -135,9 +135,10 @@ loaded style skill's main checklist.
 
 **Dimension B — Comment and docstring quality:** Apply the loaded style skill's docstring and
 comment checklist to every comment, docstring, and inline annotation. Typical findings include
-typos, grammar errors, and docstring length disproportionate to function complexity. They also
-include docstrings that restate the type signature and comments that narrate obvious code
-behavior. Common content issues are sentences exceeding 40 words and stale references such as
+typos, grammar errors, and prose padded with restatements or trivia the reader can infer from the
+code. They also include documentation whose length tracks the size of the code instead of the
+difficulty of understanding it, docstrings that restate the type signature, and comments that
+narrate obvious code behavior. Common content issues are sentences exceeding 40 words and stale references such as
 closed issues, removed code, or outdated version markers. Docstring claims that contradict the
 function's signature or observable behavior also qualify. They further include prose that separates
 clauses with a semicolon or an em-dash where only full stops and commas belong, together with

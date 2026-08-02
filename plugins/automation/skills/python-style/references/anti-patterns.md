@@ -60,7 +60,7 @@ Transform code to match project style:
 | Anti-Pattern                                | Problem                        | Solution                                            |
 |---------------------------------------------|--------------------------------|-----------------------------------------------------|
 | Sentences over 40 words in prose            | Hard for humans to parse       | Split at clause boundaries into shorter sentences   |
-| Multi-paragraph docstring on 3-line helper  | Disproportionate to function   | Match docstring length to function complexity       |
+| Docstring length driven by function length  | Tracks size, not difficulty    | Match length to conceptual difficulty               |
 | Docstring restates the type signature       | Redundant information          | Describe behavior, not types                        |
 | Docstring contradicts function behavior     | Defect masquerading as docs    | Update docstring to match implementation            |
 | Stale issue numbers in comments             | Misleading after issue closure | Remove or update with current reference             |

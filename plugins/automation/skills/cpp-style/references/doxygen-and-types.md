@@ -60,9 +60,13 @@ broken into smaller sentences at natural clause boundaries. Long sentences in `@
 **Typo-free and grammatical**: Every comment, Doxygen block, and inline annotation must be free
 of typos and grammatical errors.
 
-**Length proportionality**: Doxygen block length must be proportional to method complexity. A
-3-line accessor with self-evident behavior does not need a multi-paragraph block listing
-trivia. A 200-line orchestration method warrants more documentation than a getter.
+**Length proportionality**: Doxygen block length must be proportional to how hard the code is to
+understand, which is independent of how many lines it occupies. A long method that carries out one
+straightforward task needs a short block, because its size alone gives the reader nothing extra to
+learn. A short method warrants a longer description when its behavior is counter-intuitive or hard
+to derive, such as one built on dense bit manipulation, register-level access, or a non-obvious
+timing invariant. Judge the documentation against the difficulty of the idea and keep it to what
+the reader is unable to work out from the code.
 
 **No type-signature restating**: `@param` and `@returns` descriptions must not restate
 information already conveyed by the type signature or the parameter names. Replace `@param
