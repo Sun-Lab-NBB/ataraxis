@@ -56,6 +56,7 @@ reviewing code before submission.
 |-------------------------------------------|-----------------------------------------|------------------------------|
 | Sentences over 40 words in prose          | Split into shorter sentences            | Sentence length cap          |
 | Block length driven by method length      | Match length to conceptual difficulty   | Length proportionality       |
+| Block explains where it is called         | Describe what the method does           | Behavioral scope             |
 | `@param` restates parameter type          | Describe semantics, not types           | No type-signature restating  |
 | Doxygen claims contradict method behavior | Update Doxygen to match implementation  | Implementation accuracy      |
 | Stale issue numbers in comments           | Remove or update with current reference | No stale references          |

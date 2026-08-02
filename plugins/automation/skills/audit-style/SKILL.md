@@ -138,7 +138,9 @@ comment checklist to every comment, docstring, and inline annotation. Typical fi
 typos, grammar errors, and prose padded with restatements or trivia the reader can infer from the
 code. They also include documentation whose length tracks the size of the code instead of the
 difficulty of understanding it, docstrings that restate the type signature, and comments that
-narrate obvious code behavior. Common content issues are sentences exceeding 40 words and stale references such as
+narrate obvious code behavior. Documentation that describes how the asset is used in the project,
+such as the pipeline stage that calls it or the feature that depends on it, is a finding whenever
+the text leaves the behavior of the asset itself. Common content issues are sentences exceeding 40 words and stale references such as
 closed issues, removed code, or outdated version markers. Docstring claims that contradict the
 function's signature or observable behavior also qualify. They further include prose that separates
 clauses with a semicolon or an em-dash where only full stops and commas belong, together with

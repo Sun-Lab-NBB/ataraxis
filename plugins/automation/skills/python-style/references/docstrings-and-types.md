@@ -59,6 +59,18 @@ conveying every necessary fact. Do not pad with restatements, motivational prose
 implementation trivia. If a function's behavior is fully evident from a single summary line and
 the type signature, no extended description is needed.
 
+**Behavioral scope**: A docstring describes what the function does, and it stops there. Leave out
+how the function is deployed in the project, which pipeline stage calls it, which feature depends
+on it, and why it was introduced. That context belongs to the module docstring, the README, or the
+API documentation, and it goes stale the moment the call sites change. A function that resolves a
+path documents the path it resolves, leaving the command that later consumes it undocumented here.
+
+One exception applies. A docstring may state that an input arrives in a specific format produced
+by a named peer function, but only when that expectation is genuinely counter-intuitive,
+contradicts the usual convention, or is exceptional enough that the reader is lost without it.
+State the constraint and its reason in one sentence. An input that behaves the way a reader
+already expects needs no such note.
+
 **Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
 broken into smaller sentences at natural clause boundaries. Long sentences in docstrings,
 comments, and inline annotations are a strong signal of over-explanation.

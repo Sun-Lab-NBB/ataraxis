@@ -53,6 +53,19 @@ short as possible while still conveying every necessary fact. Do not pad with re
 motivational prose, or implementation trivia. If a method's behavior is fully evident from a
 single `@brief` line and the parameter types, no additional `@details` paragraph is needed.
 
+**Behavioral scope**: A Doxygen block describes what the method does, and it stops there. Leave out
+how the method is deployed in the project, which runtime stage calls it, which feature depends on
+it, and why it was introduced. That context belongs to the `@file` block, the README, or the API
+documentation, and it goes stale the moment the call sites change. A method that packs a payload
+documents the payload it produces, leaving the transmission routine that consumes it undocumented
+here.
+
+One exception applies. A block may state that an input arrives in a specific format produced by a
+named peer method, but only when that expectation is genuinely counter-intuitive, contradicts the
+usual convention, or is exceptional enough that the reader is lost without it. State the constraint
+and its reason in one sentence. An input that behaves the way a reader already expects needs no
+such note.
+
 **Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
 broken into smaller sentences at natural clause boundaries. Long sentences in `@brief`,
 `@details`, and inline comments are a strong signal of over-explanation.

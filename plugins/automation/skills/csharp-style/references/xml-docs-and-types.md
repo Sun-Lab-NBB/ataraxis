@@ -60,6 +60,19 @@ possible while still conveying every necessary fact. Do not pad with restatement
 prose, or implementation trivia. If a method's behavior is fully evident from a single
 `<summary>` line and the type signature, no additional `<remarks>` block is needed.
 
+**Behavioral scope**: An XML doc describes what the member does, and it stops there. Leave out how
+the member is deployed in the project, which scene or task calls it, which feature depends on it,
+and why it was introduced. That context belongs to the file-level summary, the README, or the API
+documentation, and it goes stale the moment the call sites change. A method that computes a
+position documents the position it computes, leaving the component that later applies it
+undocumented here.
+
+One exception applies. An XML doc may state that an input arrives in a specific format produced by
+a named peer method, but only when that expectation is genuinely counter-intuitive, contradicts the
+usual convention, or is exceptional enough that the reader is lost without it. State the constraint
+and its reason in one sentence. An input that behaves the way a reader already expects needs no
+such note.
+
 **Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
 broken into smaller sentences at natural clause boundaries. Long sentences in `<summary>`,
 `<remarks>`, and inline comments are a strong signal of over-explanation.
