@@ -33,11 +33,6 @@ envlist =
     docs
     build
     install
-
-# This forces tox to create a 'sterile' environment into which the project with all dependencies
-# is installed prior to running the requested tasks, isolating the process from the rest of the
-# system.
-isolated_build = True
 ```
 
 ### `[testenv]` base section (optional)
@@ -445,11 +440,6 @@ requires =
     tox>=4,<5
     tox-uv>=1,<2
 envlist = docs
-
-# This forces tox to create a 'sterile' environment into which the project with all dependencies
-# is installed prior to running the requested tasks, isolating the process from the rest of the
-# system.
-isolated_build = True
 
 [testenv:docs]
 skip_install = true
