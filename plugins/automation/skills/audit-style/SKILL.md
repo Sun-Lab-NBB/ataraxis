@@ -88,6 +88,7 @@ For each file in scope, identify the applicable style skill using the binding ta
 | `docs/*.rst`, `conf.py`, `Makefile`, `make.bat`, `Doxyfile`               | `/api-docs`          |
 | `SKILL.md`, `CLAUDE.md`, `AGENTS.md`                                      | `/skill-design`      |
 | `.github/ISSUE_TEMPLATE/*.yml`                                            | `/project-layout`    |
+| `envs/*`                                                                  | `/project-layout`    |
 | Project directory tree                                                    | `/project-layout`    |
 
 If a file in scope matches no binding row, mark it UNAUDITED in the plan and report (no

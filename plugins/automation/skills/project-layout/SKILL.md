@@ -143,6 +143,10 @@ The `{abbr}` placeholder is a short project abbreviation (e.g., `axa` for atarax
 conda environment specification used by `mamba env create`. The `export` tox task writes these
 files, and the `import` task recreates the environment from them.
 
+Repositories created before this layout may still carry `{abbr}_dev_{os}_spec.txt` files. The
+`export` task produces the `.yml` file alone, so treat any `_spec.txt` file found in `envs/` as a
+leftover and remove it.
+
 PlatformIO and Unity projects do NOT have `envs/` directories.
 
 ---
@@ -349,7 +353,8 @@ Source Directory:
 - [ ] No hand-authored or stale .pyi stubs committed mid-development (stubs are generated at release time via tox -e stubs)
 
 Environment Directory:
-- [ ] Python projects have envs/ with 6 files (3 platforms x 2 files each)
+- [ ] Python projects have envs/ with 3 files, one .yml per supported platform
+- [ ] envs/ holds .yml files alone, with any _spec.txt exports removed
 - [ ] envs/ file names use correct abbreviation prefix
 - [ ] PlatformIO and Unity projects do NOT have envs/
 
