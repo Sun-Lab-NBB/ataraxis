@@ -218,8 +218,26 @@ if mode == 3:  # noqa: PLR2004 - LICK_TRAINING mode value from VisualizerMode en
     ...
 ```
 
-Defensive or unreachable guard branches and hardware- or OS-dependent code paths are annotated with
-`# pragma: no cover` to satisfy the coverage gate.
+### Coverage exclusions
+
+The test suite MUST cover 100% of the measured statements, so every statement the suite cannot
+reach has to be excluded deliberately. Two mechanisms do this, and the size of the target decides
+which one applies.
+
+A module that the suite never exercises as a whole is excluded in `pyproject.toml`, through the
+`omit` list in `[tool.coverage.run]`. This is how user-facing interface modules are handled,
+including `cli.py` and any other Click command module, the MCP server module with its `*_tools.py`
+tool modules, and `__main__.py`. Each member of such a module wraps a function the suite already
+covers, so one `omit` entry replaces an annotation on every member. A module that appears in `omit`
+carries no `# pragma: no cover` comments at all. See `/pyproject-style` for the configuration.
+
+Everything else stays in the measured corpus, and `# pragma: no cover` marks the individual
+statements the suite cannot reach. Use it for defensive or unreachable guard branches, for
+hardware-dependent code paths, and for the branch of an OS-dependent path that the current platform
+never takes. Annotate the narrowest construct that covers the excluded code, which is the `if` or
+`except` line for a whole block and the statement itself for a single line. A pragma that spans a
+function the suite could exercise hides real gaps, so reach for the whole-module `omit` list rather
+than annotating a long run of members one by one.
 
 ### IDE inspection directives
 

@@ -69,7 +69,7 @@ Collect the project-specific values:
 |--------------------|---------------------------------------|---------------------------|
 | `{package_name}`   | Package directory name under `src/`   | `ataraxis_base_utilities` |
 | `{env_abbr}`       | Short project abbreviation            | `axbu`                    |
-| `{version}`        | Current ataraxis-automation release   | `8.1.1`                   |
+| `{version}`        | Current ataraxis-automation release   | `9.0.0`                   |
 | Python versions    | `requires-python` in `pyproject.toml` | `py312, py313, py314`     |
 | `basepython`       | Earliest supported Python version     | `py312`                   |
 | `--python-version` | Latest supported Python version       | `3.14`                    |
@@ -190,11 +190,11 @@ with a pinned ataraxis-automation version:
 ```ini
 [testenv:coverage]
 skip_install = true
-deps = ataraxis-automation==8.1.1
+deps = ataraxis-automation==9.0.0
 ```
 
-This pattern applies to: `coverage`, `docs`, `build`, `upload`, `install`, `uninstall`, `create`,
-`remove`, `provision`, `export`, `import`.
+This pattern applies to: `coverage`, `docs`, `build`, `upload`, `deploy`, `install`, `uninstall`,
+`create`, `remove`, `provision`, `export`, `import`.
 
 ### Self-hosting exception
 
@@ -279,7 +279,12 @@ envlist = docs
 
 - `skip_install = true` — only needs coverage tools, not the project.
 - `depends` MUST list the same Python version matrix as the test environment.
-- Merges junit XML reports, combines coverage data, generates XML and HTML reports.
+- Merges junit XML reports, combines coverage data, generates XML and HTML reports, and applies the
+  100% coverage gate.
+- The `xml` and `html` commands pass `--fail-under=0` so both artifacts are always written. The
+  trailing `coverage report` command applies the `fail_under = 100` gate declared in
+  `pyproject.toml`. See `/pyproject-style` for the gate and for the `omit` list that keeps interface
+  modules out of the measured corpus.
 
 ### docs
 
@@ -296,11 +301,15 @@ envlist = docs
   --platform auto`.
 - `allowlist_externals = docker` for container-based builds.
 
-### upload
+### upload and deploy
 
-- `skip_install = true`.
-- `allowlist_externals = distutils`.
-- Accepts `{posargs:}` for passing `--replace-token` to `automation-cli acquire-pypi-token`.
+- Both use `skip_install = true` and stay out of `envlist`, since a release invokes them manually.
+- `upload` runs `automation-cli acquire-pypi-token` followed by `automation-cli upload-project`, and
+  accepts `{posargs:}` for the `--replace-token` flag.
+- `deploy` runs `automation-cli acquire-netlify-token` then `automation-cli deploy-docs`, accepting
+  `{posargs:}` for `--replace-token` and `--replace-site`. Run `tox -e docs` first to build the html.
+- Both API tokens live in a host-wide shared application directory, so each is entered once per
+  host. The per-project Netlify site identifier lives in a tracked `.netlify-site` file at the root.
 
 ### Environment management (install, uninstall, create, remove, provision, export, import)
 
@@ -458,7 +467,8 @@ Test Environment:
 
 Coverage Environment:
 - [ ] depends matches the test environment Python version matrix
-- [ ] Merges junit XML, combines coverage, generates xml and html
+- [ ] Merges junit XML, combines coverage, generates xml and html with --fail-under=0
+- [ ] A trailing coverage report command applies the 100% gate declared in pyproject.toml
 
 Docs Environment:
 - [ ] depends = uninstall
@@ -469,6 +479,10 @@ Docs Environment:
 Build Environment:
 - [ ] Standard projects use python -m build for sdist and wheel
 - [ ] C++ extension projects use cibuildwheel for wheel
+
+Upload and Deploy Environments:
+- [ ] upload runs acquire-pypi-token then upload-project; deploy runs acquire-netlify-token then deploy-docs
+- [ ] Both accept {posargs:} for the credential replacement flags and stay out of envlist
 
 Environment Management:
 - [ ] --environment-name uses correct abbreviation with _dev suffix

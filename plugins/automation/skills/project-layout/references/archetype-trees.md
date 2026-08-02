@@ -25,11 +25,8 @@ project-root/
 │   └── Makefile                      # Unix Sphinx wrapper (delegates to tox)
 ├── envs/
 │   ├── {abbr}_dev_lin.yml            # Linux conda environment specification
-│   ├── {abbr}_dev_lin_spec.txt       # Linux explicit package list
 │   ├── {abbr}_dev_osx.yml            # macOS conda environment specification
-│   ├── {abbr}_dev_osx_spec.txt       # macOS explicit package list
-│   ├── {abbr}_dev_win.yml            # Windows conda environment specification
-│   └── {abbr}_dev_win_spec.txt       # Windows explicit package list
+│   └── {abbr}_dev_win.yml            # Windows conda environment specification
 ├── src/
 │   └── package_name/                 # Main package (underscore-separated)
 │       ├── submodule/                # (optional) Subpackage directories
@@ -89,11 +86,8 @@ project-root/
 │   └── Makefile                      # Unix Sphinx wrapper
 ├── envs/
 │   ├── {abbr}_dev_lin.yml            # Linux conda environment specification
-│   ├── {abbr}_dev_lin_spec.txt       # Linux explicit package list
 │   ├── {abbr}_dev_osx.yml            # macOS conda environment specification
-│   ├── {abbr}_dev_osx_spec.txt       # macOS explicit package list
-│   ├── {abbr}_dev_win.yml            # Windows conda environment specification
-│   └── {abbr}_dev_win_spec.txt       # Windows explicit package list
+│   └── {abbr}_dev_win.yml            # Windows conda environment specification
 ├── src/
 │   ├── c_extensions/                 # C++ extension sources
 │   │   └── module_ext.cpp            # nanobind extension (snake_case_ext.cpp)

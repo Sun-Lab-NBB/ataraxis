@@ -246,9 +246,19 @@ The exclusion list is the same for both tiers. All entries are mandatory:
 
 ## Coverage configuration
 
-These settings are identical across all projects:
+The test suite MUST cover 100% of the measured statements. The `[tool.coverage.report]` section
+declares that gate, and the `[tool.coverage.run]` section lists the files that stay outside the
+measured corpus. These settings are identical across all projects, apart from the project-specific
+`omit` entries:
 
 ```toml
+# Lists the source files excluded from coverage measurement in full. Interface modules, such as the CLI, are covered
+# by the tests written for the functions they wrap.
+[tool.coverage.run]
+omit = [
+    "*/package_name/cli.py",
+]
+
 # This is used by the 'test' tox tasks to aggregate coverage data produced during pytest runtimes.
 [tool.coverage.paths]
 
@@ -259,8 +269,10 @@ source = ["src/", ".tox/*/lib/python*/site-packages/"]
 [tool.coverage.html]
 directory = "reports/coverage_html"
 
-# Specifies additional ignore directives
+# Specifies the coverage gate and additional ignore directives
 [tool.coverage.report]
+fail_under = 100     # Requires the test suite to cover every measured statement
+show_missing = true  # Lists the statements missed by the test suite, so a failed check names the lines to cover
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -272,9 +284,42 @@ exclude_lines = [
 ]
 ```
 
+`fail_under` applies to every command that renders a report, so `pytest --cov`, `coverage report`,
+`coverage xml`, and `coverage html` all fail once the measured total drops below 100. The `coverage`
+tox environment passes `--fail-under=0` to its artifact-writing commands so that the html and xml
+reports are always written, and applies the gate through a trailing `coverage report` call. See
+`/tox-config` for that command sequence.
+
+### Choosing between omit and pragma
+
+Two mechanisms remove code from the coverage requirement. Choose between them by the size of the
+target.
+
+| Target                                                   | Mechanism                  | Declared in            |
+|-----------------------------------------------------------|----------------------------|------------------------|
+| A whole module that the test suite never exercises       | `[tool.coverage.run] omit` | `pyproject.toml`       |
+| A statement or branch inside an otherwise-covered module | `# pragma: no cover`       | The source line itself |
+
+Whole-module exclusion belongs in `omit`. The canonical case is a user-facing interface module,
+where every member wraps a function the suite already covers, so listing the file once is clearer
+and cheaper to maintain than annotating each of its members. The modules that qualify are:
+
+- `cli.py`, and any other module that defines Click commands.
+- The MCP server module and its `*_tools.py` tool modules.
+- `__main__.py`, and similar process entry points.
+
+Write each `omit` pattern with a leading wildcard so that it matches both the `src/` tree and the
+`.tox/*/lib/python*/site-packages/` copy that the test environments measure, for example
+`"*/package_name/cli.py"`. A module listed in `omit` carries no `# pragma: no cover` comments,
+because the whole file already sits outside the measured corpus.
+
+Every other module stays in the measured corpus, and the individual statements the suite cannot
+reach carry a targeted `# pragma: no cover`. See `/python-style` for the statements that qualify.
+
 ### Additional coverage settings
 
-Projects with multiprocessing or parallel test execution may add:
+Projects with multiprocessing or parallel test execution add these keys to the same
+`[tool.coverage.run]` section that carries the `omit` list:
 
 ```toml
 [tool.coverage.run]
