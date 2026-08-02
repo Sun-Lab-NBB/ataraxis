@@ -188,7 +188,10 @@ dependencies directly to downstream project pyproject.toml files.
   (`['_templates']` and `[]` respectively) for Python-only and hybrid archetypes. The C++-only
   archetype omits both fields entirely (it uses a minimal breathe-only conf.py).
 - Napoleon is configured for Google-style docstrings only (`napoleon_numpy_docstring = False`).
-- All Napoleon and `sphinx_autodoc_typehints` settings MUST match the templates exactly. See
+- All Napoleon and `sphinx_autodoc_typehints` settings MUST match the templates exactly. The
+  extension is enabled by listing it in `extensions`, so the templates carry no
+  `sphinx_autodoc_typehints` boolean. Sphinx accepts unknown names in `conf.py` without
+  complaint, so such a line reads as configuration while doing nothing. See
   [conf-py-templates.md](references/conf-py-templates.md) for the full settings.
 - The HTML theme is always `furo`. Furo provides built-in light/dark mode toggling with no
   additional extensions required.

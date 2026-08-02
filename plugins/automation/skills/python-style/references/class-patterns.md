@@ -36,6 +36,41 @@ def __init__(self, field_shape: tuple[int, int], sampling: float) -> None:
 - **Private** (`_` prefix): Use for anything internal to the class/module
 - **Public** (no prefix): Use only for methods intended to be used from other modules
 
+### Member ordering
+
+Members within a class body follow this vertical ordering from top to bottom:
+
+1. **Class-level fields** (dataclass fields, class constants)
+2. **Dunder methods** (`__post_init__`, `__init__`, `__repr__`, `__del__`, `__getitem__`, and the rest)
+3. **Public methods and properties** (no prefix)
+4. **Private methods and properties** (`_` prefixed)
+
+This mirrors the module-level visibility rule described in the `/python-style` File-level ordering
+section, for the same reason: the reader meets the interface before the helpers that support it. A
+private helper therefore sits below every public member of its class, even when only one public
+member calls it. Within the public group and within the private group, order members by call
+hierarchy or group them by purpose.
+
+Dunder methods are the one exception to visibility ordering. Their leading underscores mark a
+language protocol rather than private visibility, so they stay at the top of the class body where
+readers expect to find construction and representation.
+
+```python
+class ArchiveReader:
+    """Reads messages from a serialized log archive."""
+
+    def __init__(self, archive_path: Path) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    @property
+    def message_count(self) -> int: ...
+
+    def read_all_messages(self) -> tuple[NDArray[np.uint64], list[bytes]]: ...
+
+    def _load_message_keys(self) -> list[str]: ...
+```
+
 ### \_\_repr\_\_ conventions
 
 Implement `__repr__` on classes to display the class name and key attributes. Do not implement `__str__` separately

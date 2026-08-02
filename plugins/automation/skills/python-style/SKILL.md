@@ -191,9 +191,24 @@ def process_data(self, data: NDArray[np.float32], threshold: float) -> None:
 In projects that do not depend on `ataraxis-base-utilities`, use standard `raise` with the same
 message format.
 
-`console.error` is typed `NoReturn` and always raises the supplied exception, so no `raise` or
-`return` should follow it — treat it as a terminating call in guard clauses (mypy understands the
-`NoReturn` contract).
+`console.error` is typed `NoReturn` and always raises the supplied exception, so treat it as a
+terminating call in guard clauses. Mypy understands the `NoReturn` contract, so it never asks for a
+`raise` or a `return` after the call.
+
+Ruff reasons about control flow syntactically and does not follow `NoReturn` through a call, so its
+treatment depends on the enclosing return annotation. In a function annotated `-> None`, no `raise`
+or `return` follows the call. In a function annotated with any other return type, ruff `RET503`
+requires a terminating statement on the path that ends in `console.error`, and `RET503` is part of
+the shared corpus that `lint.select = ["ALL"]` enables. Keep an unreachable `return` there, mark it
+with `# pragma: no cover` so it stays outside the measured corpus, and leave the reason in a
+comment:
+
+```python
+# Tail of a guard clause inside a function annotated '-> np.uint64'.
+console.error(message=message, error=ValueError)
+# Satisfies ruff RET503. console.error() is NoReturn, so this line never executes.
+return np.uint64(0)  # pragma: no cover
+```
 
 ### Error message format
 
@@ -290,6 +305,13 @@ All definitions within a file follow this vertical ordering from top to bottom:
 Public definitions appear **above** private definitions. This matches the C-family convention
 used across all projects (C#, C++), where the public API is presented first and
 implementation details follow. Readers see the interface before the helpers that support it.
+
+This rule governs two levels. At module level, public functions and classes precede private ones.
+Inside a class body, public methods and properties precede private methods and properties, so a
+private helper sits below every public member of its class rather than beside the member that calls
+it. Dunder methods are exempt and keep their conventional position at the top of the class body,
+directly after the class docstring. See [class-patterns.md](references/class-patterns.md) for the
+full class member order.
 
 ### Call-hierarchy ordering
 
@@ -472,7 +494,8 @@ Python Style Compliance:
 - [ ] Top-level library __init__.py has extended docstring (description, docs link, repo link, authors)
 - [ ] Subpackage __init__.py files have single-line docstrings only (no links or authors)
 - [ ] console.enable() only in top-level application libraries, not component libraries
-- [ ] Public definitions above private definitions in file
+- [ ] Public definitions above private definitions, both at module level and inside each class body
+- [ ] Dunder methods kept at the top of the class body, directly after the class docstring
 - [ ] Enums and dataclasses above worker functions and classes
 - [ ] Definitions ordered by call hierarchy or grouped by purpose
 - [ ] Inline comments use third person imperative

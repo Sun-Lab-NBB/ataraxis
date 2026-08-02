@@ -138,14 +138,14 @@ envlist =
     docs
     build
     install
-
-isolated_build = True
 ```
 
 ### Rules
 
 - `requires` MUST include `tox>=4,<5` and `tox-uv>=1,<2`.
-- `isolated_build = True` MUST always be set.
+- `isolated_build` is NOT set. The key belongs to tox 3. Tox 4 always builds the project through
+  its PEP 517 backend, so it resolves no such setting and silently ignores the key. Remove it from
+  any tox.ini that still carries it.
 - `envlist` defines the full pipeline order. Running bare `tox` executes all listed environments
   sequentially. The order matters — `uninstall` runs first to ensure a clean state, `install`
   runs last after all checks pass.
@@ -442,7 +442,7 @@ tox.ini Style Compliance:
 
 [tox] Section:
 - [ ] requires includes tox>=4,<5 and tox-uv>=1,<2
-- [ ] isolated_build = True is set
+- [ ] isolated_build is absent (a tox 3 key that tox 4 ignores)
 - [ ] envlist order matches archetype pattern (uninstall → export → lint → ... → install)
 - [ ] Environment management envs (create, remove, provision, import) NOT in envlist
 
