@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+        <entry key="Claude Code Plugin Marketplace">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="Claude Code Plugin Marketplace" />
+              <option name="relativePathToSchema" value="https://www.schemastore.org/claude-code-marketplace.json" />
+              <option name="applicationDefined" value="true" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value=".claude-plugin/marketplace.json" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+      </map>
+    </state>
+  </component>
+</project>

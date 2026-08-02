@@ -90,13 +90,14 @@ projects.
 7. `[tool.hatch.build.targets.wheel]`
 8. `[tool.ruff]` and sub-tables
 9. `[tool.mypy]`
-10. `[tool.coverage.paths]`
-11. `[tool.coverage.html]`
-12. `[tool.coverage.report]`
+10. `[tool.coverage.run]`
+11. `[tool.coverage.paths]`
+12. `[tool.coverage.html]`
+13. `[tool.coverage.report]`
 
-When present, `[tool.coverage.run]` is placed either before `[tool.coverage.paths]` (e.g. for a
-coverage `omit` list) or after `[tool.coverage.report]` (e.g. for `parallel` / `concurrency`
-settings).
+`[tool.coverage.run]` holds the `omit` list that excludes interface modules from coverage
+measurement, along with the `parallel` and `concurrency` keys used by projects that run tests
+across processes. It is omitted only by projects that need none of those keys.
 
 For C-extension projects using scikit-build-core, replace the hatch build targets with
 `[tool.scikit-build]` and `[tool.cibuildwheel]` sections at positions 6-7.
@@ -339,6 +340,10 @@ Tool Configurations:
 - [ ] MyPy: Standard exclusion list present
 - [ ] Coverage: paths, html, and report sections present
 - [ ] Coverage: Standard exclude_lines list present
+- [ ] Coverage: fail_under = 100 and show_missing = true set in [tool.coverage.report]
+- [ ] Coverage: [tool.coverage.run] omit lists every interface module excluded from measurement in full
+- [ ] Coverage: omit patterns start with a wildcard so they match the src/ and site-packages copies
+- [ ] Coverage: modules listed in omit carry no per-line pragma: no cover comments
 
 Formatting:
 - [ ] Block comments above section headers

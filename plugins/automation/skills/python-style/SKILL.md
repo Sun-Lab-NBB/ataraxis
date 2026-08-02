@@ -475,6 +475,9 @@ Python Style Compliance:
 - [ ] Inline comments use third person imperative
 - [ ] No heavy section separator blocks (# ====== or # ------)
 - [ ] No IDE-specific suppression comments (PyCharm # noinspection etc.); only ruff # noqa / mypy # type: ignore kept
+- [ ] Interface modules (cli.py, MCP tool modules, __main__.py) excluded via the pyproject omit list
+- [ ] pragma: no cover used only for unreachable guards and platform-specific branches inside measured modules
+- [ ] Each pragma: no cover annotates the narrowest construct that covers the excluded code
 - [ ] Numba functions use cache=True
 - [ ] Decorator stacking order: @staticmethod/@classmethod, @njit, custom, @property
 - [ ] Dataclasses use frozen=True for immutable configs (omit for mutable state)

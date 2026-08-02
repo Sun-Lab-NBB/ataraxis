@@ -23,6 +23,7 @@ Performs thorough, structured codebase exploration to build deep understanding b
 - Enumerating public API surfaces and CLI commands
 - Discovering configuration mechanisms (pyproject.toml, env vars, config files)
 - Mapping test coverage to source modules
+- Driving exploration through the CodeGraph index when the repository provides one
 - Producing a structured summary of findings
 
 **Does not cover:**
@@ -37,7 +38,30 @@ Performs thorough, structured codebase exploration to build deep understanding b
 
 You MUST follow these steps when this skill is invoked.
 
-### Step 1: Determine project archetype and size
+### Step 1: Detect the CodeGraph index
+
+Check whether the repository root contains a `.codegraph/` directory. Many Ataraxis framework and
+Sollertia platform projects carry one, and the index answers most exploration questions in a single
+call, so this check comes first because it changes how every later step is executed.
+
+When `.codegraph/` exists, CodeGraph becomes the primary exploration tool, and the file and search
+tools cover what it does not return. Reach for it through whichever access path is available:
+
+| Access path | How to call it                                      | Availability                               |
+|-------------|-----------------------------------------------------|--------------------------------------------|
+| MCP tool    | `codegraph_explore` with a question or symbol names | When the codegraph MCP server is connected |
+| Shell       | `codegraph explore "<question or symbol names>"`    | When the codegraph CLI is installed        |
+
+The MCP tool may be listed as deferred rather than loaded, in which case load its schema by name
+through tool search before calling it. Both access paths return the same output, which is the
+verbatim line-numbered source of the matching symbols grouped by file, the call paths connecting
+them, and a summary of what depends on them. Treat source returned this way as already read, and do
+NOT re-open those files with Read.
+
+When `.codegraph/` is absent, explore with the file and search tools alone. Indexing a repository is
+the user's decision, so do NOT create an index as part of exploration.
+
+### Step 2: Determine project archetype and size
 
 First detect the project archetype (Python-only, Python + C++ extension, C++ PlatformIO library or
 firmware, or C# Unity) using the indicator table in `/project-layout`; do not re-derive those
@@ -65,19 +89,30 @@ An MCP server alone does NOT force the Large tier — MCP servers are common on 
 libraries. When indicators conflict, choose the lower tier (fewer subagents) unless the source-file
 count alone clearly exceeds 50.
 
-### Step 2: Execute exploration
+A CodeGraph index shifts the tier down by one, because the index already holds the structure that
+the extra readers would otherwise reconstruct file by file. An indexed Large project is explored as
+a Medium one, and an indexed Medium project is explored in a single pass. Spend the saved effort on
+follow-up queries into the areas the first pass surfaced.
 
-Follow the approach for the determined tier.
+### Step 3: Execute exploration
+
+Follow the approach for the determined tier. When a CodeGraph index is present, open each phase with
+the queries listed in "CodeGraph-assisted exploration" below. Fall back to the file and search
+tools only for what the index does not return, such as configuration files, environment variables,
+and directory layout.
 
 **Small projects:** Execute all four exploration phases yourself in a single pass. Combine phases
 where appropriate to keep exploration concise.
 
 **Medium projects:** Execute all four exploration phases sequentially, giving each phase focused
 attention. Use the Agent tool with the `Explore` agent type for any phase that requires reading
-many files.
+many files. An indexed project rarely needs a subagent here, since one CodeGraph call returns what
+a file-reading subagent would spend many calls collecting.
 
 **Large projects:** Launch 2-3 Explore subagents in parallel using the Agent tool with the
-`Explore` agent type. Assign each subagent a disjoint focus area so no surface is explored twice:
+`Explore` agent type. Assign each subagent a disjoint focus area so no surface is explored twice.
+Tell each subagent that the repository is indexed and that it MUST query CodeGraph before reading
+files, since subagents do not inherit that context:
 
 - **Subagent 1: Structure, entry points, and configuration** — Phase 1 (feature discovery and
   configuration), excluding the public API and MCP surfaces assigned to Subagent 3
@@ -88,10 +123,43 @@ many files.
 
 Synthesize the subagent findings into a unified summary.
 
-### Step 3: Present findings
+### Step 4: Present findings
 
 Present the structured summary following the output format below. Do NOT make code changes during
 exploration. Wait for user direction before proceeding.
+
+---
+
+## CodeGraph-assisted exploration
+
+This section applies when Step 1 found a `.codegraph/` directory. Each phase below opens with a
+CodeGraph query, and the file and search tools fill the remaining gaps.
+
+| Phase                     | Open with this query                                                       |
+|---------------------------|----------------------------------------------------------------------------|
+| 1: Feature discovery      | The entry-point symbols named in `[project.scripts]`, plus each `__init__` |
+| 2: Code flow tracing      | The entry-point symbol together with the core symbols it reaches           |
+| 3: Architecture analysis  | The central symbols by name, read for their call paths and dependents      |
+| 4: Implementation details | Each public symbol, read for its listed tests and callers                  |
+
+Query with the symbol and file names that matter, or with the plain question itself. One capped call
+usually answers a whole phase. Read these rules before querying:
+
+- Name several related symbols in one query rather than issuing one query per symbol. The index
+  returns them together with the call paths that connect them, which is the part a per-symbol query
+  loses.
+- Use the blast-radius summary for Phase 3. It reports the dependents of each symbol directly, which
+  is the central-component ranking that would otherwise require reading every importer.
+- Use the reported test references for Phase 4 test-coverage mapping, then confirm the gaps against
+  the `tests/` tree, since the index reports the tests that exist rather than the modules that lack
+  them.
+- Do NOT re-read a file whose source a query already returned. The output is the current on-disk
+  source, so a follow-up Read of the same file returns the same bytes at full token cost.
+- Fall back to the file and search tools for what the index does not model, which includes
+  `pyproject.toml` and `tox.ini` settings, environment variables, documentation, and the directory
+  layout itself.
+- Treat the index as lagging the working tree by about a second. After an edit, re-query rather than
+  trusting an earlier result for the changed file.
 
 ---
 
@@ -238,6 +306,10 @@ Do NOT make code changes during exploration. Present findings and wait for user 
 
 ```text
 Exploration Output Compliance:
+- [ ] Repository root checked for a .codegraph/ directory before exploration began
+- [ ] CodeGraph queried first for symbols, call paths, and dependents when an index was present
+- [ ] No file re-read with Read after a CodeGraph query already returned its source
+- [ ] No CodeGraph index created during exploration
 - [ ] Project purpose summarized (1-2 sentences)
 - [ ] Entry points identified with locations (pyproject.toml scripts, CLI commands)
 - [ ] Key components identified with locations and purposes
@@ -251,5 +323,5 @@ Exploration Output Compliance:
 - [ ] Areas of concern noted (technical debt, complexity, missing coverage)
 - [ ] Output uses structured format (headings, tables, lists)
 - [ ] No code modifications were made during exploration
-- [ ] Exploration depth matches project size tier (small/medium/large)
+- [ ] Exploration depth matches project size tier (small/medium/large), shifted down one tier when indexed
 ```

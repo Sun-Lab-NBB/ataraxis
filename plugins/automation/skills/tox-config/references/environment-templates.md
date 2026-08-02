@@ -166,24 +166,36 @@ commands =
 ### coverage environment
 
 ```ini
+# Note: the 'xml' and 'html' commands run with '--fail-under=0' so that both reports are always
+# written to the 'reports' directory. The trailing 'report' command applies the 100% coverage gate
+# configured in the pyproject.toml file and prints the statements that remain uncovered.
 [testenv:coverage]
 skip_install = true
 description =
     Combines test-coverage data from multiple test runs (for different python versions) into a
-    single html file. The file can be viewed by loading the 'reports/coverage_html/index.html'.
+    single html file and verifies that the combined data covers 100% of the measured statements.
+    The file can be viewed by loading the 'reports/coverage_html/index.html'.
 deps = ataraxis-automation=={version}
 setenv = COVERAGE_FILE = reports/.coverage
 depends = {py312, py313, py314}-test
 commands =
     junitparser merge --glob reports/pytest.xml.* reports/pytest.xml
     coverage combine --keep
-    coverage xml
-    coverage html
+    coverage xml --fail-under=0
+    coverage html --fail-under=0
+    coverage report
 ```
 
 **Parameterization:**
 - `deps = ataraxis-automation=={version}`: Pin to the exact current release version.
 - `depends`: Must list the same Python version matrix as the test environment.
+
+**Coverage gate:** `fail_under = 100` in the `[tool.coverage.report]` section of `pyproject.toml`
+requires the test suite to cover every measured statement. It applies to each report-rendering
+command, so the `{pyXXX}-test` environments enforce it through `pytest --cov` as well. Interface
+modules stay outside the measured corpus through the `omit` list in `[tool.coverage.run]`, and
+individual unreachable statements carry `# pragma: no cover`. See `/pyproject-style` for both
+mechanisms.
 
 **Self-hosting exception:** ataraxis-automation omits `skip_install` and `deps` since it provides
 these tools itself.
@@ -256,18 +268,45 @@ commands =
 ### upload environment
 
 ```ini
-# Note: use 'tox -e upload --replace-token' command to replace the token stored in the .pypirc
-# file before uploading the project.
+# Note: use 'tox -e upload -- --replace-token' command to replace the token stored in the shared
+# .pypirc file before uploading the project.
 [testenv:upload]
 skip_install = true
 description =
     Uses twine to upload all files inside the project's 'dist' directory to PyPI.
 deps = ataraxis-automation=={version}
-allowlist_externals = distutils
 commands =
     automation-cli acquire-pypi-token {posargs:}
-    twine upload dist/* --skip-existing --config-file .pypirc
+    automation-cli upload-project
 ```
+
+The PyPI API token is stored in a `.pypirc` file inside a host-wide shared application directory
+resolved with `platformdirs`, so every project managed on the host reuses the same token.
+
+### deploy environment
+
+```ini
+# Note: use 'tox -e deploy -- --replace-token' command to replace the token stored in the shared
+# .netlifyrc file, and 'tox -e deploy -- --replace-site' to replace the site identifier stored in
+# the project's .netlify-site file, before deploying the documentation.
+[testenv:deploy]
+skip_install = true
+description =
+    Uploads the API documentation built by the 'docs' task to the project's Netlify site. Build the
+    documentation with 'tox -e docs' before calling this task.
+deps = ataraxis-automation=={version}
+commands =
+    automation-cli acquire-netlify-token {posargs:}
+    automation-cli deploy-docs
+```
+
+The Netlify API token is stored in a `.netlifyrc` file inside the same shared application directory
+as the PyPI token. The site identifier differs for each project and is not a secret, so it lives in
+a `.netlify-site` file at the project root that is tracked by version control. The deployment
+uploads `docs/build/html` as a ZIP archive, and Netlify replaces the whole site with its contents.
+
+Both `upload` and `deploy` are defined in the tox.ini but stay out of `envlist`, since they are
+invoked manually as part of a release.
 
 ### install environment
 
@@ -358,7 +397,7 @@ deps = ataraxis-automation=={version}
 depends = uninstall
 description =
     Exports the project's development mamba environment to the 'envs' project directory as a
-    .yml file and as a spec.txt with revision history.
+    .yml file.
 commands =
     automation-cli export-environment --environment-name {env_abbr}_dev
 ```
@@ -446,16 +485,17 @@ questions.
 | `lint`                       | Purges `.pyi` stubs, then runs `ruff format`, `ruff check --fix`, `mypy` |
 | `stubs`                      | Regenerates the `py.typed` marker and `.pyi` stub files                  |
 | `{py312,py313,py314}-test`   | Runs the test suite under each Python version, collecting coverage       |
-| `coverage`                   | Combines per-version coverage and junit reports into xml + html          |
+| `coverage`                   | Combines per-version coverage and junit reports, applies the 100% gate   |
 | `docs`                       | Builds API docs with Sphinx (and Doxygen for C++/hybrid projects)        |
 | `build`                      | Builds the sdist and wheel distributions                                 |
 | `upload`                     | Uploads the `dist/` files to PyPI via twine                              |
+| `deploy`                     | Uploads the built html documentation to the project's Netlify site       |
 | `install`                    | Builds and installs the project into its development mamba environment   |
 | `uninstall`                  | Uninstalls the project from its development mamba environment            |
 | `create`                     | Creates the development mamba environment and installs dependencies      |
 | `remove`                     | Removes (deletes) the development mamba environment                      |
 | `provision`                  | Removes and (re)creates the development mamba environment                |
-| `export`                     | Exports the mamba environment to `envs/` as `.yml` and `spec.txt`        |
+| `export`                     | Exports the mamba environment to `envs/` as a `.yml` file                |
 | `import`                     | Creates or updates the mamba environment from the stored `.yml` file     |
 
 `tox -e lint` purges `.pyi` stubs (via `automation-cli purge-stubs`) so they do not interfere with
@@ -468,11 +508,14 @@ mypy; `tox -e stubs` regenerates them afterward.
 | `process-typed-markers`  | —                                                                     | Places the `py.typed` marker only at the library root               |
 | `process-stubs`          | —                                                                     | Distributes generated stubs from `stubs/` into the source tree      |
 | `purge-stubs`            | —                                                                     | Removes all `.pyi` stub files from the source tree                   |
-| `acquire-pypi-token`     | `-rt`/`--replace-token`                                               | Ensures a valid PyPI token is stored in `.pypirc`                    |
+| `acquire-pypi-token`     | `-rt`/`--replace-token`                                               | Ensures a valid PyPI token is stored in the shared `.pypirc`         |
+| `upload-project`         | —                                                                     | Uploads the `dist/` distributions to PyPI with twine                 |
+| `acquire-netlify-token`  | `-rt`/`--replace-token`, `-rs`/`--replace-site`                       | Ensures the Netlify token and the project's site identifier are set  |
+| `deploy-docs`            | —                                                                     | Uploads `docs/build/html` to the project's Netlify site              |
 | `install-project`        | `-e`/`--environment-name`, `-ed`/`--environment-directory`, `--prerelease` | Builds and installs the project into the mamba environment     |
 | `uninstall-project`      | `-e`/`--environment-name`, `-ed`/`--environment-directory`           | Uninstalls the project from the mamba environment                   |
 | `create-environment`     | `-e`/`--environment-name`, `-p`/`--python-version`, `-ed`/`--environment-directory`, `--prerelease` | Creates the mamba environment and installs dependencies |
 | `remove-environment`     | `-e`/`--environment-name`, `-ed`/`--environment-directory`           | Removes (deletes) the mamba environment                             |
 | `provision-environment`  | `-e`/`--environment-name`, `-p`/`--python-version`, `-ed`/`--environment-directory`, `--prerelease` | Removes and recreates the mamba environment           |
 | `import-environment`     | `-e`/`--environment-name`, `-ed`/`--environment-directory`           | Creates or updates the mamba environment from the stored `.yml`     |
-| `export-environment`     | `-e`/`--environment-name`, `-ed`/`--environment-directory`           | Exports the mamba environment to `envs/` as `.yml` and `spec.txt`   |
+| `export-environment`     | `-e`/`--environment-name`, `-ed`/`--environment-directory`           | Exports the mamba environment to `envs/` as a `.yml` file           |
