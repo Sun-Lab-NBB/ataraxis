@@ -1,0 +1,61 @@
+name: Bug report
+description: Report incorrect, unexpected, or broken behavior.
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The release version or the commit SHA of the project that exhibits the bug.
+      placeholder: 9.0.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: >-
+        The host operating system and the versions of the language runtime and tools used to run the project. Include
+        the hardware model when the bug involves a physical device.
+      placeholder: |-
+        OS: Ubuntu 24.04
+        Python: 3.13
+        Hardware: Teensy 4.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed and expected behavior
+      description: What the project does and what you expected it to do instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: >-
+        The minimal sequence of commands or code that reproduces the bug, starting from a clean project state.
+      placeholder: |-
+        1. Run `tox -e lint` in a project that has no src/ directory.
+        2. Observe the traceback included below.
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: The complete terminal output, traceback, or device log produced by the failing command.
+      render: text
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have searched the existing issues and this bug has not been reported.
+          required: true

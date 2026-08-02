@@ -87,6 +87,7 @@ For each file in scope, identify the applicable style skill using the binding ta
 | `platformio.ini`, `library.json`                                          | `/platformio-config` |
 | `docs/*.rst`, `conf.py`, `Makefile`, `make.bat`, `Doxyfile`               | `/api-docs`          |
 | `SKILL.md`, `CLAUDE.md`, `AGENTS.md`                                      | `/skill-design`      |
+| `.github/ISSUE_TEMPLATE/*.yml`                                            | `/project-layout`    |
 | Project directory tree                                                    | `/project-layout`    |
 
 If a file in scope matches no binding row, mark it UNAUDITED in the plan and report (no
@@ -259,7 +260,7 @@ You MUST adhere to the following discipline during every audit.
 | `/platformio-config` | Provides the platformio.ini/library.json style checklist; loaded when scope contains those files |
 | `/api-docs`          | Provides the Sphinx docs style checklist; loaded when scope contains docs files                  |
 | `/skill-design`      | Provides the skill and CLAUDE.md style checklist; loaded when scope contains skill files         |
-| `/project-layout`    | Provides the project directory style checklist; loaded when target is a project root             |
+| `/project-layout`    | Provides the directory and issue template checklist, loaded for project roots and .github        |
 | `/explore-codebase`  | Provides project structure context; invoke first when auditing an unfamiliar codebase            |
 
 ---

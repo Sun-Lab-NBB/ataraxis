@@ -26,7 +26,7 @@ directory layout. You MUST verify your changes against the checklist before subm
 - Environment directories (`envs/`) with OS-specific files
 - Test directory conventions (`tests/` vs `test/`)
 - Documentation directory placement (defers to `/api-docs` for internal structure)
-- `.github/` directory structure
+- `.github/` directory structure and the shared issue template corpus
 - Archetype identification criteria
 
 **Does not cover:**
@@ -190,17 +190,43 @@ C# Unity projects do NOT have a `docs/` directory.
 
 ## `.github/` directory
 
-Python projects include a `.github/` directory with issue templates:
+Every project published to GitHub as a standalone repository includes a `.github/` directory that
+holds the shared issue template corpus. All five archetypes use the same corpus:
 
 ```text
 .github/
 └── ISSUE_TEMPLATE/
-    ├── bug_report.md
-    └── feature_request.md
+    ├── bug_report.yml            # Structured bug report form
+    ├── config.yml                # Template chooser configuration
+    └── feature_request.yml       # Structured feature request form
 ```
 
-PlatformIO and Unity projects may or may not include `.github/` depending on whether they are
-published to GitHub as standalone repositories.
+The corpus uses GitHub issue forms, which validate required fields at submission time and apply
+the `bug` and `enhancement` labels that GitHub creates in every repository. Copy all three files
+from [assets/github/](assets/github/) when creating or updating a repository.
+
+### Corpus substitution rules
+
+`bug_report.yml` and `feature_request.yml` are identical in every repository. Copy both files
+verbatim, which keeps the corpus consistent as it spreads across repositories. The bug report form
+asks for the environment as free text, so one form serves Python, PlatformIO, and Unity projects
+alike.
+
+`config.yml` carries a single substitution. Replace the `{project}` placeholder in the API
+documentation link with the repository name, which produces the Netlify address that serves the
+project's API documentation:
+
+```yaml
+url: https://{project}-api-docs.netlify.app/    # https://ataraxis-automation-api-docs.netlify.app/
+```
+
+Projects that build API documentation keep both contact links. Projects that ship without API
+documentation keep the AI development assets link alone, which avoids publishing an address that
+resolves to nothing.
+
+The `blank_issues_enabled: false` setting routes every reported issue through one of the two forms.
+The contact links carry the traffic that suits neither form, sending usage questions to the API
+documentation and skill defects to the ataraxis repository that hosts the plugin marketplace.
 
 ---
 
@@ -337,7 +363,11 @@ Documentation Directory:
 - [ ] Unity projects do NOT have docs/
 
 GitHub Directory:
-- [ ] .github/ISSUE_TEMPLATE/ present for published GitHub repositories
+- [ ] .github/ISSUE_TEMPLATE/ present for every repository published to GitHub
+- [ ] ISSUE_TEMPLATE/ holds exactly bug_report.yml, config.yml, and feature_request.yml
+- [ ] bug_report.yml and feature_request.yml copied verbatim from assets/github/
+- [ ] config.yml {project} placeholder replaced with the repository name
+- [ ] API documentation contact link retained only for projects that build API documentation
 
 No Duplicates:
 - [ ] Directory trees not duplicated in other skills (api-docs owns docs/ internals)

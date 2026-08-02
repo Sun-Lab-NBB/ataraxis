@@ -13,8 +13,9 @@ Based on `ataraxis-automation` and `ataraxis-base-utilities`.
 project-root/
 ├── .github/
 │   └── ISSUE_TEMPLATE/
-│       ├── bug_report.md             # GitHub bug report template
-│       └── feature_request.md        # GitHub feature request template
+│       ├── bug_report.yml            # Structured bug report form
+│       ├── config.yml                # Template chooser configuration
+│       └── feature_request.yml       # Structured feature request form
 ├── docs/
 │   ├── source/
 │   │   ├── api.rst                   # API reference directives (automodule, click)
@@ -72,8 +73,9 @@ Based on `ataraxis-time`.
 project-root/
 ├── .github/
 │   └── ISSUE_TEMPLATE/
-│       ├── bug_report.md             # GitHub bug report template
-│       └── feature_request.md        # GitHub feature request template
+│       ├── bug_report.yml            # Structured bug report form
+│       ├── config.yml                # Template chooser configuration
+│       └── feature_request.yml       # Structured feature request form
 ├── docs/
 │   ├── source/
 │   │   ├── doxygen/                  # Doxygen-generated XML for Breathe
@@ -135,6 +137,11 @@ Based on `ataraxis-transport-layer-mc`.
 
 ```text
 project-root/
+├── .github/
+│   └── ISSUE_TEMPLATE/
+│       ├── bug_report.yml            # Structured bug report form
+│       ├── config.yml                # Template chooser configuration
+│       └── feature_request.yml       # Structured feature request form
 ├── docs/
 │   ├── source/
 │   │   ├── doxygen/                  # Doxygen-generated XML for Breathe
@@ -184,6 +191,11 @@ Based on a microcontroller firmware project.
 
 ```text
 project-root/
+├── .github/
+│   └── ISSUE_TEMPLATE/
+│       ├── bug_report.yml            # Structured bug report form
+│       ├── config.yml                # Template chooser configuration
+│       └── feature_request.yml       # Structured feature request form
 ├── docs/
 │   ├── source/
 │   │   ├── doxygen/                  # Doxygen-generated XML for Breathe
@@ -228,6 +240,11 @@ Based on a Unity behavioral-task project.
 
 ```text
 project-root/
+├── .github/
+│   └── ISSUE_TEMPLATE/
+│       ├── bug_report.yml            # Structured bug report form
+│       ├── config.yml                # Template chooser configuration
+│       └── feature_request.yml       # Structured feature request form
 ├── Assets/                           # Unity project assets (root of all content)
 │   ├── TaskName/                     # Task-specific asset folder
 │   │   ├── Configurations/           # JSON configuration files
