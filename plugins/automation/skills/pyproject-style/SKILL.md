@@ -330,15 +330,18 @@ Tool Configurations:
 - [ ] Ruff: target-version matches lowest supported Python
 - [ ] Ruff: src = ["src"]
 - [ ] Ruff: lint.select = ["ALL"] with project-specific ignores
-- [ ] Ruff: lint.ignore carries the complete shared corpus, then a project-specific section below a blank line
-- [ ] Ruff: Test per-file-ignores use the tests/**/*.py glob and carry the complete shared test corpus
-- [ ] Ruff: Security rules S602, S607, and SLF001 stay in the project-specific section, out of both corpora
+- [ ] Ruff: lint.ignore carries the complete shared block, then any project-specific entries below a blank line
+- [ ] Ruff: S602, S607, and SLF001 stay out of the shared block of lint.ignore, appearing there only as
+      project-specific entries when library code needs them
+- [ ] Ruff: When a tests/ directory exists, per-file-ignores use the tests/**/*.py glob and carry the complete
+      shared test corpus, which includes SLF001
+- [ ] Ruff: A tests/**/*.py key is paired with a lint task that passes ./tests to ruff check (see /tox-config),
+      since the key is inert otherwise
 - [ ] Ruff: format uses double quotes, space indentation
 - [ ] Ruff: Google docstring convention
 - [ ] Ruff: isort configured (case-sensitive, combine-as-imports, etc.)
 - [ ] Ruff: __init__.py ignores F401 and F403
-- [ ] Ruff: test-file ignores present when a tests/ directory exists
-- [ ] Ruff: Each ignore has an explanatory inline comment
+- [ ] Ruff: Each entry in lint.ignore and in every per-file-ignores key has an explanatory inline comment
 - [ ] MyPy: Configuration tier matches project type (full strict or minimal)
 - [ ] MyPy: Standard exclusion list present
 - [ ] Coverage: paths, html, and report sections present

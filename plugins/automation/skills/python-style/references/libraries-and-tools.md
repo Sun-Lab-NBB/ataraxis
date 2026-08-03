@@ -185,6 +185,11 @@ def has_nvidia():
 Run `tox -e lint` after making changes. This runs both **ruff** (style and formatting) and **mypy** (strict type
 checking) in a single command. All issues must be resolved or suppressed with specific ignore comments.
 
+Ruff checks `./src` and `./tests`, so test files are linted alongside library code. Test files are held to a wider
+ignore list, the shared test corpus documented in `/pyproject-style`, because tests legitimately assert, reach into
+private members, inline expected values, and omit annotations and docstrings. Mypy checks `./src` alone, since the
+test directory is in its exclude list.
+
 If `tox` is unavailable, the underlying tools can be run directly:
 - `ruff check .` and `ruff format --check .` for style violations
 - `mypy` for type violations

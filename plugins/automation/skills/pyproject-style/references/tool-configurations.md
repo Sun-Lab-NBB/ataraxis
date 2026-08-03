@@ -82,6 +82,27 @@ max-doc-length = 120  # Maximum documentation line length, the same as code
 convention = "google"
 ```
 
+### The two ignore corpora
+
+Ruff configuration carries two standing ignore lists, and they are governed by opposite rules. Name them in full
+wherever either one is referenced, because the bare word "corpus" cannot be resolved to one of them by a reader who
+arrives at a single sentence.
+
+| Name                               | Location                                        | Governs                   |
+|------------------------------------|-------------------------------------------------|---------------------------|
+| the universal `lint.ignore` corpus | `lint.ignore` in `[tool.ruff]`                  | Library code under `src/` |
+| the shared test corpus             | the `"tests/**/*.py"` key of `per-file-ignores` | Test code under `tests/`  |
+
+Each opens with a shared block, the entries every project carries, and closes with a project-specific section below a
+blank line. The `per-file-ignores."**/__init__.py"` key is a third ignore list rather than a corpus. It waives two
+import rules and takes no project-specific section.
+
+Test code is linted, and it is held to the wider of the two lists. Tests assert, reach into private members, inline
+expected values, and omit annotations and docstrings, all of which library code is forbidden to do. The shared test
+corpus waives exactly the rules that report those patterns, so a rule may be required in one corpus and forbidden in
+the other. `SLF001` is the clearest case: it stays out of the shared block of `lint.ignore` and is a member of the
+shared test corpus.
+
 ### Ruff per-file ignores
 
 ```toml
@@ -115,11 +136,15 @@ test corpus below is present in every project, followed by any project-specific 
 ```
 
 `D` and `ANN` are family prefixes rather than individual codes. Test files trip a wide and shifting set of members of
-both families, so the prefixes keep the list stable as tests are added. `SLF001` belongs in the corpus because tests
-are the sole sanctioned exception to the rule that private members stay inside the module that defines them.
+both families, so the prefixes keep the list stable as tests are added. `SLF001` belongs in the shared test corpus
+because tests are the sole sanctioned exception to the rule that private members stay inside the module that defines
+them.
 
 These entries take effect only when the lint task passes the test directory to `ruff check`. A lint task that checks
 `./src` alone leaves the whole key inert. See `/tox-config` for the lint task definition.
+
+Projects extend this key with their own entries below the shared block. When judging a test file, read the project's
+own `"tests/**/*.py"` key as well, because every code it lists is waived for that project's test files.
 
 ### Ruff isort
 
@@ -147,11 +172,11 @@ lint.ignore = [
     "PLR0911", # Sometimes complex return graphs are necessary
     "PLR0912", # Sometimes complex functions are necessary
     "PLR0913", # Sometimes complex functions are necessary
-    "PLR0915", # Sometimes complex type definitions are necessary
+    "PLR0915", # Sometimes functions with many statements are necessary
     "PLR0917", # Call sites pass keyword arguments, so the positional count is immaterial
     "COM812",  # Conflicts with the formatter
     "ISC001",  # Conflicts with the formatter
-    "PT001",   # https://github.com/astral-sh/ruff/issues/8796#issuecomment-182590771
+    "PT001",   # https://github.com/astral-sh/ruff/issues/8796#issuecomment-1825907715
     "PT023",   # https://github.com/astral-sh/ruff/issues/8796#issuecomment-1825907715
     "D107",    # __init__ is documented inside the main class docstring where applicable
     "D205",    # Bugs out for file descriptions
@@ -164,9 +189,10 @@ lint.ignore = [
 ]
 ```
 
-The corpus stays complete in every project, including where a given rule never fires. Because `lint.select = ["ALL"]`
-adopts each new ruff release automatically, a complete corpus keeps a newly stabilized rule from breaking the lint
-task over a question the framework has already settled. Four entries rest on a framework-level decision:
+The universal `lint.ignore` corpus stays complete in every project, including where a given rule never fires. Because
+`lint.select = ["ALL"]` adopts each new ruff release automatically, a complete list keeps a newly stabilized rule from
+breaking the lint task over a question the framework has already settled. The same completeness applies to the shared
+test corpus in every project that carries a test directory. Four entries rest on a framework-level decision:
 
 | Ignore    | Framework decision it records                                                                        |
 |-----------|------------------------------------------------------------------------------------------------------|
@@ -177,7 +203,8 @@ task over a question the framework has already settled. Four entries rest on a f
 
 ### Project-specific Ruff ignores
 
-Add these ignores only when the project requires them. Place them in the project-specific section, below the corpus:
+Add these ignores only when the project requires them. Place them in the project-specific section of `lint.ignore`,
+below the shared block:
 
 | Ignore   | Reason                                                      |
 |----------|-------------------------------------------------------------|
@@ -192,9 +219,15 @@ Add these ignores only when the project requires them. Place them in the project
 | `W293`   | Whitespace in UI formatting is needed                       |
 | `TRY301` | Raising inside a helper is needed to build a full traceback |
 
-Keep the security rules `S602`, `S607`, and `SLF001` out of the corpus. Each reports a genuine risk in a project that
-has no reason to trip it, and `SLF001` in particular enforces the rule that private members stay inside the module
-that defines them.
+Keep the security rules `S602` and `S607`, together with `SLF001`, out of the shared block of `lint.ignore`. Each
+reports a genuine risk in a project that has no reason to trip it, and each is added to the project-specific section
+only by a project whose library code needs it.
+
+`SLF001` carries opposite status in the two corpora, so read the requirement for the one being judged. It stays out of
+the shared block of `lint.ignore`, where it enforces the rule that private members stay inside the module that defines
+them, and it is a required member of the shared test corpus, where tests are the sanctioned exception to that rule. A
+project that lists `SLF001` in the shared test corpus and omits it from the shared block of `lint.ignore` is compliant
+with both rules at once.
 
 ### Ruff unused arguments
 

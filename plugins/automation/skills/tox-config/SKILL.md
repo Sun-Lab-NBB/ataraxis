@@ -225,7 +225,9 @@ envlist =
 
 ### Reduced Python pipeline
 
-Used by application projects that do not have unit tests:
+Used by application projects that do not have unit tests. Their `lint` environment runs
+`ruff check --fix ./src` without `./tests`, because ruff exits with `E902` on a path that does not
+exist:
 
 ```ini
 envlist =
@@ -254,7 +256,11 @@ envlist = docs
 
 - `basepython` MUST be set to the earliest supported Python version.
 - Runs `automation-cli purge-stubs` first to remove stubs that interfere with mypy.
-- Command order: `ruff format` → `ruff check --fix ./src` → `mypy ./src`.
+- Command order: `ruff format` → `ruff check --fix ./src ./tests` → `mypy ./src`. Ruff covers the
+  test directory, which activates the `tests/**/*.py` per-file ignores that hold test code to a
+  wider ignore list than library code. Mypy stays on `./src`, which its exclude list already
+  matches. Reduced Python projects have no test directory and pass `./src` to ruff as well, since
+  ruff exits with `E902` on a path that does not exist.
 - Uses `dependency_groups = dev` (or `extras = dev` in legacy projects).
 - `mypy ./src` runs single-threaded by default; keep it serial for typical libraries. For large
   codebases only (a cold `mypy` run takes several seconds), parallel checking via `-n N` is
@@ -415,7 +421,7 @@ for answering user questions.
 
 | Skill              | Relationship                                                    |
 |--------------------|-----------------------------------------------------------------|
-| `/pyproject-style` | Defines dependency groups and optional-deps consumed by tox     |
+| `/pyproject-style` | Defines dependency groups, ruff ignore corpora, and mypy exclusions the lint task applies |
 | `/api-docs`        | Defines docs/ structure built by the `docs` tox environment     |
 | `/python-style`    | Defines code conventions enforced by the `lint` tox environment |
 | `/project-layout`  | Defines project directory structure that tox.ini assumes        |
@@ -455,7 +461,8 @@ Dependency Patterns:
 Lint Environment:
 - [ ] basepython set to earliest supported Python version
 - [ ] Command order: purge-stubs → ruff format → ruff check --fix → mypy
-- [ ] mypy targets ./src (not . or other paths)
+- [ ] ruff check targets ./src ./tests, or ./src alone when the project has no tests/ directory
+- [ ] mypy targets ./src (not . or other paths), and never ./tests
 - [ ] mypy runs serial by default; -n/--num-workers added only for large projects with a measured speedup
 
 Stubs Environment:

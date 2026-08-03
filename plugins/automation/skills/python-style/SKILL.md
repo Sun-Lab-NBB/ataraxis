@@ -457,6 +457,12 @@ files.**
 
 ```text
 Python Style Compliance:
+(Scope: these items govern library code under src/. Test files under tests/ are linted too, but they
+are held to this checklist as relaxed by the shared test corpus and by the project's own
+tests/**/*.py per-file-ignores key: they may assert, access private members, inline expected values,
+leave fixture arguments unreferenced, and omit docstrings and annotations. Items naming a
+library-code construct, such as interface modules, console.enable(), or __init__.py exports, do not
+apply to test files. Every remaining item applies to test files as written. See /pyproject-style.)
 - [ ] Google-style docstrings on all public and private members
 - [ ] Docstring section order: Summary -> Extended Description -> Notes -> Args -> Returns -> Raises
 - [ ] No Examples sections or in-code examples in docstrings

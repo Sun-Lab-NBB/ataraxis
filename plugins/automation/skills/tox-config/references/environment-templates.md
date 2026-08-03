@@ -57,7 +57,10 @@ omitting it).
 ### lint environment
 
 ```ini
-# Note: The 'basepython' argument should always be set to the earliest supported Python version.
+# Note: The 'basepython' argument should always be set to the earliest supported Python version. The 'ruff check'
+# command also covers the test directory, which activates the 'tests/**/*.py' per-file ignores configured in the
+# pyproject.toml file. The 'mypy' command stays on the source directory, as the test directory is part of the mypy
+# exclusion list.
 [testenv: lint]
 description =
     Runs static code formatting, style, and typing checkers. Follows the configuration defined
@@ -67,7 +70,7 @@ basepython = py312
 commands =
     automation-cli purge-stubs
     ruff format
-    ruff check --fix ./src
+    ruff check --fix ./src ./tests
     mypy ./src
 ```
 
@@ -75,6 +78,21 @@ commands =
 - `basepython`: Set to the earliest Python version in the supported range.
 - `dependency_groups`: Always `dev`. Installs the project's dev dependency group (tox, uv,
   tox-uv, and type stubs).
+- `ruff check` paths: `./src ./tests` for a project that has a `tests/` directory, which is every
+  archetype except Reduced Python. A project without a test directory passes `./src` alone. Ruff
+  reports `E902 No such file or directory` and exits non-zero when a path on its command line does
+  not exist, so a blanket `./tests` breaks the lint task of a project that has no tests.
+
+**Linting scope.** Test code is linted, and it is held to a deliberately wider ignore list than
+library code. Tests legitimately assert, reach into private members, inline expected values, and
+omit annotations and docstrings, so the `tests/**/*.py` per-file-ignores key waives the rules that
+report those patterns. Passing `./tests` to `ruff check` is what activates that key. A lint task
+that checks `./src` alone leaves the key inert, so the test directory goes unlinted while the
+project's configuration claims otherwise. See `/pyproject-style` for the shared test corpus that
+key carries.
+
+`mypy` stays on `./src` in every archetype. Each project's `[tool.mypy]` exclude list carries the
+test directory, so adding `./tests` here asks mypy to check files it is configured to skip.
 
 **Self-hosting exception (ataraxis-automation only):** Since ataraxis-automation IS the automation
 provider, its lint environment does not need `deps = ataraxis-automation==X.Y.Z`. It uses
@@ -97,7 +115,7 @@ For those projects only, append the flag to the lint command:
 commands =
     automation-cli purge-stubs
     ruff format
-    ruff check --fix ./src
+    ruff check --fix ./src ./tests
     mypy -n 8 ./src
 ```
 
@@ -130,6 +148,11 @@ commands =
 
 **Parameterization:**
 - `{package_name}`: The underscore-separated Python package name (e.g., `ataraxis_base_utilities`)
+
+This pass stays on `./src` in every archetype. It sorts the imports of the `.pyi` files that
+`automation-cli process-stubs` writes into the source tree, and stub generation writes nothing under
+`./tests`. The lint environment already sorts the test directory's imports as part of its full
+check.
 
 ### test environment
 
@@ -472,6 +495,15 @@ The tox.ini structure is identical to the full pipeline except:
 - The test and coverage environment definitions may be omitted entirely or left as unused
   definitions for future use.
 - The `install` environment's `depends` list omits test and coverage dependencies.
+- The `lint` environment runs `ruff check --fix ./src`, without `./tests`. A project on this
+  pipeline has no `tests/` directory, and ruff reports `E902 No such file or directory` and exits
+  non-zero on a path that does not exist. The lint block comment drops its sentence about the test
+  directory to match, and `pyproject.toml` carries no `tests/**/*.py` per-file-ignores key.
+
+A project that later gains a test directory moves to the full pipeline, which means restoring the
+test and coverage environments, adding `./tests` to the lint command, and adding the shared test
+corpus to `pyproject.toml`. The three changes travel together, since the ignore key does nothing
+until `ruff check` reaches the directory it covers.
 
 ---
 
@@ -502,7 +534,9 @@ questions.
 | `import`                     | Creates or updates the mamba environment from the stored `.yml` file     |
 
 `tox -e lint` purges `.pyi` stubs (via `automation-cli purge-stubs`) so they do not interfere with
-mypy; `tox -e stubs` regenerates them afterward.
+mypy, and `tox -e stubs` regenerates them afterward. `ruff check` covers `./src` and `./tests`,
+which activates the `tests/**/*.py` per-file ignores, while `mypy` stays on `./src`, which its
+exclude list already matches. Reduced Python projects have no test directory and pass `./src` alone.
 
 ### automation-cli commands
 
