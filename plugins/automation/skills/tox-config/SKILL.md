@@ -151,6 +151,11 @@ envlist =
   runs last after all checks pass.
 - Environment management environments (`create`, `remove`, `provision`, `import`) are defined
   in the file but NOT included in `envlist` because they are invoked manually.
+- Section headers are written without a space after the colon, as `[testenv:lint]`. Tox strips the
+  whitespace and resolves `[testenv: lint]` to the same environment, so the spaced form is a
+  formatting variant rather than a defect. One spelling keeps the headers of a file uniform and keeps
+  a grep for a header name reliable, and this is that spelling. Rewrite the spaced form when editing
+  a file that carries it.
 
 ---
 
@@ -162,7 +167,7 @@ Tox 4.22+ supports PEP 735 dependency groups natively. This is the preferred app
 and modernized projects:
 
 ```ini
-[testenv: lint]
+[testenv:lint]
 dependency_groups = dev
 ```
 
@@ -175,7 +180,7 @@ tools (lint, stubs, test).
 Older projects use optional dependencies instead:
 
 ```ini
-[testenv: lint]
+[testenv:lint]
 extras = dev
 ```
 
@@ -261,6 +266,9 @@ envlist = docs
   wider ignore list than library code. Mypy stays on `./src`, which its exclude list already
   matches. Reduced Python projects have no test directory and pass `./src` to ruff as well, since
   ruff exits with `E902` on a path that does not exist.
+- `ruff format` stays bare. It formats the whole tree from the project root, which keeps test files
+  formatted even in the archetypes whose `ruff check` is scoped to `./src` alone. A path added here
+  narrows formatting to that path.
 - Uses `dependency_groups = dev` (or `extras = dev` in legacy projects).
 - `mypy ./src` runs single-threaded by default; keep it serial for typical libraries. For large
   codebases only (a cold `mypy` run takes several seconds), parallel checking via `-n N` is
@@ -320,6 +328,11 @@ envlist = docs
   `{posargs:}` for `--replace-token` and `--replace-site`. Run `tox -e docs` first to build the html.
 - Both API tokens live in a host-wide shared application directory, so each is entered once per
   host. The per-project Netlify site identifier lives in a tracked `.netlify-site` file at the root.
+- `deploy` and `.netlify-site` are one unit. The environment reads the identifier from that file, so
+  a project carries both or neither. A `deploy` environment without the file fails at the point it
+  resolves the site, and a `.netlify-site` file without the environment names a site nothing
+  publishes to. A project that builds documentation without hosting it keeps `docs` and drops both.
+  See `/project-layout` for the file.
 
 ### Environment management (install, uninstall, create, remove, provision, export, import)
 
@@ -382,7 +395,7 @@ Every environment MUST have a `description` field. Use multi-line format for des
 than 120 characters:
 
 ```ini
-[testenv: lint]
+[testenv:lint]
 description =
     Runs static code formatting, style, and typing checkers. Follows the configuration defined
     in the pyproject.toml file.
@@ -477,6 +490,7 @@ tox.ini Style Compliance:
 - [ ] isolated_build is absent (a tox 3 key that tox 4 ignores)
 - [ ] envlist order matches archetype pattern (uninstall → export → lint → ... → install)
 - [ ] Environment management envs (create, remove, provision, import) NOT in envlist
+- [ ] Section headers written as [testenv:name], with no space after the colon
 
 Dependency Patterns:
 - [ ] lint, stubs, test use dependency_groups = dev (or extras = dev for legacy projects)
@@ -488,6 +502,7 @@ Lint Environment:
 - [ ] basepython set to earliest supported Python version
 - [ ] Command order: purge-stubs → ruff format → ruff check --fix → mypy
 - [ ] ruff check targets ./src ./tests, or ./src alone when the project has no tests/ directory
+- [ ] ruff format takes no path argument, so it formats the whole tree
 - [ ] mypy targets ./src (not . or other paths), and never ./tests
 - [ ] mypy runs serial by default; -n/--num-workers added only for large projects with a measured speedup
 
@@ -519,8 +534,9 @@ Build Environment:
 - [ ] C++ extension projects use cibuildwheel for wheel
 
 Upload and Deploy Environments:
-- [ ] upload runs acquire-pypi-token then upload-project; deploy runs acquire-netlify-token then deploy-docs
+- [ ] upload runs acquire-pypi-token then upload-project, and deploy runs acquire-netlify-token then deploy-docs
 - [ ] Both accept {posargs:} for the credential replacement flags and stay out of envlist
+- [ ] The deploy environment and a root .netlify-site file are both present or both absent
 
 Environment Management:
 - [ ] --environment-name uses correct abbreviation with _dev suffix

@@ -90,14 +90,24 @@ projects.
 7. `[tool.hatch.build.targets.wheel]`
 8. `[tool.ruff]` and sub-tables
 9. `[tool.mypy]`
-10. `[tool.coverage.run]`
-11. `[tool.coverage.paths]`
-12. `[tool.coverage.html]`
-13. `[tool.coverage.report]`
+10. `[[tool.mypy.overrides]]` *(if applicable)*
+11. `[tool.pytest.ini_options]` *(projects with a tests/ directory)*
+12. `[tool.coverage.run]`
+13. `[tool.coverage.paths]`
+14. `[tool.coverage.html]`
+15. `[tool.coverage.report]`
+
+The `[tool.ruff.lint.*]` sub-tables run `format`, `pycodestyle`, `pydocstyle`, `per-file-ignores`,
+`isort`, and then the optional `flake8-unused-arguments`.
 
 `[tool.coverage.run]` holds the `omit` list that excludes interface modules from coverage
-measurement, along with the `parallel` and `concurrency` keys used by projects that run tests
-across processes. It is omitted only by projects that need none of those keys.
+measurement, along with the `parallel`, `concurrency`, and `branch` keys used by projects that run
+tests across processes or measure branch coverage. It is omitted only by projects that need none of
+those keys.
+
+`[[tool.mypy.overrides]]` and `[tool.pytest.ini_options]` carry project-specific content, so this
+skill fixes their position and leaves their contents to the project. See
+[tool-configurations.md](references/tool-configurations.md) for the pytest keys.
 
 For C-extension projects using scikit-build-core, replace the hatch build targets with
 `[tool.scikit-build]` and `[tool.cibuildwheel]` sections at positions 6-7.
@@ -364,9 +374,12 @@ Tool Configurations:
 - [ ] Ruff: S602, S607, and SLF001 stay out of the shared block of lint.ignore, appearing there only as
       project-specific entries when library code needs them
 - [ ] Ruff: When a tests/ directory exists, per-file-ignores use the tests/**/*.py glob and carry the complete
-      shared test corpus, which includes SLF001
+      shared test corpus, which includes SLF001 and T201
+- [ ] Ruff: The test glob is the root-anchored tests/**/*.py, not the **/tests/**/*.py variant that also waives the
+      corpus for any tests directory nested under src/
 - [ ] Ruff: A tests/**/*.py key is paired with a lint task that passes ./tests to ruff check (see /tox-config),
       since the key is inert otherwise
+- [ ] Ruff: flake8-unused-arguments, when present, is the last lint sub-table, below isort
 - [ ] Ruff: format uses double quotes, space indentation
 - [ ] Ruff: Google docstring convention
 - [ ] Ruff: isort configured (case-sensitive, combine-as-imports, etc.)
@@ -374,7 +387,10 @@ Tool Configurations:
 - [ ] Ruff: Each entry in lint.ignore and in every per-file-ignores key has an explanatory inline comment
 - [ ] MyPy: Configuration tier matches project type (full strict or minimal)
 - [ ] MyPy: Standard exclusion list present
+- [ ] Pytest: Projects with a tests/ directory declare addopts = "--import-mode=importlib"
+- [ ] Pytest: pythonpath = ["."] present only where tests spawn subprocesses that import test modules
 - [ ] Coverage: paths, html, and report sections present
+- [ ] Coverage: branch = true present only where the suite already passes the 100% gate with it enabled
 - [ ] Coverage: Standard exclude_lines list present
 - [ ] Coverage: fail_under = 100 and show_missing = true set in [tool.coverage.report]
 - [ ] Coverage: [tool.coverage.run] omit lists every interface module excluded from measurement in full

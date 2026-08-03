@@ -40,9 +40,11 @@ In projects that depend on `ataraxis-base-utilities`, use `console.echo()` for a
 and `console.error()` for error reporting. Use `console.echo(message=..., raw=True)` for
 pre-formatted content (tables, aligned output) that should bypass line-width formatting.
 
-Whether to call `console.enable()` in the top-level `__init__.py` is a per-library choice. If
-`console.echo()` is called in a library that does not have `console.enable()` anywhere, verify
-with the user whether this is intentional.
+`console.enable()` and `console.disable()` belong at entry points that own the runtime, such as a CLI
+command, an MCP server, or the top-level `__init__.py` of a library that drives its own pipeline.
+Code reached as a worker under another library's entry point leaves the console state to that caller.
+Neither placement is a style finding on its own. If `console.echo()` is called in a library that
+enables the console nowhere, verify with the user whether this is intentional.
 
 ---
 

@@ -61,7 +61,7 @@ omitting it).
 # command also covers the test directory, which activates the 'tests/**/*.py' per-file ignores configured in the
 # pyproject.toml file. The 'mypy' command stays on the source directory, as the test directory is part of the mypy
 # exclusion list.
-[testenv: lint]
+[testenv:lint]
 description =
     Runs static code formatting, style, and typing checkers. Follows the configuration defined
     in the pyproject.toml file.
@@ -82,6 +82,9 @@ commands =
   archetype except Reduced Python. A project without a test directory passes `./src` alone. Ruff
   reports `E902 No such file or directory` and exits non-zero when a path on its command line does
   not exist, so a blanket `./tests` breaks the lint task of a project that has no tests.
+- `ruff format` takes no path and formats the whole tree from the project root, which is what keeps
+  test files formatted in every archetype including the ones whose `ruff check` is scoped to `./src`.
+  Adding a path here narrows formatting to that path, so leave the command bare.
 
 **Linting scope.** Test code is linted, and it is held to a deliberately wider ignore list than
 library code. Tests legitimately assert, reach into private members, inline expected values, and
@@ -133,7 +136,7 @@ Rules for enabling it:
 ### stubs environment
 
 ```ini
-[testenv: stubs]
+[testenv:stubs]
 description =
     Generates the py.typed marker and the .pyi stub files using the project's wheel distribution.
 depends = lint
@@ -157,7 +160,7 @@ check.
 ### test environment
 
 ```ini
-[testenv: {py312, py313, py314}-test]
+[testenv:{py312, py313, py314}-test]
 package = wheel
 description =
     Runs unit and integration tests for each of the python versions listed in the task name and

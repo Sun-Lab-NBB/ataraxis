@@ -84,11 +84,12 @@ project type. For the exact template of each section, see
 9. **Installation**: Source and pip installation instructions with standard templates
 10. **Usage**: Detailed usage instructions with subsections
 11. **API documentation**: Link to hosted documentation
-12. **Developers** *(optional)*: Development setup, automation, and troubleshooting
-13. **Versioning**: Semantic versioning statement with link to repository tags
-14. **Authors**: List of contributors with GitHub profile links
-15. **License**: License type with link to LICENSE file
-16. **Acknowledgments**: Credits to Sun lab members and dependency creators
+12. **AI-Assisted Development** *(optional)*: Agent assets, promoted from its usual H3 position
+13. **Developers** *(optional)*: Development setup, automation, and troubleshooting
+14. **Versioning**: Semantic versioning statement with link to repository tags
+15. **Authors**: List of contributors with GitHub profile links
+16. **License**: License type with link to LICENSE file
+17. **Acknowledgments**: Credits to dependency developers and everyone who contributed to the project
 
 ---
 

@@ -385,8 +385,8 @@ Authors: Author Name (Handle)
 from .module_one import ClassOne, function_one
 from .module_two import ClassTwo, ClassThree
 
-# console.enable() belongs only in top-level application libraries (the project's entry-point package).
-# Component libraries must NOT enable console — the application entry point handles this.
+# console.enable() belongs here when this library owns the runtime it participates in. A library
+# that runs only as a worker under another library's entry point leaves the call to that caller.
 
 __all__ = [
     "ClassOne",
@@ -423,13 +423,39 @@ __all__ = [
 - **Subpackage docstring**: Use a single-line docstring describing what the subpackage provides.
   Do NOT include documentation links, source repository links, or authors — these belong only in
   the top-level library `__init__.py`
-- **Console initialization**: `console.enable()` belongs only in top-level application libraries
-  that serve as the final entry point. Component and dependency libraries
-  (e.g., `ataraxis-video-system`) must NOT call `console.enable()` — the top-level application
-  is responsible for enabling the console before any component library code runs
+- **Console initialization**: the test for `console.enable()` and `console.disable()` is whether the
+  code that calls it owns the runtime at that moment. An entry point that the user invokes directly,
+  such as a CLI command, an MCP server, or the `__init__.py` of a library that drives its own
+  pipeline, calls it and is correct to. Code that runs as a worker under another library's entry
+  point leaves the console state to that caller, so the call does not appear on ordinary library
+  paths reached by a downstream import. Both placements are legitimate, and neither is reported as a
+  style finding unless the user names it as one in that specific case
 - **Explicit `__all__`**: Every `__init__.py` must declare `__all__` with all public API members
 - **Alphabetical sorting**: Sort `__all__` entries alphabetically
 - **One-time configuration logic**: `__init__.py` files may contain logic that benefits from
   being executed exactly once on import (e.g., setting the multiprocessing start method,
-  configuring environment variables for platform compatibility). Beyond that, `__init__.py` files
-  should contain only imports and `__all__`
+  configuring environment variables for platform compatibility). See the placement rule below.
+  Beyond that, `__init__.py` files should contain only imports and `__all__`
+
+### Process-wide configuration above the imports
+
+A setting that must run before the import it governs sits above the imports, and every import below
+it carries `# noqa: E402`. The qualifying settings are the multiprocessing start method, the Numba
+threading layer, an environment variable that a dependency reads at import time, and the level of a
+third-party logger that emits during its own import.
+
+```python
+# Configures the numba threading layer before any numba function compiles. macOS uses OpenMP because
+# tbb4py publishes no Apple Silicon wheel, and every other platform uses TBB.
+import sys
+
+from numba import config
+
+config.THREADING_LAYER = "omp" if sys.platform == "darwin" else "tbb"
+
+from .pipelines import run_pipeline  # noqa: E402
+```
+
+The block states in a comment what it configures and why the position is required, because the
+position is the only thing keeping the setting effective. A reader who cannot see that reason moves
+the block down during an unrelated cleanup and silently disables the setting.

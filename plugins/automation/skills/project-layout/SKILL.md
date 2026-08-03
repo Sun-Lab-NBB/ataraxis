@@ -92,6 +92,10 @@ by version control. The matching Netlify API token lives in a `.netlifyrc` file 
 shared application directory, alongside the `.pypirc` file that stores the PyPI token, so both
 credentials are entered once per host rather than once per project.
 
+The file and the `deploy` tox environment are one unit, because that environment reads the identifier
+from it. A project carries both or neither, and a project that builds documentation without hosting
+it keeps its `docs` environment and drops both. See `/tox-config` for the environment.
+
 The `.codegraph/` directory holds a generated code index. It is present only in repositories that
 have been indexed, and its contents are ignored by version control.
 
@@ -349,6 +353,7 @@ Common Root Files:
 - [ ] .gitignore present
 - [ ] CLAUDE.md present
 - [ ] Archetype-specific root files present (pyproject.toml, platformio.ini, etc.)
+- [ ] .netlify-site and the deploy tox environment are both present or both absent
 
 Source Directory:
 - [ ] Python projects use src/ layout with package_name/ subdirectory

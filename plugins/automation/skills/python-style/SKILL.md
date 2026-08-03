@@ -249,6 +249,14 @@ limit = (1.0 / 2.046392675) * self._grid_sampling * factor
 - All imports must be at the **top of the file**. Deferred or inline imports are not allowed.
 - Import sorting and grouping is enforced by **ruff**. Do not manually reorder imports.
 
+### Process-wide configuration above the imports
+
+A setting that must be applied before the import it governs runs sits above the imports in the
+top-level `__init__.py`, and every import below it carries `# noqa: E402`. Such a setting takes
+effect only if it precedes the import, so moving it down changes behavior rather than formatting.
+Configuration carrying no such ordering requirement stays below the imports. See
+[class-patterns.md](references/class-patterns.md) for the qualifying settings and an example.
+
 ### Local import rules
 
 All local (within-library) imports must directly import the required names:
@@ -495,10 +503,13 @@ against the code you wrote.
 - [ ] Error handling uses console.error() when ataraxis-base-utilities is available (else raise)
 - [ ] Local imports use direct name imports (no module imports)
 - [ ] Cross-package imports go through package __init__.py (not submodules)
+- [ ] Any pre-import configuration block is limited to settings that must precede the import they govern, states
+      that requirement in a comment, and carries # noqa: E402 on the imports below it
 - [ ] __init__.py files have __all__ (alphabetically sorted)
 - [ ] Top-level library __init__.py has extended docstring (description, docs link, repo link, authors)
 - [ ] Subpackage __init__.py files have single-line docstrings only (no links or authors)
-- [ ] console.enable() only in top-level application libraries, not component libraries
+- [ ] console.enable() / console.disable() confined to entry points that own the runtime, absent from ordinary
+      worker paths reached by a downstream import (never reported as a finding on its own)
 - [ ] Public definitions above private definitions, both at module level and inside each class body
 - [ ] Dunder methods kept at the top of the class body, directly after the class docstring
 - [ ] Enums and dataclasses above worker functions and classes
@@ -539,5 +550,5 @@ Ataraxis Library Preferences (when ataraxis libraries are dependencies):
 - [ ] Used ataraxis library features instead of standard library equivalents where available
 - [ ] Console output uses console.echo() instead of print(); raw=True for pre-formatted content
 - [ ] Error handling uses console.error() instead of raise (when ataraxis-base-utilities available)
-- [ ] console.enable() absent in component libraries (only top-level application libraries enable it)
+- [ ] console.enable() / console.disable() placed at runtime-owning entry points rather than on ordinary worker paths
 ```

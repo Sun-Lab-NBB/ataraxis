@@ -15,7 +15,27 @@ CLAUDE.md files use the following section order. Omit sections that do not apply
 5. **Available skills**: Table of project skills with descriptions
 6. **MCP server**: MCP server documentation
 7. **Downstream library integration**: Related libraries and coordination
-8. **Project context**: Architecture, key areas, patterns, and standards
+8. **Companion library synchronization** *(optional)*: The paired library and what changes in lockstep
+9. **Distribution model** *(optional)*: How the project's assets reach the user
+10. **Project context**: Architecture, key areas, patterns, and standards
+
+The headings above are the canonical spellings. Write `Style guide compliance` rather than `Style
+guide requirements` and `MCP server` rather than `MCP server integration`, so that the same concern
+carries one name across every project.
+
+### The two conditional sections
+
+Sections 8 and 9 apply to a subset of projects, and a project without the concern omits the section
+rather than writing an empty one.
+
+A **companion library synchronization** section belongs to a project that has a counterpart it must
+stay in step with, such as a microcontroller library paired with its host-side interface. It names
+the counterpart and states what must change alongside a change here, which is the part an agent
+cannot infer from this repository alone.
+
+A **distribution model** section belongs to a project that ships agent assets separately from its
+package. It names the marketplace plugin that registers the project's MCP server and skills, so that
+an agent asked to add a tool knows which repository publishes it.
 
 ---
 

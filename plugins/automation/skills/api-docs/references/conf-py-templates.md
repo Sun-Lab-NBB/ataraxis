@@ -11,14 +11,14 @@ Use this template for projects containing only Python source code.
 
 ```python
 # Configuration file for the Sphinx documentation builder.
-import importlib.metadata
+import importlib_metadata
 
 # -- Project information -----------------------------------------------------
 project = '<PROJECT_NAME>'
 copyright = '<YEAR>, Sun (NeuroAI) lab'
 author = '<AUTHOR>'
 # Extracts the project version from the metadata .toml file.
-release = importlib.metadata.version("<PROJECT_NAME>")
+release = importlib_metadata.version("<PROJECT_NAME>")
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -60,14 +60,16 @@ html_theme = 'furo'
 
 ### Placeholders
 
-| Placeholder      | Description                          | Example                             |
-|------------------|--------------------------------------|-------------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-automation`               |
-| `<YEAR>`         | Current copyright year               | `2026`                              |
-| `<AUTHOR>`       | Author name(s) as string or list     | `'Ivan Kondratyev'` or `['A', 'B']` |
+| Placeholder      | Description                                  | Example                            |
+|------------------|----------------------------------------------|------------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-automation`              |
+| `<YEAR>`         | Current copyright year                       | `2026`                             |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `'Ivan Kondratyev, Natalie Yeung'` |
 
-**Note:** For projects with a single author, use `author = 'Name'`. For projects with multiple
-authors, use `authors = ['Name1', 'Name2']` (plural field name with a list value).
+**Note:** `author` is the only author key Sphinx defines, and it holds a string. A multi-author
+project joins the names into that one string. A plural `authors` key and a list value both parse
+without error and reach no template, so the rendered pages carry Sphinx's `Author name not set`
+default.
 
 ---
 
@@ -118,12 +120,12 @@ space-separated.
 
 ### Placeholders
 
-| Placeholder      | Description                          | Example                             |
-|------------------|--------------------------------------|-------------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-micro-controller`         |
-| `<YEAR>`         | Current copyright year               | `2026`                              |
-| `<AUTHOR>`       | Author name(s) as string or list     | `'Ivan Kondratyev'` or `['A', 'B']` |
-| `<VERSION>`      | Hardcoded version string             | `2.0.0`                             |
+| Placeholder      | Description                                  | Example                            |
+|------------------|----------------------------------------------|------------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-micro-controller`        |
+| `<YEAR>`         | Current copyright year                       | `2026`                             |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `'Ivan Kondratyev, Natalie Yeung'` |
+| `<VERSION>`      | Hardcoded version string                     | `2.0.0`                            |
 
 ---
 
@@ -134,14 +136,14 @@ Python configuration with Breathe integration.
 
 ```python
 # Configuration file for the Sphinx documentation builder.
-import importlib.metadata
+import importlib_metadata
 
 # -- Project information -----------------------------------------------------
 project = '<PROJECT_NAME>'
 copyright = '<YEAR>, Sun (NeuroAI) lab'
 author = '<AUTHOR>'
 # Extracts the project version from the .toml file.
-release = importlib.metadata.version("<PROJECT_NAME>")
+release = importlib_metadata.version("<PROJECT_NAME>")
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -188,8 +190,8 @@ html_theme = 'furo'
 
 ### Placeholders
 
-| Placeholder      | Description                          | Example                             |
-|------------------|--------------------------------------|-------------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-time`                     |
-| `<YEAR>`         | Current copyright year               | `2026`                              |
-| `<AUTHOR>`       | Author name(s) as string or list     | `'Ivan Kondratyev'` or `['A', 'B']` |
+| Placeholder      | Description                                  | Example                            |
+|------------------|----------------------------------------------|------------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-time`                    |
+| `<YEAR>`         | Current copyright year                       | `2026`                             |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `'Ivan Kondratyev, Natalie Yeung'` |

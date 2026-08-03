@@ -127,6 +127,7 @@ test corpus below is present in every project, followed by any project-specific 
     "SLF001",  # Tests exercise private module members directly
     "PT006",   # Parametrize argument names are declared as a single comma-separated string
     "ARG001",  # Pytest injects fixtures that individual tests may not reference
+    "T201",    # Diagnostic prints are how a test reports intermediate state
     "D",       # Test names and inline comments carry the intent that docstrings carry in library code
     "ANN",     # Test functions and mock helpers do not need annotations
 
@@ -134,6 +135,10 @@ test corpus below is present in every project, followed by any project-specific 
     "S106",    # Token arguments in tests carry fake values
 ]
 ```
+
+`tests/**/*.py` is the spelling, anchored at the project root. The `**/tests/**/*.py` variant reaches the same test
+files and additionally waives the whole corpus for any `tests` directory nested anywhere under `src/`, so library code
+placed there is linted as test code. Rewrite the prefixed form to the anchored one wherever it appears.
 
 `D` and `ANN` are family prefixes rather than individual codes. Test files trip a wide and shifting set of members of
 both families, so the prefixes keep the list stable as tests are added. `SLF001` belongs in the shared test corpus
@@ -231,7 +236,8 @@ with both rules at once.
 
 ### Ruff unused arguments
 
-Some projects include this optional section:
+Some projects include this optional section. It is the last of the `[tool.ruff.lint.*]` sub-tables, placed below
+`[tool.ruff.lint.isort]`:
 
 ```toml
 [tool.ruff.lint.flake8-unused-arguments]
@@ -320,6 +326,35 @@ The exclusion list is the same for both tiers. All entries are mandatory:
 | `stubs/`            | stubgen output target directory              |
 | `recipe/`           | grayskull output target directory            |
 | `tests/`            | Test directory (excluded from type checking) |
+
+---
+
+## Pytest configuration
+
+Projects with a `tests/` directory declare the import mode so that a bare `pytest` invocation resolves
+test modules the same way the `test` tox task does:
+
+```toml
+# Pytest configuration. The import mode is declared here so that a bare 'pytest' invocation resolves test modules the
+# same way the '{py}-test' tox task does.
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+```
+
+`importlib` mode imports each test module under its own name without inserting its directory into
+`sys.path`, which is what lets identically named modules coexist in sibling test directories under
+the `tests/**/*.py` layout.
+
+A project whose tests spawn subprocesses that unpickle callables defined in test modules adds
+`pythonpath` so those workers resolve the `tests` package:
+
+```toml
+pythonpath = ["."]
+```
+
+The src layout keeps this entry from shadowing the installed distribution the suite measures coverage
+against. Add it only for a project that spawns such workers, and state the reason in the comment above
+the section.
 
 ---
 
@@ -420,6 +455,18 @@ Projects with multiprocessing or parallel test execution add these keys to the s
 parallel = true
 concurrency = ["multiprocessing", "thread"]
 ```
+
+A project may also measure branch coverage, which reports a conditional or loop whose alternate path
+no test takes:
+
+```toml
+[tool.coverage.run]
+branch = true
+```
+
+`branch = true` raises what `fail_under = 100` demands, since a partial branch counts as a gap once
+the key is present. Add it to a project whose suite already passes with it, rather than to a project
+that would need new tests written to restore the gate.
 
 ---
 

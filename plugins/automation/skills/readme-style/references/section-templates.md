@@ -339,6 +339,22 @@ Replace the URL with the actual documentation URL. Documentation links follow th
 
 ---
 
+## AI-Assisted Development as an H2 section
+
+The AI-Assisted Development section is an H3 under Developers by default, where it tells a
+contributor which plugin carries the project's agent assets. A project whose primary interface is an
+agent, meaning the documented path to using it runs through its MCP server and skills rather than
+through its Python API, promotes the section to H2 and places it immediately after API Documentation.
+Promotion moves the section to where a user reads rather than where a contributor reads, and the
+title stays `AI-Assisted Development` at either level.
+
+A promoted section carries what its readers need to start, which is the plugin name, the tools or
+skills the plugin exposes, and the client registration step. Keep the tool listing to a table and
+link the API documentation for everything past the first working result, exactly as the Usage section
+does.
+
+---
+
 ## Developers
 
 Optional. When present, Python libraries use the following standard template. Adapt the tox
@@ -475,8 +491,7 @@ For Python libraries:
 ```markdown
 ## Acknowledgments
 
-- All Sun lab [members](https://neuroai.github.io/sunlab/people) for providing the inspiration
-  and comments during the development of this library.
+- All individuals who contributed to the development of this library, directly or indirectly.
 - The creators of all other dependencies and projects listed in the
   [pyproject.toml](pyproject.toml) file.
 ```
@@ -488,4 +503,6 @@ For C++ / PlatformIO libraries, replace `pyproject.toml` with `platformio.ini`:
   [platformio.ini](platformio.ini) file.
 ```
 
-Additional project-specific acknowledgments may be added between the two standard bullets.
+Additional project-specific acknowledgments may be added between the two standard bullets. The
+section credits dependency developers and contributors, so it names no institution and links to no
+institutional page.

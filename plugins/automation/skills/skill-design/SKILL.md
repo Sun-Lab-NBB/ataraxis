@@ -392,16 +392,12 @@ mistakes, see [anti-patterns.md](references/anti-patterns.md).
 
 ### Structure
 
-CLAUDE.md files use the following section order (omit sections that do not apply):
-
-1. **Title**: `# Claude Code Instructions`
-2. **Session start behavior**: What the agent should do at session start
-3. **Style guide compliance**: Required style conventions
-4. **Cross-referenced library verification**: Dependencies and version checking
-5. **Available skills**: Table of project skills with descriptions
-6. **MCP server**: MCP server documentation
-7. **Downstream library integration**: Related libraries and coordination
-8. **Project context**: Architecture, key areas, patterns, and standards
+CLAUDE.md files open with the `# Claude Code Instructions` title and run through a fixed section
+order that ends in project context. Two of its sections are conditional, applying to projects with a
+companion library or a separate distribution channel for their agent assets. The ordering carries the
+canonical heading spellings, so the same concern takes one name across every project. See
+[claude-md-reference.md](references/claude-md-reference.md) for the ordering and the two conditional
+sections.
 
 ### Formatting rules
 
@@ -488,6 +484,8 @@ CLAUDE.md Compliance:
 - [ ] Third person for descriptive content
 - [ ] Second person with emphasis for directives ("You MUST...")
 - [ ] Sections follow recommended order (Session Start, Style Guide, Skills, etc.)
+- [ ] Section headings use the canonical spellings (Style guide compliance, MCP server)
+- [ ] Optional sections (Companion library synchronization, Distribution model) present only where the concern applies
 - [ ] Uses `##` headings without horizontal rules between sections
 - [ ] Workflow guidance included for common extension tasks
 - [ ] Technical claims cross-referenced against codebase

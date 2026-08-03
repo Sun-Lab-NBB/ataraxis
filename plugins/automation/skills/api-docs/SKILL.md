@@ -173,13 +173,23 @@ dependencies directly to downstream project pyproject.toml files.
 
 ### conf.py rules
 
-- Version extraction MUST use the standard library `importlib.metadata` for Python and hybrid
-  projects. C++-only projects hardcode the version string.
-- The import MUST be written as `import importlib.metadata` and the call MUST stay module-qualified,
-  as `importlib.metadata.version()`. Sphinx reads every module-level name in `conf.py` that matches
-  a configuration key, and `version` is such a key, so the `from importlib.metadata import version`
+- Version extraction MUST use the `importlib_metadata` backport for Python and hybrid projects.
+  C++-only projects hardcode the version string.
+- The import MUST be written as `import importlib_metadata` and the call MUST stay module-qualified,
+  as `importlib_metadata.version()`. Sphinx reads every module-level name in `conf.py` that matches
+  a configuration key, and `version` is such a key, so the `from importlib_metadata import version`
   form would make Sphinx adopt the function object as the project version.
+- `importlib_metadata` reaches `conf.py` through `ataraxis-automation`, which bundles it alongside
+  every other documentation dependency. A downstream project declares it only when its own runtime
+  code imports it. A project whose `conf.py` reads the backport while nothing in its dependency tree
+  requires it builds until an unrelated bump drops the transitive copy, so treat an undeclared
+  runtime import of the backport as the defect rather than the docs build that exposes it.
 - Copyright format: `'YEAR, Sun (NeuroAI) lab'` where YEAR is the current year.
+- `author` is the only author key Sphinx defines and it holds a string, so a multi-author project
+  joins the names into that one string. A plural `authors` key and a list value both parse without
+  error and reach no template, leaving the rendered pages on Sphinx's `Author name not set` default.
+  This is the same silent-acceptance failure that the `sphinx_autodoc_typehints` note below
+  describes, and `conf.py` sits outside both ruff and mypy, so no tool reports either one.
 - Do NOT add IDE-specific suppression comments (e.g., PyCharm `# noinspection PyShadowingBuiltins`
   above the `copyright` assignment). `conf.py` is excluded from ruff (via `extend-exclude`) and from
   mypy (`docs/` is excluded), so the `copyright` builtin shadow needs no suppression. See
@@ -354,8 +364,11 @@ API Documentation Compliance:
 - [ ] Directory structure matches convention (docs/source/ with conf.py, index.rst, welcome.rst, api.rst)
 - [ ] conf.py uses correct extension stack for the archetype
 - [ ] conf.py uses correct extension ordering
-- [ ] Version extracted via module-qualified importlib.metadata (Python/hybrid) or hardcoded (C++-only)
+- [ ] Version extracted via module-qualified importlib_metadata (Python/hybrid) or hardcoded (C++-only)
+- [ ] importlib_metadata reaches conf.py through ataraxis-automation, and is declared by the project only when
+      its own runtime code imports it
 - [ ] Copyright uses current year and 'Sun (NeuroAI) lab' format
+- [ ] Author declared as the singular `author` key holding one string (no plural `authors` key, no list value)
 - [ ] Napoleon configured for Google-style only (numpy disabled)
 - [ ] All sphinx_autodoc_typehints settings present and correct (Python/hybrid)
 - [ ] Breathe configuration present and correct (C++/hybrid)
