@@ -105,7 +105,7 @@ For each file in scope, identify the applicable style skill using the binding ta
 | `tox.ini`                                                                 | `/tox-config`        |
 | `platformio.ini`, `library.json`                                          | `/platformio-config` |
 | `docs/*.rst`, `conf.py`, `Makefile`, `make.bat`, `Doxyfile`               | `/api-docs`          |
-| `SKILL.md`, `CLAUDE.md`, `AGENTS.md`                                      | `/skill-design`      |
+| `SKILL.md`, skill `references/*.md`, `CLAUDE.md`, `AGENTS.md`             | `/skill-design`      |
 | `.github/ISSUE_TEMPLATE/*.yml`                                            | `/project-layout`    |
 | `envs/*`                                                                  | `/project-layout`    |
 | Project directory tree                                                    | `/project-layout`    |
@@ -133,11 +133,14 @@ Build the batches under three rules:
 1. **One binding per batch, two at the absolute most.** Group files by the style skill the table above
    assigned. A batch is Python files, or C++ files, or C# files, and never a mixture.
 2. **A single-file binding gets its own sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`,
-   `tox.ini`, `platformio.ini`, and each `SKILL.md` each bind to a checklist nothing else in the
-   repository uses, so each becomes one sub-agent holding one guide. The documentation package under
-   `docs/` is one sub-agent holding `/api-docs` alone.
-3. **Roughly eight files per source batch**, sharing a package or a directory, capped at twelve
-   sub-agents for the run.
+   `tox.ini`, and `platformio.ini` each bind to a checklist nothing else in the repository uses, so
+   each becomes one sub-agent holding one guide. A skill is one such unit rather than one per file,
+   so its `SKILL.md` and its `references/*.md` travel together, because the progressive-disclosure
+   rules judge a reference file against the `SKILL.md` that loads it. The documentation package
+   under `docs/` is one sub-agent holding `/api-docs` alone.
+3. **Roughly eight files per source batch**, sharing a package or a directory. Forty sub-agents cap
+   the run, twelve run at once, and units beyond forty merge by shared checklist rather than
+   dropping files.
 
 Each sub-agent loads ONLY the checklists its own batch binds to, and receives ONLY the rule-ledger
 rows Step 2 built from those checklists.
@@ -404,8 +407,9 @@ Style Compliance Audit Output:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
 - [ ] For Large tier, batches built by binding with no batch carrying more than two checklists
-- [ ] For Large tier, every single-file binding and the docs package given its own sub-agent
+- [ ] For Large tier, every single-file binding, each skill unit, and the docs package given its own sub-agent
 - [ ] For Large tier, each sub-agent loaded only its own batch's checklists and rule-ledger rows
+- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the report
 - [ ] Step 1 file binding executed (every file in scope mapped to its applicable style skill)
 - [ ] Step 2 checklists loaded for every applicable style skill

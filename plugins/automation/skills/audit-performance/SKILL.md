@@ -185,8 +185,8 @@ sweep it parallelizes. Build the batches under two rules:
 1. **One authority per batch.** Group by the style skill the binding table above assigned, so a batch
    holds Python files or C++ files or C# files, never a mixture. A sub-agent then loads one authority
    rather than three, and Pass 2 dispatches to one width procedure rather than switching per file.
-2. **Roughly eight files per batch**, sharing a package or a directory where the authority allows it,
-   capped at twelve sub-agents for the run.
+2. **Roughly eight files per batch**, sharing a package or a directory where the authority allows it.
+   Forty sub-agents cap the run, twelve run at once, and batches beyond forty merge by authority.
 
 Record the batch count in the Step 8 coverage ledger.
 
@@ -437,7 +437,8 @@ Performance Optimization Audit Compliance:
 - [ ] Pass 2 dispatched to DTYPE TRACE for Python files and WIDTH TRACE for C++ and C# files
 - [ ] Scalar widths traced alongside array widths, including constants, reduction results, and extracted elements
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
-- [ ] For Large tier, files batched by authority with no batch mixing languages, capped at twelve sub-agents
+- [ ] For Large tier, files batched by authority with no batch mixing languages
+- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
 - [ ] For Large tier, each sub-agent received its own batch's multiplicity rows and cross-file call sites
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] Hot-path census completed on the main agent before any fan-out

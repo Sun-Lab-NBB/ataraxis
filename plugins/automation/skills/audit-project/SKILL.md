@@ -148,11 +148,28 @@ Building this once is what stops a four-audit run from reading the same file set
 
 ### Step 2: Select the audits
 
-Route from what the change actually contains rather than from file extensions alone, using the routing
-table in [change-mode.md](references/change-mode.md). A skipped audit is recorded in the report with
-its reason, so a thin run is visible rather than silent.
+Both modes select from what the target actually CONTAINS rather than from file extensions alone. A
+skipped audit is recorded in the report with its reason, so a thin run is visible rather than silent.
 
-Full mode runs all four audits over the whole target and skips nothing.
+Change mode routes with the routing table in [change-mode.md](references/change-mode.md), which reads
+the change set.
+
+Full mode never narrows an audit, and it runs every audit that has something to read. Membership comes
+from the `kind` field of the Step 1 inventory rather than from a change set:
+
+| Audit                | Bound file set                        | Skipped when                  |
+|----------------------|---------------------------------------|-------------------------------|
+| `/audit-facts`       | Metadata and in-source documentation  | Neither class is present      |
+| `/audit-style`       | Every file matching its binding table | No file matches a binding row |
+| `/audit-correctness` | `source`, plus `test` for Pass 10     | Neither kind is present       |
+| `/audit-performance` | `source`                              | No `source` file is present   |
+
+A documentation-only, skill-only, or configuration-only target therefore runs wave 1 alone. Spawning
+an audit whose bound file set is empty pays its whole instruction payload for a report that cannot
+hold a finding, and it spends sub-agent budget the audits with work still need.
+
+Skipping an audit for an empty file set is the ONLY reduction full mode makes. An audit that runs
+covers the whole target, and no finding is dropped because the target is small or unusual.
 
 ### Step 3: Run wave 1
 
@@ -277,7 +294,7 @@ Project Audit Orchestration Compliance:
 - [ ] Every audit told its Step 0 is satisfied, and none paused again
 - [ ] Shared context built once on the main agent and handed to every audit
 - [ ] No audit re-derived the inventory, prerequisites, coverage ranking, or callgraph
-- [ ] Audits selected by what the change contains, with every skipped audit recorded with its reason
+- [ ] Audits selected by what the target contains, with every skipped audit recorded with its reason
 - [ ] Wave 1 completed before wave 2 started
 - [ ] Members of each wave run concurrently at the parallel level the target size selected
 - [ ] Parallelism applied at exactly one level, never wave and batch together

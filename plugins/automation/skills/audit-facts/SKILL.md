@@ -162,15 +162,15 @@ Classify the audit tier from the union of both classes:
 A repository-root target is always Large. Group Large-tier work under three rules, which exist so a
 sub-agent loads one authority rather than the union of every authority in the repository.
 
-1. **One metadata file, one sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`, `tox.ini`,
-   `platformio.ini`, and each `SKILL.md` each get a dedicated sub-agent, because each resolves against
-   a different authoritative source. The documentation package under `docs/` is one sub-agent covering
-   every page in it.
+1. **One metadata file, one sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`, `tox.ini`, and
+   `platformio.ini` each get a dedicated sub-agent, because each resolves against a different
+   authoritative source. A skill is one unit, its `SKILL.md` and `references/*.md` together, because
+   the binding table gives them one source. The `docs/` package is one sub-agent covering every page.
 2. **In-source work batches by package.** One sub-agent per package or per source directory, holding
    roughly eight files, and never mixing languages inside a batch.
-3. **Twelve sub-agents caps the run.** Every sub-agent re-receives the whole instruction payload, so
-   an unbounded fan-out pays that payload once per file and costs more than the verification it
-   parallelizes.
+3. **Forty sub-agents cap the run, and twelve run at once.** Every sub-agent re-receives the whole
+   instruction payload, so the total bounds what the fan-out costs and the in-flight limit paces it.
+   Units beyond forty merge by shared authoritative source rather than dropping files.
 
 Record the sub-agent count in the Step 9 coverage ledger.
 
@@ -465,8 +465,9 @@ Documentation Fact Audit Compliance:
 - [ ] Both documentation classes enumerated for every directory or repository target
 - [ ] Every file in scope bound to a class and an authoritative source per the binding table
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
-- [ ] For Large tier, each metadata file and the docs package given its own sub-agent
-- [ ] For Large tier, in-source work batched by package with no batch mixing languages, capped at twelve sub-agents
+- [ ] For Large tier, each metadata file, each skill unit, and the docs package given its own sub-agent
+- [ ] For Large tier, in-source work batched by package with no batch mixing languages
+- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] Every claim categorized (EXACT, SEMANTIC, DRIFT, WRONG, UNVERIFIABLE)
 - [ ] Every claim assigned a confidence tier (HIGH, MEDIUM, LOW)

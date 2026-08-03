@@ -200,8 +200,8 @@ sweep it parallelizes. Build the batches under two rules:
 1. **One authority per batch.** Group by the style skill the binding table above assigned, so a batch
    holds Python files or C++ files or C# files, never a mixture. A sub-agent then loads one authority
    rather than three, and it never judges a file against another language's rules.
-2. **Roughly eight files per batch**, sharing a package or a directory where the authority allows it,
-   capped at twelve sub-agents for the run.
+2. **Roughly eight files per batch**, sharing a package or a directory where the authority allows it.
+   Forty sub-agents cap the run, twelve run at once, and batches beyond forty merge by authority.
 
 Record the batch count in the Step 8 coverage ledger.
 
@@ -459,7 +459,8 @@ Code Correctness Audit Compliance:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Step 1 prerequisites recorded for every language in scope, including the archetype, the actual test matrix, and the branch and fail_under settings
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
-- [ ] For Large tier, files batched by authority with no batch mixing languages, capped at twelve sub-agents
+- [ ] For Large tier, files batched by authority with no batch mixing languages
+- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
 - [ ] For Large tier, each sub-agent received only the ranking and ledger rows for its own batch
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] Coverage ranking built for every language in scope, from artifacts for Python and from the test suite for C++ and C#

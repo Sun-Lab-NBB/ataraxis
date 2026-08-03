@@ -118,14 +118,26 @@ Tell every batch-level audit that it runs at its own tier and fans out normally.
 
 ## Sub-agent budget
 
-| Mode and level     | Audit sub-agents              | Verification sub-agents      |
-|--------------------|-------------------------------|------------------------------|
-| Change, wave level | 4, one per audit              | One per top-severity finding |
-| Full, batch level  | Up to 12, one audit at a time | One per top-severity finding |
+Two limits govern every run, and they are not the same limit.
 
-Never exceed twelve concurrent sub-agents across the whole run. A wave-level run spends four of that
-twelve on the audits, which leaves room for the verification refutations each audit spawns in its own
-Step 7.
+| Limit     | Value | Meaning                                                     |
+|-----------|-------|-------------------------------------------------------------|
+| In flight | 12    | Sub-agents running at one moment, across the whole run      |
+| Total     | 40    | Sub-agents started over the whole run, across every audit   |
+
+| Mode and level     | Audit sub-agents                    | Verification sub-agents      |
+|--------------------|-------------------------------------|------------------------------|
+| Change, wave level | 4, one per audit                    | One per top-severity finding |
+| Full, batch level  | One audit at a time, up to 12 alive | One per top-severity finding |
+
+A wave-level run spends four of the twelve in-flight slots on the audits themselves, which leaves
+eight for the verification refutations each audit spawns in its own Step 7. Queue whatever exceeds
+twelve and start each as a slot frees, because the in-flight limit paces a run rather than truncating
+it.
+
+The total is a budget rather than a coverage limit. Where an audit's batching rules produce more units
+than the total allows, merge units that share an authority or a checklist until they fit, and record
+the merge in that audit's coverage ledger. Dropping files to reach the cap is a coverage error.
 
 ---
 
