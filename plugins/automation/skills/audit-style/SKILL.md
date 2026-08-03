@@ -14,8 +14,10 @@ user-invocable: true
 Audits files against the authoritative ataraxis framework style skill checklists, reporting only
 non-compliant findings with verbatim checklist citations.
 
-You MUST read this entire skill and load every applicable style skill checklist before starting
-an audit. The verification checklist at the end is mandatory before submitting findings.
+You MUST read this entire skill, load
+[detection-passes.md](references/detection-passes.md), and load every applicable style skill
+checklist before starting an audit. The verification checklist at the end is mandatory before
+submitting findings.
 
 ---
 
@@ -124,12 +126,18 @@ verbatim citations and breaks the "verbatim checklist quote" discipline.
 
 ### Step 2: Load applicable style skill checklists
 
+Run Pass 1 from [detection-passes.md](references/detection-passes.md), which builds the rule ledger
+every later pass reports against.
+
 For every distinct style skill the bindings resolve to, invoke that skill and load its full
 verification checklist along with every reference file the skill mentions. The loaded
 checklists are the only source of truth for "applicable style point." A convention not present
 in any loaded checklist is NOT a violation.
 
 ### Step 3: Line-by-line sweep
+
+Run passes 2 through 9 from [detection-passes.md](references/detection-passes.md) in order. Passes 2
+through 6 cover Dimension A, passes 7 and 8 cover Dimension B, and pass 9 covers Dimension C.
 
 For every file in scope, walk top to bottom. For every line, evaluate against every applicable
 checklist item. Track three parallel dimensions.
@@ -201,9 +209,14 @@ This step catches the most common audit failure mode: misapplying a checklist ru
 
 ### Step 6: Produce the findings report
 
-Use the output format below. Skip compliant items entirely. Report HIGH and MEDIUM confidence
-findings by default. Report LOW confidence findings only when the user explicitly requests
-them via `--include-low` or equivalent invocation.
+Use the output format below. Skip compliant items entirely. Report every surviving finding at every
+confidence tier by default, which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and
+MEDIUM only when the user explicitly asks for it via `--min-confidence medium` or equivalent
+invocation.
+
+The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that
+the report was filtered. LOW means the checklist and source mapping is inferred rather than literal,
+and it never excuses a finding from the verbatim checklist quote the Discipline section requires.
 
 ---
 
@@ -306,6 +319,8 @@ Style Compliance Audit Output:
 - [ ] Step 1 file binding executed (every file in scope mapped to its applicable style skill)
 - [ ] Step 2 checklists loaded for every applicable style skill
 - [ ] Every file in scope walked top to bottom
+- [ ] Rule ledger built in Pass 1, with every rule copied verbatim from a loaded checklist
+- [ ] Detection passes 2 through 9 run in order, with pass 9 run on the main agent over the whole file set
 - [ ] All three dimensions evaluated (structural, comment/docstring quality, cross-file consistency)
 - [ ] Every finding anchored to a verbatim checklist quote
 - [ ] Every finding cites a file location <path>:<line>
@@ -313,7 +328,7 @@ Style Compliance Audit Output:
 - [ ] Every finding assigned a confidence tier (HIGH, MEDIUM, LOW)
 - [ ] Repeated violations of the same checklist point collapsed with counts
 - [ ] Sample verification (3 random findings re-derived) complete
-- [ ] LOW-confidence findings excluded unless explicitly requested
+- [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
 - [ ] No compliant items appear in the report
 - [ ] No factual errors, missing content, or source mismatches appear (those belong to /audit-facts)
 - [ ] No findings invented outside the loaded checklists

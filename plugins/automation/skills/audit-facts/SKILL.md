@@ -14,8 +14,9 @@ user-invocable: true
 Audits documentation against the authoritative source code, reporting only factual mismatches and
 substantive omissions with verbatim source citations.
 
-You MUST read this entire skill before starting an audit. The verification checklist at the end
-is mandatory before submitting findings.
+You MUST read this entire skill and load
+[detection-passes.md](references/detection-passes.md) before starting an audit. The verification
+checklist at the end is mandatory before submitting findings.
 
 ---
 
@@ -176,6 +177,9 @@ than verbatim citations and breaks the "verbatim quote" discipline.
 
 ### Step 2: Extract verifiable claims
 
+Run Pass 1 from [detection-passes.md](references/detection-passes.md), which builds the claim ledger
+every later step consumes and tags each claim with the kind that decides which pass verifies it.
+
 Walk each target file top to bottom and extract every verifiable claim.
 
 In metadata documentation, a claim is any verifiable assertion: API names and signatures, file
@@ -199,6 +203,11 @@ future-tense statements, motivational prose, and every wording concern that `/au
 Pedagogical "why" prose is a claim only when it contains a verifiable factual statement.
 
 ### Step 3: Verify each claim
+
+Run passes 2 through 6 from [detection-passes.md](references/detection-passes.md) in order, which
+sweep existence, signatures, behavior, failures, and quantities. The existence sweep runs first
+because renames are the most common source of drift and it settles them without reading an
+implementation.
 
 For each claim, locate the authoritative source and compare. You MUST open the source file and
 verify directly. Do NOT verify from memory or training data.
@@ -256,6 +265,8 @@ For UNVERIFIABLE findings, state what you searched for and where you looked.
 
 ### Step 4: Omission pass
 
+Run Pass 7 from [detection-passes.md](references/detection-passes.md).
+
 Within the per-file source scope from Step 1 only, walk the source code and check whether the
 documentation mentions every relevant public API, behavior, and constraint.
 
@@ -273,6 +284,8 @@ and belong to `/audit-style`.
 
 ### Step 5: Reference pass
 
+Run Pass 8 from [detection-passes.md](references/detection-passes.md).
+
 For every "see X" or "documented in Y" reference in metadata documentation, verify that X exists
 and contains what the file claims it contains.
 
@@ -283,6 +296,8 @@ elements in XML doc comments, and any module, file, or symbol a comment names.
 Flag only broken or wrong references.
 
 ### Step 6: Internal contradiction pass
+
+Run Pass 9 from [detection-passes.md](references/detection-passes.md).
 
 Identify cases where the documentation makes incompatible claims about the same thing. This
 includes a metadata file contradicting itself, and a docstring contradicting a comment or another
@@ -320,9 +335,14 @@ the in-source row, which distinguishes clean documentation from an unrun pass.
 
 ### Step 9: Produce the findings report
 
-Use the output format below. Skip EXACT and SEMANTIC findings entirely. Report HIGH and MEDIUM
-confidence findings by default. Report LOW confidence findings only when the user explicitly
-requests them via `--include-low` or equivalent invocation.
+Use the output format below. Skip EXACT and SEMANTIC findings entirely. Report every surviving
+finding at every confidence tier by default, which covers LOW alongside HIGH and MEDIUM. Narrow the
+report to HIGH and MEDIUM only when the user explicitly asks for it via `--min-confidence medium` or
+equivalent invocation.
+
+The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that
+the report was filtered. LOW means the source and claim mapping is inferred rather than literal, and
+it never excuses a finding from the citation rules in the Discipline section.
 
 ---
 
@@ -429,6 +449,8 @@ Documentation Fact Audit Compliance:
 - [ ] Every claim categorized (EXACT, SEMANTIC, DRIFT, WRONG, UNVERIFIABLE)
 - [ ] Every claim assigned a confidence tier (HIGH, MEDIUM, LOW)
 - [ ] Every non-EXACT and non-SEMANTIC finding cites a source location <path>:<line>
+- [ ] Claim ledger built in Pass 1, with every claim tagged by kind
+- [ ] Detection passes 2 through 9 run in order, each against the claims its kind assigns it
 - [ ] Every claim verified by reading the source file (no memory-based verification)
 - [ ] Full body of every documented callable read before its documentation was judged
 - [ ] External library claims verified against installed library, not training data
@@ -438,7 +460,7 @@ Documentation Fact Audit Compliance:
 - [ ] Sample verification complete, covering both classes when both produced findings
 - [ ] Coverage ledger present, with every skipped and UNBOUND file listed by path and reason
 - [ ] In-source row of the ledger shows a non-zero audited count for repository targets
-- [ ] LOW-confidence findings excluded unless explicitly requested
+- [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
 - [ ] No EXACT or SEMANTIC findings appear in the report
 - [ ] No style, formatting, convention, or documentation-quality findings appear in the report
 - [ ] No wholly undocumented callable, class, module, or file reported as an omission

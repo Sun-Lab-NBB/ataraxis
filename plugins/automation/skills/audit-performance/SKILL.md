@@ -272,9 +272,15 @@ generated, or when a file is unreadable.
 
 ### Step 9: Produce the findings report
 
-Use the output format below. Report HIGH and MEDIUM confidence findings by default. Report LOW
-confidence findings only when the user explicitly requests them via `--include-low` or equivalent
-invocation.
+Use the output format below. Report every surviving finding at every confidence tier by default,
+which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user
+explicitly asks for it via `--min-confidence medium` or equivalent invocation.
+
+The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that
+the report was filtered. LOW means the cost or multiplicity mapping is inferred rather than measured,
+and it never lowers the evidence floor. A candidate whose heat rests on speculation is still deleted
+by Guard 2 rather than demoted to LOW, and the aggregation rule in Guard 14 still collapses
+constant-factor micro-findings into one note per function.
 
 ---
 
@@ -424,7 +430,7 @@ Performance Optimization Audit Compliance:
 - [ ] Repeated instances of one root cause collapsed with counts
 - [ ] Sample verification (3 random findings re-derived) complete
 - [ ] Coverage ledger present, with every skipped file listed by path and reason
-- [ ] LOW-confidence findings excluded unless explicitly requested
+- [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
 - [ ] No style, formatting, or convention findings appear (those belong to /audit-style)
 - [ ] No correctness or bug findings appear (those belong to /audit-correctness)
 - [ ] No proposal violates a documented project convention without that conflict being stated
