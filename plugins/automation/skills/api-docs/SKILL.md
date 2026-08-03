@@ -223,7 +223,8 @@ dependencies directly to downstream project pyproject.toml files.
   the attribution when appropriate.
 - Third paragraph: standard disclaimer that the site contains API docs only, with link to
   GitHub repository.
-- Footer: explicit RST link targets for the GitHub repo and Sun lab URLs.
+- Footer: explicit RST link targets for every inline link the page uses, which are the Ataraxis
+  repository, the project repository, and the attribution link.
 
 ### Prose punctuation and positive description
 
@@ -361,7 +362,7 @@ API Documentation Compliance:
 - [ ] html_theme set to 'furo'
 - [ ] index.rst includes welcome.rst and has toctree with api
 - [ ] welcome.rst follows template with correct project name and description
-- [ ] welcome.rst includes Sun lab and GitHub repository links
+- [ ] welcome.rst includes the attribution and GitHub repository links
 - [ ] api.rst uses automodule with :members:, :undoc-members:, :show-inheritance: (Python)
 - [ ] api.rst uses click directive with :prog: and :nested: full (Click CLIs)
 - [ ] api.rst uses doxygenfile with :project: (C++ files)
