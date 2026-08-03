@@ -38,6 +38,10 @@ is mandatory before submitting findings.
   `/audit-style`)
 - A callable, class, module, or file that carries no documentation at all, which is a style
   finding (see `/audit-style`)
+- A documentation and code mismatch where the documentation states the intended behavior and the
+  code is the side to fix, together with every defect that involves no documentation at all
+  (see `/audit-correctness`)
+- Cost, speed, memory use, and dtype predictability (see `/audit-performance`)
 - Code modifications or fact corrections (this skill produces findings only)
 - Codebase exploration (see `/explore-codebase`)
 - Verifying external library API claims requires reading the installed library. For ataraxis
@@ -364,9 +368,12 @@ You MUST adhere to the following discipline during every audit.
 - Never flag style, formatting, structural, or convention issues. Those belong to
   `/audit-style`. A docstring or comment enters this report only when a fact inside it disagrees
   with the code.
+- Never flag a defect, an edge case, or a runtime cost. Those belong to `/audit-correctness` and
+  `/audit-performance`.
 - The implementation is authoritative over the documentation, so the Suggested fix edits the
   documentation by default. When the code is the side that looks wrong, say so in the Suggested
-  fix and leave the choice to the user.
+  fix and leave the choice to the user. `/audit-correctness` owns that case and its ownership
+  ladder decides between the two skills.
 - Re-exports count: if the documentation says X is in module Y, and X is re-exported by Y but
   defined elsewhere, that is EXACT, not WRONG.
 - Do not flag subjective preferences (tone, ordering, terminology).
@@ -378,6 +385,8 @@ You MUST adhere to the following discipline during every audit.
 | Skill                   | Relationship                                                                            |
 |-------------------------|-----------------------------------------------------------------------------------------|
 | `/audit-style`          | Sibling audit for style, formatting, documentation quality, and convention compliance   |
+| `/audit-correctness`    | Sibling audit owning the same mismatch when the code is the side to fix                 |
+| `/audit-performance`    | Sibling audit for cost, speed, memory use, and dtype predictability                     |
 | `/explore-codebase`     | Provides project structure context; invoke first when auditing an unfamiliar codebase   |
 | `/explore-dependencies` | Provides ataraxis API snapshots; invoke before verifying external API claims            |
 | `/python-style`         | Defines the docstring sections whose contents this skill verifies against Python code   |
@@ -395,8 +404,10 @@ Invoke this skill when the user asks to fact-check, verify, or audit documentati
 source code. A request that names a directory or a repository covers both documentation classes
 by default, and the Step 0 plan is where the user narrows that scope.
 
-Run before `/audit-style` when auditing the same file end to end. Factual corrections may rewrite
-prose that style would otherwise restyle redundantly.
+Run first in the audit chain, before `/audit-correctness`, `/audit-performance`, and `/audit-style`,
+when auditing the same file end to end. Factual corrections may rewrite prose that style would
+otherwise restyle redundantly, and settling which side of a documentation mismatch is authoritative
+comes before auditing the code itself.
 
 Do NOT make code or documentation changes during the audit. Present findings and wait for user
 direction.

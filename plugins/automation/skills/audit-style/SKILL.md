@@ -34,6 +34,10 @@ an audit. The verification checklist at the end is mandatory before submitting f
 **Does not cover:**
 - Factual accuracy of documentation against source code, including stale references and
   docstring claims that disagree with the implementation (see `/audit-facts`)
+- Active and latent bugs, and behavior that breaks the contract the code states
+  (see `/audit-correctness`)
+- Cost, speed, memory use, and dtype predictability, which covers the runtime consequence of a
+  construct whose form this skill judges (see `/audit-performance`)
 - Code modifications or style fixes (this skill produces findings only)
 - Inventing new conventions not present in any loaded style skill checklist
 - Codebase exploration (see `/explore-codebase`)
@@ -246,6 +250,8 @@ You MUST adhere to the following discipline during every audit.
   violation.
 - Never flag factual errors, missing content, or source-code mismatches. Those belong to
   `/audit-facts`.
+- Never flag a defect, an edge case, or a runtime cost. Those belong to `/audit-correctness` and
+  `/audit-performance`.
 - Never restructure, restyle, or refactor. This skill produces findings only.
 - Never flag subjective preferences (tone, ordering, terminology) unless the loaded checklist
   explicitly requires the convention.
@@ -259,6 +265,8 @@ You MUST adhere to the following discipline during every audit.
 | Skill                | Relationship                                                                                     |
 |----------------------|--------------------------------------------------------------------------------------------------|
 | `/audit-facts`       | Sibling audit for factual accuracy of documentation and docstrings against source code           |
+| `/audit-correctness` | Sibling audit for active and latent bugs, and for behavior that breaks its stated contract       |
+| `/audit-performance` | Sibling audit for cost, speed, memory use, and dtype predictability                              |
 | `/python-style`      | Provides the Python style checklist; loaded when scope contains Python files                     |
 | `/cpp-style`         | Provides the C++ style checklist; loaded when scope contains C++ files                           |
 | `/csharp-style`      | Provides the C# style checklist; loaded when scope contains C# files                             |
@@ -276,8 +284,10 @@ You MUST adhere to the following discipline during every audit.
 ## Proactive behavior
 
 Invoke this skill when the user asks to audit a file, package, or project for style compliance.
-Run after `/audit-facts` when auditing the same file end to end. Style work performed before
-factual corrections wastes effort on prose that may be rewritten.
+Run last in the audit chain, after `/audit-facts`, `/audit-correctness`, and `/audit-performance`,
+when auditing the same file end to end. Style work performed before factual corrections wastes
+effort on prose that may be rewritten, and correctness and optimization fixes change the code whose
+form this skill judges.
 
 Do NOT make code or documentation changes during the audit. Present findings and wait for user
 direction.

@@ -216,6 +216,8 @@ typed directly as slash commands. All of them are provided by the `automation` p
 | `/explore-dependencies` | Explores installed ataraxis library APIs for dependency awareness      |
 | `/audit-facts`          | Audits documentation and in-source docstrings for factual accuracy     |
 | `/audit-style`          | Audits files against applicable style skill checklists for compliance  |
+| `/audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
+| `/audit-performance`    | Audits source code for optimization and dtype predictability findings  |
 | `/commit`               | Drafts style-compliant git commit messages                             |
 | `/pr`                   | Drafts a style-compliant pull request summary for the active branch    |
 | `/release`              | Drafts style-compliant release notes summarizing merged pull requests  |
@@ -240,6 +242,8 @@ provide an MCP server.
 | `platformio-config`    | Applies ataraxis framework platformio.ini and library.json conventions |
 | `audit-facts`          | Audits documentation and in-source docstrings for factual accuracy     |
 | `audit-style`          | Audits files against applicable style skill checklists for compliance  |
+| `audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
+| `audit-performance`    | Audits source code for optimization and dtype predictability findings  |
 | `commit`               | Drafts style-compliant git commit messages                             |
 | `pr`                   | Drafts a style-compliant pull request summary for the active branch    |
 | `release`              | Drafts style-compliant release notes summarizing merged pull requests  |
