@@ -362,22 +362,23 @@ You MUST adhere to the following discipline during every audit.
 
 ## Related skills
 
-| Skill                | Relationship                                                                                     |
-|----------------------|--------------------------------------------------------------------------------------------------|
-| `/audit-facts`       | Sibling audit for factual accuracy of documentation and docstrings against source code           |
-| `/audit-correctness` | Sibling audit for active and latent bugs, and for behavior that breaks its stated contract       |
-| `/audit-performance` | Sibling audit for cost, speed, memory use, and dtype predictability                              |
-| `/python-style`      | Provides the Python style checklist; loaded when scope contains Python files                     |
-| `/cpp-style`         | Provides the C++ style checklist; loaded when scope contains C++ files                           |
-| `/csharp-style`      | Provides the C# style checklist; loaded when scope contains C# files                             |
-| `/readme-style`      | Provides the README style checklist; loaded when scope contains README files                     |
-| `/pyproject-style`   | Provides the pyproject.toml style checklist; loaded when scope contains pyproject.toml           |
-| `/tox-config`        | Provides the tox.ini style checklist; loaded when scope contains tox.ini                         |
-| `/platformio-config` | Provides the platformio.ini/library.json style checklist; loaded when scope contains those files |
-| `/api-docs`          | Provides the Sphinx docs style checklist; loaded when scope contains docs files                  |
-| `/skill-design`      | Provides the skill and CLAUDE.md style checklist; loaded when scope contains skill files         |
-| `/project-layout`    | Provides the directory and issue template checklist, loaded for project roots and .github        |
-| `/explore-codebase`  | Provides project structure context; invoke first when auditing an unfamiliar codebase            |
+| Skill                | Relationship                                                                    |
+|----------------------|----------------------------------------------------------------------------------|
+| `/audit-project`     | Orchestrator that runs this audit in wave 1 and merges it with the siblings     |
+| `/audit-facts`       | Sibling audit for factual accuracy of documentation against source code         |
+| `/audit-correctness` | Sibling audit for active and latent bugs and broken stated contracts            |
+| `/audit-performance` | Sibling audit for cost, speed, memory use, and dtype predictability             |
+| `/python-style`      | Provides the Python checklist, loaded when scope contains Python files          |
+| `/cpp-style`         | Provides the C++ checklist, loaded when scope contains C++ files                |
+| `/csharp-style`      | Provides the C# checklist, loaded when scope contains C# files                  |
+| `/readme-style`      | Provides the README checklist, loaded when scope contains README files          |
+| `/pyproject-style`   | Provides the pyproject.toml checklist, loaded when that file is in scope        |
+| `/tox-config`        | Provides the tox.ini checklist, loaded when that file is in scope               |
+| `/platformio-config` | Provides the platformio.ini and library.json checklist, loaded for those files  |
+| `/api-docs`          | Provides the Sphinx docs checklist, loaded when scope contains docs files       |
+| `/skill-design`      | Provides the skill and CLAUDE.md checklist, loaded for those files              |
+| `/project-layout`    | Provides the directory and issue template checklist, for roots and .github      |
+| `/explore-codebase`  | Provides project structure context, invoke first on an unfamiliar codebase      |
 
 ---
 

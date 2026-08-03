@@ -44,8 +44,6 @@ on that step. The verification checklist at the end is mandatory before submitti
 - Cost, speed, memory use, and dtype predictability (see `/audit-performance`)
 - Code modifications or fact corrections (this skill produces findings only)
 - Codebase exploration (see `/explore-codebase`)
-- Verifying external library API claims requires reading the installed library. For ataraxis
-  dependencies, invoke `/explore-dependencies` first to obtain a current API snapshot
 
 ---
 
@@ -425,6 +423,7 @@ You MUST adhere to the following discipline during every audit.
 
 | Skill                   | Relationship                                                                            |
 |-------------------------|-----------------------------------------------------------------------------------------|
+| `/audit-project`        | Orchestrator that runs this audit in wave 1 and merges its findings with the siblings   |
 | `/audit-style`          | Sibling audit for style, formatting, documentation quality, and convention compliance   |
 | `/audit-correctness`    | Sibling audit owning the same mismatch when the code is the side to fix                 |
 | `/audit-performance`    | Sibling audit for cost, speed, memory use, and dtype predictability                     |

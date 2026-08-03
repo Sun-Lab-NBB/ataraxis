@@ -422,6 +422,7 @@ You MUST adhere to the following discipline during every audit.
 
 | Skill                   | Relationship                                                                           |
 |-------------------------|----------------------------------------------------------------------------------------|
+| `/audit-project`        | Orchestrator that runs this audit in wave 2 and merges its findings with the siblings  |
 | `/audit-facts`          | Sibling audit owning the same mismatch when the documentation is the side to fix       |
 | `/audit-performance`    | Sibling audit for cost, speed, memory use, and dtype predictability                    |
 | `/audit-style`          | Sibling audit for style, formatting, documentation quality, and convention compliance  |
