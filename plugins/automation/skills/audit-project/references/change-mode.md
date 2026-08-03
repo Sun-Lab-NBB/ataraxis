@@ -66,16 +66,21 @@ Python file needs no numeric width trace, and running one wastes a whole audit.
 Apply the table to the WHOLE change set rather than per file. An audit runs when any file in the set
 triggers it, and it then covers every file in the set that binds to it.
 
+This table decides what the wave 2 members are RECOMMENDED for. The Step 0 election decides whether
+they run, and a user who declines one gets it recorded as DECLINED rather than as a routing skip.
+
 Two refinements matter.
 
-**Performance is opt-out, not opt-in, for source changes that touch data.** Read the hunks rather than
-guessing. A change adding a loop over an array, a `np.` constructor, a file read, a serialization
-call, or a method inside a Unity per-frame set triggers it. A change renaming a variable does not.
+**Performance is recommended, not merely permitted, for source changes that touch data.** Read the
+hunks rather than guessing. A change adding a loop over an array, a `np.` constructor, a file read, a
+serialization call, or a method inside a Unity per-frame set triggers it. A change renaming a variable
+does not.
 
-**Correctness always runs when an executable statement changed.** There is no cheap way to know that a
-statement is safe without asking, and that asking is the audit.
+**Correctness is recommended whenever an executable statement changed.** There is no cheap way to know
+that a statement is safe without asking, and that asking is the audit. This is the case where the plan
+should argue for the election rather than present it neutrally.
 
-Record every skipped audit with the routing row that skipped it.
+Record every audit that did not run with the routing row or the election that stopped it.
 
 ---
 
@@ -107,6 +112,11 @@ Findings split into two classes, and the split decides whether the work is done.
 
 Every performance finding is advisory. Cost is a judgment call the user makes with the numbers in
 front of them, and a slow implementation is finished work while a wrong one is not.
+
+A gate covers the audits that RAN. Where the election declined `/audit-correctness`, the largest
+blocking class was never computed, so the verdict states that it covers wave 1 alone and names the
+declined audit beside it. A PASSED verdict that hides a declined correctness audit reads as an
+assurance nobody produced.
 
 Report the verdict as one of four states:
 

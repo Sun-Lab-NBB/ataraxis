@@ -104,12 +104,12 @@ Mode: <FULL | CHANGE, base <revision>>
 Gate: <PASSED | BLOCKED | ADVISORY ONLY | CAPPED after 3 rounds>   (change mode only)
 Round: <n> of 3                                                     (change mode only)
 
-| Audit               | Ran | Blocking | Advisory | Total | Skipped because           |
+| Audit               | Ran | Blocking | Advisory | Total | Not run because           |
 |---------------------|-----|----------|----------|-------|---------------------------|
 | /audit-facts        | yes | <n>      | <n>      | <n>   |                           |
 | /audit-style        | yes | <n>      | <n>      | <n>   |                           |
-| /audit-correctness  | yes | <n>      | <n>      | <n>   |                           |
-| /audit-performance  | no  | 0        | 0        | 0     | <routing row>             |
+| /audit-correctness  | no  | 0        | 0        | 0     | DECLINED at Step 0        |
+| /audit-performance  | no  | 0        | 0        | 0     | EMPTY bound file set      |
 
 Adjudicated away by the collision rules: <n>
 Suppressed as cross-audit duplicates: <n>
@@ -120,6 +120,11 @@ Refuted by adversarial verification: <n> of <n> checked
 
 The per-audit discard counts stay available inside each audit's own section. This header sums them, so
 a reader sees the whole run's precision record in one place.
+
+An audit that did not run carries exactly one of three reasons. DECLINED means the user answered the
+Step 0 wave 2 election against it. EMPTY means its bound file set held nothing. A routing row means
+change mode skipped it. Keep the three distinct, because a reader who cannot tell a user's choice from
+an audit that had no work reads the same blank as a coverage gap.
 
 A blocking count is meaningful in change mode alone. In full mode, report the column as the count of
 findings that WOULD block, which tells a reader what a change-mode run over the same code would stop.

@@ -23,6 +23,7 @@ on that step. The verification checklist at the end is mandatory before presenti
 
 **Covers:**
 - Selecting which of the four audits a target actually needs, and sequencing them
+- Asking the user whether wave 2 runs, rather than sweeping a whole project for bugs and cost unasked
 - Running the shared discovery ONCE, so four audits stop re-deriving one inventory, one set of
   prerequisites, one coverage ranking, and one callgraph
 - Full mode over a repository, a package, or a directory
@@ -107,11 +108,11 @@ Copy this progress checklist into your response and check off items as you compl
 
 ```text
 Project Audit Progress:
-- [ ] Step 0: Mode resolved, target resolved, plan produced and confirmed
+- [ ] Step 0: Mode resolved, target resolved, wave 2 elected, plan confirmed
 - [ ] Step 1: Shared context built
-- [ ] Step 2: Audits selected and the skipped ones recorded
+- [ ] Step 2: Audits selected and the ones not running recorded
 - [ ] Step 3: Wave 1 complete (facts, style)
-- [ ] Step 4: Wave 2 complete (correctness, performance)
+- [ ] Step 4: Wave 2 complete, or skipped because the election kept neither
 - [ ] Step 5: Findings merged and ownership collisions adjudicated
 - [ ] Step 6: Report produced, and in change mode the gate applied
 ```
@@ -125,7 +126,8 @@ Emit ONE plan covering the whole run:
 
 - The mode, and for change mode the base revision and the resolved file list
 - Files in scope, grouped by language and by kind, with counts
-- Which of the four audits will run, and which are skipped with the reason
+- Which of the four audits will run, and which are not running with the reason
+- The wave 2 election below, stated as a question the user answers
 - The parallel level the target size selects
 - Whether coverage artifacts are present, stale, or absent
 
@@ -134,6 +136,31 @@ Pause for user confirmation or a "proceed" signal.
 This plan REPLACES the Step 0 plan of each individual audit. Tell every audit that its own Step 0 is
 already satisfied and that it MUST NOT pause again, otherwise four separate confirmations interrupt
 one run.
+
+### The wave 2 election
+
+Wave 1 is not elective. `/audit-facts` and `/audit-style` run wherever they have files, because
+documentation drift and convention drift accumulate across a whole target and are read that way.
+
+Wave 2 IS elective, and you MUST ask for it explicitly rather than inferring it from the target. Put
+the question in the plan with all four answers stated:
+
+| Answer           | Wave 2 runs                                   |
+|------------------|-----------------------------------------------|
+| Both             | `/audit-correctness` and `/audit-performance` |
+| Correctness only | `/audit-correctness`                          |
+| Performance only | `/audit-performance`                          |
+| Neither          | Wave 1 alone, and the run ends after it       |
+
+Recommend NEITHER in full mode. A correctness or performance sweep over a whole project returns a
+report scoped to nothing the user chose, and both are acted on one module at a time rather than one
+repository at a time. A user who wants them names the module, and that naming is the scoping those
+two audits were built around.
+
+Recommend what the routing table selects in change mode, because a change set is already that scoping.
+
+Ask nothing where the target holds no `source` file. Step 2's bound-file-set rule already drops both
+wave 2 members there, so the election has nothing to decide.
 
 ### Step 1: Build the shared context
 
@@ -148,11 +175,12 @@ Building this once is what stops a four-audit run from reading the same file set
 
 ### Step 2: Select the audits
 
-Both modes select from what the target actually CONTAINS rather than from file extensions alone. A
-skipped audit is recorded in the report with its reason, so a thin run is visible rather than silent.
+Both modes select from what the target actually CONTAINS rather than from file extensions alone, and
+wave 2 additionally requires the Step 0 election. An audit that did not run is recorded in the report
+with its reason, so a thin run is visible rather than silent.
 
 Change mode routes with the routing table in [change-mode.md](references/change-mode.md), which reads
-the change set.
+the change set and recommends the wave 2 election.
 
 Full mode never narrows an audit, and it runs every audit that has something to read. Membership comes
 from the `kind` field of the Step 1 inventory rather than from a change set:
@@ -168,8 +196,12 @@ A documentation-only, skill-only, or configuration-only target therefore runs wa
 an audit whose bound file set is empty pays its whole instruction payload for a report that cannot
 hold a finding, and it spends sub-agent budget the audits with work still need.
 
-Skipping an audit for an empty file set is the ONLY reduction full mode makes. An audit that runs
-covers the whole target, and no finding is dropped because the target is small or unusual.
+Two reductions apply, and they compose. The bound-file-set rule above drops an audit with nothing to
+read, and the Step 0 election drops a wave 2 audit the user declined. Record each under its own
+reason, because a DECLINED audit was offered and an EMPTY one could never have run.
+
+Neither reduction narrows an audit that does run. It covers the whole target, and no finding is
+dropped because the target is small or unusual.
 
 ### Step 3: Run wave 1
 
@@ -182,9 +214,12 @@ reads them rather than re-deriving them.
 
 ### Step 4: Run wave 2
 
-Run `/audit-correctness` and `/audit-performance` at the same parallel level. Hand `/audit-correctness`
-wave 1's DRIFT and WRONG verdicts alongside the shared context, so its ownership ladder adjudicates
-against findings that already exist rather than re-deriving them.
+Run the members the Step 0 election kept, at the same parallel level. Hand `/audit-correctness` wave
+1's DRIFT and WRONG verdicts alongside the shared context, so its ownership ladder adjudicates against
+findings that already exist rather than re-deriving them.
+
+Where the election kept neither, skip wave 2 and go to Step 5, which merges wave 1 alone. Where it
+kept one, that audit runs by itself and the wave costs one sub-agent rather than two.
 
 ### Step 5: Merge and adjudicate
 
@@ -217,12 +252,12 @@ combined coverage ledger, then the findings.
 Mode: <FULL | CHANGE, base <revision>>
 Gate: <PASSED | BLOCKED | ADVISORY ONLY | CAPPED after 3 rounds>   (change mode only)
 
-| Audit               | Ran | Findings | Skipped because           |
+| Audit               | Ran | Findings | Not run because           |
 |---------------------|-----|----------|---------------------------|
 | /audit-facts        | yes | <n>      |                           |
 | /audit-style        | yes | <n>      |                           |
-| /audit-correctness  | yes | <n>      |                           |
-| /audit-performance  | no  | 0        | <reason from the routing> |
+| /audit-correctness  | no  | 0        | DECLINED at Step 0        |
+| /audit-performance  | no  | 0        | EMPTY bound file set      |
 ```
 
 Group the findings by AUDIT, then follow each audit's own output format unchanged inside its section,
@@ -243,11 +278,14 @@ You MUST adhere to the following discipline during every run.
 - Never re-rate a finding. Severity, impact, confidence, and evidence belong to the owning audit.
 - Never let an audit pause for its own Step 0 confirmation once Step 0 here is confirmed.
 - Never narrow an audit to a change set in full mode.
+- Never run a wave 2 audit the user did not elect, and never infer the election from the target alone.
+  A wave 2 audit is expensive and its findings are acted on per module, so the user chooses it.
 - Never apply a fix inside an audit. Fixes happen between rounds, outside the audits, and the next
   round re-audits the files they touched.
 - Never resolve a finding by weakening a test, a contract, a docstring, or a coverage setting. A gate
   satisfied that way is a gate defeated.
-- Record every skipped audit with its reason, and every capped loop with what remained.
+- Record every audit that did not run under its own reason, DECLINED or EMPTY or a routing row, and
+  every capped loop with what remained.
 
 ---
 
@@ -278,6 +316,10 @@ Prefer this skill over invoking a single audit whenever more than one audit appl
 because a single-audit run pays the shared discovery again and produces a report a reader must merge
 by hand.
 
+Invoke `/audit-correctness` or `/audit-performance` DIRECTLY when the user names a module and wants
+one of them over it. That narrow, deliberate run is what those two audits are built for, and routing
+it through this skill adds an orchestration a single-audit target does not need.
+
 Do NOT make code changes during an audit round. Present findings and, in change mode, fix between
 rounds rather than inside them.
 
@@ -294,7 +336,9 @@ Project Audit Orchestration Compliance:
 - [ ] Every audit told its Step 0 is satisfied, and none paused again
 - [ ] Shared context built once on the main agent and handed to every audit
 - [ ] No audit re-derived the inventory, prerequisites, coverage ranking, or callgraph
-- [ ] Audits selected by what the target contains, with every skipped audit recorded with its reason
+- [ ] Audits selected by what the target contains, with every audit that did not run recorded
+- [ ] Wave 2 election asked explicitly at Step 0, with all four answers offered
+- [ ] Neither wave 2 audit run without the user electing it, and any decline recorded as DECLINED
 - [ ] Wave 1 completed before wave 2 started
 - [ ] Members of each wave run concurrently at the parallel level the target size selected
 - [ ] Parallelism applied at exactly one level, never wave and batch together
