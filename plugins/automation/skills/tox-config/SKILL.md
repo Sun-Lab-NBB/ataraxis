@@ -396,6 +396,32 @@ Use inline comments sparingly, only when a setting is non-obvious:
 basepython = py312  # Earliest supported version controls lint/mypy ruleset
 ```
 
+### Comment and description restraint
+
+A `description` field states what the environment does when it runs. It is one sentence, two when
+the environment reads its configuration from another file. Do not restate the environment name, do
+not list the commands the environment already declares below it, and do not explain why the task
+matters.
+
+```ini
+# Avoid - restates the name, then narrates the commands
+[testenv:lint]
+description =
+    The lint environment. This environment runs the linters. It first runs ruff to check formatting
+    and style, then runs mypy to check types, and it is an important part of keeping the codebase
+    consistent and maintainable for all contributors.
+
+# Good
+[testenv:lint]
+description =
+    Runs static code formatting, style, and typing checkers. Follows the configuration defined
+    in the pyproject.toml file.
+```
+
+An inline comment earns its place only when the setting's name and value leave a question open,
+such as a version pin whose reason is external or a flag whose effect is counter-intuitive.
+Comments describe the configuration as it currently stands, never the edit that produced it.
+
 ### Prose punctuation and positive description
 
 These rules apply to every description field, comment, and prose passage in the tox.ini and this skill.
@@ -504,6 +530,9 @@ Environment Management:
 
 Formatting:
 - [ ] Every environment has a description field
+- [ ] Descriptions state what the environment does in one or two sentences (no name restatement, no command narration)
+- [ ] Every inline comment answers a question its setting leaves open
+- [ ] Comments and descriptions record current configuration only, never the edit that produced it
 - [ ] Block comments above [tox] section
 - [ ] No duplicate environment definitions
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)

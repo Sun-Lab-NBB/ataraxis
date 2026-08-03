@@ -85,6 +85,17 @@ A skill is verifiable when its output can be checked against concrete criteria. 
 include a verification checklist that the agent completes before submitting work. Checklists
 prevent subjective quality assessments and ensure consistent compliance.
 
+**Rules name their test**: A rule stated as a quality is unenforceable, because two readers grade it
+differently. State instead the procedure that decides compliance, along with the default the rule
+departs from. "Documentation is concise" is a preference. "The default is the summary line alone,
+and a longer block is earned by a nameable non-obvious property" is a rule, because an agent is able
+to apply it and a reviewer is able to contest the result.
+
+**Checklists separate the enforced from the enforceable**: Where a formatter or a linter already
+resolves an item, group those items together and name the command that settles them. An item a tool
+already enforces spends attention the agent owes to the items nothing else checks, and mixing the
+two kinds is the most common way a long checklist stops working.
+
 ### Progressive disclosure
 
 Keep SKILL.md under 500 lines. Move detailed reference material into separate files that the agent
@@ -352,6 +363,13 @@ Skill files use two voice styles:
 
 Use sentence case for all section headers ("Verification checklist", not "Verification Checklist").
 
+### Prose restraint
+
+A skill file is loaded into the context of every session that triggers it, so its length is a
+recurring cost paid by every future invocation. The default for a rule is one sentence, and
+examples, tables, and motivation are earned rather than assumed. See
+[progressive-disclosure.md](references/progressive-disclosure.md) for the full rule set.
+
 ### Prose punctuation and positive description
 
 Prose in skill files and CLAUDE.md follows the same two rules the language style skills apply to
@@ -447,6 +465,13 @@ Skill File Compliance:
 - [ ] Inter-skill references documented if applicable
 - [ ] Verification checklist included
 - [ ] Terminology consistent (no synonyms or overloaded terms)
+- [ ] Every rule names the procedure that decides compliance and the default it departs from
+- [ ] Checklist groups tool-enforced items separately and names the command that settles them
+- [ ] Each rule defaults to one sentence, with examples and tables earned by the judgment they govern
+- [ ] No rule restated from a skill that owns it (reference the owning skill instead)
+- [ ] Rules duplicated across skills by necessity keep aligned wording
+- [ ] Skill prose records the current skill only, never the edit that produced it
+- [ ] Edits leave the skill no longer than it started unless new cases are genuinely covered
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
 - [ ] Prose states what the skill does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] No auxiliary documentation files (README.md, CHANGELOG.md, etc.)

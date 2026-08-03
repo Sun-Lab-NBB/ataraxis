@@ -235,6 +235,28 @@ State what the subject does and what is currently true. Do not frame it by what 
 used to be, and keep a "not Y" contrast only when it is load-bearing because it corrects a
 counter-intuitive assumption, giving its reason.
 
+### Content restraint
+
+Sphinx generates the entire API reference from the docstrings in the source, so hand-written RST is
+the smallest surface in the project and must stay that way. Every sentence you write by hand is a
+sentence no tool keeps in sync with the code.
+
+**No hand-written API prose**: Do not describe a class, a function, a parameter, or a return value
+in RST. The `automodule`, `click`, and `doxygenfile` directives already emit that content from the
+authoritative source. When an API description reads poorly on the rendered page, correct the
+docstring in the source rather than adding prose around the directive.
+
+**The cover test**: Before keeping a hand-written sentence, cover it and try to reconstruct it from
+the project description and the generated page it introduces. A sentence you are able to
+reconstruct carries no information, so delete it.
+
+**Fixed-size front matter**: `welcome.rst` carries the three paragraphs its rules above prescribe
+and stops. Do not add a features list, a quickstart, an architecture overview, or a motivation
+section, because each duplicates the README and drifts from it. `index.rst` carries the toctree.
+
+**No change narration**: RST source describes the current API. Version history and migration notes
+belong to the release notes.
+
 ### tox.ini docs environment
 
 For the complete tox.ini conventions and all other environment definitions, invoke `/tox-config`.
@@ -354,4 +376,9 @@ API Documentation Compliance:
 - [ ] Documentation URL follows https://PROJECT-api-docs.netlify.app/ convention
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
 - [ ] Prose states what the component does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] No hand-written RST describing a class, function, parameter, or return value
+- [ ] Poor API prose corrected in the source docstring rather than worked around in RST
+- [ ] welcome.rst carries only its three prescribed paragraphs (no features, quickstart, or overview sections)
+- [ ] Each retained hand-written sentence survives the cover test
+- [ ] No version history or migration notes in RST source
 ```

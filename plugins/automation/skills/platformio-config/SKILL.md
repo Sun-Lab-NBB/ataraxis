@@ -142,6 +142,16 @@ library exposes a single header (`"transport_layer.h"`).
 `src/main.cpp` is the local build/test harness (see `microcontroller:firmware-module`) and must never
 be shipped to consumers, even though it lives under `src/`.
 
+### Comment restraint
+
+A `platformio.ini` key states its own name and value, so a comment beside it is justified only by a
+question the key leaves open, such as the reason a dependency is pinned to an exact version, the
+hardware constraint behind a build flag, or a coupling to `library.json` that a reader would
+otherwise break. Do not comment a key by restating it. The `description` field stays at the single
+sentence its row above prescribes, matching the README and repository description rather than
+expanding on them. Comments describe the configuration as it currently stands, never the edit that
+produced it.
+
 ### Prose punctuation and positive description
 
 The `description` field and any configuration comments follow the project prose rules. Prose uses
@@ -231,6 +241,9 @@ PlatformIO configuration:
 - [ ] library.json dependencies mirror platformio.ini lib_deps (same owner/name/version)
 - [ ] each library.json dependency's platforms array matches the boards that list it in lib_deps
 - [ ] library.json version is set (the single source of the C++ library version); platformio.ini has no version
+- [ ] description is the single sentence matching the README and repository description
+- [ ] Every comment answers a question its key leaves open (no comment restating the key)
+- [ ] Comments record current configuration only, never the edit that produced it
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
 - [ ] Prose states what the configuration does, not what it is not or used to be (contrast only when load-bearing)
 ```

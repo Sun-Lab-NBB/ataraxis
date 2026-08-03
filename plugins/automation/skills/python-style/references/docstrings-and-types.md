@@ -56,8 +56,21 @@ information density, readability, and accuracy.
 **Necessary minimalism**: Documentation exists to convey information the reader cannot infer
 from the code itself. Each docstring and comment must be as short as possible while still
 conveying every necessary fact. Do not pad with restatements, motivational prose, or
-implementation trivia. If a function's behavior is fully evident from a single summary line and
-the type signature, no extended description is needed.
+implementation trivia.
+
+The default for every member is the summary line by itself, followed by the Args, Returns, and
+Raises sections the signature requires. An extended description, a Notes section, or a second
+paragraph is an exception the code has to earn. It is earned when the member carries a specific
+property the reader is unable to derive, such as a non-obvious algorithm, an invariant the
+signature does not express, a unit or coordinate convention, a performance characteristic that
+constrains call sites, or a failure mode. Name that property to yourself before writing the extra
+prose. When no such property can be named, the summary line was already complete.
+
+**The cover test**: Before keeping a documentation sentence, cover it and try to reconstruct it
+from the member name, the signature, and the first few lines of the body. A sentence you are able
+to reconstruct carries no information, so delete it. Apply the test to one sentence at a time
+rather than to the block as a whole, because a compliant summary line frequently sits above three
+sentences that each fail.
 
 **Behavioral scope**: A docstring describes what the function does, and it stops there. Leave out
 how the function is deployed in the project, which pipeline stage calls it, which feature depends
@@ -96,6 +109,18 @@ constraints — not narrate what the code already says. Replace `# increment cou
 `counter += 1` with either no comment, or a comment that explains why the increment matters at
 that point.
 
+**No change narration**: Documentation describes the code as it currently stands, never the edit
+that produced it. Do not record that a behavior was added, that a case is now handled, that a
+parameter was renamed, or that a defect was corrected. The commit message and the pull request
+body carry that history and are the only place it belongs. When an edit changes behavior, rewrite
+the affected sentence to state the new behavior and leave the change itself unrecorded.
+
+**No documentation ratchet**: Editing a member is not a reason to lengthen its documentation. When
+a change leaves the documented behavior intact, leave the docstring exactly as it stands. When a
+change alters the behavior, rewrite the affected sentences and delete the ones the change made
+redundant, so the block ends no longer than it started unless the new behavior is genuinely harder
+to derive than the old.
+
 **No stale references**: Comments must not reference closed issue numbers, removed code,
 deprecated versions, or outdated TODOs. When the code referenced by a comment is removed, the
 comment must be removed or rewritten.
@@ -120,6 +145,123 @@ is a contrast that is load-bearing because it corrects a counter-intuitive but l
 and it must carry its reason. For example, "Iterates over columns rather than rows, because the
 columnar store keeps each column contiguous in memory." Without that reason, drop the contrast and
 keep only the positive statement.
+
+### Worked reductions
+
+The rules above name the defects. These pairs show the size of the correction that follows from
+them. Each "Avoid" block is a realistic over-documentation pattern rather than an exaggeration.
+
+**A self-evident function padded with call-site context and restated types:**
+
+```python
+# Avoid
+def resolve_session_directory(root: Path, session_name: str) -> Path:
+    """Resolves the session directory.
+
+    This function takes a root path and a session name and returns the resolved directory. It is
+    called by the batch preparation stage before any jobs are dispatched, and the path it produces
+    is later consumed by the checksum verifier. The function itself does not create the directory.
+
+    Args:
+        root: A Path object representing the root directory.
+        session_name: A string containing the name of the session.
+
+    Returns:
+        A Path object for the session directory.
+    """
+    return root / session_name
+
+
+# Good
+def resolve_session_directory(root: Path, session_name: str) -> Path:
+    """Resolves the path to the session directory without creating it on disk.
+
+    Args:
+        root: The directory that stores all sessions.
+        session_name: The name of the target session.
+
+    Returns:
+        The path to the session directory.
+    """
+    return root / session_name
+```
+
+The reduction keeps the one fact the signature omits, which is that the directory is not created.
+It drops the pipeline stage that calls the function, the stage that consumes its output, and the
+Args entries that name types the annotations already carry.
+
+**A property split into a summary and an extended description:**
+
+```python
+# Avoid
+@property
+def frame_count(self) -> int:
+    """Returns the frame count.
+
+    The frame count is stored as an integer and is set during class initialization. It is used by
+    the visualizer and by the export routine.
+    """
+    return self._frame_count
+
+
+# Good
+@property
+def frame_count(self) -> int:
+    """Returns the number of frames acquired since the last buffer reset."""
+    return self._frame_count
+```
+
+**Comments that narrate the code and record the edit:**
+
+```python
+# Avoid
+# Loop over the sessions.
+for session in sessions:
+    # Now also skips sessions that have no descriptor, which was added to fix the crash.
+    if session.descriptor is None:
+        continue
+
+# Good
+for session in sessions:
+    # Sessions interrupted before the descriptor write are unrecoverable, so they are skipped
+    # rather than repaired.
+    if session.descriptor is None:
+        continue
+```
+
+**A class docstring carrying motivation and type-restating attributes:**
+
+```python
+# Avoid
+class ChecksumVerifier:
+    """A powerful and flexible class that provides a convenient way to verify checksums.
+
+    Checksums are important for guaranteeing data integrity. This class was introduced to make
+    verification easier to perform consistently across the processing pipeline.
+
+    Args:
+        session_path: A Path object.
+
+    Attributes:
+        _session_path: A Path object storing the session path.
+        _algorithm: A string storing the algorithm.
+    """
+
+
+# Good
+class ChecksumVerifier:
+    """Verifies the integrity of a session directory against its stored checksum manifest.
+
+    Args:
+        session_path: The directory whose contents are verified.
+
+    Attributes:
+        _session_path: Cached verification target.
+        _algorithm: Cached name of the hashing algorithm.
+    """
+```
+
+---
 
 ### Class docstrings with attributes
 

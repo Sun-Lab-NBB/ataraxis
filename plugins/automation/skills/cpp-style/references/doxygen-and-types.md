@@ -50,8 +50,21 @@ information density, readability, and accuracy.
 **Necessary minimalism**: Documentation exists to convey information the reader cannot infer
 from the code itself. Each `///` summary, `/** ... */` block, and inline comment must be as
 short as possible while still conveying every necessary fact. Do not pad with restatements,
-motivational prose, or implementation trivia. If a method's behavior is fully evident from a
-single `@brief` line and the parameter types, no additional `@details` paragraph is needed.
+motivational prose, or implementation trivia.
+
+The default for every member is the `@brief` line by itself, followed by the `@tparam`, `@param`,
+and `@returns` tags the signature requires. A `@details` paragraph, a second paragraph after
+`@brief`, or a `@note` is an exception the code has to earn. It is earned when the member carries a
+specific property the reader is unable to derive, such as a non-obvious algorithm, an invariant the
+signature does not express, a unit or pin convention, a timing characteristic that constrains call
+sites, or a hardware failure mode. Name that property to yourself before writing the extra prose.
+When no such property can be named, the `@brief` line was already complete.
+
+**The cover test**: Before keeping a documentation sentence, cover it and try to reconstruct it
+from the member name, the signature, and the first few lines of the body. A sentence you are able
+to reconstruct carries no information, so delete it. Apply the test to one sentence at a time
+rather than to the block as a whole, because a compliant `@brief` line frequently sits above three
+sentences that each fail.
 
 **Behavioral scope**: A Doxygen block describes what the method does, and it stops there. Leave out
 how the method is deployed in the project, which runtime stage calls it, which feature depends on
@@ -91,6 +104,18 @@ constraints — not narrate what the code already says. Replace `// increment co
 `counter++` with either no comment, or a comment that explains why the increment matters at
 that point.
 
+**No change narration**: Documentation describes the code as it currently stands, never the edit
+that produced it. Do not record that a behavior was added, that a case is now handled, that a
+parameter was renamed, or that a defect was corrected. The commit message and the pull request
+body carry that history and are the only place it belongs. When an edit changes behavior, rewrite
+the affected sentence to state the new behavior and leave the change itself unrecorded.
+
+**No documentation ratchet**: Editing a member is not a reason to lengthen its documentation. When
+a change leaves the documented behavior intact, leave the block exactly as it stands. When a change
+alters the behavior, rewrite the affected sentences and delete the ones the change made redundant,
+so the block ends no longer than it started unless the new behavior is genuinely harder to derive
+than the old.
+
 **No stale references**: Comments must not reference closed issue numbers, removed code,
 deprecated firmware versions, or outdated TODOs. When the code referenced by a comment is
 removed, the comment must be removed or rewritten.
@@ -114,6 +139,63 @@ is a contrast that is load-bearing because it corrects a counter-intuitive but l
 and it must carry its reason. For example, "Iterates over columns rather than rows, because the
 columnar store keeps each column contiguous in memory." Without that reason, drop the contrast and
 keep only the positive statement.
+
+### Worked reductions
+
+The rules above name the defects. These pairs show the size of the correction that follows from
+them. Each "Avoid" block is a realistic over-documentation pattern rather than an exaggeration.
+
+**A self-evident method padded with call-site context and restated types:**
+
+```cpp
+// Avoid
+/**
+ * @brief Resets the overflow tracker.
+ *
+ * This method resets the overflow tracker to zero. It is called by RunActiveCommand() at the end
+ * of every reporting cycle, and the value it clears is later read by the PC-side interface when it
+ * reconstructs the traveled distance. The method takes no parameters and returns nothing.
+ */
+void ResetOverflow();
+
+// Good
+/// Clears the accumulated sub-threshold motion so the next reporting cycle starts from zero.
+void ResetOverflow();
+```
+
+The reduction keeps the one fact the name omits, which is what the tracker accumulates. It drops
+the caller, the downstream consumer, and the sentence restating the empty signature.
+
+**A struct member documented with its own type:**
+
+```cpp
+// Avoid
+uint32_t pulse_duration = 35000;  ///< A uint32_t value that stores the pulse duration.
+
+// Good
+uint32_t pulse_duration = 35000;  ///< The time, in microseconds, to keep the valve open.
+```
+
+**Comments that narrate the code and record the edit:**
+
+```cpp
+// Avoid
+// Loop over the pins.
+for (uint8_t index = 0; index < kPinCount; ++index)
+{
+    // Now also skips unbound pins, which was added to fix the startup hang.
+    if (_pins[index] == kUnboundPin) continue;
+}
+
+// Good
+for (uint8_t index = 0; index < kPinCount; ++index)
+{
+    // Unbound pins float at an indeterminate level, so reading them would corrupt the average.
+    if (_pins[index] == kUnboundPin) continue;
+}
+```
+
+---
 
 ### Tag ordering
 
@@ -184,6 +266,9 @@ Every `.h`, `.hpp`, and `.cpp` file must begin with a file-level Doxygen comment
 - `@brief` describes the primary class or purpose of the file
 - Additional `@warning` or `@note` tags provide important file-level context
 - Use third-person imperative mood ("Provides...", "Defines...")
+- The `@brief` description is a lean, cohesive chunk of at most 5 sentences. Methodology, caveats,
+  and rationale belong in the blocks of the classes, methods, enums, and constants the file
+  defines, so relocate each detail to the member it concerns rather than accumulating it here
 
 ---
 

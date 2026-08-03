@@ -62,6 +62,9 @@ reviewing code before submission.
 | Stale issue numbers in comments           | Remove or update with current reference | No stale references          |
 | Typos and grammar errors in comments      | Proofread before submission             | Typo-free and grammatical    |
 | Comments narrate what code obviously does | Remove or explain why                   | No narrate-the-code comments |
+| `/** */` block on a self-evident method   | Single `///` summary line               | Summary line is the default  |
+| `// Now also skips unbound pins`          | State current behavior only             | No change narration          |
+| Block grown on every edit                 | Rewrite in place, delete what is moot   | No documentation ratchet     |
 
 ---
 

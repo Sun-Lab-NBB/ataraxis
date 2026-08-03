@@ -166,6 +166,36 @@ lint.ignore = [
 - One element per line
 - Single-line format is acceptable for arrays with one or two short elements
 
+### Comment restraint
+
+A TOML key states its own name and its own value, so a comment beside it is justified only by a
+question the key leaves open. The qualifying questions are a unit that the value does not carry, a
+rationale for a specific bound or version, a coupling to another file that a reader would otherwise
+break, and a decision that looks wrong until its reason is given. A comment that restates the key
+is noise, and a file where every key carries one trains the reader to skip all of them.
+
+Two standing exceptions apply. Every entry in either ruff ignore corpus carries a reason comment,
+because the entry records a decision rather than a value. Every section keeps its one-line block
+comment naming its purpose.
+
+```toml
+# Avoid - every comment restates the key it sits on
+[project]
+name = "ataraxis-video-system"  # The name of the project
+version = "3.0.0"               # The version of the project
+requires-python = ">=3.12"      # The required python version
+
+# Good - the surviving comment answers a question the key leaves open
+[project]
+name = "ataraxis-video-system"
+version = "3.0.0"
+requires-python = ">=3.12,<3.15"  # 3.15 is untested against the encoder backend
+```
+
+Comments also describe the configuration as it currently stands, never the edit that produced it.
+Do not record that a bound was raised, that a dependency was added, or that an ignore was removed,
+because the commit message carries that history.
+
 ### Prose punctuation and positive description
 
 Comment prose in pyproject.toml follows the two project-wide rules for documentation. Prose uses
@@ -358,6 +388,8 @@ Formatting:
 - [ ] Multi-line arrays with trailing commas
 - [ ] One element per line in multi-line arrays
 - [ ] Category comments in dependency and classifier arrays
+- [ ] Every inline comment answers a question its key leaves open (no comment restating the key)
+- [ ] Comments record current configuration only, never the edit that produced it
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
 - [ ] Prose states what the setting does, not what it is not or used to be (contrast only when load-bearing)
 ```

@@ -135,6 +135,59 @@ library does and what is currently true. Do not frame it by what it is not or wh
 and keep a "not Y" contrast only when it is load-bearing because it corrects a counter-intuitive
 assumption, giving its reason.
 
+### Content restraint
+
+A README earns a reader's attention section by section, so every sentence must carry information
+the reader is unable to obtain faster somewhere else. The three sources that outrank the README are
+the code itself, the hosted API documentation, and the one-line description at the top of the file.
+
+**The cover test**: Before keeping a sentence, cover it and try to reconstruct it from the project
+name, the one-line description, and the section heading it sits under. A sentence you are able to
+reconstruct carries no information, so delete it. Apply the test to one sentence at a time rather
+than to the section as a whole.
+
+**No API reproduction**: The README shows a reader what the library is for and how to start using
+it. It does not reproduce the API surface. Do not list every parameter of a function, every field
+of a configuration class, or every method of a public class, because the hosted documentation
+generates all of it from the docstrings and stays correct as the code changes. Link to the API
+documentation instead and keep the README's usage material to the smallest path that gets a reader
+to a working first result.
+
+**No marketing prose**: State what the library does. Do not describe it as powerful, flexible,
+seamless, robust, comprehensive, or easy to use, and do not explain why its problem matters. A
+reader who opened the README has already accepted the premise.
+
+**No section preamble**: A section starts with its content. Sentences that announce the section,
+such as "This section describes the installation process", restate the heading directly above them.
+
+**No change narration**: The README describes the library as it currently stands. Version history,
+migration notes, and the record of what changed belong to the release notes, so do not accumulate
+them here.
+
+**No ratchet**: Updating a README section is not a reason to lengthen it. When a change leaves the
+documented behavior intact, leave the section as it stands. When behavior changes, rewrite the
+affected sentences and delete the ones the change made redundant.
+
+**Worked reduction:**
+
+```markdown
+<!-- Avoid -->
+## Detailed Description
+
+This section provides a detailed description of the library. This powerful and flexible library
+provides a comprehensive and easy-to-use solution for acquiring video data. Video acquisition is an
+important part of any behavioral experiment, and getting it right is difficult. The library exposes
+a VideoSystem class, which accepts a camera index, a frame rate, a resolution tuple, an output
+directory, and a codec name, and which provides the start(), stop(), and snapshot() methods.
+
+<!-- Good -->
+## Detailed Description
+
+This library acquires, encodes, and saves video data from multiple cameras with hardware-accurate
+frame timestamps. It exposes the VideoSystem class as its entry point. See the
+[API documentation](https://example.readthedocs.io/) for the full interface.
+```
+
 ---
 
 ## Horizontal rules
@@ -266,6 +319,12 @@ Style:
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
 
 Quality:
+- [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, description, and heading)
+- [ ] API surface is linked rather than reproduced (no per-parameter or per-method listings)
+- [ ] No marketing adjectives (powerful, flexible, seamless, robust, comprehensive, easy to use)
+- [ ] No section preamble restating the heading above it
+- [ ] No version history or migration notes (those belong to the release notes)
+- [ ] Updates leave sections no longer than they started unless behavior genuinely changed
 - [ ] All images have meaningful alt text
 - [ ] Link text is descriptive (no "click here")
 - [ ] Technical descriptions cross-referenced against codebase

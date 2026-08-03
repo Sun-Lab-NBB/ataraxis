@@ -67,6 +67,9 @@ Transform code to match project style:
 | Stale issue numbers in comments             | Misleading after issue closure | Remove or update with current reference             |
 | Typos and grammar errors in comments        | Signals unreviewed prose       | Proofread comments and docstrings before submission |
 | Comments narrate what code obviously does   | Adds noise, no signal          | Remove or explain why the code does what it does    |
+| Extended description on a self-evident body | Padding the reader skips       | Keep the summary line alone unless a fact is earned |
+| `# Now also handles the empty case`         | Records the edit, not the code | State current behavior, leave history to the commit |
+| Docstring grown on every edit               | Ratchets toward unreadable     | Rewrite in place, delete what the change made moot  |
 
 ---
 

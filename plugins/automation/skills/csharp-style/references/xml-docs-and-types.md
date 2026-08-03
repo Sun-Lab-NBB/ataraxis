@@ -57,8 +57,21 @@ information density, readability, and accuracy.
 **Necessary minimalism**: Documentation exists to convey information the reader cannot infer
 from the code itself. Each `<summary>`, `<remarks>`, and inline comment must be as short as
 possible while still conveying every necessary fact. Do not pad with restatements, motivational
-prose, or implementation trivia. If a method's behavior is fully evident from a single
-`<summary>` line and the type signature, no additional `<remarks>` block is needed.
+prose, or implementation trivia.
+
+The default for every member is the single-line `<summary>` by itself, followed by the
+`<typeparam>`, `<param>`, `<returns>`, and `<exception>` tags the signature requires. A `<remarks>`
+block is an exception the code has to earn. It is earned when the member carries a specific
+property the reader is unable to derive, such as a non-obvious algorithm, an invariant the
+signature does not express, a unit or coordinate convention, a per-frame cost that constrains call
+sites, or a lifecycle requirement. Name that property to yourself before writing the extra prose.
+When no such property can be named, the `<summary>` line was already complete.
+
+**The cover test**: Before keeping a documentation sentence, cover it and try to reconstruct it
+from the member name, the signature, and the first few lines of the body. A sentence you are able
+to reconstruct carries no information, so delete it. Apply the test to one sentence at a time
+rather than to the block as a whole, because a compliant `<summary>` line frequently sits above
+three sentences that each fail.
 
 **Behavioral scope**: An XML doc describes what the member does, and it stops there. Leave out how
 the member is deployed in the project, which scene or task calls it, which feature depends on it,
@@ -99,6 +112,18 @@ constraints — not narrate what the code already says. Replace `// increment co
 `counter++` with either no comment, or a comment that explains why the increment matters at
 that point.
 
+**No change narration**: Documentation describes the code as it currently stands, never the edit
+that produced it. Do not record that a behavior was added, that a case is now handled, that a
+parameter was renamed, or that a defect was corrected. The commit message and the pull request
+body carry that history and are the only place it belongs. When an edit changes behavior, rewrite
+the affected sentence to state the new behavior and leave the change itself unrecorded.
+
+**No documentation ratchet**: Editing a member is not a reason to lengthen its documentation. When
+a change leaves the documented behavior intact, leave the XML doc exactly as it stands. When a
+change alters the behavior, rewrite the affected sentences and delete the ones the change made
+redundant, so the block ends no longer than it started unless the new behavior is genuinely harder
+to derive than the old.
+
 **No stale references**: Comments must not reference closed issue numbers, removed code,
 deprecated package versions, or outdated TODOs. When the code referenced by a comment is
 removed, the comment must be removed or rewritten.
@@ -122,6 +147,64 @@ is a contrast that is load-bearing because it corrects a counter-intuitive but l
 and it must carry its reason. For example, "Iterates over columns rather than rows, because the
 columnar store keeps each column contiguous in memory." Without that reason, drop the contrast and
 keep only the positive statement.
+
+### Worked reductions
+
+The rules above name the defects. These pairs show the size of the correction that follows from
+them. Each "Avoid" block is a realistic over-documentation pattern rather than an exaggeration.
+
+**A self-evident method padded with call-site context and restated types:**
+
+```csharp
+// Avoid
+/// <summary>Resets the occupancy timer.</summary>
+/// <remarks>
+/// This method resets the occupancy timer back to zero. It is called by the Task component when a
+/// new trial begins, and the timer it clears is later read by the reward controller to decide
+/// whether the animal has met the occupancy requirement. The method takes no parameters.
+/// </remarks>
+public void ResetTimer()
+
+// Good
+/// <summary>Clears the accumulated occupancy time so the next trial starts from zero.</summary>
+public void ResetTimer()
+```
+
+The reduction keeps the one fact the name omits, which is what the timer accumulates. It drops the
+caller, the downstream consumer, and the sentence restating the empty signature.
+
+**A field documented with its own type:**
+
+```csharp
+// Avoid
+/// <summary>A float value that stores the occupancy duration.</summary>
+public float occupancyDurationMs = 1000f;
+
+// Good
+/// <summary>The duration in milliseconds that the animal must occupy the zone to disarm the boundary.</summary>
+public float occupancyDurationMs = 1000f;
+```
+
+**Comments that narrate the code and record the edit:**
+
+```csharp
+// Avoid
+// Loop over the zones.
+foreach (OccupancyZone zone in _zones)
+{
+    // Now also skips disabled zones, which was added to fix the null reference.
+    if (!zone.enabled) continue;
+}
+
+// Good
+foreach (OccupancyZone zone in _zones)
+{
+    // Disabled zones keep stale timer state, so including them would disarm the boundary early.
+    if (!zone.enabled) continue;
+}
+```
+
+---
 
 ### Parameter tags
 
@@ -335,7 +418,11 @@ using UnityEngine;
 
 - Place the file-level `<summary>` before all `using` directives
 - First sentence describes the primary class or purpose of the file
-- Additional sentences provide context for how the file fits into the larger system
+- Additional sentences provide context for how the file fits into the larger system. This is the one
+  place that context belongs, and it stays subject to the cover test like any other prose
+- The whole description is a lean, cohesive chunk of at most 5 sentences. Methodology, caveats, and
+  rationale belong in the XML docs of the classes, methods, and enums the file defines, so relocate
+  each detail to the member it concerns rather than accumulating it here
 - Use third-person imperative mood ("Provides...", "Defines...")
 
 ---

@@ -423,11 +423,19 @@ but do not fix it unless asked.
 
 ```text
 C# Style Compliance:
+
+Judgment items. No tool inspects these, so this checklist is their only enforcement. Walk every one
+against the code you wrote.
 - [ ] XML documentation on all public and private members
 - [ ] Summary tags use third-person imperative mood ("Provides..." not "This class provides...")
 - [ ] Boolean members documented with "Determines whether..."
 - [ ] File-level XML summary comment present
 - [ ] Sentences in comments and XML docs stay under 40 words
+- [ ] Every member defaults to the summary line alone, with a remarks block earned by a nameable non-obvious property
+- [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
+- [ ] Documentation records current behavior only, never the edit that produced it
+- [ ] Edits leave documentation no longer than it started unless the new behavior is harder to derive
+- [ ] File-level summary is at most 5 sentences, with detail relocated into the members it documents
 - [ ] Documentation carries only facts the reader cannot infer from the code (no padding or trivia)
 - [ ] XML docs describe what the code does, with project usage and call-site context left out
 - [ ] Peer-format expectations documented only when counter-intuitive enough to mislead the reader
@@ -439,10 +447,6 @@ C# Style Compliance:
 - [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and code syntax exempt)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
-- [ ] All lines ≤ 120 characters
-- [ ] 4-space indentation, no tabs
-- [ ] Allman brace style (opening braces on new lines)
-- [ ] LF line endings
 - [ ] Full words used (no abbreviations like pos, idx, val, msg)
 - [ ] Private fields use _camelCase prefix
 - [ ] Public fields use camelCase (Unity serialized fields)
@@ -480,8 +484,15 @@ C# Style Compliance:
 - [ ] StringComparison.Ordinal used for internal string matching
 - [ ] Static methods used when no instance state is accessed
 - [ ] Methods ordered by call hierarchy within each visibility group
-- [ ] CSharpier formatting applied before commit
 - [ ] Inline comments use third person imperative
+
+Tooling-enforced items. CSharpier resolves each of these, so run it rather than hand-checking.
+They stay listed for reviews performed without the formatter.
+- [ ] All lines ≤ 120 characters
+- [ ] 4-space indentation, no tabs
+- [ ] Allman brace style (opening braces on new lines)
+- [ ] LF line endings
+- [ ] CSharpier formatting applied before commit
 
 Unity-Specific Compliance:
 - [ ] MonoBehaviour fields for Inspector use public camelCase

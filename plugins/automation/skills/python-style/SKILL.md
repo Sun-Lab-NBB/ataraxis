@@ -49,7 +49,7 @@ Based on the task, load the appropriate reference files:
 
 | Task                                                  | Reference to load                                             |
 |-------------------------------------------------------|---------------------------------------------------------------|
-| Writing or modifying docstrings/types                 | [docstrings-and-types.md](references/docstrings-and-types.md) |
+| Writing or modifying any docstring, comment, or type  | [docstrings-and-types.md](references/docstrings-and-types.md) |
 | Writing classes, dataclasses, enums, or `__init__.py` | [class-patterns.md](references/class-patterns.md)             |
 | Using ataraxis libs, Numba, Click, tests              | [libraries-and-tools.md](references/libraries-and-tools.md)   |
 | Using ataraxis library features                       | Invoke `/explore-dependencies` first, then load above         |
@@ -463,13 +463,19 @@ tests/**/*.py per-file-ignores key: they may assert, access private members, inl
 leave fixture arguments unreferenced, and omit docstrings and annotations. Items naming a
 library-code construct, such as interface modules, console.enable(), or __init__.py exports, do not
 apply to test files. Every remaining item applies to test files as written. See /pyproject-style.)
-- [ ] Google-style docstrings on all public and private members
+
+Judgment items. No tool inspects these, so this checklist is their only enforcement. Walk every one
+against the code you wrote.
 - [ ] Docstring section order: Summary -> Extended Description -> Notes -> Args -> Returns -> Raises
 - [ ] No Examples sections or in-code examples in docstrings
 - [ ] Imperative mood in summaries ("Processes..." not "This method processes...")
 - [ ] Prose used instead of bullet lists in docstrings
 - [ ] No Sphinx specifiers (:class:, :func:, :meth:, :data:) outside MCP tool docstrings
 - [ ] Sentences in comments and docstrings stay under 40 words
+- [ ] Every member defaults to the summary line alone, with longer blocks earned by a nameable non-obvious property
+- [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
+- [ ] Documentation records current behavior only, never the edit that produced it
+- [ ] Edits leave documentation no longer than it started unless the new behavior is harder to derive
 - [ ] Documentation carries only facts the reader cannot infer from the code (no padding or trivia)
 - [ ] Docstrings describe what the code does, with project usage and call-site context left out
 - [ ] Peer-format expectations documented only when counter-intuitive enough to mislead the reader
@@ -482,18 +488,11 @@ apply to test files. Every remaining item applies to test files as written. See 
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and code syntax exempt)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Module docstring description is at most 5 sentences, with detail relocated into the members it documents
-- [ ] All parameters and returns have type annotations
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
-- [ ] Type aliases use PEP 695 `type` statement syntax
 - [ ] Full words used (no abbreviations like `pos`, `idx`, `val`)
 - [ ] Private members use `_underscore` prefix
 - [ ] Keyword arguments used for function calls (except Numba `jitclass` method calls)
 - [ ] Error handling uses console.error() when ataraxis-base-utilities is available (else raise)
-- [ ] Double quotes used for all strings (enforced by ruff)
-- [ ] F-strings used exclusively (no % formatting or .format())
-- [ ] Lines under 120 characters
-- [ ] All imports at top of file (no deferred or inline imports)
-- [ ] Import sorting delegated to ruff (do not manually reorder)
 - [ ] Local imports use direct name imports (no module imports)
 - [ ] Cross-package imports go through package __init__.py (not submodules)
 - [ ] __init__.py files have __all__ (alphabetically sorted)
@@ -521,6 +520,17 @@ apply to test files. Every remaining item applies to test files as written. See 
 - [ ] I/O operations separated from processing logic
 - [ ] Context managers used for resource management
 - [ ] Pathlib used for path manipulation (not string concatenation)
+
+Tooling-enforced items. Ruff resolves or reports each of these, so run `tox -e lint` rather than
+hand-checking them. They stay listed for reviews performed without the linter.
+- [ ] Google-style docstrings on all public and private members
+- [ ] All parameters and returns have type annotations
+- [ ] Type aliases use PEP 695 `type` statement syntax
+- [ ] Double quotes used for all strings (enforced by ruff)
+- [ ] F-strings used exclusively (no % formatting or .format())
+- [ ] Lines under 120 characters
+- [ ] All imports at top of file (no deferred or inline imports)
+- [ ] Import sorting delegated to ruff (do not manually reorder)
 - [ ] Two blank lines between top-level definitions
 - [ ] Trailing commas in multi-line structures
 

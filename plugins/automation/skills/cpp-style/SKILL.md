@@ -424,12 +424,20 @@ but do not fix it unless asked.
 
 ```text
 C++ Style Compliance:
+
+Judgment items. No tool inspects these, so this checklist is their only enforcement. Walk every one
+against the code you wrote.
 - [ ] Doxygen documentation on all public and private members
 - [ ] @brief tags use third-person imperative mood ("Provides..." not "This class provides...")
 - [ ] Boolean members documented with "Determines whether..."
 - [ ] File-level Doxygen comment with @file and @brief present
 - [ ] Doxygen tag order: @brief -> @details -> @warning/@note -> @tparam -> @param -> @returns
 - [ ] Sentences in comments and Doxygen blocks stay under 40 words
+- [ ] Every member defaults to the @brief line alone, with longer blocks earned by a nameable non-obvious property
+- [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
+- [ ] Documentation records current behavior only, never the edit that produced it
+- [ ] Edits leave documentation no longer than it started unless the new behavior is harder to derive
+- [ ] File-level @brief description is at most 5 sentences, with detail relocated into the members it documents
 - [ ] Documentation carries only facts the reader cannot infer from the code (no padding or trivia)
 - [ ] Doxygen blocks describe what the code does, with project usage and call-site context left out
 - [ ] Peer-format expectations documented only when counter-intuitive enough to mislead the reader
@@ -441,9 +449,6 @@ C++ Style Compliance:
 - [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and code syntax exempt)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
-- [ ] All lines <= 120 characters
-- [ ] 4-space indentation, no tabs
-- [ ] Allman brace style (opening braces on new lines)
 - [ ] Full words used (no abbreviations like pos, idx, val, buf)
 - [ ] Classes use PascalCase
 - [ ] Methods use PascalCase (both public and private)
@@ -458,11 +463,6 @@ C++ Style Compliance:
 - [ ] Namespaces use snake_case
 - [ ] Macros use UPPER_SNAKE_CASE
 - [ ] Include guards use LIBRARY_PREFIX_FILE_NAME_H pattern
-- [ ] Include sorting delegated to clang-format (do not manually reorder)
-- [ ] Pointer/reference alignment is left (int* pointer, int& reference)
-- [ ] Attributes ([[nodiscard]], [[maybe_unused]]) on their own line above the declaration (BreakAfterAttributes: Always)
-- [ ] Consecutive assignments aligned (AlignConsecutiveAssignments)
-- [ ] Template declarations on separate lines
 - [ ] Guard clauses / early returns preferred over deep nesting
 - [ ] One primary class per file; file name matches class in snake_case
 - [ ] Public members above private members in class definition
@@ -478,6 +478,17 @@ C++ Style Compliance:
 - [ ] Magic numbers replaced with named static constexpr constants
 - [ ] Test functions have only @file and @brief (no @param, @returns, or @throws)
 - [ ] Linting warnings resolved (not suppressed) unless resolution adds unnecessary complexity
+
+Tooling-enforced items. clang-format and clang-tidy resolve or report each of these, so run them
+rather than hand-checking. They stay listed for reviews performed without the tools.
+- [ ] All lines <= 120 characters
+- [ ] 4-space indentation, no tabs
+- [ ] Allman brace style (opening braces on new lines)
+- [ ] Include sorting delegated to clang-format (do not manually reorder)
+- [ ] Pointer/reference alignment is left (int* pointer, int& reference)
+- [ ] Attributes ([[nodiscard]], [[maybe_unused]]) on their own line above the declaration (BreakAfterAttributes: Always)
+- [ ] Consecutive assignments aligned (AlignConsecutiveAssignments)
+- [ ] Template declarations on separate lines
 - [ ] clang-format applied before commit
 - [ ] clang-tidy passes with zero warnings
 
