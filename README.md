@@ -214,6 +214,7 @@ typed directly as slash commands. All of them are provided by the `automation` p
 |-------------------------|------------------------------------------------------------------------|
 | `/explore-codebase`     | Performs in-depth codebase exploration at the start of a session       |
 | `/explore-dependencies` | Explores installed ataraxis library APIs for dependency awareness      |
+| `/audit-project`        | Orchestrates the four audits and merges their findings into one report |
 | `/audit-facts`          | Audits documentation and in-source docstrings for factual accuracy     |
 | `/audit-style`          | Audits files against applicable style skill checklists for compliance  |
 | `/audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
@@ -240,6 +241,7 @@ provide an MCP server.
 | `project-layout`       | Applies ataraxis framework project directory structure conventions     |
 | `tox-config`           | Applies ataraxis framework tox.ini conventions                         |
 | `platformio-config`    | Applies ataraxis framework platformio.ini and library.json conventions |
+| `audit-project`        | Orchestrates the four audits and merges their findings into one report |
 | `audit-facts`          | Audits documentation and in-source docstrings for factual accuracy     |
 | `audit-style`          | Audits files against applicable style skill checklists for compliance  |
 | `audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
