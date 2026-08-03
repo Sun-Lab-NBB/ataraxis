@@ -14,8 +14,8 @@ user-invocable: true
 Audits source code against the contract it states, reporting only defects that carry a concrete
 trigger, a concrete result, and verbatim source citations.
 
-You MUST read this entire skill and load the reference files it names before starting an audit. The
-verification checklist at the end is mandatory before submitting findings.
+You MUST read this entire skill, and load each reference file at the step that names it, before acting
+on that step. The verification checklist at the end is mandatory before submitting findings.
 
 ---
 
@@ -95,35 +95,15 @@ as an executable expression, a numbered call sequence, or a line-numbered interl
 is written as a concrete value, exception, corruption, or hang. A candidate that resists being written
 that way is discarded. This filter removes more candidates than every other rule in the skill.
 
-**Coverage tier** records why a region escaped the test suite. The tiers are language-neutral, and
-each language fills them from its own instrument. Most Python projects in this framework set
-`fail_under = 100`, so a healthy one's unexercised code is exactly its deliberately excluded regions
-plus the branch outcomes its own settings cannot see. Read the project's actual
+**Coverage tier** records why a region escaped the test suite. The tiers are language-neutral, each
+language fills them from its own instrument, and [detection-passes.md](references/detection-passes.md)
+defines all four alongside the pass that consumes them. Read the project's actual
 `[tool.coverage.report] fail_under` and `[tool.coverage.run] branch` values in Step 1 rather than
-assuming either. A C++ or C# target has no equivalent gate, so its tiers come from reading the test
-suite directly.
+assuming either, because the `branch` value decides whether the T3 tier holds anything at all. A C++
+or C# target has no equivalent gate, so its tiers come from reading the test suite directly.
 
-| Tier | Meaning                                                                                        |
-|------|------------------------------------------------------------------------------------------------|
-| T0   | A file measured nowhere, whether by an `omit` entry or by carrying no test suite at all        |
-| T1   | A statement deliberately excluded, by a coverage pragma or by an `exclude_lines` corpus entry  |
-| T2   | A statement, or a partial branch where branch coverage is on, the report lists as missing      |
-| T3   | A branch outcome the report cannot see, which is every branch arm while branch coverage is off |
-
-Where `branch` is unset or false, T3 is the richest hunting ground this skill has, covering every `if`
-without an `else`, every short-circuit operand, every ternary arm, every loop that can run zero times,
-and every `except` whose `try` never actually raised, all while the gate reports success. Where
-`branch = true`, those same outcomes are measured, so the unexercised ones surface as T2 and T3 stays
-empty.
-
-**Severity** orders the report.
-
-| Severity | Meaning                                                                                             |
-|----------|-----------------------------------------------------------------------------------------------------|
-| CRITICAL | Silent corruption of persisted or transmitted data, unsafe actuation, a hang, or undefined behavior |
-| HIGH     | A wrong value or wrong control flow reaching a consumer, an accumulating leak, a use-after-close    |
-| MEDIUM   | A defect confined to messages and logs, or on a path that fails loudly and immediately              |
-| LOW      | A defect reachable only from test helpers or debug entry points                                     |
+**Severity** orders the report, and [finding-catalog.md](references/finding-catalog.md) defines its
+four levels alongside the per-category guidance that assigns them.
 
 ---
 
@@ -142,7 +122,7 @@ Audit Progress:
 - [ ] Step 4: Sweep passes 2 through 10 complete
 - [ ] Step 5: Ownership adjudicated and findings categorized
 - [ ] Step 6: False-positive guards applied
-- [ ] Step 7: Sample verification complete
+- [ ] Step 7: Findings verified (citation, refutation, re-derivation)
 - [ ] Step 8: Coverage ledger assembled
 - [ ] Step 9: Report produced
 ```
@@ -170,6 +150,13 @@ files and, separately, the files read as authority rather than audited:
 git ls-files '*.py' '*.pyi' '*.h' '*.hpp' '*.cpp' '*.cs'   # audited
 git ls-files 'tests/*' 'pyproject.toml' 'tox.ini'          # authority
 ```
+
+Whole-repository coverage is the default and stays the default. Narrow to a change set ONLY when the
+user asks for that in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a
+branch, `git diff --name-only <commit>` for one commit, or `git status --porcelain` for the working
+tree. A narrowed run still reads every surviving file in full, because a partial read hides the
+context the passes depend on. Record the narrowing and the revision it resolved against in the Step 8
+coverage ledger, so the report states what it did not cover.
 
 Bind each file to the style skill that supplies its citable authority:
 
@@ -200,26 +187,27 @@ Record the prerequisites that apply to the languages in scope, before any verdic
 
 Classify the audit tier:
 
-| Tier   | Indicators                     | Execution                                                                  |
-|--------|--------------------------------|----------------------------------------------------------------------------|
-| Small  | 1 file, under 500 lines        | Main agent, sequential                                                     |
-| Medium | 2-10 files                     | Main agent, file-by-file                                                   |
-| Large  | 10+ files or full project root | Parallel `general-purpose` sub-agents, one per file or per directory group |
+| Tier   | Indicators                     | Execution                                              |
+|--------|--------------------------------|--------------------------------------------------------|
+| Small  | 1 file, under 500 lines        | Main agent, sequential                                 |
+| Medium | 2-10 files                     | Main agent, file-by-file                               |
+| Large  | 10+ files or full project root | Parallel `general-purpose` sub-agents over file batches |
 
-Specify agent type per subsequent step:
+A Large-tier audit BATCHES rather than fanning out per file. Every sub-agent re-receives the whole
+instruction payload, so fanning out per file pays that payload once per file and costs more than the
+sweep it parallelizes. Build the batches under two rules:
 
-| Step                   | Agent type                   | Why                                        |
-|------------------------|------------------------------|--------------------------------------------|
-| Coverage ranking       | main                         | Owns the one project-wide ranking          |
-| Ledger construction    | main                         | Contracts and state span the whole project |
-| Sweep passes (Small)   | main                         | Sequential preserves citation precision    |
-| Sweep passes (Medium)  | main                         | Sequential preserves citation precision    |
-| Sweep passes (Large)   | `general-purpose` (parallel) | Parallelizes across files                  |
-| Ownership adjudication | main                         | Needs the whole-project view               |
-| Guard application      | main                         | Trust boundary                             |
-| Sample verification    | main                         | Trust boundary                             |
-| Coverage ledger        | main                         | Owns the record of what was swept          |
-| Final report           | main                         | Format and ordering live here              |
+1. **One authority per batch.** Group by the style skill the binding table above assigned, so a batch
+   holds Python files or C++ files or C# files, never a mixture. A sub-agent then loads one authority
+   rather than three, and it never judges a file against another language's rules.
+2. **Roughly eight files per batch**, sharing a package or a directory where the authority allows it,
+   capped at twelve sub-agents for the run.
+
+Record the batch count in the Step 8 coverage ledger.
+
+Only the sweep passes fan out. Every other step runs on the main agent, because the coverage ranking,
+the ledgers, ownership adjudication, guard application, verification, and the report each need the
+whole-project view or sit on a trust boundary.
 
 Do NOT use the `Explore` agent type for sweep work. Explore returns summaries rather than the verbatim
 quotes and line-level traces this skill's evidence standard requires.
@@ -266,8 +254,9 @@ ledger, and the CALLGRAPH ledger. Every later pass consumes them.
 
 ### Step 4: Run the sweep passes
 
-Run passes 2 through 10 from [detection-passes.md](references/detection-passes.md) in ranked order.
-Each pass asks one question of every line, and the file also holds the named CEAI procedure that
+Run passes 2 through 10 from [detection-passes.md](references/detection-passes.md) in ranked order,
+over ONE traversal of each file rather than one traversal per pass. Each pass asks one question of
+every line, and the file also holds the named CEAI procedure that
 Pass 2 and several categories call. Pass 8 runs over C++ and C# files alone, and Pass 9 consumes the
 Step 2 ranking.
 
@@ -277,9 +266,10 @@ mechanical detection procedure, required evidence, and severity guidance.
 
 List ALL candidates in each pass. Do NOT stop at the first.
 
-For Large-tier audits, spawn one `general-purpose` sub-agent per file or per directory group. Each
-sub-agent receives the file paths, the Step 2 ranking, the Step 3 ledgers, the reference files, and
-the output format. The main agent synthesizes after all sub-agents complete.
+For Large-tier audits, spawn one `general-purpose` sub-agent per file batch. Each sub-agent receives
+its batch's file paths, the Step 2 ranking rows and the Step 3 ledger rows for those files alone, the
+reference files, and the output format. Sending a sub-agent ranking or ledger rows for files it does
+not hold wastes the payload it pays for. The main agent synthesizes after all sub-agents complete.
 
 ### Step 5: Adjudicate ownership and categorize
 
@@ -299,18 +289,21 @@ specific one, listing the others as tags.
 Walk every candidate through every guard in
 [false-positive-guards.md](references/false-positive-guards.md), in order. The trigger requirement
 runs first and removes the most candidates. Discard everything a guard rejects, and record the count
-of discarded candidates for the coverage ledger.
+of discarded candidates for the report's triage header.
 
-### Step 7: Sample verification
+### Step 7: Verify the surviving findings
 
-Before emitting the report:
+Run the two checks in [verification-protocol.md](references/verification-protocol.md), in order:
 
-1. Sample 3 random findings from the candidate list (if fewer than 3, sample all).
-2. Re-read the cited source line(s) without looking at the original finding.
-3. Re-derive whether the finding holds from scratch, including the trigger and the result.
-4. Discard any finding that does not survive re-verification.
+1. **Citation verification**, against every surviving finding with no sampling. Confirms each quoted
+   string appears at the line it is cited to, and deletes the finding when it does not.
+2. **Adversarial refutation**, against every CRITICAL and HIGH finding. A fresh `general-purpose`
+   sub-agent per finding, instructed to refute it and to answer REFUTED under uncertainty.
 
-This step catches the most common audit failure mode: a plausible trace the code does not admit.
+Both checks are external, testing the finding against the source and against a reader who never saw
+the sweep. Re-reading your own reasoning is no substitute, because that reasoning is the thing under
+test. Record every count the protocol names, because the Step 8 ledger and the report's triage header
+carry them.
 
 ### Step 8: Assemble the coverage ledger
 
@@ -324,20 +317,26 @@ Build the ledger that opens the report:
 ```
 
 List every skipped file by path with its reason, state whether coverage data was present, stale,
-absent, or regenerated, and state the count of candidates the Step 6 guards discarded. Skipping is
-allowed only when the user narrowed the scope in Step 0, when a file is generated, or when a file is
-unreadable.
+absent, or regenerated, and state the Large-tier batch count. Skipping is allowed only when the user
+narrowed the scope in Step 0 or Step 1, when a file is generated, or when a file is unreadable. A run
+narrowed to a change set names the revision it resolved against here.
 
 ### Step 9: Produce the findings report
 
-Use the output format below. Report every surviving finding at every confidence tier by default,
-which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user
-explicitly asks for it via `--min-confidence medium` or equivalent invocation.
+Use the output format below. Open with the triage header from
+[verification-protocol.md](references/verification-protocol.md), which carries the finding counts by
+severity and confidence together with every discard count the guards and the Step 7 checks produced.
+
+Report every surviving finding at every confidence tier by default, which covers LOW alongside HIGH
+and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user explicitly asks for it via
+`--min-confidence medium` or equivalent invocation.
 
 The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that
 the report was filtered. LOW means the trigger is inferred rather than derived, and it never lowers
 the evidence floor. A candidate carrying no concrete trigger and no concrete result is still deleted
-by Guard 1 rather than demoted to LOW.
+by Guard 1 rather than demoted to LOW. LOW findings sit in the trailing `Appendix: LOW confidence`
+section the protocol defines rather than interleaved into the file groups, so the body of the report
+reads at one confidence level.
 
 ---
 
@@ -354,6 +353,7 @@ file before classifying any candidate.
 | NUMERIC_DEFECT               | A result wrong because of the numeric representation                     |
 | STATE_LIFECYCLE_DEFECT       | An object used outside the window in which it is valid                   |
 | RESOURCE_LEAK                | An acquired resource left unreleased on a reachable path                 |
+| DURABILITY_DEFECT            | Persisted bytes a crash or a second writer can leave wrong or partial   |
 | CONCURRENCY_DEFECT           | A defect needing two execution contexts to manifest                      |
 | ERROR_HANDLING_DEFECT        | The error path itself is wrong                                           |
 | SHARED_MUTABLE_STATE_DEFAULT | State unintentionally shared across calls, instances, or importers       |
@@ -371,8 +371,11 @@ file before classifying any candidate.
 
 ## Output format
 
-Open the report with the Step 8 coverage ledger. Group findings hierarchically: file, then category,
-then severity. Order the report most severe first.
+Open the report with the triage header from
+[verification-protocol.md](references/verification-protocol.md), then the Step 8 coverage ledger.
+Group HIGH and MEDIUM confidence findings hierarchically: file, then category, then severity, ordered
+most severe first. Collect LOW confidence findings into the trailing `Appendix: LOW confidence`
+section, ordered most severe first.
 
 Each finding uses this structure:
 
@@ -455,7 +458,9 @@ Code Correctness Audit Compliance:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Step 1 prerequisites recorded for every language in scope, including the archetype, the actual test matrix, and the branch and fail_under settings
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
-- [ ] For Large tier, parallel `general-purpose` sub-agents used and findings synthesized
+- [ ] For Large tier, files batched by authority with no batch mixing languages, capped at twelve sub-agents
+- [ ] For Large tier, each sub-agent received only the ranking and ledger rows for its own batch
+- [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] Coverage ranking built for every language in scope, from artifacts for Python and from the test suite for C++ and C#
 - [ ] A language lacking a coverage instrument ranked by reading its tests, never dropped from scope
 - [ ] Coverage artifacts read before any command was run
@@ -474,9 +479,14 @@ Code Correctness Audit Compliance:
 - [ ] Every external library contract verified against the installed package, not from memory
 - [ ] Severity raised one step for T0 and T1 findings, and lowered for none on coverage grounds
 - [ ] One root cause reported once, under its most specific category, with repeats collapsed and counted
-- [ ] Sample verification (3 random findings re-derived) complete
+- [ ] Citation verification run against every finding, with each quote confirmed at its cited line
+- [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
+- [ ] Adversarial refutation run against every CRITICAL and HIGH finding, in fresh sub-agents
+- [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
+- [ ] Triage header present, carrying the severity by confidence counts and every discard count
 - [ ] Coverage ledger present, with every skipped file listed by path and reason
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
+- [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
 - [ ] No style, formatting, or convention findings appear (those belong to /audit-style)
 - [ ] No cost or speed findings appear (those belong to /audit-performance)
 - [ ] No documentation-side findings appear (those belong to /audit-facts)

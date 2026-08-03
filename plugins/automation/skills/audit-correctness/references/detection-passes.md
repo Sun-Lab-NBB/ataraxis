@@ -4,6 +4,49 @@ The ordered sweep passes of `/audit-correctness`, and the named CEAI procedure t
 asks one question of every line in scope. Pass 1 builds the ledgers every later pass consumes, so it
 runs first and to completion on the main agent.
 
+## Contents
+
+- The coverage tiers
+- Pass 1: Contract, state, and callgraph harvest
+- Pass 2: Adversarial instantiation, and the CEAI procedure
+- Pass 3: Domain boundary sweep
+- Pass 4: Type and nullability sweep
+- Pass 5: Unwind, resource, and durability sweep
+- Pass 6: Sharing and interleaving sweep
+- Pass 7: Call contract and sequence sweep
+- Pass 8: Language-specific defect sweep
+- Pass 9: Coverage-ranked hunt
+- Pass 10: Test-oracle analysis
+
+## One traversal, ten questions
+
+Passes 2 through 10 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file
+ONCE and answer every applicable pass during that single traversal, carrying the pass list beside you.
+Re-reading the file set once per pass costs nine extra traversals of every line in scope and surfaces
+nothing the single traversal misses.
+
+Pass 1 is the one exception. It runs to completion across the whole file set before any other pass
+starts, because every later pass consumes the ledgers it builds.
+
+---
+
+## The coverage tiers
+
+Pass 9 ranks the sweep by these tiers, and the skill's Step 2 assigns one to every line in scope.
+
+| Tier | Meaning                                                                                        |
+|------|------------------------------------------------------------------------------------------------|
+| T0   | A file measured nowhere, whether by an `omit` entry or by carrying no test suite at all        |
+| T1   | A statement deliberately excluded, by a coverage pragma or by an `exclude_lines` corpus entry  |
+| T2   | A statement, or a partial branch where branch coverage is on, the report lists as missing      |
+| T3   | A branch outcome the report cannot see, which is every branch arm while branch coverage is off |
+
+Where `branch` is unset or false, T3 is the richest hunting ground this skill has, covering every `if`
+without an `else`, every short-circuit operand, every ternary arm, every loop that can run zero times,
+and every `except` whose `try` never actually raised, all while the gate reports success. Where
+`branch = true`, those same outcomes are measured, so the unexercised ones surface as T2 and T3 stays
+empty.
+
 ---
 
 ## Pass 1: Contract, state, and callgraph harvest
@@ -84,7 +127,7 @@ kind.
 | Sequence, array | Length 0, 1, 2 equal elements, all equal, all NaN, one non-finite, a zero axis, ndim off by one |
 | Integer         | 0, 1, -1, dtype minimum, dtype maximum, and maximum plus one                                    |
 | Float           | 0.0, -0.0, NaN, positive and negative infinity, a denormal, exactly the boundary constant       |
-| String, path    | Empty, whitespace only, a nonexistent path, a directory path, a case-only difference            |
+| String, path    | Empty, whitespace only, a missing path, a missing parent, a directory, a case clash, a symlink   |
 | Optional        | None                                                                                            |
 | Time            | Zero elapsed, a clock that moved backwards, a fixed-width counter at rollover                   |
 
@@ -142,10 +185,10 @@ CPP_LOW_LEVEL_DEFECT, which cover integer promotion and implicit conversion.
 
 ---
 
-## Pass 5: Unwind and resource sweep
+## Pass 5: Unwind, resource, and durability sweep
 
-**Question:** If control leaves this line abnormally, what is left half-done and what is left
-unreleased?
+**Question:** If control leaves this line abnormally, what is left half-done, what is left unreleased,
+and what is left wrong on disk?
 
 For every statement that can raise, which includes every call, index, conversion, and every terminating
 error call, list the acquisitions and mutations already in flight above it in the same scope and the
@@ -163,6 +206,34 @@ handle but the last.
 Then walk each stateful class's CREATE, USE, and DESTROY table and test every ordered pair the public
 API permits: USE before CREATE, USE after DESTROY, DESTROY twice, CREATE twice, and DESTROY without
 CREATE.
+
+Finally sweep the durability dimension, which asks what a reader finds on disk after a crash, a kill,
+or a second writer. Enumerate every write to a persisted artifact, which covers session markers,
+descriptors, hardware-state and configuration files, feather and NPZ outputs, log archives, and
+checksum files. For each one establish four things.
+
+**Atomicity.** A write straight to the destination path leaves a truncated or half-written file when
+the process dies mid-write. The durable form writes a temporary file in the same directory and renames
+it into place, so name the destination and state which form the code uses. A rename across filesystems
+is not atomic, so check that the temporary file shares the destination's directory.
+
+**Ordering against the marker.** Where one artifact records that another is complete, the recording
+must land after the data it vouches for. Write down the actual order of the data write, the flush, and
+the marker write, then name the crash point between them that leaves the marker claiming a file that
+is absent or partial.
+
+**Checksum subject.** A checksum computed over an in-memory buffer verifies the buffer rather than the
+bytes that reached the disk. Trace what the checksum consumed and what the verifier later reads, and
+report the pair when they differ.
+
+**Second writer.** Name every context that can write the same path, taking the contexts from the Pass
+6 enumeration, and give the interleaving that leaves the file holding one writer's header over another
+writer's body. Where the code claims a lock or a marker prevents this, check that the claim covers the
+whole write rather than its opening.
+
+A durability candidate carries the same evidence floor as every other. The trigger is the concrete
+crash point or interleaving with its line, and the result is the concrete on-disk state a later read
+observes.
 
 ---
 

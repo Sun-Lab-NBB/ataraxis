@@ -7,6 +7,28 @@ highest-yield passes gate everything after them.
 Passes 1 and 3 through 8 apply to Python, C++, and C# alike. Pass 2 dispatches by language, and Pass 9
 runs over C++ and C# files only.
 
+## Contents
+
+- Pass 1: Hot-path census
+- Pass 2: Numeric width trace, and the DTYPE TRACE and WIDTH TRACE procedures
+- Pass 3: Allocation, copy, and footprint census
+- Pass 4: Loop-body interpretation cost
+- Pass 5: Complexity nesting
+- Pass 6: Redundancy and invariance
+- Pass 7: Boundary crossings
+- Pass 8: Memory layout
+- Pass 9: Language-specific cost
+
+## One traversal, nine questions
+
+Passes 2 through 9 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file
+ONCE and answer every applicable pass during that single traversal, carrying the pass list beside you.
+Re-reading the file set once per pass costs eight extra traversals of every line in scope and surfaces
+nothing the single traversal misses.
+
+Pass 1 is the one exception. It runs to completion across the whole file set before any other pass
+starts, because every later pass consumes the multiplicity table it builds.
+
 ---
 
 ## Pass 1: Hot-path census
@@ -143,9 +165,10 @@ finding, and name the platform whenever the result is platform-dependent.
 
 ---
 
-## Pass 3: Allocation and copy census
+## Pass 3: Allocation, copy, and footprint census
 
-**Question:** Does this line allocate memory or copy data, and how many times does it do so?
+**Question:** Does this line allocate memory or copy data, how many times does it do so, and how many
+bytes are resident at once while it runs?
 
 Grep every allocating construct for the languages in scope, then join each hit against the Pass 1
 multiplicity table and compute total bytes churned as multiplicity times size, stating element count
@@ -178,6 +201,32 @@ buffer plus `out=` removes it.
 
 **REMOVABLE.** A copy whose result is never mutated. Enumerate every downstream use and confirm that
 none of them mutates the buffer before reporting.
+
+### The footprint half
+
+The three buckets above count allocation EVENTS. This half counts RESIDENT BYTES, which is a separate
+question and the one the buckets cannot answer. A single allocation performed once per file allocates
+once and still exhausts the machine when the file is a stack of imaging frames.
+
+Walk every whole-input materialization: a reader that returns the complete array rather than an
+iterator or a memory-mapped handle, a `read()` or `load` over a path whose size the input decides, a
+list built from every record before any record is processed, a concatenate over every chunk, and a
+`DataFrame` or feather read without column or row selection.
+
+For each one, write the high-water expression as element count times element width, taking the count
+from the input dimension that bounds it and the width from the Pass 2 ledger. State what the input
+dimension is in practice, citing the configuration field, the acquisition rate, or the on-disk size
+that sets it. A footprint whose bound is a literal or a configuration value in the low tens is not a
+finding, exactly as a loop bounded that way is COLD.
+
+Then count SIMULTANEOUS liveness. Two full-size arrays alive at once double the high-water mark, so
+name every binding holding a full-size buffer across the same statement and add their sizes. The
+common shapes are a source array kept alive while its transformed copy is built, and an accumulator
+concatenated into a second full-size result before the first is released.
+
+Every footprint candidate is STATIC, because the arithmetic is provable by reading. The proposed fix
+names the bounded form, which is chunked or windowed processing, a memory-mapped read, an iterator, a
+column or row subset, or an in-place transform that releases the source.
 
 ---
 

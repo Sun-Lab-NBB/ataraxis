@@ -1,9 +1,30 @@
 # Finding catalog
 
-The seventeen finding categories of `/audit-performance`. Each entry gives the category's definition,
+The eighteen finding categories of `/audit-performance`. Each entry gives the category's definition,
 its mechanical detection procedure, the evidence a report entry must carry, and its impact guidance.
 Classify every candidate against exactly one category, choosing the most specific one, and list any
 others as tags.
+
+## Contents
+
+- DTYPE_UNPINNED_AT_CREATION
+- DTYPE_SILENT_PROMOTION
+- DTYPE_CHURN_AND_UNSTABLE_CONTRACT
+- NATIVE_WIDTH_AND_CONVERSION
+- MISSED_VECTORIZATION
+- ALGORITHMIC_COMPLEXITY_BLOWUP
+- REDUNDANT_RECOMPUTATION
+- HOT_LOOP_ALLOCATION
+- PEAK_MEMORY_FOOTPRINT
+- REDUNDANT_COPY_OR_TEMPORARY
+- MEMORY_LAYOUT_HOSTILE
+- NUMBA_KERNEL_OPPORTUNITY
+- NUMBA_CONFIGURATION_DEFECT
+- PYTHON_INTERPRETER_OVERHEAD
+- IO_AND_SERIALIZATION_COST
+- CONCURRENCY_AND_GIL
+- CPP_RUNTIME_COST
+- CSHARP_RUNTIME_COST
 
 ---
 
@@ -221,6 +242,35 @@ confirm the destination shape and dtype stay invariant across iterations.
 **Impact.** HIGH for growth patterns, which are quadratic and always worth fixing, and for
 per-iteration allocation with a data-scaled trip count. MEDIUM for a fixed small allocation in a
 moderately hot loop.
+
+---
+
+## PEAK_MEMORY_FOOTPRINT
+
+**Definition.** The bytes resident at one moment scale with the size of the input, where a bounded
+form would hold a window instead. Covers a reader that materializes a whole file where a memory-mapped
+handle or a chunked read serves, a list or array built from every record before any record is
+processed, a concatenate that holds every chunk and the joined result at once, a full table read where
+a column or row subset is used, and a transform that keeps its source alive while building a
+full-size destination.
+
+This is the category that counts RESIDENT BYTES. `HOT_LOOP_ALLOCATION` counts allocation EVENTS, so a
+single allocation performed once per file belongs here rather than there, and a small buffer allocated
+a million times belongs there rather than here.
+
+**Detection.** Run the footprint half of Pass 3 in `detection-passes.md`. Write the high-water
+expression as element count times element width, then add every full-size binding alive across the
+same statement.
+
+**Evidence.** STATIC. Cite the materializing call and quote it verbatim. Give the high-water
+arithmetic with the element count and the element width stated separately, and cite the line that
+bounds the count together with what sets it in practice, meaning the configuration field, the
+acquisition rate, or the on-disk size. Enumerate every full-size binding alive at the peak with its
+line. Name the bounded replacement concretely, and state the window or chunk size it would hold.
+
+**Impact.** HIGH when the high-water mark scales with an acquisition dimension that has no ceiling in
+the configuration, and when two full-size copies are alive at once. MEDIUM when the input is bounded
+by a configured maximum that leaves the footprint large but predictable.
 
 ---
 

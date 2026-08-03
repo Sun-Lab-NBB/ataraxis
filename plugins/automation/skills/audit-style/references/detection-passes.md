@@ -5,10 +5,36 @@ each names the mechanical procedure that answers it. Run them in order, because 
 resolve a construct's identity gate the passes that judge it.
 
 The passes decompose the workflow steps in the skill. Pass 1 executes Step 2, passes 2 through 6
-cover Dimension A of Step 3, passes 7 and 8 cover Dimension B, and pass 9 covers Dimension C.
+cover Dimension A of Step 4, passes 7 and 8 cover Dimension B, and pass 9 covers Dimension C.
 
 Every pass draws its authority from the checklists Pass 1 loads. A convention absent from every loaded
 checklist is not a violation, whatever a pass below appears to invite.
+
+## Contents
+
+- Pass 1: Rule ledger
+- Pass 2: File shape sweep
+- Pass 3: Naming sweep
+- Pass 4: Signature and annotation sweep
+- Pass 5: Import and dependency sweep
+- Pass 6: Idiom and error-handling sweep
+- Pass 7: Documentation form sweep
+- Pass 8: Comment and suppression sweep
+- Pass 9: Cross-file consistency sweep
+
+## One traversal, nine questions
+
+Passes 2 through 8 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file
+ONCE and answer every applicable pass during that single traversal, carrying the pass list beside you.
+Re-reading the file set once per pass costs six extra traversals of every line in scope and surfaces
+nothing the single traversal misses.
+
+Two passes sit outside that traversal. Pass 1 runs first, because it builds the ledger every later
+pass reports against. Pass 9 runs last on the main agent, because it needs the whole file set in one
+view.
+
+Every pass also defers to the Step 3 deterministic gates. Where a configured tool decides a rule, the
+tool's output IS the finding and the pass reports nothing on its own authority.
 
 ---
 
@@ -50,11 +76,15 @@ Check, in this order:
    class body, with dunder methods holding their conventional position.
 3. Type definitions the checklist requires above the code consuming them.
 4. Call-hierarchy or by-purpose grouping within each visibility group.
-5. Blank-line counts between definitions and around import blocks.
-6. Line length against the checklist's limit, and indentation width.
+5. Blank-line counts, line length, and indentation width, ONLY where no Step 3 gate covered the file.
+   A formatter that ran already decided all three exactly, so its diff is the finding and this pass
+   reports nothing on them.
 
 Record the position each construct occupies and the position the checklist requires. A finding names
 both, because a reordering suggestion without the target position is not actionable.
+
+Ordering and visibility placement stay with this pass in every case, because no formatter in the
+toolchain enforces the checklist's declared section order or its public-before-private rule.
 
 ---
 

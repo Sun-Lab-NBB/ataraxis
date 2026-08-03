@@ -14,9 +14,8 @@ user-invocable: true
 Audits documentation against the authoritative source code, reporting only factual mismatches and
 substantive omissions with verbatim source citations.
 
-You MUST read this entire skill and load
-[detection-passes.md](references/detection-passes.md) before starting an audit. The verification
-checklist at the end is mandatory before submitting findings.
+You MUST read this entire skill, and load each reference file at the step that names it, before acting
+on that step. The verification checklist at the end is mandatory before submitting findings.
 
 ---
 
@@ -85,9 +84,10 @@ Audit Progress:
 - [ ] Step 4: Omission pass complete
 - [ ] Step 5: Reference pass complete
 - [ ] Step 6: Contradictions surfaced
-- [ ] Step 7: Sample verification complete
-- [ ] Step 8: Coverage ledger assembled
-- [ ] Step 9: Report produced
+- [ ] Step 7: False-positive guards applied
+- [ ] Step 8: Findings verified (citation, refutation)
+- [ ] Step 9: Coverage ledger assembled
+- [ ] Step 10: Report produced
 ```
 
 ### Step 0: Produce audit plan and pause
@@ -102,7 +102,7 @@ Emit a plan before any verification work fires. The plan must list:
 
 Pause for user confirmation or a "proceed" signal. This catches misidentified targets before
 tokens burn on the wrong scope. A user who wants a narrower run says so here, and the narrowing
-is recorded in the Step 8 coverage ledger.
+is recorded in the Step 9 coverage ledger.
 
 ### Step 1: Resolve target and bind documentation classes
 
@@ -126,6 +126,13 @@ git ls-files '*.py' '*.pyi' '*.h' '*.hpp' '*.cpp' '*.cs'
 
 For a target outside version control, run the equivalent `find` over the same patterns. Add
 untracked files reported by `git status --porcelain` when the audit covers work in progress.
+
+Whole-repository coverage is the default and stays the default. Narrow to a change set ONLY when the
+user asks for that in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a
+branch, `git diff --name-only <commit>` for one commit, or `git status --porcelain` for the working
+tree. A narrowed run still reads every surviving file in full, because a claim is verified against a
+whole implementation rather than against a hunk. Record the narrowing and the revision it resolved
+against in the Step 9 coverage ledger, so the report states what it did not cover.
 
 Bind every enumerated file to its class and its authoritative source:
 
@@ -154,23 +161,24 @@ Classify the audit tier from the union of both classes:
 | Medium | 2–10 files                     | Main agent, file-by-file                                                   |
 | Large  | 10+ files or full project root | Parallel `general-purpose` sub-agents, one per file or per directory group |
 
-A repository-root target is always Large. Group Large-tier work by class: one sub-agent per
-metadata file, and one sub-agent per package or per source directory for in-source
-documentation. A sub-agent that receives a source directory audits every file in it.
+A repository-root target is always Large. Group Large-tier work under three rules, which exist so a
+sub-agent loads one authority rather than the union of every authority in the repository.
 
-Specify agent type per subsequent step:
+1. **One metadata file, one sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`, `tox.ini`,
+   `platformio.ini`, and each `SKILL.md` each get a dedicated sub-agent, because each resolves against
+   a different authoritative source. The documentation package under `docs/` is one sub-agent covering
+   every page in it.
+2. **In-source work batches by package.** One sub-agent per package or per source directory, holding
+   roughly eight files, and never mixing languages inside a batch.
+3. **Twelve sub-agents caps the run.** Every sub-agent re-receives the whole instruction payload, so
+   an unbounded fan-out pays that payload once per file and costs more than the verification it
+   parallelizes.
 
-| Step                                 | Agent type                   | Why                                     |
-|--------------------------------------|------------------------------|-----------------------------------------|
-| Per-file claim verification (Small)  | main                         | Sequential preserves citation precision |
-| Per-file claim verification (Medium) | main                         | Sequential preserves citation precision |
-| Per-file claim verification (Large)  | `general-purpose` (parallel) | Parallelizes across files               |
-| Omission pass                        | main                         | Needs synthesis across claims           |
-| Reference pass                       | main                         | Single-agent view required              |
-| Contradiction pass                   | main                         | Single-agent view required              |
-| Sample verification                  | main                         | Trust boundary                          |
-| Coverage ledger                      | main                         | Owns the record of what was audited     |
-| Final report                         | main                         | Format and ordering live here           |
+Record the sub-agent count in the Step 9 coverage ledger.
+
+Only the per-file claim verification fans out. Every other step runs on the main agent, because the
+omission, reference, and contradiction passes each need the whole claim ledger in one view, and the
+guards, the verification, and the report each sit on a trust boundary.
 
 Do NOT use the `Explore` agent type for verification work. Explore returns summaries rather
 than verbatim citations and breaks the "verbatim quote" discipline.
@@ -198,14 +206,14 @@ In in-source documentation, a claim is any assertion the implementation can conf
 - An inline comment asserting a value, a magic constant's derivation, an algorithm, or a reason
 - A reference from a docstring or comment to another symbol, module, file, issue, or version
 
-The following are NOT claims and must be skipped: subjective quality language, aspirational or
-future-tense statements, motivational prose, and every wording concern that `/audit-style` owns.
-Pedagogical "why" prose is a claim only when it contains a verifiable factual statement.
+Pass 1 states what is NOT a claim, and Guard 5 removes anything that reaches the ledger anyway.
 
 ### Step 3: Verify each claim
 
-Run passes 2 through 6 from [detection-passes.md](references/detection-passes.md) in order, which
-sweep existence, signatures, behavior, failures, and quantities. The existence sweep runs first
+Run passes 2 through 6 from [detection-passes.md](references/detection-passes.md) in order, over ONE
+walk of the claim ledger, sweeping existence, signatures, behavior, failures, and quantities. Open
+each authoritative source once and settle every claim resolving against it while it is open. The
+existence sweep runs first
 because renames are the most common source of drift and it settles them without reading an
 implementation.
 
@@ -220,11 +228,10 @@ For in-source claims, the implementation is the authority. Apply these rules:
 
 - Read the full body of the documented callable, class, or module before judging its
   documentation. A summary that looks wrong at the signature is often satisfied deeper in the body
-- Compare documented parameters against the signature for name, presence, and stated default
-- Compare the documented return against every `return` statement and the return annotation
-- Compare documented exceptions against every exception the body raises, following helpers the
-  body calls whenever the documentation attributes their failures to this callable
-- Compare documented attributes against the attributes the class assigns
+- Run the mechanical comparisons the passes define, which are parameters and defaults against the
+  signature in Pass 3, the summary against the statements that satisfy it in Pass 4, the documented
+  exceptions against the ones the body raises in Pass 5, and every stated quantity against the
+  declaration that fixes it in Pass 6
 - Confirm every symbol, module, file, or version a comment names still exists under that name
 - Follow the call before flagging. Behavior a docstring describes is often delegated to a helper,
   and delegated behavior still belongs to the documented callable
@@ -232,12 +239,10 @@ For in-source claims, the implementation is the authority. Apply these rules:
   the project's linter is available and confirms the line no longer produces that diagnostic.
   Without the linter, leave the suppression unreported
 
-For Large-tier audits, spawn one `general-purpose` sub-agent per file (or per directory group
-of related files). Each sub-agent receives the file paths, the documentation class, the
-authoritative source scope, and the verdict categorization rules. Sub-agents return findings in
-the output format defined below. The main agent synthesizes after all sub-agents complete.
-
-For Small and Medium tiers, the main agent performs all verification sequentially.
+For Large-tier audits, spawn the sub-agents the Step 1 grouping rules define. Each sub-agent receives
+its own files, the documentation class, the authoritative source scope for those files alone, and the
+verdict categorization rules. Sub-agents return findings in the output format defined below. The main
+agent synthesizes after all sub-agents complete.
 
 Cite each source as `<path>:<line>` or `<path>:<line>-<line>`. For an in-source finding, the file
 location and the source location commonly sit in the same file a few lines apart, and both are
@@ -303,20 +308,30 @@ Identify cases where the documentation makes incompatible claims about the same 
 includes a metadata file contradicting itself, and a docstring contradicting a comment or another
 docstring inside the same module about the same symbol.
 
-### Step 7: Sample verification
+### Step 7: Apply the false-positive guards
 
-Before emitting the report:
+Walk every candidate through every guard in
+[false-positive-guards.md](references/false-positive-guards.md), in order. The authoritative-source
+guard runs first and removes the most candidates. Discard everything a guard rejects, and record the
+count of discarded candidates for the report's triage header.
 
-1. Sample 3 random findings from the candidate list (if fewer than 3, sample all). When the
-   candidate list contains findings from both documentation classes, the sample must include at
-   least one of each.
-2. Re-read the cited source line(s) without looking at the original finding.
-3. Re-derive whether the finding holds from scratch.
-4. Discard any finding that does not survive re-verification.
+### Step 8: Verify the surviving findings
 
-This step catches the most common audit failure mode: confidently misquoting source.
+Run the two checks in [verification-protocol.md](references/verification-protocol.md), in order:
 
-### Step 8: Assemble the coverage ledger
+1. **Citation verification**, against every surviving finding with no sampling. Confirms the Claim
+   quote appears at the cited documentation line and the Source reality quote appears at the cited
+   source line.
+2. **Adversarial refutation**, against every WRONG and CONTRADICTION finding. A fresh
+   `general-purpose` sub-agent per finding, instructed to refute it and to answer REFUTED under
+   uncertainty.
+
+Both checks are external, testing the finding against the files and against a reader who never saw the
+verification pass. They catch the failure mode this audit produces most often, which is confidently
+misquoting source. Record every count the protocol names, because the Step 9 ledger and the report's
+triage header carry them.
+
+### Step 9: Assemble the coverage ledger
 
 Build the ledger that opens the report. It records what was audited, so a thin in-source pass is
 visible rather than silent:
@@ -328,31 +343,39 @@ visible rather than silent:
 | In-source           | 47             | 47            | 0             |
 ```
 
-List every skipped and UNBOUND file by path with its reason. Skipping is allowed only when the
-user narrowed the scope in Step 0, when a file is generated, or when a file is unreadable. A
-Large-tier audit that produced no in-source findings still reports a non-zero audited count in
-the in-source row, which distinguishes clean documentation from an unrun pass.
+List every skipped and UNBOUND file by path with its reason, and state the sub-agent count. Skipping
+is allowed only when the user narrowed the scope in Step 0 or Step 1, when a file is generated, or
+when a file is unreadable. A run narrowed to a change set names the revision it resolved against here.
+A Large-tier audit that produced no in-source findings still reports a non-zero audited count in the
+in-source row, which distinguishes clean documentation from an unrun pass.
 
-### Step 9: Produce the findings report
+### Step 10: Produce the findings report
 
-Use the output format below. Skip EXACT and SEMANTIC findings entirely. Report every surviving
-finding at every confidence tier by default, which covers LOW alongside HIGH and MEDIUM. Narrow the
-report to HIGH and MEDIUM only when the user explicitly asks for it via `--min-confidence medium` or
-equivalent invocation.
+Use the output format below. Open with the triage header from
+[verification-protocol.md](references/verification-protocol.md), which carries the finding counts by
+type and confidence together with every discard count the guards and the Step 8 checks produced.
+
+Skip EXACT and SEMANTIC findings entirely. Report every surviving finding at every confidence tier by
+default, which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when
+the user explicitly asks for it via `--min-confidence medium` or equivalent invocation.
 
 The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that
 the report was filtered. LOW means the source and claim mapping is inferred rather than literal, and
-it never excuses a finding from the citation rules in the Discipline section.
+it never excuses a finding from the citation rules in the Discipline section. LOW findings sit in the
+trailing `Appendix: LOW confidence` section the protocol defines rather than interleaved into the file
+groups, so the body of the report reads at one confidence level.
 
 ---
 
 ## Output format
 
-Open the report with the Step 8 coverage ledger. Then report only WRONG, DRIFT, CONTRADICTION,
-OMISSION, and UNVERIFIABLE findings, in that order.
+Open the report with the triage header from
+[verification-protocol.md](references/verification-protocol.md), then the Step 9 coverage ledger. Then
+report only WRONG, DRIFT, CONTRADICTION, OMISSION, and UNVERIFIABLE findings, in that order.
 
-When the audit spans multiple files, group findings hierarchically: documentation class -> file
--> finding type -> findings.
+When the audit spans multiple files, group the HIGH and MEDIUM confidence findings hierarchically:
+documentation class -> file -> finding type -> findings. Collect LOW confidence findings into the
+trailing `Appendix: LOW confidence` section, ordered by the same type sequence.
 
 Each finding uses this structure:
 
@@ -377,12 +400,10 @@ and where.
 You MUST adhere to the following discipline during every audit.
 
 - Never invent source. If you cannot open the source after reasonable search, mark UNVERIFIABLE.
-- Facts not derivable from the audited repo's own source (external toolchain version floors,
-  installer requirements, cross-repo version pins, environment prerequisites) are authoritative
-  by default. Report them as UNVERIFIABLE only when they appear internally contradicted or stale,
-  and otherwise omit them, or set the Suggested fix to "leave as-is — authoritative external
-  requirement" rather than a removal or change. `/readme-style` is the source of the canonical
-  install-section requirements (e.g. the mamba 2.3.2+ / miniforge3 floor).
+- Facts the audited repository cannot derive from its own source, such as external toolchain version
+  floors, installer requirements, cross-repository pins, and environment prerequisites, are
+  authoritative by default, and Guard 1 states how to handle them. `/readme-style` is the source of
+  the canonical install-section requirements.
 - Never paraphrase source and present it as a verbatim quote. Use the Read tool and copy.
 - Never expand scope to restructure, restyle, or refactor. This skill produces findings only.
 - Never flag style, formatting, structural, or convention issues. Those belong to
@@ -445,7 +466,9 @@ Documentation Fact Audit Compliance:
 - [ ] Both documentation classes enumerated for every directory or repository target
 - [ ] Every file in scope bound to a class and an authoritative source per the binding table
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
-- [ ] For Large tier, parallel `general-purpose` sub-agents used and findings synthesized
+- [ ] For Large tier, each metadata file and the docs package given its own sub-agent
+- [ ] For Large tier, in-source work batched by package with no batch mixing languages, capped at twelve sub-agents
+- [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] Every claim categorized (EXACT, SEMANTIC, DRIFT, WRONG, UNVERIFIABLE)
 - [ ] Every claim assigned a confidence tier (HIGH, MEDIUM, LOW)
 - [ ] Every non-EXACT and non-SEMANTIC finding cites a source location <path>:<line>
@@ -457,10 +480,16 @@ Documentation Fact Audit Compliance:
 - [ ] Omission pass executed and bounded by Step 1 scope (no out-of-scope omission claims)
 - [ ] Cross-file and cross-symbol references verified for accuracy
 - [ ] Internal contradictions surfaced
-- [ ] Sample verification complete, covering both classes when both produced findings
+- [ ] Every false-positive guard applied in order, with the discarded-candidate count recorded
+- [ ] Citation verification run against every finding, with the claim quote and the source quote both confirmed
+- [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
+- [ ] Adversarial refutation run against every WRONG and CONTRADICTION finding, in fresh sub-agents
+- [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
+- [ ] Triage header present, carrying the type by confidence counts and every discard count
 - [ ] Coverage ledger present, with every skipped and UNBOUND file listed by path and reason
 - [ ] In-source row of the ledger shows a non-zero audited count for repository targets
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
+- [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
 - [ ] No EXACT or SEMANTIC findings appear in the report
 - [ ] No style, formatting, convention, or documentation-quality findings appear in the report
 - [ ] No wholly undocumented callable, class, module, or file reported as an omission

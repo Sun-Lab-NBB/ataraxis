@@ -2,7 +2,33 @@
 
 Every candidate finding of `/audit-correctness` passes through these guards in order before it enters
 the report. The trigger requirement runs first and removes the most candidates. Record the count of
-discarded candidates for the coverage ledger.
+discarded candidates for the report's triage header.
+
+## Contents
+
+- Guard 1: No trigger, no finding
+- Guard 2: Private helpers whose callers enforce their preconditions
+- Guard 3: Already pinned by an existing test
+- Guard 4: Type-system-impossible inputs on internal paths
+- Guard 5: Defensive-programming wishes
+- Guard 6: The documentation is the wrong side
+- Guard 7: Style and convention findings belong to /audit-style
+- Guard 8: Performance findings belong to /audit-performance
+- Guard 9: Console enable and disable calls are correct
+- Guard 10: The sanctioned error-reporting patterns are correct
+- Guard 11: Sanctioned coverage exclusions are correct
+- Guard 12: Speculative concurrency
+- Guard 13: Overflow requires a fixed-width domain
+- Guard 14: Intentional exact float comparison
+- Guard 15: Declared mutation is the contract
+- Guard 16: Generated and vendored code is out of scope
+- Guard 17: Archetype-inappropriate C++ findings
+- Guard 18: One root cause, one finding
+- Guard 19: An unexercised path is a place to look
+- Guard 20: The absence of a test is not a defect
+- Guard 21: Markers and commented-out code are not defects
+- Guard 22: A callee that leaves a documented precondition undefended
+- Guard 23: Durability requires a persisted artifact and a real interruption
 
 ---
 
@@ -245,3 +271,20 @@ nothing to report.
 
 When a caller does pass one, file the finding at that caller. File it at the callee only when the
 callee's contract also promises to raise on that input and fails to.
+
+---
+
+## Guard 23: Durability requires a persisted artifact and a real interruption
+
+A non-atomic write is a finding only when a LATER READ can accept the damaged result. Name that reader
+with its `<path>:<line>` before reporting.
+
+Three shapes produce no finding. A write to a scratch, temporary, or cache path the project
+regenerates on demand is not a persisted artifact. A write the project already performs through a
+temporary file and a same-directory rename is the prescribed durable form, so confirm the temporary
+path's directory before claiming otherwise. A second-writer interleaving needs two contexts that
+ACTUALLY exist under Guard 12, which a single-process pipeline stage does not supply.
+
+Equally, an artifact the code re-derives and overwrites on every run, and one whose consumer verifies
+it against an independent checksum before use, both survive a partial write, so state which of the two
+you checked.

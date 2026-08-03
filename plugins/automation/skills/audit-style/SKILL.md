@@ -14,10 +14,9 @@ user-invocable: true
 Audits files against the authoritative ataraxis framework style skill checklists, reporting only
 non-compliant findings with verbatim checklist citations.
 
-You MUST read this entire skill, load
-[detection-passes.md](references/detection-passes.md), and load every applicable style skill
-checklist before starting an audit. The verification checklist at the end is mandatory before
-submitting findings.
+You MUST read this entire skill, and load each reference file and each style skill checklist at the
+step that names it, before acting on that step. The verification checklist at the end is mandatory
+before submitting findings.
 
 ---
 
@@ -25,6 +24,8 @@ submitting findings.
 
 **Covers:**
 - Auditing single files, directories, or full project trees against applicable style skills
+- Running the project's own linters, formatters, and type checkers in their read-only form, and
+  folding their diagnostics into the report as findings
 - Structural style: element ordering, imports, formatting, naming, type annotations,
   error-handling patterns, file-section ordering
 - Comment and docstring quality: typos, sentence length, length proportionality, redundancy
@@ -40,7 +41,9 @@ submitting findings.
   (see `/audit-correctness`)
 - Cost, speed, memory use, and dtype predictability, which covers the runtime consequence of a
   construct whose form this skill judges (see `/audit-performance`)
-- Code modifications or style fixes (this skill produces findings only)
+- Code modifications or style fixes (this skill produces findings only), which includes every
+  auto-fixing and reformatting tool invocation
+- Re-deriving by reading any rule the project's own tools already decide
 - Inventing new conventions not present in any loaded style skill checklist
 - Codebase exploration (see `/explore-codebase`)
 
@@ -56,11 +59,13 @@ Copy this progress checklist into your response and check off items as you compl
 Audit Progress:
 - [ ] Step 0: Plan produced and confirmed
 - [ ] Step 1: Target resolved, style skills bound, tier selected
-- [ ] Step 2: Style skill checklists loaded
-- [ ] Step 3: Line-by-line sweep complete (all three dimensions)
-- [ ] Step 4: Findings categorized
-- [ ] Step 5: Sample verification complete
-- [ ] Step 6: Report produced
+- [ ] Step 2: Style skill checklists loaded and rule ledger built
+- [ ] Step 3: Deterministic gates run and their findings collected
+- [ ] Step 4: Line-by-line sweep complete (all three dimensions)
+- [ ] Step 5: Findings categorized
+- [ ] Step 6: False-positive guards applied
+- [ ] Step 7: Findings verified (citation, refutation)
+- [ ] Step 8: Report produced
 ```
 
 ### Step 0: Produce audit plan and pause
@@ -80,6 +85,13 @@ tokens burn on the wrong scope.
 Resolve the target (a single file, a package directory, or a project root) into the set of
 files in scope. For directory or project-root targets, every file under the target is in scope.
 There is no "covered area" reduction.
+
+Whole-repository coverage is the default and stays the default. Narrow to a change set ONLY when the
+user asks for that in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a
+branch, `git diff --name-only <commit>` for one commit, or `git status --porcelain` for the working
+tree. A narrowed run still reads every surviving file in full, because ordering, visibility grouping,
+and length proportionality are properties of a whole file. Record the narrowing and the revision it
+resolved against in the report, so it states what it did not cover.
 
 For each file in scope, identify the applicable style skill using the binding table:
 
@@ -103,23 +115,36 @@ applicable style skill) and flag no findings against it.
 
 Classify the audit tier:
 
-| Tier   | Indicators                     | Execution                                                                   |
-|--------|--------------------------------|-----------------------------------------------------------------------------|
-| Small  | 1 file, under 500 lines        | Main agent, sequential                                                      |
-| Medium | 2–10 files                     | Main agent, file-by-file                                                    |
-| Large  | 10+ files or full project root | Parallel `general-purpose` sub-agents, one per file or per directory group  |
+| Tier   | Indicators                     | Execution                                              |
+|--------|--------------------------------|--------------------------------------------------------|
+| Small  | 1 file, under 500 lines        | Main agent, sequential                                 |
+| Medium | 2–10 files                     | Main agent, file-by-file                               |
+| Large  | 10+ files or full project root | Parallel `general-purpose` sub-agents over file batches |
 
-Specify agent type per subsequent step:
+### Batching isolates the style guides
 
-| Step                     | Agent type                   | Why                                     |
-|--------------------------|------------------------------|-----------------------------------------|
-| Per-file sweep (Small)   | main                         | Sequential preserves citation precision |
-| Per-file sweep (Medium)  | main                         | Sequential preserves citation precision |
-| Per-file sweep (Large)   | `general-purpose` (parallel) | Parallelizes across files               |
-| Categorization           | main                         | Needs synthesis across findings         |
-| Cross-file consistency   | main                         | Single-agent view required              |
-| Sample verification      | main                         | Trust boundary                          |
-| Final report             | main                         | Format and ordering live here           |
+A Large-tier audit BATCHES BY BINDING, so no sub-agent carries more than one or two checklists. This
+is the rule that decides what this audit costs. Every sub-agent re-receives the checklists its files
+bind to, and the loaded checklists of a mixed project root run to tens of thousands of tokens, so a
+sub-agent holding every binding pays for guides it never applies, once per sub-agent.
+
+Build the batches under three rules:
+
+1. **One binding per batch, two at the absolute most.** Group files by the style skill the table above
+   assigned. A batch is Python files, or C++ files, or C# files, and never a mixture.
+2. **A single-file binding gets its own sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`,
+   `tox.ini`, `platformio.ini`, and each `SKILL.md` each bind to a checklist nothing else in the
+   repository uses, so each becomes one sub-agent holding one guide. The documentation package under
+   `docs/` is one sub-agent holding `/api-docs` alone.
+3. **Roughly eight files per source batch**, sharing a package or a directory, capped at twelve
+   sub-agents for the run.
+
+Each sub-agent loads ONLY the checklists its own batch binds to, and receives ONLY the rule-ledger
+rows Step 2 built from those checklists.
+
+Only the per-file sweep fans out. Every other step runs on the main agent, because the rule ledger,
+the cross-file consistency pass, categorization, the guards, the verification, and the report each
+need the whole file set in one view or sit on a trust boundary.
 
 Do NOT use the `Explore` agent type for sweep work. Explore returns summaries rather than
 verbatim citations and breaks the "verbatim checklist quote" discipline.
@@ -134,10 +159,54 @@ verification checklist along with every reference file the skill mentions. The l
 checklists are the only source of truth for "applicable style point." A convention not present
 in any loaded checklist is NOT a violation.
 
-### Step 3: Line-by-line sweep
+Tag every ledger row with the batch that will consume it, so Step 4 hands each sub-agent its own rows
+rather than the whole ledger.
 
-Run passes 2 through 9 from [detection-passes.md](references/detection-passes.md) in order. Passes 2
-through 6 cover Dimension A, passes 7 and 8 cover Dimension B, and pass 9 covers Dimension C.
+### Step 3: Run the deterministic gates
+
+The project's own tools already decide every rule that can be decided mechanically, and they decide it
+correctly every time. Run them FIRST, read their output as findings, and spend the sweep on the rules
+no tool can check.
+
+Run only the READ-ONLY forms. Bare `tox` and `tox -e lint` are FORBIDDEN during an audit, because the
+`lint` environment reformats the source, auto-fixes it, and purges its stubs, which mutates the very
+code under audit.
+
+| Tool                                          | Read-only invocation                            |
+|-----------------------------------------------|-------------------------------------------------|
+| ruff lint rules, for Python files             | `ruff check --no-fix --output-format=json .`    |
+| ruff formatting, for Python files             | `ruff format --diff .`                          |
+| mypy, where the project configures it         | `mypy .`                                        |
+| clang-format, for C++ files                   | `clang-format --dry-run --Werror <files>`       |
+| clang-tidy, where a `.clang-tidy` file exists | `clang-tidy <files>`                            |
+
+A tool the project does not configure is skipped, and its absence is no finding. Report a tool that
+failed to run as a gap in the coverage the report states rather than as a clean result.
+
+Fold each diagnostic into the report as an ordinary finding, citing the tool and its rule code in
+place of the checklist quote, at HIGH confidence. A diagnostic a tool produced needs no adversarial
+verification in Step 7, because the tool IS the external check.
+
+Then narrow the Step 4 sweep. The passes still run, and their scope shrinks to what the tools cannot
+decide:
+
+- **Delegated to the tools, so the sweep reports nothing on its own authority.** Line length,
+  indentation, blank-line counts, quote and string form, trailing commas, import sorting and grouping,
+  and every rule carried by a ruff code the project enables.
+- **Kept for the sweep, because no tool decides them.** Documentation quality in every form, which is
+  length proportionality, redundancy with the signature, behavioral scope, sentence length, mood,
+  separator punctuation, positive description, and spelling. Identifier vocabulary, meaning full words
+  against the abbreviations the checklist enumerates. Element and section ORDERING where the checklist
+  states an order the formatter does not enforce. Visibility placement. Cross-file consistency. Every
+  cross-skill conflict.
+
+State in the report which tools ran and which rules the sweep therefore delegated.
+
+### Step 4: Line-by-line sweep
+
+Run passes 2 through 9 from [detection-passes.md](references/detection-passes.md) in order, over ONE
+traversal of each file rather than one traversal per pass. Passes 2 through 6 cover Dimension A,
+passes 7 and 8 cover Dimension B, and pass 9 covers Dimension C.
 
 For every file in scope, walk top to bottom. For every line, evaluate against every applicable
 checklist item. Track three parallel dimensions.
@@ -169,14 +238,15 @@ following a convention that adjacent modules ignore.
 
 List ALL violations in each section. Do NOT stop at the first.
 
-For Large-tier audits, spawn one `general-purpose` sub-agent per file (or per directory group
-of related files). Each sub-agent receives the file path, the loaded checklists, and the
-categorization rules. Sub-agents return findings in the output format defined below. The main
-agent synthesizes after all sub-agents complete.
+For Large-tier audits, spawn one `general-purpose` sub-agent per batch under the Step 1 rules. Each
+sub-agent receives its batch's file paths, ONLY the checklists those files bind to, ONLY the
+rule-ledger rows built from those checklists, the Step 3 diagnostics for those files, and the
+categorization rules. Sub-agents return findings in the output format defined below. The main agent
+synthesizes after all sub-agents complete.
 
 For Small and Medium tiers, the main agent performs all sweep work sequentially.
 
-### Step 4: Categorize findings
+### Step 5: Categorize findings
 
 Categorize every violation using one of:
 
@@ -195,43 +265,60 @@ Also assign a confidence tier to every finding:
 | MEDIUM     | One quote verbatim, the other requires interpretation                  |
 | LOW        | Pattern detected but checklist/source mapping is inferred, not literal |
 
-### Step 5: Sample verification
+### Step 6: Apply the false-positive guards
 
-Before emitting the report:
+Walk every candidate through every guard in
+[false-positive-guards.md](references/false-positive-guards.md), in order. The rule-ledger guard runs
+first and removes the most candidates. Discard everything a guard rejects, and record the count of
+discarded candidates for the report's triage header.
 
-1. Sample 3 random findings from the candidate list (if fewer than 3, sample all).
-2. Re-read the cited file line(s) and the cited checklist point without looking at the
-   original finding.
-3. Re-derive whether the finding holds from scratch.
-4. Discard any finding that does not survive re-verification.
+### Step 7: Verify the surviving findings
 
-This step catches the most common audit failure mode: misapplying a checklist rule.
+Run the two checks in [verification-protocol.md](references/verification-protocol.md), in order:
 
-### Step 6: Produce the findings report
+1. **Citation verification**, against every surviving finding with no sampling. Confirms the Checklist
+   point quote appears in the loaded checklist and the Current state quote appears at the cited line.
+2. **Adversarial refutation**, against every BLOCKING and CONFLICT finding. A fresh `general-purpose`
+   sub-agent per finding, instructed to refute it and to answer REFUTED under uncertainty.
 
-Use the output format below. Skip compliant items entirely. Report every surviving finding at every
-confidence tier by default, which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and
-MEDIUM only when the user explicitly asks for it via `--min-confidence medium` or equivalent
-invocation.
+Both checks are external, testing the finding against the files and against a reader who never saw the
+sweep. They catch the failure mode this audit produces most often, which is misapplying a checklist
+rule. A Step 3 diagnostic skips both checks, because the tool that produced it already is the external
+check. Record every count the protocol names, because the report's triage header carries them.
+
+### Step 8: Produce the findings report
+
+Use the output format below. Open with the triage header from
+[verification-protocol.md](references/verification-protocol.md), which carries the finding counts by
+category and confidence, the tools Step 3 ran, and every discard count.
+
+Skip compliant items entirely. Report every surviving finding at every confidence tier by default,
+which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user
+explicitly asks for it via `--min-confidence medium` or equivalent invocation.
 
 The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that
 the report was filtered. LOW means the checklist and source mapping is inferred rather than literal,
-and it never excuses a finding from the verbatim checklist quote the Discipline section requires.
+and it never excuses a finding from the verbatim checklist quote the Discipline section requires. LOW
+findings sit in the trailing `Appendix: LOW confidence` section the protocol defines rather than
+interleaved into the file groups, so the body of the report reads at one confidence level.
 
 ---
 
 ## Output format
 
-For multi-file targets, group findings hierarchically: file -> category -> findings. Within
-each file, order findings by severity: BLOCKING -> INCONSISTENCY -> CONFLICT -> STANDARD.
+Open the report with the triage header from
+[verification-protocol.md](references/verification-protocol.md). For multi-file targets, group the
+HIGH and MEDIUM confidence findings hierarchically: file -> category -> findings. Within each file,
+order findings by severity: BLOCKING -> INCONSISTENCY -> CONFLICT -> STANDARD. Collect LOW confidence
+findings into the trailing `Appendix: LOW confidence` section, ordered by the same sequence.
 
 Each finding uses this structure:
 
 ```text
 [Category]: <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT>
 [Confidence]: <HIGH | MEDIUM | LOW>
-Skill: <skill name>
-Checklist point: "<verbatim quote from the skill's checklist or reference file>"
+Skill: <skill name, or the tool name for a Step 3 diagnostic>
+Checklist point: "<verbatim quote from the skill's checklist or reference file, or the tool's rule code>"
 Location: <path>:<line>-<line>
 Current state: "<verbatim quote from the file>"
 Required state: <concrete example or the checklist's "should be" form>
@@ -315,20 +402,34 @@ You MUST verify the audit output against this checklist before presenting it to 
 Style Compliance Audit Output:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
-- [ ] For Large tier, parallel `general-purpose` sub-agents used and findings synthesized
+- [ ] For Large tier, batches built by binding with no batch carrying more than two checklists
+- [ ] For Large tier, every single-file binding and the docs package given its own sub-agent
+- [ ] For Large tier, each sub-agent loaded only its own batch's checklists and rule-ledger rows
+- [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the report
 - [ ] Step 1 file binding executed (every file in scope mapped to its applicable style skill)
 - [ ] Step 2 checklists loaded for every applicable style skill
+- [ ] Step 3 deterministic gates run in their read-only form for every tool the project configures
+- [ ] Bare `tox` and `tox -e lint` never run during the audit
+- [ ] Tool diagnostics folded in as findings citing the tool and rule code, at HIGH confidence
+- [ ] Rules the tools decide delegated to them rather than re-derived by the sweep
+- [ ] Report states which tools ran, which failed to run, and which rules were delegated
 - [ ] Every file in scope walked top to bottom
 - [ ] Rule ledger built in Pass 1, with every rule copied verbatim from a loaded checklist
 - [ ] Detection passes 2 through 9 run in order, with pass 9 run on the main agent over the whole file set
 - [ ] All three dimensions evaluated (structural, comment/docstring quality, cross-file consistency)
-- [ ] Every finding anchored to a verbatim checklist quote
+- [ ] Every finding anchored to a verbatim checklist quote, or to a tool rule code
 - [ ] Every finding cites a file location <path>:<line>
 - [ ] Findings categorized (BLOCKING, STANDARD, INCONSISTENCY, CONFLICT)
 - [ ] Every finding assigned a confidence tier (HIGH, MEDIUM, LOW)
 - [ ] Repeated violations of the same checklist point collapsed with counts
-- [ ] Sample verification (3 random findings re-derived) complete
+- [ ] Every false-positive guard applied in order, with the discarded-candidate count recorded
+- [ ] Citation verification run against every finding, with the checklist quote and source quote confirmed
+- [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
+- [ ] Adversarial refutation run against every BLOCKING and CONFLICT finding, in fresh sub-agents
+- [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
+- [ ] Triage header present, carrying the category by confidence counts and every discard count
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
+- [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
 - [ ] No compliant items appear in the report
 - [ ] No factual errors, missing content, or source mismatches appear (those belong to /audit-facts)
 - [ ] No findings invented outside the loaded checklists

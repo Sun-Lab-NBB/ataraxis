@@ -1,6 +1,6 @@
 # Finding catalog
 
-The eighteen finding categories of `/audit-correctness`. Each entry gives the category's definition,
+The nineteen finding categories of `/audit-correctness`. Each entry gives the category's definition,
 its mechanical detection procedure, the evidence a report entry must carry, and its severity guidance.
 Classify every candidate against exactly one category, choosing the most specific one, and list any
 others as tags.
@@ -8,6 +8,42 @@ others as tags.
 Every entry inherits the skill's evidence floor. A finding needs a concrete trigger, written as an
 executable expression, a numbered call sequence, or a line-numbered interleaving, and a concrete
 result, written as a value, an exception, a corruption, or a hang.
+
+## Contents
+
+- The severity levels
+- CONTRACT_VIOLATION
+- UNHANDLED_EDGE_CASE
+- TYPE_CONTRACT_BREACH
+- NUMERIC_DEFECT
+- STATE_LIFECYCLE_DEFECT
+- RESOURCE_LEAK
+- DURABILITY_DEFECT
+- CONCURRENCY_DEFECT
+- ERROR_HANDLING_DEFECT
+- SHARED_MUTABLE_STATE_DEFAULT
+- ALIASING_MUTATION
+- CONTROL_FLOW_DEFECT
+- API_MISUSE
+- ORDERING_PROTOCOL_DEFECT
+- UNIT_SCALE_CONSTANT_DEFECT
+- UNTESTED_PATH_DEFECT
+- CPP_LOW_LEVEL_DEFECT
+- CSHARP_UNITY_DEFECT
+- TEST_ORACLE_GAP
+
+---
+
+## The severity levels
+
+Severity orders the report, and every entry below states which level its category takes by default.
+
+| Severity | Meaning                                                                                             |
+|----------|-----------------------------------------------------------------------------------------------------|
+| CRITICAL | Silent corruption of persisted or transmitted data, unsafe actuation, a hang, or undefined behavior |
+| HIGH     | A wrong value or wrong control flow reaching a consumer, an accumulating leak, a use-after-close    |
+| MEDIUM   | A defect confined to messages and logs, or on a path that fails loudly and immediately              |
+| LOW      | A defect reachable only from test helpers or debug entry points                                     |
 
 ---
 
@@ -133,6 +169,35 @@ process descriptor limit.
 
 **Severity.** CRITICAL for an unjoined process or thread that keeps the interpreter alive or holds a
 device. HIGH for a leak inside a loop or on a retry path. MEDIUM for a single-shot leak.
+
+---
+
+## DURABILITY_DEFECT
+
+**Definition.** A persisted artifact that a crash, a kill, or a second writer can leave partial,
+stale, or internally inconsistent, where a later read accepts it as complete. Covers a write straight
+to its destination path rather than through a temporary file and a rename, a rename across
+filesystems, a completion marker written before the data it vouches for, a checksum computed over the
+in-memory buffer rather than the bytes that reached the disk, an unguarded second writer to one path,
+and a resume path that treats a partial artifact as finished.
+
+This category owns the state left ON DISK. `RESOURCE_LEAK` owns the handle left open, and
+`STATE_LIFECYCLE_DEFECT` owns the object left half-built in memory. A defect that leaves both a leaked
+handle and a truncated file is filed here when the persisted bytes are the damaging half.
+
+**Detection.** Run the durability half of Pass 5 in `detection-passes.md`, establishing atomicity,
+ordering against the marker, checksum subject, and second writer for every persisted artifact.
+
+**Evidence.** Cite the write with its `<path>:<line>` and quote it. Name the concrete interruption
+point as a line number, or the concurrent interleaving as a line-numbered trace. State the resulting
+on-disk content exactly, such as a marker naming a session whose descriptor holds zero bytes, or a
+checksum that matches a buffer the file never received. Cite the later reader that accepts the
+artifact, with its `<path>:<line>`.
+
+**Severity.** CRITICAL when the surviving artifact is acquisition data, a session marker, or a
+checksum that a later stage trusts, because the corruption is silent and the audit trail agrees with
+it. HIGH when the partial artifact fails a later read loudly. MEDIUM when the only loss is a cache or
+a regenerable intermediate.
 
 ---
 

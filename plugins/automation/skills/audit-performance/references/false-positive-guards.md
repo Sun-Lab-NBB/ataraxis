@@ -7,6 +7,24 @@ discarded candidates for the coverage ledger.
 The codebase this audit runs against already applies most of the patterns the audit recommends, so a
 guard that rejects a plausible-looking candidate is doing its job.
 
+## Contents
+
+- Guard 1: Cold-path gate
+- Guard 2: No hot-path speculation
+- Guard 3: Style boundary
+- Guard 4: Readability and convention floor
+- Guard 5: Guarded casts and defensive conversions are correct
+- Guard 6: Loop membership must be proven for growth claims
+- Guard 7: Leave compiled code alone
+- Guard 8: No premature Numba
+- Guard 9: No premature parallelism
+- Guard 10: Resolve the receiver before reporting a named method
+- Guard 11: Promotion must be unjustified to be a finding
+- Guard 12: Archetype gate for C++
+- Guard 13: MEASUREMENT-PENDING is a report state
+- Guard 14: Aggregate the micro-findings
+- Guard 15: Footprint requires an unbounded input dimension
+
 ---
 
 ## Guard 1: Cold-path gate
@@ -15,6 +33,10 @@ A finding is reportable only when Pass 1 assigned its line a multiplicity of PER
 when it is a categorical prohibition that holds at any frequency. The categorical prohibitions are
 heap allocation in embedded firmware, a missing `final` on a leaf class or leaf override, and LINQ
 inside a Unity per-frame method.
+
+`PEAK_MEMORY_FOOTPRINT` is exempt from this gate, because it is gated by SIZE rather than by
+frequency. A whole-file materialization that runs once per process still exhausts the machine when the
+file is large, so judge it against Guard 15 instead.
 
 A `prange` race and `os.cpu_count()` arithmetic without a None guard stay off that list, because the
 payload of each is a wrong value or a crash rather than a cost. `/audit-correctness` owns the race as
@@ -201,3 +223,27 @@ buries the real findings and pressures the reader toward unreadable code.
 
 The same collapsing applies to repeated instances of one root cause within a file, which become one
 finding carrying a count and representative line citations.
+
+---
+
+## Guard 15: Footprint requires an unbounded input dimension
+
+A whole-input materialization is a finding only when the input dimension that bounds its size has no
+ceiling the project sets. Trace that dimension to what fixes it, which is a configuration field, an
+acquisition rate and duration, a wire-format field count, or the on-disk size of a file the pipeline
+accepts, and state the value or the range you found.
+
+Four shapes produce no finding. A materialization bounded by a literal or a configuration value in the
+low tens holds a trivial buffer. A whole-file read of an artifact the project itself writes at a
+bounded size, such as a session marker, a descriptor, or a configuration file, is bounded by
+construction. A full read that the very next statement reduces to a scalar or a small summary still
+peaks, so it IS reportable, while a full read the consumer genuinely needs in one piece, such as an
+array a single vectorized call transforms end to end, is not.
+
+The fourth is the inverted recommendation. Accumulating chunks in a list and concatenating once is the
+prescribed fix for quadratic growth, so report its peak only when the joined result and the chunk list
+are both alive and both full size, and say so explicitly rather than flagging the pattern itself.
+
+Never propose chunking, windowing, or memory mapping without naming the window size and confirming the
+consumer tolerates a partial view. A proposal that would change the result the current code produces
+belongs to no report.

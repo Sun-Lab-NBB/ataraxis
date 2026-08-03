@@ -11,6 +11,29 @@ Every pass applies to both documentation classes. A metadata file's claims resol
 packages and tools it names, and an in-source block's claims resolve against the implementation it
 sits on together with the symbols that implementation calls.
 
+## Contents
+
+- Pass 1: Claim harvest
+- Pass 2: Existence sweep
+- Pass 3: Signature sweep
+- Pass 4: Behavior sweep
+- Pass 5: Failure sweep
+- Pass 6: Quantity sweep
+- Pass 7: Omission sweep
+- Pass 8: Reference sweep
+- Pass 9: Contradiction sweep
+
+## One traversal, nine questions
+
+Passes 2 through 6 are a CHECKLIST OF QUESTIONS asked of the CLAIM LEDGER rather than a schedule of
+re-reads. Each claim carries the kind that names its pass, so walk the ledger once and answer each
+claim under its own pass, opening each authoritative source once and settling every claim that
+resolves against it while it is open. Re-reading the file set once per pass costs four extra
+traversals and surfaces nothing the single walk misses.
+
+Pass 1 runs to completion first, because it builds the ledger. Passes 7, 8, and 9 run after the ledger
+is fully verified, because each needs the whole ledger in one view.
+
 ---
 
 ## Pass 1: Claim harvest
