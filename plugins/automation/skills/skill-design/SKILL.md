@@ -1,10 +1,10 @@
 ---
 name: skill-design
 description: >-
-  Generates, updates, and verifies Claude Code skill files and CLAUDE.md project instructions. Covers
-  SKILL.md structure, YAML frontmatter, formatting conventions, inter-skill relationships, scope
-  declarations, and verification checklists. Use when creating new skills, modifying existing skills,
-  updating CLAUDE.md files, or when the user asks about skill conventions.
+  Generates, updates, and verifies Claude Code skill files and CLAUDE.md and AGENTS.md project
+  instructions. Covers SKILL.md structure, YAML frontmatter, formatting conventions, inter-skill
+  relationships, scope declarations, and verification checklists. Use when creating or modifying
+  skills, updating CLAUDE.md or AGENTS.md files, or when the user asks about skill conventions.
 user-invocable: false
 ---
 
@@ -21,7 +21,7 @@ verification checklists at the end are mandatory before submitting any work.
 
 **Covers:**
 - SKILL.md structure, YAML frontmatter, and formatting conventions
-- CLAUDE.md structure, section ordering, and formatting conventions
+- CLAUDE.md and AGENTS.md structure, section ordering, and formatting conventions
 - Skill creation workflow from scratch
 - Inter-skill relationships, scope declarations, and progressive disclosure
 - Verification checklists for skill files and project instructions
@@ -385,10 +385,12 @@ its reason.
 
 ## CLAUDE.md conventions
 
-The `CLAUDE.md` file at the project root provides project-wide instructions loaded at the start of
-every session. For the complete CLAUDE.md reference including import syntax, modular rules, and
-quality criteria, see [claude-md-reference.md](references/claude-md-reference.md). For common
-mistakes, see [anti-patterns.md](references/anti-patterns.md).
+The `CLAUDE.md` file at the project root provides project-wide instructions loaded at the start of every
+session. `AGENTS.md` is the vendor-neutral name for that same file, read by agent tools that do not load
+`CLAUDE.md`. No ataraxis or sollertia repository carries one today, and a project that adds one follows
+every CLAUDE.md convention unchanged. For the complete reference including import syntax, modular rules,
+quality criteria, and the AGENTS.md rules, see [claude-md-reference.md](references/claude-md-reference.md).
+For common mistakes, see [anti-patterns.md](references/anti-patterns.md).
 
 ### Structure
 

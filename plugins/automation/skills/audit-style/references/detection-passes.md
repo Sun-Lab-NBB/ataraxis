@@ -4,8 +4,9 @@ The ordered sweep passes of `/audit-style`. Each pass asks one question of every
 each names the mechanical procedure that answers it. Run them in order, because the passes that
 resolve a construct's identity gate the passes that judge it.
 
-The passes decompose the workflow steps in the skill. Pass 1 executes Step 2, passes 2 through 6
-cover Dimension A of Step 4, passes 7 and 8 cover Dimension B, and pass 9 covers Dimension C.
+The passes decompose the workflow steps in the skill. Pass 1 executes Step 2, pass 10 executes Step 4,
+passes 2 through 6 cover Dimension A of Step 5, passes 7 and 8 cover Dimension B, and pass 9 covers
+Dimension C.
 
 Every pass draws its authority from the checklists Pass 1 loads. A convention absent from every loaded
 checklist is not a violation, whatever a pass below appears to invite.
@@ -21,17 +22,19 @@ checklist is not a violation, whatever a pass below appears to invite.
 - Pass 7: Documentation form sweep
 - Pass 8: Comment and suppression sweep
 - Pass 9: Cross-file consistency sweep
+- Pass 10: Project layout sweep
 
-## One traversal, nine questions
+## One traversal, ten questions
 
 Passes 2 through 8 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file
 ONCE and answer every applicable pass during that single traversal, carrying the pass list beside you.
 Re-reading the file set once per pass costs six extra traversals of every line in scope and surfaces
 nothing the single traversal misses.
 
-Two passes sit outside that traversal. Pass 1 runs first, because it builds the ledger every later
-pass reports against. Pass 9 runs last on the main agent, because it needs the whole file set in one
-view.
+Three passes sit outside that traversal. Pass 1 runs first, because it builds the ledger every later
+pass reports against. Pass 10 runs once on the main agent at Step 4, before the traversal opens,
+because the directory tree belongs to the repository rather than to any file in it. Pass 9 runs last on
+the main agent, because it needs the whole file set in one view.
 
 Every pass also defers to the Step 3 deterministic gates. Where a configured tool decides a rule, the
 tool's output IS the finding and the pass reports nothing on its own authority.
@@ -222,3 +225,51 @@ Report a row where files disagree and the loaded checklist permits both forms on
 is an INCONSISTENCY rather than a violation of any single rule. Where the checklist prescribes one
 form outright, the deviating file is an ordinary finding under the pass that owns that rule, so report
 it there instead and keep this pass for genuine drift.
+
+---
+
+## Pass 10: Project layout sweep
+
+**Question:** Does the repository hold the tree its archetype requires, and nothing that tree forbids?
+
+This pass runs once on the main agent at Step 4, before the per-file traversal opens. It is the only
+pass that can report a path as ABSENT, because every other pass takes one existing file as its input
+and no such pass can report the file nobody wrote.
+
+Run it for a project-root target alone. A package directory and a single file carry no tree to judge,
+and in change mode only a change set that creates or deletes files can alter one. Record the skip and
+its reason rather than passing over it silently.
+
+Work in four parts:
+
+1. Resolve the archetype from the key-indicator table in `/project-layout`, recording the indicators
+   that decided it and how confidently they matched. A repository that matches no archetype, such as an
+   umbrella repository indexing siblings, carries no tree to diff, so record the skip with that reason
+   and report no absent-path findings against it.
+2. Read the archetype's section of `/project-layout`'s `archetype-trees.md`, which is the authority for
+   the required and the forbidden paths.
+3. Walk the required paths and report each one the repository lacks, then walk the repository and
+   report each path the tree does not sanction.
+4. Apply the presence and absence items of `/project-layout`'s checklist, which cover the `envs/`
+   contents, the `.github/ISSUE_TEMPLATE/` contents, and the pairing of `.netlify-site` with the
+   `deploy` tox environment.
+
+Report each finding in the shape below, which replaces the skill's ordinary finding shape because a
+`Location: <path>:<line>` citation cannot point at a file that does not exist:
+
+```text
+[Category]: <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT>
+[Confidence]: <HIGH | MEDIUM | LOW>
+Skill: /project-layout
+Checklist point: "<verbatim archetype tree line, or verbatim layout checklist item>"
+Expected path: <repository-relative path the archetype tree requires, for an absent path>
+Offending path: <repository-relative path the tree does not sanction, for a stray path>
+Current state: <ABSENT | PRESENT>
+Required state: <PRESENT, or ABSENT for a stray or forbidden path>
+Suggested fix: <concrete creation, removal, or relocation>
+Approval: <REQUIRED when the fix deletes or relocates a tracked path, naming what breaks>
+```
+
+An absent-path finding carries `Expected path` alone and quotes the archetype tree line that requires
+the path. A stray-path finding carries `Offending path` alone and quotes the checklist item or the tree
+section that excludes it.

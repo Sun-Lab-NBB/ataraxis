@@ -28,6 +28,8 @@ before submitting findings.
   folding their diagnostics into the report as findings
 - Structural style: element ordering, imports, formatting, naming, type annotations,
   error-handling patterns, file-section ordering
+- Project-scope layout: the repository directory tree against the archetype tree its indicators
+  resolve to, for a project-root target
 - Comment and docstring quality: typos, sentence length, length proportionality, redundancy
   with the type signature, narrate-the-code comments, separator punctuation, and behavioral
   scope
@@ -61,11 +63,13 @@ Audit Progress:
 - [ ] Step 1: Target resolved, style skills bound, tier selected
 - [ ] Step 2: Style skill checklists loaded and rule ledger built
 - [ ] Step 3: Deterministic gates run and their findings collected
-- [ ] Step 4: Line-by-line sweep complete (all three dimensions)
-- [ ] Step 5: Findings categorized
-- [ ] Step 6: False-positive guards applied
-- [ ] Step 7: Findings verified (citation, refutation)
-- [ ] Step 8: Report produced
+- [ ] Step 4: Project-scope layout sweep run, or skipped and recorded
+- [ ] Step 5: Line-by-line sweep complete (all three dimensions)
+- [ ] Step 6: Findings categorized
+- [ ] Step 7: False-positive guards applied
+- [ ] Step 8: Findings verified (citation, refutation)
+- [ ] Step 9: Coverage ledger assembled
+- [ ] Step 10: Report produced
 ```
 
 ### Step 0: Produce audit plan and pause
@@ -75,6 +79,7 @@ Emit a plan before any sweep work fires. The plan must list:
 - Files in scope (resolved absolute paths)
 - Style skills bound to those files (per the binding table in Step 1)
 - Tier classification (small, medium, or large)
+- Whether the Step 4 project-scope layout sweep runs, and the reason when it does not
 - Expected finding categories
 
 Pause for user confirmation or a "proceed" signal. This catches misidentified targets before
@@ -98,28 +103,34 @@ For each file in scope, identify the applicable style skill using the binding ta
 | File pattern                                                              | Style skill          |
 |---------------------------------------------------------------------------|----------------------|
 | `*.py`                                                                    | `/python-style`      |
-| `*.cs`                                                                    | `/csharp-style`      |
+| `*.cs`, `.editorconfig`, `.csharpierrc.yaml`, `.csharpierignore`          | `/csharp-style`      |
 | `*.h`, `*.hpp`, `*.cpp`, `.clang-format`, `.clang-tidy`, `CMakeLists.txt` | `/cpp-style`         |
 | `README.md`                                                               | `/readme-style`      |
 | `pyproject.toml`                                                          | `/pyproject-style`   |
 | `tox.ini`                                                                 | `/tox-config`        |
 | `platformio.ini`, `library.json`                                          | `/platformio-config` |
-| `docs/*.rst`, `conf.py`, `Makefile`, `make.bat`, `Doxyfile`               | `/api-docs`          |
+| `docs/**/*.rst`, `docs/**/conf.py`, `Makefile`, `make.bat`, `Doxyfile`    | `/api-docs`          |
 | `SKILL.md`, skill `references/*.md`, `CLAUDE.md`, `AGENTS.md`             | `/skill-design`      |
 | `.github/ISSUE_TEMPLATE/*.yml`                                            | `/project-layout`    |
 | `envs/*`                                                                  | `/project-layout`    |
 | Project directory tree                                                    | `/project-layout`    |
 
+Where a file matches more than one row, the MOST SPECIFIC pattern wins, which resolves
+`docs/source/conf.py` to `/api-docs` rather than to any broader row it also matches. The
+`Project directory tree` row binds no file at all and is executed by the Step 4 layout sweep rather
+than by the per-file passes.
+
 If a file in scope matches no binding row, mark it UNAUDITED in the plan and report (no
 applicable style skill) and flag no findings against it.
 
-Classify the audit tier:
+Classify the audit tier, and note that the three rows partition the file count with no overlap and no
+gap:
 
-| Tier   | Indicators                     | Execution                                              |
-|--------|--------------------------------|--------------------------------------------------------|
-| Small  | 1 file, under 500 lines        | Main agent, sequential                                 |
-| Medium | 2–10 files                     | Main agent, file-by-file                               |
-| Large  | 10+ files or full project root | Parallel `general-purpose` sub-agents over file batches |
+| Tier   | Indicators                         | Execution                                              |
+|--------|------------------------------------|--------------------------------------------------------|
+| Small  | 1 file                             | Main agent, sequential                                 |
+| Medium | 2 to 9 files                       | Main agent, file-by-file                               |
+| Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
 ### Batching isolates the style guides
 
@@ -162,7 +173,7 @@ verification checklist along with every reference file the skill mentions. The l
 checklists are the only source of truth for "applicable style point." A convention not present
 in any loaded checklist is NOT a violation.
 
-Tag every ledger row with the batch that will consume it, so Step 4 hands each sub-agent its own rows
+Tag every ledger row with the batch that will consume it, so Step 5 hands each sub-agent its own rows
 rather than the whole ledger.
 
 ### Step 3: Run the deterministic gates
@@ -188,9 +199,9 @@ failed to run as a gap in the coverage the report states rather than as a clean 
 
 Fold each diagnostic into the report as an ordinary finding, citing the tool and its rule code in
 place of the checklist quote, at HIGH confidence. A diagnostic a tool produced needs no adversarial
-verification in Step 7, because the tool IS the external check.
+verification in Step 8, because the tool IS the external check.
 
-Then narrow the Step 4 sweep. The passes still run, and their scope shrinks to what the tools cannot
+Then narrow the Step 5 sweep. The passes still run, and their scope shrinks to what the tools cannot
 decide:
 
 - **Delegated to the tools, so the sweep reports nothing on its own authority.** Line length,
@@ -205,7 +216,22 @@ decide:
 
 State in the report which tools ran and which rules the sweep therefore delegated.
 
-### Step 4: Line-by-line sweep
+### Step 4: Sweep the project layout
+
+Run Pass 10 from [detection-passes.md](references/detection-passes.md), which defines the four-part
+procedure and the finding shape this sweep reports in. The directory tree is a style surface no
+per-file pass can reach, because a pass reading a file cannot report the file that is MISSING. The
+sweep runs ONCE, on the main agent, before the per-file batches fan out, never inside a batch sub-agent.
+
+Run it ONLY when the resolved target is a project root, meaning a whole repository. A package directory
+or a single file carries no tree to judge, so the sweep is SKIPPED, and the Step 0 plan and the Step 9
+coverage ledger each record it as `skipped-not-a-project-root`. In change mode, run it only when the
+change set CREATES or DELETES files, because only those alter the tree, and record an edit-only change
+set as `skipped-no-created-or-deleted-files`. Silence is never coverage, so an unrecorded skip reads as
+a clean tree that nothing ever checked. Every layout finding passes through the Step 7 guards like
+every other candidate.
+
+### Step 5: Line-by-line sweep
 
 Run passes 2 through 9 from [detection-passes.md](references/detection-passes.md) in order, over ONE
 traversal of each file rather than one traversal per pass. Passes 2 through 6 cover Dimension A,
@@ -249,7 +275,7 @@ synthesizes after all sub-agents complete.
 
 For Small and Medium tiers, the main agent performs all sweep work sequentially.
 
-### Step 5: Categorize findings
+### Step 6: Categorize findings
 
 Categorize every violation using one of:
 
@@ -268,14 +294,14 @@ Also assign a confidence tier to every finding:
 | MEDIUM     | One quote verbatim, the other requires interpretation                  |
 | LOW        | Pattern detected but checklist/source mapping is inferred, not literal |
 
-### Step 6: Apply the false-positive guards
+### Step 7: Apply the false-positive guards
 
 Walk every candidate through every guard in
 [false-positive-guards.md](references/false-positive-guards.md), in order. The rule-ledger guard runs
 first and removes the most candidates. Discard everything a guard rejects, and record the count of
 discarded candidates for the report's triage header.
 
-### Step 7: Verify the surviving findings
+### Step 8: Verify the surviving findings
 
 Run the two checks in [verification-protocol.md](references/verification-protocol.md), in order:
 
@@ -289,7 +315,16 @@ sweep. They catch the failure mode this audit produces most often, which is misa
 rule. A Step 3 diagnostic skips both checks, because the tool that produced it already is the external
 check. Record every count the protocol names, because the report's triage header carries them.
 
-### Step 8: Produce the findings report
+### Step 9: Assemble the coverage ledger
+
+Build the coverage ledger the report carries under its triage header, in the shape
+[verification-protocol.md](references/verification-protocol.md) defines. It records the per-binding
+count of files in scope, files swept, and files UNAUDITED, then names every UNAUDITED file by path,
+the sub-agent and batch count, the gates that ran and the gates that failed to run, the layout pass
+status, and the revision whenever the scope was narrowed to a change set. It exists so a thin pass is
+visible rather than silent.
+
+### Step 10: Produce the findings report
 
 Use the output format below. Open with the triage header from
 [verification-protocol.md](references/verification-protocol.md), which carries the finding counts by
@@ -310,10 +345,14 @@ interleaved into the file groups, so the body of the report reads at one confide
 ## Output format
 
 Open the report with the triage header from
-[verification-protocol.md](references/verification-protocol.md). For multi-file targets, group the
-HIGH and MEDIUM confidence findings hierarchically: file -> category -> findings. Within each file,
-order findings by severity: BLOCKING -> INCONSISTENCY -> CONFLICT -> STANDARD. Collect LOW confidence
-findings into the trailing `Appendix: LOW confidence` section, ordered by the same sequence.
+[verification-protocol.md](references/verification-protocol.md), then the Step 9 coverage ledger. For
+multi-file targets, group the HIGH and MEDIUM confidence findings hierarchically: file -> category ->
+findings. Within each file, order findings by severity: BLOCKING -> INCONSISTENCY -> CONFLICT ->
+STANDARD. Collect LOW confidence findings into the trailing `Appendix: LOW confidence` section, ordered
+by the same sequence.
+
+Step 4 layout findings belong to no file, so they sit in a leading `Project layout` group ahead of the
+per-file groups, headed by the archetype the sweep resolved and the indicators that resolved it.
 
 Each finding uses this structure:
 
@@ -342,6 +381,10 @@ Current state: "idx" used as loop variable
 Required state: "index"
 Suggested fix: Rename idx -> index throughout module.py.
 ```
+
+A Step 4 layout finding uses its own shape, defined under Pass 10 in
+[detection-passes.md](references/detection-passes.md), because `Location: <path>:<line>` cannot cite a
+file that does not exist.
 
 ---
 
@@ -380,7 +423,7 @@ You MUST adhere to the following discipline during every audit.
 | `/tox-config`        | Provides the tox.ini checklist, loaded when that file is in scope               |
 | `/platformio-config` | Provides the platformio.ini and library.json checklist, loaded for those files  |
 | `/api-docs`          | Provides the Sphinx docs checklist, loaded when scope contains docs files       |
-| `/skill-design`      | Provides the skill and CLAUDE.md checklist, loaded for those files              |
+| `/skill-design`      | Provides the skill, CLAUDE.md, and AGENTS.md checklist, for those files         |
 | `/project-layout`    | Provides the directory and issue template checklist, for roots and .github      |
 | `/explore-codebase`  | Provides project structure context, invoke first on an unfamiliar codebase      |
 
@@ -389,10 +432,11 @@ You MUST adhere to the following discipline during every audit.
 ## Proactive behavior
 
 Invoke this skill when the user asks to audit a file, package, or project for style compliance.
-Run last in the audit chain, after `/audit-facts`, `/audit-correctness`, and `/audit-performance`,
-when auditing the same file end to end. Style work performed before factual corrections wastes
-effort on prose that may be rewritten, and correctness and optimization fixes change the code whose
-form this skill judges.
+
+Apply its findings LAST, after the fixes from `/audit-facts`, `/audit-correctness`, and
+`/audit-performance`, when auditing the same file end to end. Style fixes applied before factual
+corrections waste effort on prose that may be rewritten, and correctness and optimization fixes change
+the code whose form this skill judges. That is a FIX order, and `/audit-project` decides the RUN order.
 
 Do NOT make code or documentation changes during the audit. Present findings and wait for user
 direction.
@@ -419,12 +463,18 @@ Style Compliance Audit Output:
 - [ ] Tool diagnostics folded in as findings citing the tool and rule code, at HIGH confidence
 - [ ] Rules the tools decide delegated to them rather than re-derived by the sweep
 - [ ] Report states which tools ran, which failed to run, and which rules were delegated
+- [ ] Step 4 layout sweep run once on the main agent for a project-root target, before the batches fanned out
+- [ ] Layout sweep skipped and recorded for a package, single-file, or edit-only change-set target
+- [ ] Archetype resolved from the /project-layout key indicators, with the deciding indicators recorded
+- [ ] Archetype tree loaded from project-layout/references/archetype-trees.md and diffed against the real tree
+- [ ] Layout checklist presence and absence items applied (envs/, .github/ISSUE_TEMPLATE/, .netlify-site)
 - [ ] Every file in scope walked top to bottom
 - [ ] Rule ledger built in Pass 1, with every rule copied verbatim from a loaded checklist
 - [ ] Detection passes 2 through 9 run in order, with pass 9 run on the main agent over the whole file set
+- [ ] Pass 10 run on the main agent for a project-root target, or skipped with the reason recorded
 - [ ] All three dimensions evaluated (structural, comment/docstring quality, cross-file consistency)
 - [ ] Every finding anchored to a verbatim checklist quote, or to a tool rule code
-- [ ] Every finding cites a file location <path>:<line>
+- [ ] Every finding cites <path>:<line>, or the expected or offending path for a layout finding
 - [ ] Findings categorized (BLOCKING, STANDARD, INCONSISTENCY, CONFLICT)
 - [ ] Every finding assigned a confidence tier (HIGH, MEDIUM, LOW)
 - [ ] Repeated violations of the same checklist point collapsed with counts
@@ -433,6 +483,9 @@ Style Compliance Audit Output:
 - [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
 - [ ] Adversarial refutation run against every BLOCKING and CONFLICT finding, in fresh sub-agents
 - [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
+- [ ] Step 9 coverage ledger assembled, carrying files in scope, files swept, and files UNAUDITED by path
+- [ ] Ledger states the sub-agent and batch count, the gates that ran, and the gates that failed to run
+- [ ] Ledger states the layout pass status, and the revision whenever the scope was narrowed to a change set
 - [ ] Triage header present, carrying the category by confidence counts and every discard count
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
 - [ ] LOW confidence findings placed in the trailing appendix rather than interleaved

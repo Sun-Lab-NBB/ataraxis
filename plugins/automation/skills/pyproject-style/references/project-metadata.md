@@ -216,7 +216,7 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS :: MacOS X",
     # Typing
-    "Typing :: Typed"
+    "Typing :: Typed",
 ]
 ```
 
@@ -293,13 +293,17 @@ dev = [
     "tox-uv>=1,<2",
 
     # Development Automation
-    "ataraxis-automation>=7,<8",
+    "ataraxis-automation>=9,<10",
 
     # Types
     "types-tqdm>=4,<5",
     "scipy-stubs>=1,<2",
 ]
 ```
+
+The `ataraxis-automation` bound above tracks the current major release of that project, so it moves
+with each new ataraxis-automation major version. See `/tox-config` for the matching pin used by the
+utility tox environments.
 
 Install via: `uv sync --group dev` or `pip install --group dev`
 

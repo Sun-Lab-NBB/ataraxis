@@ -172,11 +172,11 @@ Python rows as N/A rather than treating their absence as a finding:
 
 Classify the audit tier:
 
-| Tier   | Indicators                     | Execution                                              |
-|--------|--------------------------------|--------------------------------------------------------|
-| Small  | 1 file, under 500 lines        | Main agent, sequential                                 |
-| Medium | 2-10 files                     | Main agent, file-by-file                               |
-| Large  | 10+ files or full project root | Parallel `general-purpose` sub-agents over file batches |
+| Tier   | Indicators                         | Execution                                              |
+|--------|------------------------------------|--------------------------------------------------------|
+| Small  | 1 file                             | Main agent, sequential                                 |
+| Medium | 2 to 9 files                       | Main agent, file-by-file                               |
+| Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
 A Large-tier audit BATCHES rather than fanning out per file. Every sub-agent re-receives the whole
 instruction payload, so fanning out per file pays that payload once per file and costs more than the
@@ -274,11 +274,15 @@ Build the ledger that opens the report. It records what was swept, so a thin pas
 than silent:
 
 ```text
-| Language | Files in scope | Files swept | Files skipped | Passes run |
-|----------|----------------|-------------|---------------|------------|
-| Python   | 24             | 24          | 0             | 1-8        |
-| C++      | 6              | 6           | 0             | 1, 9       |
+| Language | Files in scope | Files swept | Files skipped | Passes run                  |
+|----------|----------------|-------------|---------------|-----------------------------|
+| Python   | 24             | 24          | 0             | 1-8, Pass 2 via DTYPE TRACE |
+| C++      | 6              | 6           | 0             | 1-9, Pass 2 via WIDTH TRACE |
 ```
+
+Passes 1 and 3 through 8 apply to every language, so a row listing fewer than those has an unswept
+gap rather than an inapplicable pass. Pass 2 always runs and dispatches to DTYPE TRACE for Python and
+to WIDTH TRACE for C++ and C#, and Pass 9 runs over C++ and C# alone.
 
 List every skipped file by path with its reason, and state the Large-tier batch count. Skipping is
 allowed only when the user narrowed the scope in Step 0 or Step 1, when a file is generated, or when a
@@ -418,9 +422,10 @@ Invoke this skill when the user asks to optimize, profile, or audit code for spe
 dtype predictability. A request that names a directory or a repository covers every source file
 under it by default, and the Step 0 plan is where the user narrows that scope.
 
-Run after `/audit-facts` and `/audit-correctness`, and before `/audit-style`, when auditing the same
-file end to end. Correctness fixes change the code an optimization would otherwise target, and style
-compliance is settled last against the final form of the code.
+Fix this audit's findings after `/audit-facts` and `/audit-correctness` and before `/audit-style`, when
+auditing the same file end to end. Correctness fixes change the code an optimization would otherwise
+target, and style compliance is settled last against the final form of the code. That is a FIX order,
+and `/audit-project` decides the RUN order.
 
 Do NOT make code changes during the audit. Present findings and wait for user direction.
 
@@ -445,7 +450,7 @@ Performance Optimization Audit Compliance:
 - [ ] Hot-path census completed on the main agent before any fan-out
 - [ ] Every loop bound traced to the expression and line that sets it
 - [ ] Sweep passes 2 through 9 run in order, with pass 9 restricted to C++ and C# files
-- [ ] Every finding carries an execution multiplicity of PER_CHUNK or hotter, or is a categorical prohibition
+- [ ] Every finding is PER_CHUNK or hotter, a categorical prohibition, or a size-gated PEAK_MEMORY_FOOTPRINT
 - [ ] Every finding assigned a category, an impact, an evidence class, and a confidence tier
 - [ ] Every finding cites a file location <path>:<line> and quotes the source verbatim
 - [ ] Every finding states explicit cost arithmetic for the current and the proposed form

@@ -171,6 +171,7 @@ This release remains compatible with `acquisition` v5, `behavior` v3, and `analy
 | `/pr`                | Drafts the per-branch pull request summaries that releases aggregate     |
 | `/explore-codebase`  | Provides project context that helps write accurate summaries             |
 | `/platformio-config` | Owns library.json whose version field is the C++ library release version |
+| `/pyproject-style`   | Owns pyproject.toml whose version field is the Python release version    |
 
 ---
 

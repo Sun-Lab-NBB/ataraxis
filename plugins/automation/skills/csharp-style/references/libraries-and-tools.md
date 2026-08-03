@@ -43,7 +43,7 @@ allocates intermediate objects that trigger garbage collection. Use explicit loo
 
 ```csharp
 // Good - explicit loop in Update (no allocations)
-void Update()
+private void Update()
 {
     for (int i = 0; i < _zones.Length; i++)
     {
@@ -55,7 +55,7 @@ void Update()
 }
 
 // Wrong - LINQ in Update (allocates every frame)
-void Update()
+private void Update()
 {
     foreach (OccupancyZone zone in _zones.Where(z => z.isActive))
     {
@@ -105,14 +105,14 @@ public class SerialController : MonoBehaviour
     private SerialPort _port;
 
     /// <summary>Opens the serial connection.</summary>
-    void Start()
+    private void Start()
     {
         _port = new SerialPort(portName, baudRate);
         _port.Open();
     }
 
     /// <summary>Closes the serial connection when the component is destroyed.</summary>
-    void OnDestroy()
+    private void OnDestroy()
     {
         if (_port != null && _port.IsOpen)
         {
@@ -191,7 +191,7 @@ operations. Use `async/await` with `UniTask` or standard `Task` for true async I
 
 ```csharp
 // Unity coroutine for frame-based waiting
-IEnumerator WaitAndReset()
+private IEnumerator WaitAndReset()
 {
     yield return new WaitForSeconds(2f);
     ResetState();
@@ -213,7 +213,7 @@ descriptive verb phrase that conveys the timed or staged nature of the operation
 
 ```csharp
 /// <summary>Waits for the specified duration then resets the zone state.</summary>
-IEnumerator WaitAndReset()
+private IEnumerator WaitAndReset()
 {
     yield return new WaitForSeconds(2f);
     ResetState();
@@ -221,7 +221,7 @@ IEnumerator WaitAndReset()
 
 /// <summary>Fades the stimulus intensity over the specified duration.</summary>
 /// <param name="duration">The fade duration in seconds.</param>
-IEnumerator FadeStimulus(float duration)
+private IEnumerator FadeStimulus(float duration)
 {
     float elapsed = 0f;
     while (elapsed < duration)
@@ -256,7 +256,7 @@ IEnumerator FadeStimulus(float duration)
 private readonly WaitForSeconds _pollWait = new WaitForSeconds(0.1f);
 
 /// <summary>Polls the sensor at a fixed interval until the threshold is met.</summary>
-IEnumerator PollSensor()
+private IEnumerator PollSensor()
 {
     while (_sensorValue < _threshold)
     {
@@ -602,7 +602,7 @@ checks, `string.IsNullOrEmpty()` for strings, and `== null` / `!= null` for null
 
 ```csharp
 /// <summary>Checks if the occupancy duration has been met while the animal is in the zone.</summary>
-void Update()
+private void Update()
 {
     if (!isActive || boundaryDisarmed)
         return;

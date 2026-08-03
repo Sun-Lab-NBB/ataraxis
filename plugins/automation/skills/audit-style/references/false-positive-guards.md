@@ -23,6 +23,7 @@ enforce. Several guards below exist for that one failure alone.
 - Guard 11: An inconsistency needs the checklist to permit both forms
 - Guard 12: A conflict is surfaced rather than resolved
 - Guard 13: One rule, one finding
+- Guard 14: Layout paths carry their own exemptions
 
 ---
 
@@ -172,3 +173,26 @@ list and a count.
 Equally, one construct that several passes flag is reported once, under the pass owning the rule that
 describes it most precisely, with the others listed as tags. BLOCKING outranks STANDARD wherever both
 apply to the same construct.
+
+---
+
+## Guard 14: Layout paths carry their own exemptions
+
+Every Pass 10 candidate clears this guard before it enters the report, because a tree diff flags paths
+the repository is right to lack and paths it is right to hold.
+
+Four classes are discarded outright:
+
+1. **Gitignored build output.** `dist/`, `build/`, `reports/`, the coverage exports, and the generated
+   stubs and markers the archetype tree marks as release-phase are absent or present by the phase the
+   repository sits in, so neither direction is a finding.
+2. **Paths the archetype tree marks optional.** A tree entry annotated `(optional)` is absent by
+   permission, so its absence supports no finding.
+3. **Generated and vendored directories.** A directory a tool produces or a third party ships is
+   regenerated rather than restructured, so neither its presence nor its contents are reportable.
+4. **Absent paths under a low-confidence archetype.** Where the key indicators matched partially or
+   contradicted one another, the required-path set is unsettled, so report the ambiguous archetype to
+   the user and leave the absent paths unjudged.
+
+A stray path still reports under a low-confidence archetype when every candidate archetype forbids it,
+and waits on the archetype question otherwise.

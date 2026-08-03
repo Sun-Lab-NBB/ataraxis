@@ -45,7 +45,7 @@ These settings are identical across all projects:
 # Ruff Configuration.
 [tool.ruff]
 line-length = 120         # Deviates from the commonly used '80' standard.
-indent-width = 4          # Same as black, indents are 4 spaces
+indent-width = 4
 target-version = "py312"  # Targets the lowest supported version of python
 src = ["src"]             # The name of the root source code directory
 
@@ -64,8 +64,8 @@ for `>=3.12,<3.15`, `"py314"` for `>=3.14,<3.15`).
 ```toml
 # Additional formatting configurations
 [tool.ruff.format]
-quote-style = "double"             # Uses double quotes for strings
-indent-style = "space"             # Uses space for indents
+quote-style = "double"
+indent-style = "space"
 skip-magic-trailing-comma = false  # Like black, ignores trailing commas
 line-ending = "auto"               # Automatically detects and standardizes line-ending character
 ```
@@ -155,7 +155,7 @@ own `"tests/**/*.py"` key as well, because every code it lists is waived for tha
 
 ```toml
 [tool.ruff.lint.isort]
-case-sensitive = true              # Takes case into account when sorting imports
+case-sensitive = true
 combine-as-imports = true          # Combines multiple "as" imports for the same package
 force-wrap-aliases = true          # Wraps "as" imports so that each uses a separate line
 force-sort-within-sections = true  # Forces "as" and "from" imports for the same package to be close
@@ -277,14 +277,14 @@ extra_checks = true
 pretty = true
 
 exclude = [
-    "project-name-\\d+",  # Ignores temporary folder created by setuptools when building the sdist
-    "venv.*/",             # Ignores virtual environments
-    "build/",              # Ignores the sdist directory
-    "dist/",               # Ignores the wheel directory
-    "docs/",               # Ignores the sphinx / doxygen directory
-    "stubs/",              # Ignores stubs directory (stubgen output target)
-    "recipe/",             # Ignores recipe directory (grayskull output target)
-    "tests/",              # Ignores the test directory.
+    "project-name-\\d+",  # The temporary folder setuptools creates when building the sdist
+    "venv.*/",
+    "build/",
+    "dist/",
+    "docs/",
+    "stubs/",             # stubgen output target
+    "recipe/",            # grayskull output target
+    "tests/",
 ]
 ```
 
@@ -301,14 +301,14 @@ disallow_untyped_defs = true # Enforces function annotation
 warn_unused_ignores = true   # Warns against using 'type: ignore' for packages with type stubs
 
 exclude = [
-    "project-name-\\d+",  # Ignores temporary folder created by setuptools when building the sdist
-    "venv.*/",             # Ignores virtual environments
-    "build/",              # Ignores the sdist directory
-    "dist/",               # Ignores the wheel directory
-    "docs/",               # Ignores the sphinx / doxygen directory
-    "stubs/",              # Ignores stubs directory (stubgen output target)
-    "recipe/",             # Ignores recipe directory (grayskull output target)
-    "tests/",              # Ignores the test directory.
+    "project-name-\\d+",  # The temporary folder setuptools creates when building the sdist
+    "venv.*/",
+    "build/",
+    "dist/",
+    "docs/",
+    "stubs/",             # stubgen output target
+    "recipe/",            # grayskull output target
+    "tests/",
 ]
 ```
 

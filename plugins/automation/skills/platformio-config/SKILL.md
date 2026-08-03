@@ -100,7 +100,7 @@ when the board does not need it (e.g. a board with no dependencies omits `lib_de
 
 List each dependency as `registry_owner/name@^MAJOR.MINOR.PATCH`. The registry owner is the
 lowercase PlatformIO registry account, NOT the GitHub org — ataraxis libraries are published under
-`inkaros` (e.g. `inkaros/ataraxis-transport-layer-mc@^3.0.0`); third-party deps use their own owners
+`inkaros` (e.g. `inkaros/ataraxis-transport-layer-mc@^3.0.1`); third-party deps use their own owners
 (`arminjo/digitalWriteFast@^1.3.1`, `pfeerick/elapsedMillis@^1.0.6`). Use the caret (`^`) range so
 patch/minor updates are accepted. List a dependency only under the boards that need it.
 
@@ -214,6 +214,7 @@ These are the PlatformIO development-automation commands (agent-runnable, the C+
 | `microcontroller:firmware-module` | The src/main.cpp harness that export excludes and the module sources |
 | `/readme-style`                   | C++ PlatformIO README Installation/Developers sections               |
 | `/release`                        | Uses library.json version as the C++ library release version         |
+| `/commit`                         | Should be invoked after platformio.ini/library.json changes          |
 
 ---
 

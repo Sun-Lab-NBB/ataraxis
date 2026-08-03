@@ -131,9 +131,9 @@ Two limits govern every run, and they are not the same limit.
 | Full, batch level  | One audit at a time, up to 12 alive | One per top-severity finding |
 
 A wave-level run spends four of the twelve in-flight slots on the audits themselves, which leaves
-eight for the verification refutations each audit spawns in its own Step 7. Queue whatever exceeds
-twelve and start each as a slot frees, because the in-flight limit paces a run rather than truncating
-it.
+eight for the verification refutations each audit spawns in its own verification step. Queue whatever
+exceeds twelve and start each as a slot frees, because the in-flight limit paces a run rather than
+truncating it.
 
 The total is a budget rather than a coverage limit. Where an audit's batching rules produce more units
 than the total allows, merge units that share an authority or a checklist until they fit, and record

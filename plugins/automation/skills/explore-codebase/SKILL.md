@@ -283,6 +283,7 @@ For a complete worked example of this output format, see
 | `/csharp-style`         | Provides C# coding conventions discovered during exploration                         |
 | `/readme-style`         | Provides README conventions when exploration reveals README issues                   |
 | `/commit`               | Should be invoked after completing code changes informed by context                  |
+| `/audit-project`        | Runs the change-mode gate over new code, after exploration informs the changes       |
 | `/skill-design`         | Provides skill conventions when exploration reveals skill files                      |
 | `/project-layout`       | Provides project directory and test-naming conventions referenced during exploration |
 

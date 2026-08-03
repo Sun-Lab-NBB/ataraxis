@@ -173,7 +173,7 @@ setenv =
     # fully replaces the base [testenv] setenv (tox does not merge).
     # UV_PRERELEASE = allow
 commands =
-    pytest --import-mode=append --cov={package_name} --cov-config=pyproject.toml \
+    pytest --import-mode=importlib --cov={package_name} --cov-config=pyproject.toml \
     --cov-report=xml --junitxml=reports/pytest.xml.{envname} -n logical --dist loadgroup
 ```
 
@@ -183,6 +183,9 @@ commands =
   test fewer.
 - `{package_name}` in `--cov`: The underscore-separated package name.
 - `package = wheel`: Forces the project to be built as a wheel before testing.
+- `--import-mode=importlib`: Matches the `addopts` declaration in `pyproject.toml`, so a bare
+  `pytest` invocation resolves test modules the same way this task does. See `/pyproject-style` for
+  that declaration.
 
 ### coverage environment
 

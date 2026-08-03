@@ -21,7 +21,7 @@ submitting.
 ## Scope
 
 **Covers:**
-- README.md section ordering and structure
+- README.md section ordering and structure for the library and umbrella archetypes
 - Writing style (voice, tense, notes/warnings)
 - Standard section templates (badges, installation, developers, acknowledgments, etc.)
 - MCP server and CLI documentation sections
@@ -69,9 +69,20 @@ submitting work.
 
 ## Section ordering
 
-README files use the following section order. Sections marked as optional may be omitted based on
-project type. For the exact template of each section, see
-[section-templates.md](references/section-templates.md).
+Two section orders exist. Select between them mechanically before writing anything:
+
+- **Library README**: The repository ships an installable artifact of its own, such as a PyPI
+  package, a PlatformIO registry library, or Unity package sources. Use the library order.
+- **Umbrella README**: The repository ships no installable artifact and instead indexes sibling
+  libraries or distributes plugins through a marketplace. Use the umbrella order.
+
+A repository that ships an installable artifact and also indexes siblings is a library, so it takes
+the library order and covers the siblings inside its own sections.
+
+Sections marked as optional may be omitted based on project type. For the exact template of each
+section, see [section-templates.md](references/section-templates.md).
+
+### Library README order
 
 1. **Title**: Project name as H1 heading (`# project-name`)
 2. **One-line description**: Bare project description, identical across all canonical locations for the archetype
@@ -90,6 +101,41 @@ project type. For the exact template of each section, see
 15. **Authors**: List of contributors with GitHub profile links
 16. **License**: License type with link to LICENSE file
 17. **Acknowledgments**: Credits to dependency developers and everyone who contributed to the project
+
+### Umbrella README order
+
+An umbrella repository indexes other repositories, so the sections a library README spends on its
+own dependencies, installation, API, and versioning have no subject here. The badge row carries the
+license badge alone, because no published package exists to report a version, a Python version, a
+wheel, or a release status for. The table of contents and the license bullet that closes Features
+belong to the library order alone. Every other convention in this skill applies unchanged, including
+the `___` horizontal rules, the heading hierarchy, and the writing style rules.
+
+1. **Title**: Repository name as H1 heading in its display casing (`# Ataraxis`)
+2. **Tagline**: Bold one-line statement of what the framework is for, in place of the bare
+   one-line description
+3. **Badges**: The license badge alone
+4. **Framework description**: Two or three paragraphs stating what the framework provides and the
+   principle that organizes it, written without a `## Detailed Description` heading
+5. **Attribution**: Author line and copyright line
+6. **Horizontal rule**: `___` (triple underscore) to separate header from content
+7. **Features**: Bulleted capability list grouped under H3 headings
+8. **Architecture** *(optional)*: Diagram of how the indexed components relate at runtime
+9. **Libraries**: Every indexed repository, grouped under H3 category headings. Each entry is a bold
+   link to the repository, its language in parentheses, and one or two sentences of description
+10. **Getting Started**: Install commands for the indexed artifacts, one block per distribution channel
+11. **Claude Code Plugins** *(optional)*: Marketplace installation steps and one table per distributed
+    plugin listing what that plugin provides
+12. **Example Workflows** *(optional)*: Fenced transcripts showing an agent driving the framework
+13. **Adoption Roadmap** *(optional)*: Numbered steps a new adopter follows, ending with a pointer to
+    any platform built on the framework
+14. **Citation** *(optional)*: BibTeX entry for the framework
+15. **License**: License covering every indexed repository
+16. **Acknowledgments**: Credits to the projects the framework builds on, ending with a contact
+    address
+
+Versioning and Authors carry no umbrella content, because the indexed repositories tag their own
+releases and the attribution block in the header already names the authors.
 
 ---
 
@@ -288,26 +334,29 @@ files.**
 README Style Compliance:
 
 Structure:
-- [ ] Title as H1 heading with project name (lowercase, hyphenated)
-- [ ] One-line description immediately after title (bare, matches all canonical description locations)
-- [ ] Correct badge set for project type (see section-templates.md)
+- [ ] Archetype selected mechanically: library (ships an installable artifact) or umbrella (indexes siblings)
+- [ ] Section order matches the selected archetype's list, with only its optional sections omitted
+- [ ] Title H1 uses the package name lowercase-hyphenated (library) or the display casing (umbrella)
+- [ ] Line after the title is the bare canonical description (library) or the bold tagline (umbrella)
+- [ ] Correct badge set for project type, umbrella READMEs carrying the license badge alone
 - [ ] Blank line between description and badges
 - [ ] Horizontal rule uses `___` (not `---`) after badges
-- [ ] Detailed description section present (`## Detailed Description` heading, after horizontal rule)
-- [ ] Features section ends with license type bullet (if Features present)
-- [ ] Table of contents with lowercase Markdown anchors
+- [ ] Detailed Description heading present (library) or unheaded framework description present (umbrella)
+- [ ] Features section ends with license type bullet (library, if Features present)
+- [ ] Table of contents with lowercase Markdown anchors (library order only, umbrella READMEs omit it)
 - [ ] Spelling: "Acknowledgments" (not "Acknowledgements") everywhere
 - [ ] Heading hierarchy: single H1, H2 for sections, H3 for subsections, no skips
 - [ ] Horizontal rules use `___` consistently throughout (not `---`)
 
 Content:
-- [ ] All required sections present (Dependencies, Installation, Usage, etc.)
+- [ ] All sections required by the selected order are present (library Installation, umbrella Libraries)
 - [ ] Section templates followed (see section-templates.md)
 - [ ] Installation uses standard Source warning and pip/source subsections
 - [ ] Dependencies uses standard boilerplate text
 - [ ] API Documentation links to hosted docs
 - [ ] Developers section uses standard mamba/tox template (if present)
 - [ ] Standard ending sections use correct templates (Versioning, Authors, License, Acknowledgments)
+- [ ] Umbrella READMEs omit Versioning and Authors, carrying attribution in the header block
 - [ ] MCP Server section titled "MCP Server" with tools table (if applicable)
 - [ ] CLI commands documented with overview table (if applicable)
 

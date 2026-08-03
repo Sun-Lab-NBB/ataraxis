@@ -131,7 +131,7 @@ Use inline comments for individual values when clarification is needed. Align in
 vertically within a section:
 
 ```toml
-case-sensitive = true              # Takes case into account when sorting imports
+case-sensitive = true
 combine-as-imports = true          # Combines multiple "as" imports for the same package
 force-wrap-aliases = true          # Wraps "as" imports so that each uses a separate line
 force-sort-within-sections = true  # Forces "as" and "from" imports to be close together

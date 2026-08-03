@@ -431,6 +431,11 @@ __all__ = [
   paths reached by a downstream import. Both placements are legitimate, and neither is reported as a
   style finding unless the user names it as one in that specific case
 - **Explicit `__all__`**: Every `__init__.py` must declare `__all__` with all public API members
+- **Cross-package exports**: A symbol consumed outside the package that defines it belongs in that
+  package's `__init__.py`, in both the import list and `__all__`, and consumers import it through the
+  package namespace. This covers internal implementation symbols, so a subpackage `__init__.py` may
+  export a broader set than the top-level library `__init__.py`, which lists the curated public API
+  alone
 - **Alphabetical sorting**: Sort `__all__` entries alphabetically
 - **One-time configuration logic**: `__init__.py` files may contain logic that benefits from
   being executed exactly once on import (e.g., setting the multiprocessing start method,

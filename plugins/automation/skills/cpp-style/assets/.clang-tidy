@@ -1,6 +1,6 @@
 # A general catch-all clang-tidy configuration. Equivalent to ruff (for Python), but statically checks C++ and C code.
 ---
-Checks: 'google-*,-google-runtime-references', '-*,
+Checks: '-*,google-*,-google-runtime-references,
 bugprone-argument-comment,
 bugprone-assert-side-effect,
 bugprone-bad-signal-to-kill-thread,

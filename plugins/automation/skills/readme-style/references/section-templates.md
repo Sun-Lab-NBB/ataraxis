@@ -18,6 +18,10 @@ description MUST be the bare project description — the same sentence used in a
 description locations for the project archetype. No language prefix ("A Python library that...")
 and no project name prefix ("project-name is...").
 
+This template covers library READMEs. An umbrella README titles itself with the framework name in
+its display casing and follows the title with a bold tagline, so it has no package name to match and
+no other canonical location to stay in sync with. See the umbrella README order in the skill file.
+
 The canonical description locations vary by archetype:
 
 | Archetype               | Canonical locations                                         |
@@ -56,6 +60,14 @@ Replace `PACKAGE-NAME` with the actual PyPI package name (e.g., `ataraxis-time`)
 [![PlatformIO Registry](https://badges.registry.platformio.org/packages/ORG/library/PACKAGE.svg)](https://registry.platformio.org/libraries/ORG/PACKAGE)
 ![C++](https://img.shields.io/badge/C%2B%2B-blue?logo=cplusplus&logoColor=white&labelColor=grey)
 ![Arduino](https://img.shields.io/badge/Arduino-blue?logo=Arduino&logoColor=white&labelColor=grey)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+```
+
+### Umbrella / marketplace repositories
+
+An umbrella repository publishes no package, so it carries the license badge alone:
+
+```markdown
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 ```
 

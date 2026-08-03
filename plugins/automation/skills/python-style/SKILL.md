@@ -79,7 +79,8 @@ consistency across languages while respecting each language's idiomatic standard
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- Private members use underscore prefix (`_snake_case` in Python and C++, `_camelCase` in C#)
+- A leading underscore marks a symbol private to the module or class that defines it (`_snake_case`
+  for any private Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
 - Prose over bullet lists in documentation
@@ -124,6 +125,27 @@ Use **full words**, not abbreviations:
 - Use descriptive verb phrases: `compute_coefficients`, `extract_features`
 - Private functions start with underscore: `_process_batch`, `_validate_input`
 - Avoid generic names like `process`, `handle`, `do_something`
+
+### Visibility prefixes and the module boundary
+
+A leading underscore marks a symbol private to the **module** that defines it. This covers functions,
+classes, constants, class attributes, and methods. Any symbol referenced from another module MUST
+carry a public name, so a helper that acquires a caller in a second module is renamed rather than
+imported with its underscore intact:
+
+```python
+# Good - the helper is referenced from another module, so it carries a public name
+from .archive import resolve_archive_path
+
+# Bad - reaching into another module for a symbol that module marked private
+from .archive import _resolve_archive_path
+```
+
+When splitting or refactoring a module, every symbol that now crosses a module boundary is promoted
+to a public name as part of the split. A symbol that stays behind keeps its underscore.
+
+Tests are the sole exception. Test modules may access private members of the code under test, and
+ruff ignores `SLF001` under `tests/`.
 
 ### Constants
 
@@ -288,9 +310,26 @@ from ..configuration.single_day import RuntimeContext, SingleDayConfiguration
 from .spline_grid import SplineGrid
 ```
 
+The rule binds the exporting side as well. Any symbol consumed outside the (sub)package that defines
+it MUST be re-exported from that package's `__init__.py`, added to both the import list and `__all__`,
+and imported through the package namespace rather than through the submodule that declares it. This
+holds for internal implementation symbols and not only for the curated public API, so a subpackage
+`__init__.py` may export a broader set than the distribution's top-level `__init__.py`. Exporting the
+symbol and reaching past the export are two halves of one rule, and a cross-package consumer is
+evidence that the export is missing.
+
+Tests are the sole exception. Test modules may import directly from any submodule of any package.
+
 ---
 
 ## \_\_init\_\_.py conventions
+
+A package's `__init__.py` defines the set of symbols that package offers to the rest of the
+distribution. Every symbol consumed outside the package appears there twice, once in the import list
+and once in `__all__`, whether the symbol belongs to the curated public API or exists only to serve a
+sibling package. A subpackage that is missing an entry for a symbol another package already imports is
+non-compliant, and the fix is the added export rather than a deeper import at the call site. The
+distribution's top-level `__init__.py` stays narrower and re-exports the curated public API alone.
 
 See [class-patterns.md](references/class-patterns.md) for top-level library and subpackage
 `__init__.py` docstring, `__all__`, and console initialization conventions.
@@ -442,6 +481,9 @@ config_path = Path(base_directory) / "config" / "settings.yaml"
 | `/explore-dependencies` | Provides live ataraxis dependency API snapshots; invoke before using features |
 | `/cpp-style`            | Provides C++ conventions; Python conventions parallel these                   |
 | `/csharp-style`         | Provides C# conventions; Python conventions parallel these                    |
+| `/tox-config`           | Provides tox environment conventions, including the parallel test-run flags   |
+| `/pyproject-style`      | Provides pyproject.toml conventions, including the shared test-corpus ignores |
+| `/audit-project`        | Audits the code just written, before it is committed                          |
 | `/readme-style`         | Provides README conventions; invoke for README tasks                          |
 | `/commit`               | Provides commit message conventions; invoke for commit tasks                  |
 | `/skill-design`         | Provides skill file conventions; invoke for skill authoring tasks             |
@@ -467,10 +509,11 @@ files.**
 Python Style Compliance:
 (Scope: these items govern library code under src/. Test files under tests/ are linted too, but they
 are held to this checklist as relaxed by the shared test corpus and by the project's own
-tests/**/*.py per-file-ignores key: they may assert, access private members, inline expected values,
-leave fixture arguments unreferenced, and omit docstrings and annotations. Items naming a
-library-code construct, such as interface modules, console.enable(), or __init__.py exports, do not
-apply to test files. Every remaining item applies to test files as written. See /pyproject-style.)
+tests/**/*.py per-file-ignores key: they may assert, access private members, import directly from
+submodules, inline expected values, leave fixture arguments unreferenced, and omit docstrings and
+annotations. Items naming a library-code construct, such as interface modules, console.enable(), or
+__init__.py exports, do not apply to test files. Every remaining item applies to test files as
+written. See /pyproject-style.)
 
 Judgment items. No tool inspects these, so this checklist is their only enforcement. Walk every one
 against the code you wrote.
@@ -499,6 +542,10 @@ against the code you wrote.
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
 - [ ] Full words used (no abbreviations like `pos`, `idx`, `val`)
 - [ ] Private members use `_underscore` prefix
+- [ ] Every symbol referenced from another module carries a public name, with the underscore
+      reserved for symbols used only inside the module that defines them
+- [ ] Every symbol consumed outside its defining (sub)package is re-exported from that package's
+      __init__.py, in both the import block and __all__, and imported through the package namespace
 - [ ] Keyword arguments used for function calls (except Numba `jitclass` method calls)
 - [ ] Error handling uses console.error() when ataraxis-base-utilities is available (else raise)
 - [ ] Local imports use direct name imports (no module imports)
@@ -520,6 +567,8 @@ against the code you wrote.
 - [ ] Interface modules (cli.py, MCP tool modules, __main__.py) excluded via the pyproject omit list
 - [ ] pragma: no cover used only for unreachable guards and platform-specific branches inside measured modules
 - [ ] Each pragma: no cover annotates the narrowest construct that covers the excluded code
+- [ ] Tests contending for a process-wide or on-disk resource carry @pytest.mark.xdist_group, and all
+      mutually contending tests share one group name (flags owned by /tox-config)
 - [ ] Numba functions use cache=True
 - [ ] Decorator stacking order: @staticmethod/@classmethod, @njit, custom, @property
 - [ ] Dataclasses use frozen=True for immutable configs (omit for mutable state)

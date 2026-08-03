@@ -270,46 +270,18 @@ belong to the release notes.
 
 ### tox.ini docs environment
 
-For the complete tox.ini conventions and all other environment definitions, invoke `/tox-config`.
-`/tox-config` is the authoritative source; if any pattern here conflicts, `/tox-config` takes
-precedence. The docs-specific patterns are summarized here for convenience.
+`/tox-config` owns the `[testenv:docs]` definition and every field it carries. Invoke that skill and
+read the "docs environment" section of its `environment-templates.md` reference for the Python-only
+and Doxygen-enabled templates, and the "C++ docs-only pipeline" section of the same reference for
+the complete tox.ini of a pure C++ project. Do not copy those templates into documentation notes,
+because a local copy drifts from the authoritative one.
 
-**Python-only projects** (no external Doxygen dependency):
-
-```ini
-[testenv:docs]
-description =
-    Builds the API documentation from source code docstrings using Sphinx. The result can be
-    viewed by loading 'docs/build/html/index.html'.
-depends = uninstall
-commands =
-    sphinx-build -b html -d docs/build/doctrees docs/source docs/build/html -j auto -v
-```
-
-**C++ and hybrid projects** add Doxygen before Sphinx:
-
-```ini
-[testenv:docs]
-description =
-    Builds the API documentation from source code docstrings using Doxygen, Breathe and Sphinx.
-    The result can be viewed by loading 'docs/build/html/index.html'.
-deps = ataraxis-automation==VERSION
-depends = uninstall
-allowlist_externals = doxygen
-commands =
-    doxygen Doxyfile
-    sphinx-build -b html -d docs/build/doctrees docs/source docs/build/html -j auto -v
-```
-
-**Rules:**
-- The `depends = uninstall` ensures a clean environment state before building.
-- Downstream projects pin `deps = ataraxis-automation==VERSION` to the current release. The
-  `ataraxis-automation` project itself omits this field since it IS ataraxis-automation.
-- The Sphinx build command MUST use `-j auto` for parallel building and `-v` for verbose output.
-- C++ and hybrid projects MUST add `allowlist_externals = doxygen` and run `doxygen Doxyfile`
-  before the Sphinx build command.
-- C++-only projects use `skip_install = true` since there is no Python package to install. See
-  [doxygen-reference.md](references/doxygen-reference.md) for the full tox pattern.
+This skill owns only the archetype mapping onto those templates:
+- Python-only projects build with Sphinx alone and carry no `doxygen` command.
+- C++-only and hybrid projects run `doxygen Doxyfile` before the Sphinx build, so their `docs`
+  environment MUST also declare `allowlist_externals = doxygen`. Without that field tox refuses to
+  execute the external Doxygen binary and the build fails before Sphinx ever reads the XML. See
+  [doxygen-reference.md](references/doxygen-reference.md) for the Doxyfile that command consumes.
 
 ### Hosting convention
 
@@ -338,7 +310,7 @@ via tox (`tox -e docs`). Use the exact templates from
 | `/readme-style`     | Defines README conventions; README links to hosted API docs            |
 | `/pyproject-style`  | Defines pyproject.toml conventions including documentation URL         |
 | `/project-layout`   | Provides full project directory trees; this skill owns docs/ internals |
-| `/tox-config`       | Owns full tox.ini conventions; this skill summarizes docs env patterns |
+| `/tox-config`       | Owns the tox.ini docs environment this skill maps archetypes onto      |
 | `/commit`           | Should be invoked after completing documentation changes               |
 | `/explore-codebase` | Provides project context needed to identify modules for api.rst        |
 
@@ -383,8 +355,8 @@ API Documentation Compliance:
 - [ ] No MCP server or shared asset modules included in api.rst
 - [ ] Doxyfile present at project root (C++/hybrid only)
 - [ ] Doxyfile outputs to docs/source/doxygen with XML generation enabled
-- [ ] tox.ini [testenv:docs] follows correct pattern for archetype
-- [ ] tox.ini docs command uses -j auto -v flags
+- [ ] tox.ini [testenv:docs] taken from /tox-config, not copied or paraphrased into this skill's notes
+- [ ] C++ and hybrid tox.ini docs env runs doxygen Doxyfile first and declares allowlist_externals = doxygen
 - [ ] Makefile and make.bat present in docs/
 - [ ] No Sphinx dependencies added directly to downstream pyproject.toml
 - [ ] Documentation URL follows https://PROJECT-api-docs.netlify.app/ convention

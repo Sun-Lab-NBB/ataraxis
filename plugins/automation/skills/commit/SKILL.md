@@ -247,6 +247,7 @@ Generated with AI assistance       # Tool attribution does not belong
 | `/python-style`     | Provides Python conventions; invoke before making Python changes   |
 | `/cpp-style`        | Provides C++ conventions; invoke before making C++ changes         |
 | `/csharp-style`     | Provides C# conventions; invoke before making C# changes           |
+| `/audit-project`    | Runs the change-mode gate over new code, before this skill commits |
 | `/pr`               | Drafts a pull request summary for the branch after it is committed |
 | `/release`          | Drafts release notes summarizing merged pull requests              |
 | `/explore-codebase` | Provides project context that helps write accurate commit messages |

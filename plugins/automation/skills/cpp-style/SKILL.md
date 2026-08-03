@@ -82,7 +82,8 @@ consistency across languages while respecting each language's idiomatic standard
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- Private members use underscore prefix (`_snake_case` in Python and C++, `_camelCase` in C#)
+- A leading underscore marks a symbol private to the module or class that defines it (`_snake_case`
+  for any private Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
 - Prose over bullet lists in documentation
@@ -108,6 +109,12 @@ consistency across languages while respecting each language's idiomatic standard
 - Namespaces use snake_case (not PascalCase as in C#)
 - Local variables use snake_case (not camelCase as in C#)
 - Consecutive assignment alignment IS used (C# CSharpier does not support it)
+
+**Symbol visibility:**
+- A leading underscore marks a symbol private to the translation unit or header that defines it, and a
+  symbol referenced from another module is renamed to a public name
+- A symbol consumed outside its owning component is exported through that component's public header,
+  never by reaching into an internal header, and tests are the sole exception to both rules
 
 ### Project archetypes
 
@@ -299,7 +306,8 @@ All definitions within a file follow this vertical ordering from top to bottom:
 2. **Include guard** (`#ifndef` / `#define`)
 3. **Macro definitions** (if any, e.g., `#define ENCODER_USE_INTERRUPTS`)
 4. **Include directives**
-5. **Using directives** (`using namespace` — allowed in header-only libraries; see below)
+5. **Using directives** (`using namespace` — allowed in header-only libraries; see the using
+   namespace section of [class-patterns.md](references/class-patterns.md))
 6. **Namespace declarations** (for shared asset files)
 7. **Free constants** (`static constexpr` at file scope)
 8. **Enumerations** (`enum class` definitions)
@@ -307,7 +315,7 @@ All definitions within a file follow this vertical ordering from top to bottom:
 10. **Class declarations** with members in this order:
     a. `static_assert` statements (compile-time validation)
     b. Public nested enums
-    c. Public constructors and destructors
+    c. Public constructors
     d. Public methods (virtual overrides first, then non-virtual)
     e. Public destructor (`~ClassName() override = default`)
     f. Private nested structs
@@ -396,16 +404,18 @@ See [libraries-and-tools.md](references/libraries-and-tools.md) for `.clang-form
 
 ## Related skills
 
-| Skill               | Relationship                                                       |
-|---------------------|--------------------------------------------------------------------|
-| `/python-style`     | Provides Python conventions; C++ conventions parallel these        |
-| `/csharp-style`     | Provides C# conventions; C++ conventions parallel these            |
-| `/readme-style`     | Provides README conventions; invoke for README tasks               |
-| `/commit`           | Provides commit message conventions; invoke for commit tasks       |
-| `/skill-design`     | Provides skill file conventions; invoke for skill authoring tasks  |
-| `/explore-codebase` | Provides project context that informs style-compliant code changes |
-| `/api-docs`         | Provides Doxygen/Breathe API documentation build conventions       |
-| `/platformio-config`| Covers platformio.ini and library.json field/section conventions; cpp-style covers C++ source only |
+| Skill                | Relationship                                                                                       |
+|----------------------|----------------------------------------------------------------------------------------------------|
+| `/python-style`      | Provides Python conventions; C++ conventions parallel these                                        |
+| `/csharp-style`      | Provides C# conventions; C++ conventions parallel these                                            |
+| `/readme-style`      | Provides README conventions; invoke for README tasks                                               |
+| `/commit`            | Provides commit message conventions; invoke for commit tasks                                       |
+| `/skill-design`      | Provides skill file conventions; invoke for skill authoring tasks                                  |
+| `/explore-codebase`  | Provides project context that informs style-compliant code changes                                 |
+| `/api-docs`          | Provides Doxygen/Breathe API documentation build conventions                                       |
+| `/project-layout`    | Provides the directory tree that C++ source and test files live in                                 |
+| `/audit-project`     | Audits the code just written, before it is committed                                               |
+| `/platformio-config` | Covers platformio.ini and library.json field/section conventions; cpp-style covers C++ source only |
 
 ---
 
@@ -456,6 +466,7 @@ against the code you wrote.
 - [ ] Class data members are private (_snake_case) with get_/set_ accessors
 - [ ] Struct data members may be public (snake_case) for passive data holders
 - [ ] Private members use _snake_case prefix
+- [ ] Symbols used outside their defining module are public, and cross-component ones use the public header
 - [ ] Local variables and parameters use snake_case
 - [ ] Constants use kPascalCase prefix (static constexpr)
 - [ ] Enum types and values use kPascalCase prefix

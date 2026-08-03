@@ -54,6 +54,12 @@ Determine which archetype applies using this table:
 | C++ PlatformIO firmware | `platformio.ini` + `src/main.cpp`, no `library.json`                 |
 | C# Unity                | `Assets/` + `ProjectSettings/` + `*.slnx`                            |
 
+A repository that carries none of these indicators, ships no installable artifact of its own, and
+instead indexes sibling libraries or distributes plugins through a marketplace is an umbrella
+repository. Umbrella repositories carry NO archetype tree, so this skill prescribes no directory
+layout for one and a layout audit records the tree as unresolvable rather than reporting the
+archetype paths it lacks. Its `README.md` still follows the umbrella order in `/readme-style`.
+
 ### Step 2: Load the reference tree
 
 Read [archetype-trees.md](references/archetype-trees.md) and locate the section matching the
@@ -323,6 +329,7 @@ Assets/
 | `/platformio-config` | Owns `platformio.ini` and `library.json` conventions (C++ archetypes)    |
 | `/readme-style`      | Owns `README.md` content conventions                                     |
 | `/skill-design`      | Owns `plugins/automation/skills/` directory structure conventions        |
+| `/audit-style`       | Runs the project-scope layout sweep using this skill's archetype trees   |
 
 ---
 

@@ -90,7 +90,7 @@ public class TaskManager : MonoBehaviour
 {
     public float speed;
     private int _count;
-    void Start() { }
+    private void Start() { }
 }
 
 // Correct - all members documented
@@ -104,7 +104,7 @@ public class TaskManager : MonoBehaviour
     private int _count;
 
     /// <summary>Initializes task state and subscribes to MQTT channels.</summary>
-    void Start() { }
+    private void Start() { }
 }
 ```
 
@@ -225,7 +225,7 @@ The EditorConfig and CSharpier both enforce 4-space indentation. Never use tabs.
 
 ```csharp
 // Wrong - GetComponent called every frame
-void Update()
+private void Update()
 {
     MeshRenderer renderer = GetComponent<MeshRenderer>();
     renderer.enabled = isVisible;
@@ -234,12 +234,12 @@ void Update()
 // Correct - cache in Awake/Start
 private MeshRenderer _meshRenderer;
 
-void Awake()
+private void Awake()
 {
     _meshRenderer = GetComponent<MeshRenderer>();
 }
 
-void Update()
+private void Update()
 {
     _meshRenderer.enabled = isVisible;
 }
@@ -249,14 +249,14 @@ void Update()
 
 ```csharp
 // Wrong - assumes component exists
-void Start()
+private void Start()
 {
     OccupancyZone zone = GetComponent<OccupancyZone>();
     zone.ResetState();
 }
 
 // Correct - safe access with TryGetComponent
-void Start()
+private void Start()
 {
     if (TryGetComponent(out OccupancyZone zone))
     {
@@ -269,13 +269,13 @@ void Start()
 
 ```csharp
 // Wrong - string concatenation in Update
-void Update()
+private void Update()
 {
     Debug.Log("Position: " + transform.position.x + ", " + transform.position.y);
 }
 
 // Correct - string interpolation (if logging is needed at all)
-void Update()
+private void Update()
 {
     Debug.Log($"Position: {transform.position.x}, {transform.position.y}");
 }
@@ -304,14 +304,14 @@ if (template == null)
 
 ```csharp
 // Wrong - throwing exceptions in MonoBehaviour methods
-void Start()
+private void Start()
 {
     if (configPath == null)
         throw new ArgumentNullException(nameof(configPath));
 }
 
 // Correct - use Debug.LogError for Unity components
-void Start()
+private void Start()
 {
     if (string.IsNullOrEmpty(configPath))
     {
@@ -329,7 +329,7 @@ void Start()
 
 ```csharp
 // Wrong - deeply nested conditionals
-void Update()
+private void Update()
 {
     if (isActive)
     {
@@ -350,7 +350,7 @@ void Update()
 }
 
 // Correct - guard clauses reduce nesting
-void Update()
+private void Update()
 {
     if (!isActive || boundaryDisarmed)
         return;
@@ -385,7 +385,7 @@ private void Initialize() { }
 
 ```csharp
 // Wrong - LINQ allocates in Update (garbage collection pressure)
-void Update()
+private void Update()
 {
     foreach (OccupancyZone zone in _zones.Where(z => z.isActive))
     {
@@ -394,7 +394,7 @@ void Update()
 }
 
 // Correct - explicit loop with no allocations
-void Update()
+private void Update()
 {
     for (int i = 0; i < _zones.Length; i++)
     {
@@ -442,7 +442,7 @@ public class SerialController : MonoBehaviour
 {
     private SerialPort _port;
 
-    void Start()
+    private void Start()
     {
         _port = new SerialPort(portName, baudRate);
         _port.Open();
@@ -455,13 +455,13 @@ public class SerialController : MonoBehaviour
 {
     private SerialPort _port;
 
-    void Start()
+    private void Start()
     {
         _port = new SerialPort(portName, baudRate);
         _port.Open();
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         if (_port != null && _port.IsOpen)
         {
@@ -532,7 +532,7 @@ public struct ZoneState
     public bool isActive;
 }
 
-void UpdateState(ZoneState state)
+private void UpdateState(ZoneState state)
 {
     state.timer += Time.deltaTime;  // Modifies a copy, not the original
 }

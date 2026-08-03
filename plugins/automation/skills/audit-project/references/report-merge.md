@@ -137,16 +137,33 @@ Merge each audit's coverage ledger into one table, keeping the per-audit rows ra
 them, because the audits count different things.
 
 ```text
-| Audit               | Files in scope | Files audited | Files skipped | Notes                    |
-|---------------------|----------------|---------------|---------------|--------------------------|
-| /audit-facts        | <n>            | <n>           | <n>           | metadata <n>, in-source <n> |
-| /audit-style        | <n>            | <n>           | <n>           | gates run: <tool list>   |
-| /audit-correctness  | <n>            | <n>           | <n>           | tiers swept T0-T3        |
-| /audit-performance  | <n>            | <n>           | <n>           | passes 1-9               |
+| Audit               | Files in scope | Files audited | Files skipped | Notes                            |
+|---------------------|----------------|---------------|---------------|----------------------------------|
+| /audit-facts        | <n>            | <n>           | <n>           | metadata <n>, in-source <n>      |
+| /audit-style        | <n>            | <n>           | <n>           | gates: <tools>, layout: <status> |
+| /audit-correctness  | <n>            | <n>           | <n>           | tiers swept T0-T3                |
+| /audit-performance  | <n>            | <n>           | <n>           | passes 1-9                       |
 ```
 
+Each row is filled from the audit's own coverage ledger rather than recounted here. `/audit-style`
+reports files SWEPT and files marked UNAUDITED, one row per style binding, so its row here sums those
+rows and its two counts fill the audited and the skipped columns.
+
 List every skipped file once, with the audits that skipped it and the reason. A file skipped by one
-audit and covered by another is not a gap, and the ledger must show that rather than implying one.
+audit and covered by another is not a gap, and the ledger must show that rather than implying one. A
+file `/audit-style` marked UNAUDITED is listed by path here alongside them.
+
+Name every tool an audit ran in its Notes cell, and mark each tool that FAILED to run beside it. A
+deterministic gate that produced no diagnostic because it crashed is a coverage gap rather than a
+clean result, and a Notes cell that hides the failure reports the gap as coverage.
+
+Carry the `/audit-style` project-scope layout pass status verbatim, as `run`,
+`skipped-not-a-project-root`, or `skipped-no-created-or-deleted-files`. That pass sweeps the directory
+tree once per run, so a skip is expected for a package or a single-file target and for a change set
+that edits files in place, while a skip over a whole repository in full mode is a coverage gap.
+
+State the sub-agent or batch count each audit reported, and, for a run narrowed to a change set, the
+base revision each audit resolved that narrowing against.
 
 ---
 

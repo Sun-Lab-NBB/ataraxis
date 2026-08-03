@@ -178,6 +178,30 @@ def has_nvidia():
     ...
 ```
 
+### Parallel execution groups
+
+The suite runs under `pytest-xdist` with `-n logical --dist loadgroup`, so every test is free to land
+on any worker process. A test that contends for a process-wide or on-disk resource MUST carry the
+`@pytest.mark.xdist_group` marker, and all mutually contending tests MUST share one group name.
+`loadgroup` routes the tests sharing a group name to a single worker, which serializes them against
+one another, and it serializes nothing else. A contending test left unmarked therefore runs
+concurrently with its rival and fails intermittently.
+
+Resources that contend include a named shared-memory buffer, a `DataLogger` output directory, a serial
+port, a spawned process or worker pool, and any other fixed name or path the operating system allows
+one owner to hold at a time.
+
+```python
+@pytest.mark.xdist_group(name="group1")
+def test_data_logger_initialization(tmp_path: Path) -> None:
+    """Verifies the initialization of the DataLogger class with different parameters."""
+    ...
+```
+
+Pass the group name through the `name` keyword, as with every other call. Group names span the whole
+run rather than the declaring module, so tests in separate modules that contend for one resource carry
+the same name. `/tox-config` owns the `-n logical --dist loadgroup` flags themselves.
+
 ---
 
 ## Linting and code quality

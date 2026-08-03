@@ -250,23 +250,24 @@ doxygen Doxyfile
 
 ## Testing conventions
 
-### PlatformIO native tests
+### PlatformIO test layout
 
-PlatformIO supports native and embedded unit tests:
+PlatformIO projects keep a single flat test file directly under `test/`, named after the component
+it covers:
 
 ```text
 test/
-├── test_cobs/
-│   └── test_cobs.cpp
-├── test_crc/
-│   └── test_crc.cpp
-└── test_transport/
-    └── test_transport.cpp
+└── test_component.cpp
 ```
+
+Teensy boards drop the serial connection between separately built test suites, so every test in a
+library lives in that one file rather than in per-component subdirectories. For the complete project
+tree, invoke `/project-layout`.
 
 ### Test file naming
 
-Test files use the pattern `test_<component>.cpp`:
+Test files use the pattern `test_<component>.cpp` and run under the Arduino framework, which supplies
+its own `main()`. Tests are therefore registered in `RunUnityTests()` and executed from `setup()`:
 
 ```cpp
 /**
@@ -275,27 +276,95 @@ Test files use the pattern `test_<component>.cpp`:
  * @brief Verifies the behavior of the COBSProcessor encode and decode methods.
  */
 
-#include <cobs_processor.h>
-#include <unity.h>
+#include <Arduino.h>
+#include <unity.h>  // This is the C testing framework, no connection to the Unity game engine
+#include "cobs_processor.h"
 
+/// Called automatically before each test function. Currently unused.
+void setUp()
+{}
+
+/// Called automatically after each test function. Currently unused.
+void tearDown()
+{}
+
+/// Verifies the COBSProcessor EncodePayload() method.
 void test_encode_empty_payload()
 {
     // Arrange, Act, Assert
 }
 
+/// Verifies the COBSProcessor DecodePayload() method.
 void test_decode_valid_packet()
 {
     // Arrange, Act, Assert
 }
 
-int main()
+/// Specifies the test functions to be executed and controls their runtime.
+int RunUnityTests()
 {
     UNITY_BEGIN();
+
+    // COBS Processor
     RUN_TEST(test_encode_empty_payload);
     RUN_TEST(test_decode_valid_packet);
+
     return UNITY_END();
 }
+
+// Defines the baud rates for different boards.
+
+// For Arduino Due, the maximum non-doubled stable rate is 5.25 Mbps at 84 MHz cpu clock.
+#if defined(ARDUINO_SAM_DUE)
+static constexpr uint32_t kSerialBaudRate = 5250000;
+
+// For Uno, Mega, and other 16 MHz AVR boards, the maximum stable non-doubled rate is 1 Mbps.
+#elif defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA) ||  \
+    defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega2560__) || \
+    defined(__AVR_ATmega168__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega16U4__)
+static constexpr uint32_t kSerialBaudRate = 1000000;
+
+// For all other boards the default 9600 rate is used.
+#else
+static constexpr uint32_t kSerialBaudRate = 9600;
+#endif
+
+/// Runs all tests inside setup() as required by the Arduino framework for one-shot testing.
+void setup()
+{
+    // Starts the serial connection.
+    Serial.begin(kSerialBaudRate);
+
+    // Waits ~2 seconds for the Unity test runner to establish the connection with the board Serial
+    // interface. For teensy, this is less important, since it uses a USB interface which does not
+    // reset the board on connection.
+    delay(2000);
+
+    // Runs the required tests.
+    RunUnityTests();
+
+    // Stops the serial communication interface.
+    Serial.end();
+}
+
+/// Intentionally empty. All tests run in setup() as one-shot operations.
+void loop()
+{}
 ```
+
+### Harness rules
+
+- Declare `setUp()` and `tearDown()` even when both are empty, as Unity calls them around every test
+- Register every test with `RUN_TEST` inside `RunUnityTests()`, grouped by the class or method under test
+- Resolve the baud rate through a per-board preprocessor block and pass the result to `Serial.begin()`
+- Call `RunUnityTests()` from `setup()` and leave `loop()` empty
+- Do NOT declare `int main()` in Arduino test files. The Arduino core supplies `main()` from a static
+  archive, so a test file that declares its own replaces it and the core's `setup()` and `loop()` never
+  run. `Serial` is left uninitialized, the Unity output never reaches the runner, and the suite reports
+  zero executed tests instead of failing to build. `int main()` belongs to a native test environment
+  only, and no ataraxis or sollertia repository declares one. Where `/project-layout` calls `test/` the
+  PlatformIO native test directory, it names that directory convention rather than a `native` platform
+  environment
 
 ### Test naming
 

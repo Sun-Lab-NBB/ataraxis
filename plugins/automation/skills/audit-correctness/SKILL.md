@@ -187,11 +187,11 @@ Record the prerequisites that apply to the languages in scope, before any verdic
 
 Classify the audit tier:
 
-| Tier   | Indicators                     | Execution                                              |
-|--------|--------------------------------|--------------------------------------------------------|
-| Small  | 1 file, under 500 lines        | Main agent, sequential                                 |
-| Medium | 2-10 files                     | Main agent, file-by-file                               |
-| Large  | 10+ files or full project root | Parallel `general-purpose` sub-agents over file batches |
+| Tier   | Indicators                         | Execution                                               |
+|--------|------------------------------------|---------------------------------------------------------|
+| Small  | 1 file                             | Main agent, sequential                                  |
+| Medium | 2 to 9 files                       | Main agent, file-by-file                                |
+| Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
 A Large-tier audit BATCHES rather than fanning out per file. Every sub-agent re-receives the whole
 instruction payload, so fanning out per file pays that payload once per file and costs more than the
@@ -443,9 +443,9 @@ Invoke this skill when the user asks to find bugs, hunt for defects, or audit co
 edge cases, races, or leaks. A request that names a directory or a repository covers every source file
 under it by default, and the Step 0 plan is where the user narrows that scope.
 
-Run after `/audit-facts`, and before `/audit-performance` and `/audit-style`, when auditing the same
-file end to end. Settling which side of a documentation mismatch is authoritative comes first, and
-optimization and style work both apply to code whose behavior is already correct.
+Fix this audit's findings after `/audit-facts` and before `/audit-performance` and `/audit-style`. Settling
+which side of a documentation mismatch is authoritative comes first, and optimization and style work apply to
+code whose behavior is already correct. That is a FIX order, and `/audit-project` decides the RUN order.
 
 Do NOT make code changes during the audit. Present findings and wait for user direction.
 

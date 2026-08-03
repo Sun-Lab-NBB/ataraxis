@@ -29,6 +29,8 @@ on that step. The verification checklist at the end is mandatory before presenti
 - Full mode over a repository, a package, or a directory
 - Change mode over the files a feature, bugfix, or refactor touched, together with the fix-and-recheck
   loop that gates the work until the new code passes
+- Telling `/audit-style` whether its project-scope layout pass applies, which it does once per run for
+  a project root and never for a package or a single-file target
 - Merging, deduplicating, and adjudicating findings across the four audits into one report
 
 **Does not cover:**
@@ -87,6 +89,13 @@ Wave 1 completes before wave 2 starts, because `/audit-correctness` adjudicates 
 against wave 1's documentation verdicts. Wave 1 also runs the deterministic gates, whose diagnostics
 every later wave reads instead of re-deriving.
 
+**The project-scope layout pass.** Wave 1 also carries `/audit-style`'s sweep of the project directory
+tree against its archetype. That sweep runs once per run, on the main agent and never inside a batch
+sub-agent, and ONLY where the resolved target is a project root, because a package or a single file
+carries no tree to judge. In change mode it additionally requires that the change set CREATES or
+DELETES a file. Tell `/audit-style` which case applies, so the pass runs once rather than once per
+batch or not at all, and carry the status it reports into the merged coverage ledger.
+
 **Parallelize at exactly ONE level.** Each audit already fans out internally over file batches, and
 nesting a fan-out inside a fan-out multiplies the instruction payload by both factors.
 
@@ -129,6 +138,8 @@ Emit ONE plan covering the whole run:
 - Which of the four audits will run, and which are not running with the reason
 - The wave 2 election below, stated as a question the user answers
 - The parallel level the target size selects
+- Whether the `/audit-style` project-scope layout pass runs, stated as `run`,
+  `skipped-not-a-project-root`, or `skipped-no-created-or-deleted-files`
 - Whether coverage artifacts are present, stale, or absent
 
 Pause for user confirmation or a "proceed" signal.
@@ -209,6 +220,11 @@ Run `/audit-facts` and `/audit-style` at the parallel level Step 0 selected. Han
 context, the change-set narrowing where change mode applies, and the instruction that its Step 0 is
 satisfied.
 
+Tell `/audit-style` whether the target is a project root, and in change mode whether the change set
+creates or deletes a file, because those two facts decide whether its project-scope layout pass runs.
+Collect the status it reports, which is `run`, `skipped-not-a-project-root`, or
+`skipped-no-created-or-deleted-files`, for the merged coverage ledger.
+
 Collect the deterministic-gate diagnostics `/audit-style` produced into the shared context, so wave 2
 reads them rather than re-deriving them.
 
@@ -224,7 +240,7 @@ kept one, that audit runs by itself and the wave costs one sub-agent rather than
 ### Step 5: Merge and adjudicate
 
 Apply the rules in [report-merge.md](references/report-merge.md), which deduplicate one construct
-reported by two audits, resolve the three ownership collisions the audits leave to a caller, and
+reported by two audits, resolve the four ownership collisions the audits leave to a caller, and
 collapse one root cause reported at several sites.
 
 Every finding keeps the severity, confidence, and evidence its owning audit assigned. This step
@@ -251,13 +267,20 @@ combined coverage ledger, then the findings.
 ```text
 Mode: <FULL | CHANGE, base <revision>>
 Gate: <PASSED | BLOCKED | ADVISORY ONLY | CAPPED after 3 rounds>   (change mode only)
+Round: <n> of 3                                                     (change mode only)
 
-| Audit               | Ran | Findings | Not run because           |
-|---------------------|-----|----------|---------------------------|
-| /audit-facts        | yes | <n>      |                           |
-| /audit-style        | yes | <n>      |                           |
-| /audit-correctness  | no  | 0        | DECLINED at Step 0        |
-| /audit-performance  | no  | 0        | EMPTY bound file set      |
+| Audit               | Ran | Blocking | Advisory | Total | Not run because           |
+|---------------------|-----|----------|----------|-------|---------------------------|
+| /audit-facts        | yes | <n>      | <n>      | <n>   |                           |
+| /audit-style        | yes | <n>      | <n>      | <n>   |                           |
+| /audit-correctness  | no  | 0        | 0        | 0     | DECLINED at Step 0        |
+| /audit-performance  | no  | 0        | 0        | 0     | EMPTY bound file set      |
+
+Adjudicated away by the collision rules: <n>
+Suppressed as cross-audit duplicates: <n>
+Discarded by the false-positive guards: <n> across all audits
+Deleted by citation verification: <n> of <n> checked
+Refuted by adversarial verification: <n> of <n> checked
 ```
 
 Group the findings by AUDIT, then follow each audit's own output format unchanged inside its section,
@@ -346,6 +369,7 @@ Project Audit Orchestration Compliance:
 - [ ] Members of each wave run concurrently at the parallel level the target size selected
 - [ ] Parallelism applied at exactly one level, never wave and batch together
 - [ ] Deterministic-gate diagnostics collected in wave 1 and reused by wave 2
+- [ ] Project-scope layout pass status collected from /audit-style and carried into the merged ledger
 - [ ] /audit-correctness received wave 1's DRIFT and WRONG verdicts for its ownership ladder
 - [ ] Findings merged, with one construct reported by two audits resolved to one owner
 - [ ] Every adjudicated finding carries the audit that yielded and the rule that decided it

@@ -117,47 +117,18 @@ the corresponding Doxyfile settings. Choose one location and be consistent withi
 
 ## tox.ini configuration for C++ projects
 
-### C++-only projects
+`/tox-config` owns the `[testenv:docs]` templates and every field they carry. Read the
+"C++ docs-only pipeline" section of its `environment-templates.md` reference for a pure C++ project
+and the "docs environment" section of the same reference for a hybrid project, then apply the
+archetype differences below.
 
-C++-only projects use `skip_install = true` since there is no Python package to install:
+| Setting               | C++-only  | Hybrid      |
+|-----------------------|-----------|-------------|
+| `skip_install`        | `true`    | Not set     |
+| `depends`             | Not set   | `uninstall` |
+| `allowlist_externals` | `doxygen` | `doxygen`   |
 
-```ini
-[testenv:docs]
-skip_install = true
-description =
-    Builds the API documentation from source code docstrings using Doxygen, Breathe and Sphinx.
-    The result can be viewed by loading 'docs/build/html/index.html'.
-deps = ataraxis-automation==VERSION
-allowlist_externals = doxygen
-commands =
-    doxygen Doxyfile
-    sphinx-build -b html -d docs/build/doctrees docs/source docs/build/html -j auto -v
-```
-
-### Hybrid projects
-
-Hybrid projects install normally (no `skip_install`) since autodoc needs the Python package:
-
-```ini
-[testenv:docs]
-description =
-    Builds the API documentation from source code docstrings using Doxygen, Breathe and Sphinx.
-    The result can be viewed by loading 'docs/build/html/index.html'.
-deps = ataraxis-automation==VERSION
-depends = uninstall
-allowlist_externals = doxygen
-commands =
-    doxygen Doxyfile
-    sphinx-build -b html -d docs/build/doctrees docs/source docs/build/html -j auto -v
-```
-
-### Key differences
-
-| Setting               | C++-only       | Hybrid         |
-|-----------------------|----------------|----------------|
-| `skip_install`        | `true`         | Not set        |
-| `depends`             | Not set        | `uninstall`    |
-| `allowlist_externals` | `doxygen`      | `doxygen`      |
-| `deps`                | Pinned version | Pinned version |
-
-Replace `VERSION` with the current `ataraxis-automation` release version (e.g., `7.1.0`).
+A C++-only project sets `skip_install = true` because it has no Python package for tox to install.
+A hybrid project installs normally, because autodoc imports the Python package to read the
+docstrings it renders. Both archetypes declare `allowlist_externals = doxygen` and run
+`doxygen Doxyfile` ahead of the Sphinx build.

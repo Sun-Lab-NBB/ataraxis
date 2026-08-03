@@ -141,3 +141,25 @@ CLAUDE.md follows the same formatting conventions as skill files with these diff
 
 - **Section separators**: Use `##` headings without horizontal rules between sections
 - All other conventions (line length, tables, code blocks, voice) match SKILL.md
+
+---
+
+## AGENTS.md
+
+`AGENTS.md` is the vendor-neutral name for the project instruction file, read by agent tools that do not
+load `CLAUDE.md`. No repository in the ataraxis or sollertia libraries carries one today, so there is no
+local variant to reconcile. A project that adds one writes it as a CLAUDE.md under the other name, and
+the following rules carry over unchanged:
+
+- The section ordering above, with the canonical heading spellings and the two conditional sections
+- The quality criteria and the include and exclude content guidelines
+- `##` headings without horizontal rules between sections
+- The 120 character line limit, pretty table formatting, and language identifiers on code blocks
+- Third person for descriptive content, and second person with emphasis for agent directives
+- Sentence case for section headings
+- Prose punctuation and positive description, meaning the full stop and the comma as the only clause
+  separators and a statement of what is currently true
+
+The CLAUDE.md verification checklist in `/skill-design` applies to `AGENTS.md` unchanged. The `@` import
+syntax and the `.claude/rules/*.md` files are Claude Code loading mechanisms, so a tool that reads
+`AGENTS.md` alone resolves neither, and content that tool needs belongs in the file itself.

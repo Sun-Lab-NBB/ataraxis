@@ -62,6 +62,7 @@ Python file needs no numeric width trace, and running one wastes a whole audit.
 | A build or configuration file                                           | facts, style                          |
 | A test file                                                             | style, plus correctness Pass 10 alone |
 | Generated or vendored files alone                                       | none, and the run reports that        |
+| A created or deleted file, whatever else the change set holds           | adds the `/audit-style` layout pass   |
 
 Apply the table to the WHOLE change set rather than per file. An audit runs when any file in the set
 triggers it, and it then covers every file in the set that binds to it.
@@ -79,6 +80,14 @@ does not.
 **Correctness is recommended whenever an executable statement changed.** There is no cheap way to know
 that a statement is safe without asking, and that asking is the audit. This is the case where the plan
 should argue for the election rather than present it neutrally.
+
+**The layout pass follows the shape of the file set rather than its contents.** `/audit-style` sweeps
+the project directory tree once per run, on its own main agent, and only where the target is a project
+root. In change mode it additionally requires that the change set CREATED or DELETED a file, because a
+layout finding follows from where a file sits rather than from what it holds. Tell `/audit-style` both
+facts, and record the status it returns, which is `run`, `skipped-not-a-project-root`, or
+`skipped-no-created-or-deleted-files`. A change set that edits files in place skips the pass, and the
+report states that rather than reporting a tree nothing examined as clean.
 
 Record every audit that did not run with the routing row or the election that stopped it.
 

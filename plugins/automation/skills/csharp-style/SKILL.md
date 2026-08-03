@@ -79,7 +79,8 @@ consistency across languages while respecting each language's idiomatic standard
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- Private members use underscore prefix (`_snake_case` in Python and C++, `_camelCase` in C#)
+- A leading underscore marks a symbol private to the module or class that defines it (`_snake_case`
+  for any private Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
 - Prose over bullet lists in documentation
@@ -102,9 +103,16 @@ consistency across languages while respecting each language's idiomatic standard
 - Methods and properties use PascalCase (not snake_case as in Python)
 - Constants use PascalCase (not `_UPPER_SNAKE_CASE` as in Python)
 - Enum values use PascalCase (not `UPPER_SNAKE_CASE` as in Python)
-- Private members use `_camelCase` (not `_snake_case` as in Python)
+- Private fields use `_camelCase` (not `_snake_case` as in Python)
 - Public fields use camelCase (not snake_case as in Python)
 - Documentation uses XML `<summary>` tags (not Google-style docstrings)
+
+**Symbol visibility:**
+- Access modifiers carry the boundary intent that the underscore prefix carries in Python and C++
+- `private` marks a member owned by its declaring type, `internal` a member owned by its assembly
+- Any symbol consumed outside its declaring assembly or namespace is made `public` deliberately
+- No code reaches into another type's internals to work around a missing promotion
+- Test assemblies are the sole exception and may access the internals of the code under test
 
 ---
 
@@ -402,6 +410,7 @@ rules; CSharpier and EditorConfig tooling; and configuration file references.
 | `/cpp-style`        | Provides C++ conventions; C# conventions parallel these            |
 | `/project-layout`   | Provides C# Unity directory tree; invoke for project structure     |
 | `/readme-style`     | Provides README conventions; invoke for README tasks               |
+| `/audit-project`    | Audits the code just written, before it is committed               |
 | `/commit`           | Provides commit message conventions; invoke for commit tasks       |
 | `/skill-design`     | Provides skill file conventions; invoke for skill authoring tasks  |
 | `/explore-codebase` | Provides project context that informs style-compliant code changes |
@@ -455,6 +464,7 @@ against the code you wrote.
 - [ ] Methods use PascalCase (both public and private)
 - [ ] Enum types and values use PascalCase
 - [ ] Access modifiers always explicit (never rely on implicit private)
+- [ ] Symbols consumed outside their declaring assembly or namespace are public, not reached into
 - [ ] Using directives at top of file, outside namespace
 - [ ] System directives sorted first
 - [ ] String interpolation used (not string.Format or concatenation)

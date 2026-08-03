@@ -153,11 +153,11 @@ authoritative source list for that file. For ataraxis dependencies, invoke
 
 Classify the audit tier from the union of both classes:
 
-| Tier   | Indicators                     | Execution                                                                  |
-|--------|--------------------------------|----------------------------------------------------------------------------|
-| Small  | 1 file, under 500 lines        | Main agent, sequential                                                     |
-| Medium | 2–10 files                     | Main agent, file-by-file                                                   |
-| Large  | 10+ files or full project root | Parallel `general-purpose` sub-agents, one per file or per directory group |
+| Tier   | Indicators                         | Execution                                               |
+|--------|------------------------------------|---------------------------------------------------------|
+| Small  | 1 file                             | Main agent, sequential                                  |
+| Medium | 2 to 9 files                       | Main agent, file-by-file                                |
+| Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
 A repository-root target is always Large. Group Large-tier work under three rules, which exist so a
 sub-agent loads one authority rather than the union of every authority in the repository.
@@ -435,7 +435,7 @@ You MUST adhere to the following discipline during every audit.
 | `/csharp-style`         | Defines the XML doc tags whose contents this skill verifies against C# code             |
 | `/readme-style`         | Provides README conventions for context (compliance is handled by `/audit-style`)       |
 | `/api-docs`             | Provides Sphinx and Doxygen build conventions for context when auditing `docs/` pages   |
-| `/skill-design`         | Provides SKILL.md and CLAUDE.md conventions for context (compliance via `/audit-style`) |
+| `/skill-design`         | Provides SKILL.md, CLAUDE.md, and AGENTS.md conventions (compliance via `/audit-style`) |
 
 ---
 
@@ -445,10 +445,10 @@ Invoke this skill when the user asks to fact-check, verify, or audit documentati
 source code. A request that names a directory or a repository covers both documentation classes
 by default, and the Step 0 plan is where the user narrows that scope.
 
-Run first in the audit chain, before `/audit-correctness`, `/audit-performance`, and `/audit-style`,
-when auditing the same file end to end. Factual corrections may rewrite prose that style would
-otherwise restyle redundantly, and settling which side of a documentation mismatch is authoritative
-comes before auditing the code itself.
+Fix this audit's findings FIRST, before those of `/audit-correctness`, `/audit-performance`, and
+`/audit-style`, when auditing the same file end to end. Factual corrections may rewrite prose that
+style would otherwise restyle redundantly, and settling which side of a documentation mismatch is
+authoritative comes before auditing the code. That is a FIX order, and `/audit-project` decides the RUN order.
 
 Do NOT make code or documentation changes during the audit. Present findings and wait for user
 direction.

@@ -1,10 +1,11 @@
 ---
 name: pr
 description: >-
-  Drafts a style-compliant pull request summary by analyzing all changes on the active branch relative to the default
-  branch. Produces a concise, bulleted summary of the most impactful changes for the user to paste when opening the
-  pull request. GitHub pre-fills the title from the branch's commits, so this skill drafts only the body. Use when the
-  user is about to open a pull request, asks for a PR summary, or invokes /pr.
+  Drafts a style-compliant pull request summary by analyzing all changes on the active branch relative to
+  the default branch. Produces a concise, bulleted summary of the most impactful changes for the user to
+  paste when opening the pull request, and a title as well when the branch carries more than one commit,
+  because GitHub pre-fills the title from the branch name rather than a commit subject in that case. Use
+  when the user is about to open a pull request, asks for a PR summary, or invokes /pr.
 user-invocable: true
 ---
 
@@ -19,10 +20,11 @@ Drafts a style-compliant pull request summary for the active branch.
 **Covers:**
 - Analyzing all changes on the active branch relative to the default branch
 - Drafting a concise summary of the most impactful changes for the pull request body
+- Offering a pull request title when the branch carries more than one commit
 - Presenting the draft for the user to open the pull request manually
 
 **Does not cover:**
-- Drafting the pull request title (GitHub pre-fills it from the branch's commits)
+- Drafting a title for a single-commit branch (GitHub pre-fills it from that commit's subject)
 - Creating, opening, or merging pull requests (the user does this)
 - Committing or pushing changes (see `/commit`)
 - Drafting release notes (see `/release`)
@@ -56,8 +58,12 @@ purpose.
 
 ### Step 3: Draft the summary
 
-Produce the pull request summary following the format rules below. GitHub pre-fills the title from the branch's
-commits, so draft only the summary body. Present the draft to the user. The user opens the pull request manually.
+Produce the pull request summary following the format rules below. GitHub pre-fills a usable title only when
+the branch carries exactly one commit, in which case it uses that commit's subject and no title draft is
+needed. When the branch carries more than one commit, GitHub pre-fills the title from the branch name
+instead (for example `refactor/project-auditing-optimization`), so also draft a one-line title covering the
+branch as a whole, in the same past tense style as the summary bullets, and present it above the body.
+Present the draft to the user. The user opens the pull request manually.
 
 ---
 
@@ -73,8 +79,8 @@ The summary is a concise bulleted list of the most impactful changes the branch 
   (e.g., `-- Fixed various documentation and code style inconsistencies.`).
 
 PR-body prose is exempt from the project-wide separator rule and may use `--` and `-` bullet lists, for example
-when referencing CLI flags or listing changes, while still preferring positive, present-tense description of
-what changed.
+when referencing CLI flags or listing changes. The past tense rule above applies to every bullet without
+exception.
 
 **Example:**
 
@@ -127,6 +133,7 @@ Pull Request Compliance:
 - [ ] Summary bullets prefixed with `-- `, each ending with a period
 - [ ] Each bullet starts with a past tense verb
 - [ ] Bullets ordered from most to least impactful
+- [ ] Drafted a title as well when the active branch carries more than one commit
 - [ ] Summarizes impactful changes; does not reproduce every commit
 - [ ] Compared the active branch against the default branch (three-dot diff)
 - [ ] Contains NO authorship details, co-author tags, or attribution

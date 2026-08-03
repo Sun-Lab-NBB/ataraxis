@@ -15,6 +15,7 @@ is the external check, and it cites a rule code rather than a checklist quote.
 - Check 1: Citation verification
 - Check 2: Adversarial refutation
 - The triage header
+- The coverage ledger
 - Confidence placement in the report
 
 ---
@@ -99,6 +100,33 @@ These counts are the audit's own precision record, and the tool lines are what l
 clean result from an unrun gate. A run that discards nothing at any stage has either found an
 unusually compliant file set or skipped the stage, and stating the numbers is what lets a reader tell
 those apart.
+
+---
+
+## The coverage ledger
+
+The ledger follows the triage header and records what was swept, so a thin pass is visible rather than
+silent:
+
+```text
+| Binding        | Files in scope | Files swept | Files UNAUDITED |
+|----------------|----------------|-------------|-----------------|
+| /python-style  | 47             | 47          | 0               |
+| /readme-style  | 1              | 1           | 0               |
+| (no binding)   | 3              | 0           | 3               |
+```
+
+Alongside the table, state each of the following:
+
+- Every UNAUDITED file by path, with the binding-table reason it matched no checklist.
+- The sub-agent and batch count the run used, recorded as `1 (main agent)` for a Small or Medium tier.
+- The deterministic gates that ran and the gates that failed to run, naming each tool.
+- The project-scope layout pass status, as `run`, `skipped-not-a-project-root`, or
+  `skipped-no-created-or-deleted-files`.
+- The revision the run resolved against, whenever the scope was narrowed to a change set.
+
+A Large-tier audit that produced no findings still reports a non-zero swept count, which distinguishes
+compliant files from an unrun pass.
 
 ---
 

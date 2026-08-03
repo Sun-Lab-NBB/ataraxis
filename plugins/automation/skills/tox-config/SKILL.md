@@ -198,8 +198,12 @@ skip_install = true
 deps = ataraxis-automation==9.0.0
 ```
 
-This pattern applies to: `coverage`, `docs`, `build`, `upload`, `deploy`, `install`, `uninstall`,
+This pattern applies to: `coverage`, `build`, `upload`, `deploy`, `install`, `uninstall`,
 `create`, `remove`, `provision`, `export`, `import`.
+
+The Python `docs` environment carries the same pinned `deps` line but omits `skip_install`, because
+Sphinx autodoc imports the installed project to read its docstrings. The C++ docs-only pipeline has
+no project to install, so its `docs` environment sets `skip_install = true`.
 
 ### Self-hosting exception
 
@@ -287,7 +291,12 @@ envlist = docs
 - Uses parameterized names: `{py312, py313, py314}-test`.
 - `package = wheel` forces a wheel build before testing.
 - `setenv = COVERAGE_FILE = reports{/}.coverage.{envname}` writes per-version coverage data.
-- Runs pytest with `--cov`, `--cov-config=pyproject.toml`, `-n logical`, `--dist loadgroup`.
+- Runs pytest with `--import-mode=importlib`, `--cov`, `--cov-config=pyproject.toml`, `-n logical`,
+  `--dist loadgroup`.
+- `--dist loadgroup` routes every test carrying the same `@pytest.mark.xdist_group` marker to one
+  worker. See `/python-style` for the marker and the cases that require it.
+- `--import-mode=importlib` matches the `addopts` declaration in `pyproject.toml`, so a bare `pytest`
+  invocation resolves test modules the same way this task does. See `/pyproject-style`.
 
 ### coverage
 
@@ -495,7 +504,7 @@ tox.ini Style Compliance:
 Dependency Patterns:
 - [ ] lint, stubs, test use dependency_groups = dev (or extras = dev for legacy projects)
 - [ ] Utility envs use deps = ataraxis-automation=={version} (pinned, not range)
-- [ ] Utility envs use skip_install = true
+- [ ] Utility envs use skip_install = true, except the Python docs env, whose autodoc imports the project
 - [ ] Self-hosting exception applied correctly (ataraxis-automation only)
 
 Lint Environment:
@@ -515,7 +524,7 @@ Test Environment:
 - [ ] Parameterized names match requires-python range
 - [ ] package = wheel is set
 - [ ] COVERAGE_FILE uses reports{/}.coverage.{envname}
-- [ ] pytest uses --cov, -n logical, --dist loadgroup
+- [ ] pytest uses --import-mode=importlib, --cov, -n logical, --dist loadgroup
 
 Coverage Environment:
 - [ ] depends matches the test environment Python version matrix
