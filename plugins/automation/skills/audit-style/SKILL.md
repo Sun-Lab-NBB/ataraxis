@@ -26,13 +26,14 @@ an audit. The verification checklist at the end is mandatory before submitting f
 - Structural style: element ordering, imports, formatting, naming, type annotations,
   error-handling patterns, file-section ordering
 - Comment and docstring quality: typos, sentence length, length proportionality, redundancy
-  with the type signature, narrate-the-code comments, stale references, and
-  docstring-implementation drift
+  with the type signature, narrate-the-code comments, separator punctuation, and behavioral
+  scope
 - Cross-file consistency: naming, ordering, and idiom drift across the file set
 - Cross-skill conflicts where two loaded style skills disagree on the same point
 
 **Does not cover:**
-- Factual accuracy of documentation against source code (see `/audit-facts`)
+- Factual accuracy of documentation against source code, including stale references and
+  docstring claims that disagree with the implementation (see `/audit-facts`)
 - Code modifications or style fixes (this skill produces findings only)
 - Inventing new conventions not present in any loaded style skill checklist
 - Codebase exploration (see `/explore-codebase`)
@@ -140,12 +141,15 @@ code. They also include documentation whose length tracks the size of the code i
 difficulty of understanding it, docstrings that restate the type signature, and comments that
 narrate obvious code behavior. Documentation that describes how the asset is used in the project,
 such as the pipeline stage that calls it or the feature that depends on it, is a finding whenever
-the text leaves the behavior of the asset itself. Common content issues are sentences exceeding 40 words and stale references such as
-closed issues, removed code, or outdated version markers. Docstring claims that contradict the
-function's signature or observable behavior also qualify. They further include prose that separates
-clauses with a semicolon or an em-dash where only full stops and commas belong, together with
-contrastive or historical framing ("does X, not Y" or "formerly did Y") that should state present
-behavior positively.
+the text leaves the behavior of the asset itself. A common content issue is a sentence exceeding
+40 words. Findings further include prose that separates clauses with a semicolon or an em-dash
+where only full stops and commas belong, together with contrastive or historical framing ("does X,
+not Y" or "formerly did Y") that should state present behavior positively.
+
+This dimension judges the form of the documentation. A stale reference to a renamed symbol, a
+removed feature, or a closed issue, and a docstring claim that disagrees with the signature or the
+observable behavior, are factual findings that belong to `/audit-facts`, because confirming them
+requires reading the implementation.
 
 **Dimension C — Cross-file consistency:** Naming, ordering, and idiom drift across the file
 set. Examples include the same field named differently in two sibling classes, or one module
@@ -254,7 +258,7 @@ You MUST adhere to the following discipline during every audit.
 
 | Skill                | Relationship                                                                                     |
 |----------------------|--------------------------------------------------------------------------------------------------|
-| `/audit-facts`       | Sibling audit for factual accuracy against source code                                           |
+| `/audit-facts`       | Sibling audit for factual accuracy of documentation and docstrings against source code           |
 | `/python-style`      | Provides the Python style checklist; loaded when scope contains Python files                     |
 | `/cpp-style`         | Provides the C++ style checklist; loaded when scope contains C++ files                           |
 | `/csharp-style`      | Provides the C# style checklist; loaded when scope contains C# files                             |

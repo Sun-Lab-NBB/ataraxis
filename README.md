@@ -214,7 +214,7 @@ typed directly as slash commands. All of them are provided by the `automation` p
 |-------------------------|------------------------------------------------------------------------|
 | `/explore-codebase`     | Performs in-depth codebase exploration at the start of a session       |
 | `/explore-dependencies` | Explores installed ataraxis library APIs for dependency awareness      |
-| `/audit-facts`          | Audits documentation files against source code for factual accuracy    |
+| `/audit-facts`          | Audits documentation and in-source docstrings for factual accuracy     |
 | `/audit-style`          | Audits files against applicable style skill checklists for compliance  |
 | `/commit`               | Drafts style-compliant git commit messages                             |
 | `/pr`                   | Drafts a style-compliant pull request summary for the active branch    |
@@ -238,7 +238,7 @@ provide an MCP server.
 | `project-layout`       | Applies ataraxis framework project directory structure conventions     |
 | `tox-config`           | Applies ataraxis framework tox.ini conventions                         |
 | `platformio-config`    | Applies ataraxis framework platformio.ini and library.json conventions |
-| `audit-facts`          | Audits documentation files against source code for factual accuracy    |
+| `audit-facts`          | Audits documentation and in-source docstrings for factual accuracy     |
 | `audit-style`          | Audits files against applicable style skill checklists for compliance  |
 | `commit`               | Drafts style-compliant git commit messages                             |
 | `pr`                   | Drafts a style-compliant pull request summary for the active branch    |
