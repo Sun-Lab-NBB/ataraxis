@@ -326,6 +326,7 @@ Location: <path>:<line>-<line>
 Current state: "<verbatim quote from the file>"
 Required state: <concrete example or the checklist's "should be" form>
 Suggested fix: <concrete textual edit>
+Approval: <REQUIRED when the fix renames or re-signatures a public symbol, naming what breaks>
 ```
 
 When the same checklist point is violated multiple times within a file, collapse to a single
@@ -440,6 +441,6 @@ Style Compliance Audit Output:
 - [ ] No findings invented outside the loaded checklists
 - [ ] Findings ordered: BLOCKING -> INCONSISTENCY -> CONFLICT -> STANDARD
 - [ ] Cross-skill conflicts surfaced rather than silently resolved
-- [ ] Suggested fixes are concrete textual edits, not abstract recommendations
+- [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict
 - [ ] No file modifications made during the audit
 ```

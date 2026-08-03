@@ -284,6 +284,9 @@ You MUST adhere to the following discipline during every run.
   round re-audits the files they touched.
 - Never resolve a finding by weakening a test, a contract, a docstring, or a coverage setting. A gate
   satisfied that way is a gate defeated.
+- Never apply a fix that breaks the public API or alters public behavior without the user's explicit
+  approval, whatever the severity and whatever the gate. Present it, name what breaks and who calls
+  it, and WAIT. See the approval section in [change-mode.md](references/change-mode.md).
 - Record every audit that did not run under its own reason, DECLINED or EMPTY or a routing row, and
   every capped loop with what remained.
 
@@ -351,6 +354,8 @@ Project Audit Orchestration Compliance:
 - [ ] Each audit's section preserves its own output format, ordering, and LOW confidence appendix
 - [ ] In change mode, the gate verdict stated and every blocking finding named
 - [ ] In change mode, fixes applied between rounds rather than inside an audit
+- [ ] Every public API break and public behavior change presented for approval and waited on
+- [ ] No fix needing approval applied to reach a PASSED verdict
 - [ ] In change mode, each re-run covered the original change set plus the files the fixes touched
 - [ ] Loop capped at 3 rounds, with anything remaining stated in the report
 - [ ] No finding resolved by weakening a test, a contract, a docstring, or a coverage setting

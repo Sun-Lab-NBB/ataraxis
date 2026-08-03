@@ -390,6 +390,7 @@ Implementation: "<verbatim quote of the code that breaks it>"
 Trigger: <executable expression, numbered call sequence, or line-numbered interleaving>
 Result: <concrete wrong value, exception, corruption, or hang>
 Suggested fix: <concrete code change, described rather than applied>
+Approval: <REQUIRED when the fix breaks the public API or alters public behavior, naming what breaks>
 ```
 
 When one root cause repeats across several sites, collapse to a single finding with a count and
@@ -459,8 +460,7 @@ Code Correctness Audit Compliance:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Step 1 prerequisites recorded for every language in scope, including the archetype, the actual test matrix, and the branch and fail_under settings
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
-- [ ] For Large tier, files batched by authority with no batch mixing languages
-- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
+- [ ] For Large tier, batched by authority with no language mixing, within 40 and 12 in flight, merging to fit
 - [ ] For Large tier, each sub-agent received only the ranking and ledger rows for its own batch
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] Coverage ranking built for every language in scope, from artifacts for Python and from the test suite for C++ and C#
@@ -494,6 +494,6 @@ Code Correctness Audit Compliance:
 - [ ] No documentation-side findings appear (those belong to /audit-facts)
 - [ ] No missing test reported as a defect, and no coverage percentage reported as a defect
 - [ ] Findings ordered most severe first
-- [ ] Suggested fixes are concrete code changes, not abstract recommendations
+- [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
 - [ ] No file modifications made during the audit
 ```

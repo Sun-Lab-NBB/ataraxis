@@ -138,13 +138,38 @@ audits.
    can be made in one pass per file.
 2. **Fix, outside the audit.** The audits produce findings only and modify nothing. Fixes are ordinary
    implementation work performed between rounds, in the audits' declared fix order, which is facts,
-   then correctness, then performance, then style.
+   then correctness, then performance, then style. A fix carrying `Approval: REQUIRED` STOPS here for
+   the user, under the section below.
 3. **Re-audit.** Run the audits again over the UNION of the original change set and every file the
    fixes touched. A fix frequently edits a file the original change did not, and that file is now part
    of the work.
 
 Re-run only the audits that produced the blocking findings, plus any audit the newly touched files
 newly trigger under the routing table. An audit that passed on unchanged files does not run again.
+
+### Fixes that require explicit user approval
+
+A fix that breaks the public API or alters public behavior is PRESENTED and waited on rather than
+applied. The agent never makes that call alone, in any mode, and no gate verdict authorizes it.
+
+| The fix would                                                        | Example                          |
+|----------------------------------------------------------------------|----------------------------------|
+| Remove, rename, or re-type a public symbol                           | `read_frame` becomes `read`      |
+| Change a public signature, its defaults, or its return type          | Adding a required parameter      |
+| Change what a public callable returns or raises for accepted input   | Raising where it returned `None` |
+| Change a wire format, on-disk schema, packed layout, or CLI contract | Widening a packed field          |
+| Change a documented contract that callers rely on                    | Narrowing an accepted range      |
+
+Public carries the ataraxis visibility meaning, which is a symbol with no leading underscore, or one
+its package re-exports from `__init__`. A symbol private to its own module is not in this class, and
+neither is a test.
+
+Present such a fix with what breaks, the callers the shared context's CALLGRAPH ledger shows reaching
+it, and the alternative that preserves the contract where one exists. Then WAIT.
+
+Approval is per fix rather than per round or per run. A user who approved one break has not approved
+the next, and a blocking finding whose only fix needs approval stays unresolved until they answer,
+which holds the verdict at BLOCKED rather than advancing it.
 
 Three rules protect the loop from defeating itself:
 

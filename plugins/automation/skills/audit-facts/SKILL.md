@@ -386,6 +386,7 @@ Location in source: <path>:<line> or N/A
 Claim: "<verbatim quote from the documentation>"
 Source reality: "<verbatim quote or factual summary with citation>"
 Suggested fix: <concrete textual edit>
+Approval: <REQUIRED when the edit changes a documented public contract, naming what breaks>
 ```
 
 For UNVERIFIABLE findings, replace the source reality with a description of what was searched
@@ -466,8 +467,7 @@ Documentation Fact Audit Compliance:
 - [ ] Every file in scope bound to a class and an authoritative source per the binding table
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
 - [ ] For Large tier, each metadata file, each skill unit, and the docs package given its own sub-agent
-- [ ] For Large tier, in-source work batched by package with no batch mixing languages
-- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
+- [ ] For Large tier, in-source batched by package with no language mixing, within 40 and 12 in flight, merging to fit
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] Every claim categorized (EXACT, SEMANTIC, DRIFT, WRONG, UNVERIFIABLE)
 - [ ] Every claim assigned a confidence tier (HIGH, MEDIUM, LOW)
@@ -495,5 +495,5 @@ Documentation Fact Audit Compliance:
 - [ ] No wholly undocumented callable, class, module, or file reported as an omission
 - [ ] No file modifications made during the audit
 - [ ] Findings ordered: WRONG -> DRIFT -> CONTRADICTION -> OMISSION -> UNVERIFIABLE
-- [ ] Suggested fixes are concrete textual edits, not abstract recommendations
+- [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict
 ```

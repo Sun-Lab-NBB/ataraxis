@@ -352,6 +352,7 @@ Multiplicity: <class> (bound: <expression>, source: <path>:<line>)
 Current state: "<verbatim quote from the file>"
 Cost: <explicit arithmetic or complexity class, stated for current and proposed>
 Suggested fix: <concrete code change, described rather than applied>
+Approval: <REQUIRED when the fix breaks the public API or alters public behavior, naming what breaks>
 ```
 
 When the same category is triggered multiple times within a file by one root cause, collapse to a
@@ -467,6 +468,6 @@ Performance Optimization Audit Compliance:
 - [ ] No correctness or bug findings appear (those belong to /audit-correctness)
 - [ ] No proposal violates a documented project convention without that conflict being stated
 - [ ] Findings ordered by impact, STATIC section before MEASUREMENT-PENDING section
-- [ ] Suggested fixes are concrete code changes, not abstract recommendations
+- [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
 - [ ] No file modifications made during the audit
 ```
