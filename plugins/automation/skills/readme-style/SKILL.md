@@ -33,6 +33,19 @@ You MUST verify your changes against the verification checklist before submittin
 
 ---
 
+## Mirrored identity content requires explicit approval
+
+Three parts of a README duplicate content that lives elsewhere. The H1 title carries the project name, the one-line
+description immediately after it carries the description, and the Authors section carries the author list. Each of the
+three is also stated in `pyproject.toml`, in the documentation, and on the repository and package pages, so you MUST
+obtain explicit user approval before changing any of them. `/pyproject-style` owns the wording and lists every location
+that would need the same edit.
+
+Every other part of the README follows the normal rules in this skill, so a usage example, a section you are adding, or
+a technical correction inside Detailed Description needs no approval.
+
+---
+
 ## Workflow
 
 You MUST follow these steps when this skill is invoked.
@@ -338,6 +351,7 @@ README to reflect the changes.
 README Style Compliance:
 
 Structure:
+- [ ] Explicit user approval obtained before changing the title, the one-line description, or the Authors section
 - [ ] Archetype selected mechanically: library (ships an installable artifact) or umbrella (indexes siblings)
 - [ ] Section order matches the selected archetype's list, with only its optional sections omitted
 - [ ] Title H1 uses the package name lowercase-hyphenated (library) or the display casing (umbrella)
