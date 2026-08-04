@@ -29,8 +29,8 @@ cannot be explored with `python -c "import ..."`. Instead, locate them in the Pl
 
 | Library                     | PlatformIO name                           | Abbr   |
 |-----------------------------|-------------------------------------------|--------|
-| ataraxis-transport-layer-mc | `Sun-Lab-NBB/ataraxis-transport-layer-mc` | axtlmc |
-| ataraxis-micro-controller   | `Sun-Lab-NBB/ataraxis-micro-controller`   | axmc   |
+| ataraxis-transport-layer-mc | `inkaros/ataraxis-transport-layer-mc`     | axtlmc |
+| ataraxis-micro-controller   | `inkaros/ataraxis-micro-controller`       | axmc   |
 
 ### Python + C++ extension
 

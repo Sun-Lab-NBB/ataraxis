@@ -22,7 +22,7 @@ runs first and to completion on the main agent.
 
 Passes 2 through 10 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file
 ONCE and answer every applicable pass during that single traversal, carrying the pass list beside you.
-Re-reading the file set once per pass costs nine extra traversals of every line in scope and surfaces
+Re-reading the file set once per pass costs eight extra traversals of every line in scope and surfaces
 nothing the single traversal misses.
 
 Pass 1 is the one exception. It runs to completion across the whole file set before any other pass

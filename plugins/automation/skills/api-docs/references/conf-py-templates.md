@@ -64,7 +64,7 @@ html_theme = 'furo'
 |------------------|----------------------------------------------|------------------------------------|
 | `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-automation`              |
 | `<YEAR>`         | Current copyright year                       | `2026`                             |
-| `<AUTHOR>`       | Every author name in one comma-joined string | `'Ivan Kondratyev, Natalie Yeung'` |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |
 
 **Note:** `author` is the only author key Sphinx defines, and it holds a string. A multi-author
 project joins the names into that one string. A plural `authors` key and a list value both parse
@@ -124,7 +124,7 @@ space-separated.
 |------------------|----------------------------------------------|------------------------------------|
 | `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-micro-controller`        |
 | `<YEAR>`         | Current copyright year                       | `2026`                             |
-| `<AUTHOR>`       | Every author name in one comma-joined string | `'Ivan Kondratyev, Natalie Yeung'` |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |
 | `<VERSION>`      | Hardcoded version string                     | `2.0.0`                            |
 
 ---
@@ -194,4 +194,4 @@ html_theme = 'furo'
 |------------------|----------------------------------------------|------------------------------------|
 | `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-time`                    |
 | `<YEAR>`         | Current copyright year                       | `2026`                             |
-| `<AUTHOR>`       | Every author name in one comma-joined string | `'Ivan Kondratyev, Natalie Yeung'` |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |

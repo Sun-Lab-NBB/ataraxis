@@ -29,7 +29,7 @@ prerequisites:
   numpy_pin:        <version, and NEP 50 or legacy regime>   # Python targets
   numba:            <present or absent>                  # Python targets
   cpp_archetype:    <embedded or extension, plus target boards>
-  csharp:           <unity or plain, plus test assembly locations>
+  csharp:           <unity or plain, the target framework, plus test assembly locations>
   boundary_widths:  <the fixed-width types the wire, packed-struct, and on-disk schemas declare>
   codegraph:        <present or absent>
   test_suite:       <location and shape, per language>

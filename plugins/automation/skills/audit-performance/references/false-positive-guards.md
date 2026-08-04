@@ -2,7 +2,7 @@
 
 Every candidate finding of `/audit-performance` passes through these guards in order before it enters
 the report. The cold-path gate runs first and removes the most candidates. Record the count of
-discarded candidates for the coverage ledger.
+discarded candidates for the report's triage header.
 
 The codebase this audit runs against already applies most of the patterns the audit recommends, so a
 guard that rejects a plausible-looking candidate is doing its job.

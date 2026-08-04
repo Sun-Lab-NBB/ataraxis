@@ -531,7 +531,7 @@ comma placement in multi-line constructs.
 
 ### Brace rules
 
-Always use braces for control flow statements, even single-line bodies:
+Always use braces for control flow statements, with the single-line guard clause as the one exception:
 
 ```csharp
 // Good
@@ -583,12 +583,12 @@ The `.csharpierignore` file excludes Unity-generated directories (`Library/`, `T
 
 ## Configuration files
 
-Canonical configs are stored in [assets/](assets/). When working in a C# project, verify that
+Canonical configs are stored in [../assets/](../assets/). When working in a C# project, verify that
 `.csharpierrc.yaml`, `.editorconfig`, and `.csharpierignore` in the project root match these:
 
-- [assets/.csharpierrc.yaml](assets/.csharpierrc.yaml)
-- [assets/.editorconfig](assets/.editorconfig)
-- [assets/.csharpierignore](assets/.csharpierignore)
+- [../assets/.csharpierrc.yaml](../assets/.csharpierrc.yaml)
+- [../assets/.editorconfig](../assets/.editorconfig)
+- [../assets/.csharpierignore](../assets/.csharpierignore)
 
 The `.csharpierignore` contains generic entries only. Individual projects may need additional
 project-specific entries (e.g., paths to auto-generated scripts).

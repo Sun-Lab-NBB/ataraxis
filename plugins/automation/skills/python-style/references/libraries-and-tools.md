@@ -234,10 +234,13 @@ Prefer resolving issues unless the resolution would:
 For magic number warnings, prefer defining constants:
 
 ```python
+_ADJUSTMENT_FACTOR: float = 1.5
+"""Empirically determined scaling factor applied to the raw threshold."""
+
+
 def calculate_threshold(self, value: float) -> float:
     """Calculates the adjusted threshold."""
-    adjustment_factor = 1.5  # Empirically determined scaling factor.
-    return value * adjustment_factor
+    return value * _ADJUSTMENT_FACTOR
 ```
 
 ### Using noqa

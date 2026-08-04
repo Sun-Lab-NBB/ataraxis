@@ -465,7 +465,9 @@ C++ PlatformIO projects differ from the Python template above:
 
 ## Standard ending sections
 
-The final four sections appear in every README in this exact order.
+The final four sections close every library README in this exact order. An umbrella README closes with
+License and Acknowledgments alone, because the indexed repositories tag their own releases and the
+header attribution block already names the authors.
 
 ### Versioning
 
@@ -515,6 +517,7 @@ For C++ / PlatformIO libraries, replace `pyproject.toml` with `platformio.ini`:
   [platformio.ini](platformio.ini) file.
 ```
 
-Additional project-specific acknowledgments may be added between the two standard bullets. The
-section credits dependency developers and contributors, so it names no institution and links to no
-institutional page.
+Additional project-specific acknowledgments may be added between the two standard bullets. A library
+Acknowledgments section credits dependency developers and contributors, so it names no institution and
+links to no institutional page. An umbrella Acknowledgments section credits the projects the framework
+builds on and ends with a contact address.

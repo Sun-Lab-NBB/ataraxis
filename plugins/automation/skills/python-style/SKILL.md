@@ -565,7 +565,7 @@ against the code you wrote.
 - [ ] No heavy section separator blocks (# ====== or # ------)
 - [ ] No IDE-specific suppression comments (PyCharm # noinspection etc.); only ruff # noqa / mypy # type: ignore kept
 - [ ] Interface modules (cli.py, MCP tool modules, __main__.py) excluded via the pyproject omit list
-- [ ] pragma: no cover used only for unreachable guards and platform-specific branches inside measured modules
+- [ ] pragma: no cover used only for unreachable guards, hardware paths, and platform branches in measured modules
 - [ ] Each pragma: no cover annotates the narrowest construct that covers the excluded code
 - [ ] Tests contending for a process-wide or on-disk resource carry @pytest.mark.xdist_group, and all
       mutually contending tests share one group name (flags owned by /tox-config)

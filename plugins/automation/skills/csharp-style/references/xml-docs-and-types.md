@@ -552,7 +552,7 @@ using System.Diagnostics.CodeAnalysis;
 /// <summary>Attempts to find the zone with the specified name.</summary>
 /// <param name="zoneName">The name of the zone to find.</param>
 /// <param name="zone">The found zone, or null if not found.</param>
-/// <returns>True if the zone was found; false otherwise.</returns>
+/// <returns>True if the zone was found, false otherwise.</returns>
 public bool TryFindZone(string zoneName, [NotNullWhen(true)] out OccupancyZone? zone)
 {
     zone = _zones.FirstOrDefault(z => z.name == zoneName);

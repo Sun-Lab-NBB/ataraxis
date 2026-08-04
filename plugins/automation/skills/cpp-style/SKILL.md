@@ -125,8 +125,10 @@ C++ code falls into two paradigms with shared style but different constraints:
 - **Extension** (Python/nanobind): Full STL allowed. Exceptions allowed (nanobind translates them
   to Python exceptions). Builds via CMake + scikit-build-core. Requires GIL management.
 
-All naming, documentation, formatting, and tooling conventions apply identically to both. The
-verification checklist marks items that apply to only one paradigm.
+All naming, documentation, and tooling conventions apply identically to both. Formatting is identical
+except for `AccessModifierOffset` and `IndentAccessModifiers`, which differ per archetype (see
+[references/libraries-and-tools.md](references/libraries-and-tools.md)). The verification checklist
+marks items that apply to only one paradigm.
 
 ---
 
@@ -292,7 +294,8 @@ clang-format enforces include sorting (`SortIncludes: CaseSensitive`). The conve
 3. **Project headers**: `<transport_layer.h>`, `<module.h>`, `<kernel.h>`
 4. **Local headers**: `"encoder_module.h"`, `"valve_module.h"`
 
-All includes must be at the top of the file. Include sorting is enforced by **clang-format** — do
+All includes must be at the top of the file, except the variant-gated includes inside a `#ifdef`
+target-selection block in `main.cpp`. Include sorting is enforced by **clang-format** — do
 not manually reorder. Use angle brackets (`<header.h>`) for library headers and quotes
 (`"header.h"`) for local project headers.
 
@@ -369,7 +372,10 @@ class TransportLayer
 {
     public:
         [[nodiscard]]
-        uint8_t get_runtime_status() const { return _runtime_status; }
+        uint8_t get_runtime_status() const
+        {
+            return _runtime_status;
+        }
 
     private:
         uint8_t _runtime_status = 0;
@@ -483,12 +489,13 @@ against the code you wrote.
 - [ ] Prose used in @brief details (not bullet lists)
 - [ ] Accessor docs (get_/set_) are single-sentence /// comments
 - [ ] get_/set_ used for trivial field access; PascalCase for methods with side effects
-- [ ] Static methods used when no instance state is accessed
 - [ ] Methods ordered by call hierarchy within each visibility group
 - [ ] I/O operations separated from processing logic (especially in extension code)
 - [ ] Magic numbers replaced with named static constexpr constants
 - [ ] Test functions have only @file and @brief (no @param, @returns, or @throws)
 - [ ] Linting warnings resolved (not suppressed) unless resolution adds unnecessary complexity
+- [ ] NOLINT comments for legitimate clang-tidy false positives only
+- [ ] No IDE inspection directives (CLion/ReSharper // noinspection etc.); only clang-tidy // NOLINT suppressions kept
 
 Tooling-enforced items. clang-format and clang-tidy resolve or report each of these, so run them
 rather than hand-checking. They stay listed for reviews performed without the tools.
@@ -500,6 +507,8 @@ rather than hand-checking. They stay listed for reviews performed without the to
 - [ ] Attributes ([[nodiscard]], [[maybe_unused]]) on their own line above the declaration (BreakAfterAttributes: Always)
 - [ ] Consecutive assignments aligned (AlignConsecutiveAssignments)
 - [ ] Template declarations on separate lines
+- [ ] Static methods used when no instance state is accessed (readability-convert-member-functions-to-static)
+- [ ] explicit keyword on single-argument constructors (google-explicit-constructor)
 - [ ] clang-format applied before commit
 - [ ] clang-tidy passes with zero warnings
 
@@ -510,13 +519,10 @@ Embedded-Specific Compliance (skip for extension projects):
 - [ ] static_assert used for compile-time template parameter validation
 - [ ] Scoped enums (enum class) with explicit backing type (uint8_t)
 - [ ] Structs use PACKED_STRUCT macro for binary serialization
-- [ ] explicit keyword on single-argument constructors
 - [ ] [[nodiscard]] on const getter methods
 - [ ] virtual destructors use = default on leaf and base classes
 - [ ] final keyword on leaf classes that should not be subclassed
 - [ ] static constexpr for compile-time constants (not #define)
-- [ ] NOLINT comments for legitimate clang-tidy false positives only
-- [ ] No IDE inspection directives (CLion/ReSharper // noinspection etc.); only clang-tidy // NOLINT suppressions kept
 
 Extension-Specific Compliance (skip for embedded projects):
 - [ ] NB_MODULE binding block at end of file with NOLINTNEXTLINE suppression

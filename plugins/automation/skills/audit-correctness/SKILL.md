@@ -313,7 +313,7 @@ Build the ledger that opens the report:
 | Language | Files in scope | Files audited | Files skipped | Tiers swept | Coverage source |
 |----------|----------------|---------------|---------------|-------------|-----------------|
 | Python   | 24             | 24            | 0             | T0-T3       | existing html   |
-| C++      | 6              | 6             | 0             | none        | no machinery    |
+| C++      | 6              | 6             | 0             | T0, T2, T3  | test suite read |
 ```
 
 List every skipped file by path with its reason, state whether coverage data was present, stale,

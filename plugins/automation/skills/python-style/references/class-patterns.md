@@ -242,7 +242,7 @@ When stacking multiple decorators on a single method, use the following order (o
 # 4. @property or other descriptors (innermost)
 
 @staticmethod
-@numba.njit(nogil=True, cache=True)  # type: ignore[untyped-decorator]
+@numba.njit(cache=True)  # type: ignore[untyped-decorator]
 def _compute_values(
     target_buffer: NDArray[np.uint8],
     scalar_object: int,

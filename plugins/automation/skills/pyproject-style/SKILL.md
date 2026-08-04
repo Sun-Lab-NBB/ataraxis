@@ -97,8 +97,8 @@ projects.
 14. `[tool.coverage.html]`
 15. `[tool.coverage.report]`
 
-The `[tool.ruff.lint.*]` sub-tables run `format`, `pycodestyle`, `pydocstyle`, `per-file-ignores`,
-`isort`, and then the optional `flake8-unused-arguments`.
+`[tool.ruff.format]` comes first, then the `[tool.ruff.lint.*]` sub-tables run `pycodestyle`,
+`pydocstyle`, `per-file-ignores`, `isort`, and then the optional `flake8-unused-arguments`.
 
 `[tool.coverage.run]` holds the `omit` list that excludes interface modules from coverage
 measurement, along with the `parallel`, `concurrency`, and `branch` keys used by projects that run
@@ -134,7 +134,7 @@ vertically within a section:
 case-sensitive = true
 combine-as-imports = true          # Combines multiple "as" imports for the same package
 force-wrap-aliases = true          # Wraps "as" imports so that each uses a separate line
-force-sort-within-sections = true  # Forces "as" and "from" imports to be close together
+force-sort-within-sections = true  # Forces "as" and "from" imports for the same package to be close
 length-sort = true                 # Places shorter imports first
 ```
 

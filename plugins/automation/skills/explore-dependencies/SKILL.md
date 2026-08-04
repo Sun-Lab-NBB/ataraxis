@@ -50,7 +50,7 @@ ecosystem, domain-to-library mappings, and import names.
 ### Step 2: Identify project dependencies
 
 Read the project's `pyproject.toml` and extract all ataraxis dependencies from
-`[project.dependencies]`, `[project.optional-dependencies]`, and `[dependency-groups]` (PEP 735;
+the `dependencies` array in `[project]`, `[project.optional-dependencies]`, and `[dependency-groups]` (PEP 735;
 ataraxis projects place dev dependencies such as `ataraxis-automation` in `[dependency-groups]`, not
 under `[project.optional-dependencies]` — see `/pyproject-style`). Match package names that start
 with `ataraxis-` (or the project's own first-party namespace prefix).
@@ -258,7 +258,7 @@ proceeding to code changes. Wait for user acknowledgment before modifying code.
 
 ```text
 Dependency Exploration Compliance:
-- [ ] All ataraxis dependencies identified (incl. [dependency-groups], not just [project.dependencies])
+- [ ] All ataraxis dependencies identified (incl. [dependency-groups], not just [project] dependencies)
 - [ ] Each installed dependency's source location resolved
 - [ ] Local/editable checkouts reconciled against latest GitHub release where a repo is cataloged
 - [ ] Unavailable packages noted and skipped

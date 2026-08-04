@@ -146,8 +146,8 @@ C++ microcontroller libraries are available via PlatformIO:
 
 ```ini
 lib_deps =
-    Sun-Lab-NBB/ataraxis-micro-controller
-    Sun-Lab-NBB/ataraxis-transport-layer-mc
+    inkaros/ataraxis-micro-controller@^3.0.1
+    inkaros/ataraxis-transport-layer-mc@^3.0.1
 ```
 
 ___
@@ -386,7 +386,7 @@ ___
 
 ## Acknowledgments
 
-We thank Anthropic for developing Claude Code and the Model Context Protocol. This work was
+The authors thank Anthropic for developing Claude Code and the Model Context Protocol. This work was
 supported by Cornell University.
 
 For questions or feedback, contact: ik278@cornell.edu, ws467@cornell.edu

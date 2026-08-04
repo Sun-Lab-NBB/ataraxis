@@ -42,7 +42,7 @@ project-specific values.
 
 ```rst
 Welcome to <PROJECT_NAME> API documentation page
-=================================================
+================================================
 
 <PROJECT_DESCRIPTION>
 

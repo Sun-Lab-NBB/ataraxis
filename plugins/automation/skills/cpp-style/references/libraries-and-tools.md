@@ -603,8 +603,8 @@ build-backend = "scikit_build_core.build"
 
 Constrain these Python build dependencies with major-version ranges (see `/pyproject-style`), not exact
 pins — Python dependencies track major versions, so compatible minor/patch updates are adopted
-automatically. Exact pinning is reserved for microcontroller/PlatformIO dependencies (see
-`/platformio-config`), where stringent hardware requirements make silent minor/patch bumps undesirable.
+automatically. PlatformIO dependencies are caret-ranged the same way (see `/platformio-config`), pinned
+as `registry_owner/name@^MAJOR.MINOR.PATCH` so patch and minor updates are accepted.
 The `scikit_build_core.build` backend handles CMake invocation automatically during `pip install`.
 
 ### `__repr__` for extension classes
@@ -680,12 +680,12 @@ Unlike embedded code, extension code may use the full C++ standard library:
 
 ## Configuration files
 
-Canonical configs are stored in [assets/](assets/). When working in a C++ project, verify that
+Canonical configs are stored in [../assets/](../assets/). When working in a C++ project, verify that
 `.clang-format` and `.clang-tidy` in the project root match the canonical versions.
 
-- **Embedded** `.clang-format`: [assets/embedded/.clang-format](assets/embedded/.clang-format)
-- **Extension** `.clang-format`: [assets/extension/.clang-format](assets/extension/.clang-format)
-- **Shared** `.clang-tidy`: [assets/.clang-tidy](assets/.clang-tidy)
+- **Embedded** `.clang-format`: [../assets/embedded/.clang-format](../assets/embedded/.clang-format)
+- **Extension** `.clang-format`: [../assets/extension/.clang-format](../assets/extension/.clang-format)
+- **Shared** `.clang-tidy`: [../assets/.clang-tidy](../assets/.clang-tidy)
 
 The two `.clang-format` variants differ only in `AccessModifierOffset` (`0` vs `-2`) and
 `IndentAccessModifiers` (`true` vs `false`). All other settings are identical. The `.clang-tidy`

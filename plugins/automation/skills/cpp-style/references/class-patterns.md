@@ -77,8 +77,8 @@ class BrakeModule final : public Module
         enum class kModuleCommands : uint8_t { /* ... */ };
 
         // Constructor delegates to base
-        BrakeModule(const uint8_t module_type, const uint8_t module_id, Communication& comm) :
-            Module(module_type, module_id, comm)
+        BrakeModule(const uint8_t module_type, const uint8_t module_id, Communication& communication) :
+            Module(module_type, module_id, communication)
         {}
 
         // Virtual overrides
@@ -219,7 +219,7 @@ enum class kCustomStatusCodes : uint8_t
 Always use `static_cast` when converting between enum values and their underlying type:
 
 ```cpp
-switch (static_cast<kModuleCommands>(GetActiveCommand()))
+switch (static_cast<kModuleCommands>(get_active_command()))
 {
     case kModuleCommands::kCheckState: CheckState(); return true;
     case kModuleCommands::kReset: ResetEncoder(); return true;
@@ -416,7 +416,7 @@ The `RunActiveCommand()` method dispatches commands using a switch statement:
 ```cpp
 bool RunActiveCommand() override
 {
-    switch (static_cast<kModuleCommands>(GetActiveCommand()))
+    switch (static_cast<kModuleCommands>(get_active_command()))
     {
         case kModuleCommands::kSendPulse: Pulse(); return true;
         case kModuleCommands::kToggleOn: Open(); return true;

@@ -24,8 +24,8 @@ changes against the checklist before submitting.
 **Covers:**
 - `[tox]` section structure and `requires` conventions
 - Envlist ordering and patterns for each project archetype
-- Environment definitions (lint, stubs, test, coverage, docs, build, upload, install, uninstall,
-  create, remove, provision, export, import)
+- Environment definitions (lint, stubs, test, coverage, docs, build, upload, deploy, install,
+  uninstall, create, remove, provision, export, import)
 - Mamba + uv + tox toolchain architecture and how the three tools interact
 - Dependency installation strategies (`dependency_groups`, `deps`, `skip_install`)
 - Environment naming conventions (`{abbr}_dev`)

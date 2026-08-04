@@ -143,9 +143,9 @@ Build the batches under three rules:
 
 1. **One binding per batch, two at the absolute most.** Group files by the style skill the table above
    assigned. A batch is Python files, or C++ files, or C# files, and never a mixture.
-2. **A single-file binding gets its own sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`,
-   `tox.ini`, and `platformio.ini` each bind to a checklist nothing else in the repository uses, so
-   each becomes one sub-agent holding one guide. A skill is one such unit rather than one per file,
+2. **A single-file binding gets its own sub-agent.** `README.md`, `pyproject.toml`, and `tox.ini` each
+   bind to a checklist nothing else uses. `platformio.ini` travels with `library.json`, and `CLAUDE.md`
+   with `AGENTS.md`. A skill is one such unit rather than one per file,
    so its `SKILL.md` and its `references/*.md` travel together, because the progressive-disclosure
    rules judge a reference file against the `SKILL.md` that loads it. The documentation package
    under `docs/` is one sub-agent holding `/api-docs` alone.

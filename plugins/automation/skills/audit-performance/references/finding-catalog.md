@@ -430,8 +430,8 @@ inside a loop. MEDIUM for unbatched writes and for I/O mixed into compute.
 **Definition.** Parallelism absent where the work is embarrassingly parallel, or present but structured
 so the GIL, oversubscription, or data transfer cancels the benefit. Covers serial loops over
 independent work units, thread pools wrapped around pure-Python work, process pools whose payload cost
-exceeds the task's work, nested parallelism causing oversubscription, worker counts computed from
-`os.cpu_count()` without a None guard, and blocking calls in extension code that hold the GIL.
+exceeds the task's work, nested parallelism causing oversubscription, and blocking calls in extension
+code that hold the GIL.
 
 **Detection.** Follow the PROCESS AND THREAD half of Pass 7 in `detection-passes.md`. For a
 parallelism opportunity, verify independence mechanically by listing every variable the loop body
@@ -441,12 +441,10 @@ output array. Any write to a shared accumulator disqualifies the loop.
 **Evidence.** STATIC. For GIL findings, cite the task function and the specific line proving whether
 the work releases or holds the GIL. For independence claims, enumerate every variable written in the
 loop body with each write's line and its index expression. For oversubscription, give both parallelism
-factors with their sources. For an `os.cpu_count()` finding, cite the line and the style rule, which
-needs nothing further because the crash is latent in the arithmetic.
+factors with their sources.
 
-**Impact.** HIGH for `os.cpu_count()` arithmetic without a None guard, and for blocking without a GIL
-release in extension code. MEDIUM for GIL-serialized thread pools and for oversubscription. Every
-proposal to add parallelism is MEASUREMENT-PENDING.
+**Impact.** HIGH for blocking without a GIL release in extension code. MEDIUM for GIL-serialized thread
+pools and for oversubscription. Every proposal to add parallelism is MEASUREMENT-PENDING.
 
 ---
 
