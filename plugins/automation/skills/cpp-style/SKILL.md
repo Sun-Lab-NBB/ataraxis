@@ -450,6 +450,10 @@ against the code you wrote.
 - [ ] Linting warnings resolved (not suppressed) unless resolution adds unnecessary complexity
 - [ ] NOLINT comments for legitimate clang-tidy false positives only
 - [ ] No IDE inspection directives (CLion/ReSharper // noinspection etc.); only clang-tidy // NOLINT suppressions kept
+- [ ] .clang-tidy Checks list names every check explicitly, carrying no globs and no entry the installed
+      clang-tidy no longer ships
+- [ ] A check contradicting a construct this skill prescribes is removed from the Checks list with its reason
+      recorded in the file header, rather than suppressed per-site with NOLINT
 
 Tooling-enforced items. Run clang-format -i src/*.h src/*.cpp and clang-tidy src/*.h src/*.cpp -- -I include/
 to resolve or report each of these rather than hand-checking them. They stay listed for reviews performed

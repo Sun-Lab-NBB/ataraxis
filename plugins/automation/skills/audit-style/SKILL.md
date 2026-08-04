@@ -348,12 +348,16 @@ You MUST adhere to the following discipline during every audit.
 
 - Anchor every finding to a verbatim checklist quote. No checklist quote, no finding.
 - Never invent conventions. If a behavior is not in a loaded checklist, it is not a style violation.
+- Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
+  clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
+  code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
 - Never flag factual errors, missing content, or source-code mismatches. Those belong to `/audit-facts`.
 - Never flag a defect, an edge case, or a runtime cost. Those belong to `/audit-correctness` and `/audit-performance`.
 - Never restructure, restyle, or refactor. This skill produces findings only.
 - Never flag subjective preferences (tone, ordering, terminology) unless the loaded checklist explicitly requires the
   convention.
-- If a file contains an auto-generated block or a documented exception, note the exception and skip its enclosing range.
+- If a file carries an auto-generated block, or an exemption a loaded skill writes down, note the exemption with its
+  verbatim clause and skip its enclosing range.
 
 ---
 
@@ -460,6 +464,8 @@ Style Audit Compliance:
 - [ ] No compliant items appear in the report
 - [ ] No factual errors, missing content, or source mismatches appear (those belong to /audit-facts)
 - [ ] No findings invented outside the loaded checklists
+- [ ] No exemption applied without a verbatim clause from a loaded skill quoted beside it
+- [ ] No finding spared for shared corpus, house convention, sibling-repository text, or age
 - [ ] Findings ordered: BLOCKING -> INCONSISTENCY -> CONFLICT -> STANDARD
 - [ ] Cross-skill conflicts surfaced rather than silently resolved
 - [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict

@@ -392,6 +392,9 @@ You MUST adhere to the following discipline during every audit.
 - Treat coverage as a ranking. Never report a tier, a percentage, or a missing-line list as a defect, and never report
   the absence of a test.
 - Run only read-only commands, plus the two non-mutating tox environments after the user agrees.
+- Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
+  clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
+  code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
 - Never fix, refactor, or add a test. This skill produces findings only.
 - Treat `console.enable()` and `console.disable()` calls as correct at every library tier.
 

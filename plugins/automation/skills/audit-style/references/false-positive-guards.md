@@ -8,6 +8,11 @@ This audit's characteristic false positive is an INVENTED CONVENTION, meaning a 
 no loaded checklist states, and that the audit therefore has no authority to enforce. Several guards below exist for
 that one failure alone.
 
+The converse failure is an INVENTED EXEMPTION, meaning a reason to spare a real breach that no loaded skill grants. No
+guard below produces one, because every guard here removes candidates that were never violations in the first place.
+Where a candidate breaches a rule the ledger holds, only a clause a loaded skill writes down spares it, and the
+`/audit-style` Discipline section governs that.
+
 ---
 
 ## Contents

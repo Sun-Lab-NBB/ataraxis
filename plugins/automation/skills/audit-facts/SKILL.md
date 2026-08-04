@@ -381,6 +381,9 @@ You MUST adhere to the following discipline during every audit, and you MUST app
 - Never paraphrase source and present it as a verbatim quote. Use the Read tool and copy.
 - Never expand scope to restructure, restyle, or refactor. This skill produces findings only.
 - Do not flag subjective preferences (tone, ordering, terminology).
+- Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
+  clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
+  code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
 - Hold the report's own prose to the rules this family enforces, keeping every authored sentence under 40 words and
   separating clauses with full stops and commas rather than semicolons or em-dashes.
 - Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
