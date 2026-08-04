@@ -422,7 +422,8 @@ commands =
 skip_install = true
 deps = ataraxis-automation=={version}
 description =
-    Provisions the project's development mamba environment by removing and (re)creating the environment.
+    Provisions the project's development mamba environment by verifying that the new environment specification
+    resolves, then removing and (re)creating the environment and installing the project dependencies into it.
 commands =
     automation-cli provision-environment --environment-name {env_abbr}_dev --python-version 3.14 {posargs:}
 ```
@@ -554,7 +555,7 @@ These are the development-automation commands. Agents normally drive them via `t
 | `uninstall`                  | Uninstalls the project from its development mamba environment            |
 | `create`                     | Creates the development mamba environment and installs dependencies      |
 | `remove`                     | Removes (deletes) the development mamba environment                      |
-| `provision`                  | Removes and (re)creates the development mamba environment                |
+| `provision`                  | Recreates the development mamba environment and installs dependencies    |
 | `export`                     | Exports the mamba environment to `envs/` as a `.yml` file                |
 | `import`                     | Creates or updates the mamba environment from the stored `.yml` file     |
 
@@ -577,6 +578,6 @@ receive.
 | `uninstall-project`     | `-e`/`--environment-name`, `-ed`/`--environment-directory`                                          | Uninstalls the project from the mamba environment                   |
 | `create-environment`    | `-e`/`--environment-name`, `-p`/`--python-version`, `-ed`/`--environment-directory`, `--prerelease` | Creates the mamba environment and installs dependencies             |
 | `remove-environment`    | `-e`/`--environment-name`, `-ed`/`--environment-directory`                                          | Removes (deletes) the mamba environment                             |
-| `provision-environment` | `-e`/`--environment-name`, `-p`/`--python-version`, `-ed`/`--environment-directory`, `--prerelease` | Removes and recreates the mamba environment                         |
+| `provision-environment` | `-e`/`--environment-name`, `-p`/`--python-version`, `-ed`/`--environment-directory`, `--prerelease` | Recreates the environment, then installs dependencies               |
 | `import-environment`    | `-e`/`--environment-name`, `-ed`/`--environment-directory`                                          | Creates or updates the mamba environment from the stored `.yml`     |
 | `export-environment`    | `-e`/`--environment-name`, `-ed`/`--environment-directory`                                          | Exports the mamba environment to `envs/` as a `.yml` file           |

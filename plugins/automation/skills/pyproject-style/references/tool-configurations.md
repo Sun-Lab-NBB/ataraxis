@@ -247,7 +247,7 @@ Used by all `ataraxis-*` projects:
 ```toml
 # MyPy configuration section.
 [tool.mypy]
-# Strict mode settings (equivalent to --strict)
+# Strict mode settings (--strict), plus the unused-config warning that --strict does not enable
 warn_unused_configs = true
 disallow_any_generics = true
 disallow_subclassing_any = true

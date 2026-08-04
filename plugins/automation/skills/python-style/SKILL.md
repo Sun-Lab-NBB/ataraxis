@@ -389,7 +389,8 @@ written. See /pyproject-style.)
 Judgment items. No tool inspects these, so this checklist is their only enforcement. Walk every one
 against the code you wrote.
 - [ ] Docstring section order: Summary -> Extended Description -> Notes -> Args -> Returns -> Raises
-- [ ] Class docstrings carry an Attributes section listing every instance attribute
+- [ ] Class docstrings carry an Attributes section listing every instance attribute (dataclasses and enums
+      document their fields inline instead)
 - [ ] No Examples sections or in-code examples in docstrings
 - [ ] Third-person imperative mood in summaries ("Processes..." not "This method processes...")
 - [ ] Boolean parameters and attributes documented with "Determines whether..." (boolean properties use "Returns...")

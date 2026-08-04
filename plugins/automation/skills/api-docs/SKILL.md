@@ -114,8 +114,8 @@ occurs.
 
 ### Documentation dependencies
 
-All documentation dependencies are bundled as runtime dependencies of `ataraxis-automation`. Downstream projects include
-`ataraxis-automation` in their `dev` optional dependencies, which transitively provides all documentation tools. You
+All documentation dependencies are bundled as runtime dependencies of `ataraxis-automation`. Downstream projects bind
+`ataraxis-automation` in their `dev` dependency group, which transitively provides all documentation tools. You
 MUST NOT add Sphinx or documentation dependencies directly to downstream project pyproject.toml files.
 
 ---

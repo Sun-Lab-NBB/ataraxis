@@ -185,9 +185,9 @@ right to lack and paths it is right to hold.
 
 Four classes are discarded outright:
 
-1. **Gitignored build output.** `dist/`, `build/`, `reports/`, the coverage exports, and the generated stubs and markers
-   the archetype tree marks as release-phase are absent or present by the phase the repository sits in, so neither
-   direction is a finding.
+1. **Gitignored build output.** `dist/`, `build/`, `reports/`, and the coverage exports are absent or present by the
+   phase the repository sits in, so neither direction is a finding. The generated `.pyi` stubs and the typing marker
+   are the same, because the stubs task writes them into the source tree while `/stubs/` itself stays gitignored.
 2. **Paths the archetype tree marks optional.** A tree entry annotated `(optional)` is absent by permission, so its
    absence supports no finding.
 3. **Generated and vendored directories.** A directory a tool produces or a third party ships is regenerated rather than

@@ -52,7 +52,7 @@ archetype. For Python projects, these are:
 4. `README.md` one-line description (immediately after the title)
 
 ```toml
-description = "Supports tox-based development automation pipelines and provides agentic skills for Claude Code used by other ataraxis framework projects."
+description = "Supports tox-based development automation pipelines used by other Ataraxis framework projects."
 ```
 
 ### readme
