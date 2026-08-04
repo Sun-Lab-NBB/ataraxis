@@ -109,7 +109,7 @@ Overrides the model used while the skill is active.
 
 ### `context`
 
-Controls execution context. Set to `fork` to run the skill in a subagent with a separate context window, keeping the
+Controls execution context. Set to `fork` to run the skill in a sub-agent with a separate context window, keeping the
 main conversation context clean.
 
 | Property | Value  |
@@ -119,7 +119,7 @@ main conversation context clean.
 
 ### `agent`
 
-Specifies which subagent type to use when `context: fork` is set.
+Specifies which sub-agent type to use when `context: fork` is set.
 
 | Property | Value                           |
 |----------|---------------------------------|

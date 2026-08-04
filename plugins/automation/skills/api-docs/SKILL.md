@@ -225,6 +225,14 @@ sentences at natural clause boundaries. Every hand-written sentence in `welcome.
 of typos and grammatical errors, while a defect in a generated page is fixed in the source docstring under the owning
 language style skill.
 
+### Accessibility
+
+The Sphinx build renders a public HTML site, so hand-written RST follows the same accessibility rules the framework
+applies to every rendered page.
+
+- An `image` or `figure` directive carries an `:alt:` option naming what the image shows, not the file it loads.
+- Link text names the page or document it opens. Text such as "click here" or a bare URL fails that test.
+
 ### Content restraint
 
 Sphinx generates the entire API reference from the docstrings in the source, so hand-written RST is the smallest surface
@@ -336,6 +344,7 @@ every one against the files you wrote.
 - [ ] Author declared as the singular `author` key holding one string (no plural `authors` key, no list value)
 - [ ] Napoleon configured for Google-style only (numpy disabled)
 - [ ] All sphinx_autodoc_typehints settings present and correct (Python/hybrid)
+- [ ] templates_path = ['_templates'] and exclude_patterns = [] present (Python/hybrid), both fields absent (C++-only)
 - [ ] html_theme set to 'furo'
 - [ ] welcome.rst follows template with correct project name and description
 - [ ] welcome.rst includes the attribution and GitHub repository links
@@ -355,6 +364,8 @@ every one against the files you wrote.
 - [ ] Hand-written RST lines under 120 characters, with wrapped prose filled to that limit rather than broken at a
       narrower width
 - [ ] Hand-written RST prose free of typos and grammar errors
+- [ ] Hand-written RST image directives carry an :alt: option naming what the image shows, and link text names the
+      page it opens
 - [ ] No hand-written RST describing a class, function, parameter, or return value
 - [ ] Poor API prose corrected in the source docstring rather than worked around in RST
 - [ ] welcome.rst carries only its three prescribed paragraphs (no features, quickstart, or overview sections)

@@ -124,8 +124,7 @@ The ledger follows the triage header and records what was audited, so a thin pas
 
 Alongside the table, state each of the following:
 
-- Every skipped file by path, with its reason, which is the `no binding row` the binding table gives it, the user's
-  narrowing, a generated or vendored file Guard 5 removes, or an unreadable file.
+- Every skipped file by path, with one of the permitted reasons stated below.
 - The sub-agent and batch count the run used, recorded as `1 (main agent)` for a Small or Medium tier.
 - The deterministic gates that ran and the gates that failed to run, naming each tool.
 - The project-scope layout pass status, as `run`, `skipped-not-a-project-root`, or

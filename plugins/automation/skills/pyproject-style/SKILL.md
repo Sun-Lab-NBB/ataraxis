@@ -349,13 +349,20 @@ Project Metadata:
 - [ ] pyproject.toml version is the single source of the package version, with no second version literal in
       __init__.py, the docs config, or the README
 - [ ] description is a single descriptive sentence
+- [ ] description opens with a bare third-person imperative verb, with no language prefix ("A Python library that...")
+      and no project-name prefix ("project-name is...")
+- [ ] description matches the __init__.py module docstring first line, the docs/source/welcome.rst first paragraph,
+      and the README.md one-line description verbatim
 - [ ] readme = "README.md"
 - [ ] license-files includes the LICENSE file
 - [ ] No License :: classifiers present (removed per PEP 639)
 - [ ] requires-python specifies supported range
 - [ ] authors and maintainers arrays present with correct format
 - [ ] keywords array present with relevant terms
-- [ ] Classifiers grouped with category comments
+- [ ] Classifiers grouped with category comments, covering development status, intended audience and topic, Python
+      versions, operating systems, and typing
+- [ ] Topic classifier matches the project's domain rather than defaulting to Topic :: Software Development
+- [ ] One "Programming Language :: Python :: X.Y" classifier per minor version covered by requires-python
 - [ ] "Typing :: Typed" classifier present
 
 Dependencies:
@@ -366,7 +373,7 @@ Dependencies:
 
 Dependency Groups (PEP 735):
 - [ ] [dependency-groups] used instead of [project.optional-dependencies] for dev deps
-- [ ] dev group includes tox, uv, tox-uv, and ataraxis-automation
+- [ ] dev group includes tox, uv, tox-uv, and ataraxis-automation (omitted by ataraxis-automation itself)
 - [ ] Type stub packages included in dev group where needed
 
 URLs:
@@ -375,7 +382,9 @@ URLs:
 
 Scripts:
 - [ ] Entry points use package.module:function format
-- [ ] Command names are descriptive and do not conflict with system commands
+- [ ] Command names are short and memorable, with hyphens separating the words of a multi-word command
+- [ ] Command names carry the project abbreviation prefix (e.g. axci, axvs), which namespaces them away from the
+      commands already on the user's PATH
 
 Build Targets:
 - [ ] sdist excludes [".github", "recipe"]
@@ -385,6 +394,7 @@ Tool Configurations:
 - [ ] Ruff: line-length = 120, indent-width = 4
 - [ ] Ruff: target-version matches lowest supported Python
 - [ ] Ruff: src = ["src"]
+- [ ] Ruff: extend-exclude = ["conf.py"]
 - [ ] Ruff: lint.select = ["ALL"] with project-specific ignores
 - [ ] Ruff: lint.ignore carries the complete shared block of the universal lint.ignore corpus, then any
       project-specific entries below a blank line
@@ -398,6 +408,7 @@ Tool Configurations:
       since the key is inert otherwise
 - [ ] Ruff: flake8-unused-arguments, when present, is the last lint sub-table, below isort
 - [ ] Ruff: format uses double quotes, space indentation
+- [ ] Ruff: pycodestyle max-doc-length = 120, matching the code line-length
 - [ ] Ruff: Google docstring convention
 - [ ] Ruff: isort configured (case-sensitive, combine-as-imports, etc.)
 - [ ] Ruff: __init__.py ignores F401 and F403
@@ -419,8 +430,8 @@ Formatting:
 - [ ] Block comments above section headers
 - [ ] Inline comments aligned within sections
 - [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings, $schema) exempt
-- [ ] Comments and descriptions fill each line to 120 before breaking, with no line ending before column 100 while
-      its next word would still fit
+- [ ] Comments and descriptions fill each line to 120 characters, with no line ending before column 100 while its next
+      word would still fit
 - [ ] Multi-line arrays with trailing commas
 - [ ] One element per line in multi-line arrays
 - [ ] Category comments in dependency and classifier arrays

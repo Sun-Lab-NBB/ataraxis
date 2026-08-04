@@ -359,7 +359,7 @@ Project Audit Orchestration Compliance:
 - [ ] In change mode, each re-run covered the original change set plus the files the fixes touched
 - [ ] Loop capped at 3 rounds, with anything remaining stated in the report
 - [ ] No finding resolved by weakening a test, a contract, a docstring, or a coverage setting
-- [ ] Plan, gate verdict, and merged header prose fill each line to 120 characters, with no line ending before
-      column 100 while its next word fits
+- [ ] Plan, gate verdict, and merged header prose fill each line to 120 characters, with no line ending before column
+      100 while its next word would still fit
 - [ ] No file modifications made during any audit round
 ```

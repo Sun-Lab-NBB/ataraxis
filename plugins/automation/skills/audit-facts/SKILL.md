@@ -158,13 +158,13 @@ A repository-root target is always Large. Group Large-tier work under three rule
 authority rather than the union of every authority in the repository.
 
 1. **One metadata file, one sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`, `tox.ini`, and `platformio.ini`
-   each get a dedicated sub-agent, because each resolves against a different authoritative source. A skill is one unit,
+   each get a dedicated sub-agent, because each resolves against a different authoritative source. A skill is one batch,
    its `SKILL.md` and `references/*.md` together, because the binding table gives them one source. The `docs/` package
    is one sub-agent covering every page.
 2. **In-source work batches by package.** One sub-agent per package or per source directory, holding roughly eight
    files, and never mixing languages inside a batch.
 3. **Forty sub-agents cap the run, and twelve run at once.** Every sub-agent re-receives the whole instruction payload,
-   so the total bounds what the fan-out costs and the in-flight limit paces it. Units beyond forty merge by shared
+   so the total bounds what the fan-out costs and the in-flight limit paces it. Batches beyond forty merge by shared
    authoritative source rather than dropping files.
 
 Record the sub-agent count in the Step 9 coverage ledger.
@@ -435,7 +435,7 @@ Documentation Fact Audit Compliance:
 - [ ] Test files bound explicitly, either audited as their own in-source ledger row or recorded as authority, never
       left to the enumeration to decide
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
-- [ ] For Large tier, each metadata file, each skill unit, and the docs package given its own sub-agent
+- [ ] For Large tier, each metadata file, each skill batch, and the docs package given its own sub-agent
 - [ ] For Large tier, in-source batched by package with no language mixing, within 40 and 12 in flight, merging to fit
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] Every claim carries a verdict (EXACT, SEMANTIC, DRIFT, WRONG, CONTRADICTION, OMISSION, UNVERIFIABLE)
@@ -471,5 +471,6 @@ Documentation Fact Audit Compliance:
 - [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops
       and commas as clause separators
-- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word fits
+- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would
+      still fit
 ```

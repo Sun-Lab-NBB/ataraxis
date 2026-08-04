@@ -389,6 +389,7 @@ written. See /pyproject-style.)
 Judgment items. No tool inspects these, so this checklist is their only enforcement. Walk every one
 against the code you wrote.
 - [ ] Docstring section order: Summary -> Extended Description -> Notes -> Args -> Returns -> Raises
+- [ ] Class docstrings carry an Attributes section listing every instance attribute
 - [ ] No Examples sections or in-code examples in docstrings
 - [ ] Third-person imperative mood in summaries ("Processes..." not "This method processes...")
 - [ ] Boolean parameters and attributes documented with "Determines whether..." (boolean properties use "Returns...")
@@ -398,6 +399,8 @@ against the code you wrote.
 - [ ] Every member defaults to the summary line alone, with longer blocks earned by a nameable non-obvious property
 - [ ] @property docstrings are a single sentence (no summary plus extended-description split)
 - [ ] Test functions carry the summary line only, with no Args, Returns, or Raises sections
+- [ ] Click command docstrings carry the summary and prose only, with no Notes, Args, Returns, or Raises sections
+- [ ] MCP tool docstrings carry a Returns section describing the response structure, naming the keys in prose
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
 - [ ] Documentation records current behavior only, never the edit that produced it
 - [ ] Edits leave documentation no longer than it started unless the new behavior is harder to derive
@@ -429,8 +432,10 @@ against the code you wrote.
       type aliases, and whole modules that nothing under src/ references are removed rather than kept
 - [ ] A symbol exercised only by its own tests is removed together with those tests
 - [ ] Keyword arguments used for function calls (except Numba `jitclass` method calls)
+- [ ] Boolean flag parameters declared keyword-only behind a `*,` separator in the signature
 - [ ] Error handling uses console.error() when ataraxis-base-utilities is available (else raise)
 - [ ] Error messages assigned to a `message` variable before passing to console.error() or raise
+- [ ] Error messages state the failed action, the violated constraint, and the actual value received
 - [ ] Invoked /explore-dependencies for a current API snapshot of each ataraxis dependency in use
 - [ ] Ataraxis library features used in place of standard library equivalents wherever the project
       depends on the library that provides them
@@ -449,6 +454,7 @@ against the code you wrote.
 - [ ] Dunder methods kept at the top of the class body, directly after the class docstring
 - [ ] Enums and dataclasses above worker functions and classes
 - [ ] Definitions ordered by call hierarchy or grouped by purpose
+- [ ] No hand-authored .pyi stubs or py.typed markers, with typing changed in the .py source and regenerated
 - [ ] Inline comments use third-person imperative mood
 - [ ] No heavy section separator blocks (# ====== or # ------)
 - [ ] No IDE-specific suppression comments (PyCharm # noinspection etc.); only ruff # noqa / mypy # type: ignore kept
@@ -460,12 +466,16 @@ against the code you wrote.
 - [ ] Numba functions use cache=True
 - [ ] @staticmethod used when a method touches neither self nor cls, @classmethod when it touches cls alone
 - [ ] Decorator stacking order: @staticmethod/@classmethod, @njit, custom, @property
+- [ ] Click options use lowercase short and hyphenated long flags, with click.Path() carrying explicit validation,
+      and command decorators stacked bottom-up with options closest to `def`
 - [ ] Dataclasses use frozen=True for immutable configs (omit for mutable state)
 - [ ] Dataclasses use slots=True by default (omit for YamlConfig subclasses or classes needing __dict__)
 - [ ] Enum members have inline docstrings; StrEnum for strings, IntEnum for codes
 - [ ] __repr__ uses ClassName(key=value) format; no __str__
 - [ ] Boolean checks use truthiness (not == True); None checks use `is None`
 - [ ] Guard clauses / early returns preferred over deep nesting
+- [ ] Comprehensions used to build new collections, with generator expressions where the result is iterated once
+      and explicit loops kept for side-effecting bodies
 - [ ] I/O operations separated from processing logic
 - [ ] Context managers used for resource management
 - [ ] Pathlib used for path manipulation (not string concatenation)

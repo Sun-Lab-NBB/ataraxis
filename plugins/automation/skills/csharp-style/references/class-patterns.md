@@ -298,10 +298,8 @@ public abstract class ControllerObject : MonoBehaviour
 ### Rules
 
 - Mark abstract classes with `abstract` keyword
-- Mark abstract methods with `abstract` keyword
-- Derived classes use `override` keyword (not `new`)
-- Use `sealed` on classes that should not be further derived
-- Use `virtual` for methods that may optionally be overridden
+- Follow the Virtual / override / sealed patterns section below for the member keyword rules, which cover `abstract`,
+  `virtual`, `override`, and `sealed`
 
 ---
 

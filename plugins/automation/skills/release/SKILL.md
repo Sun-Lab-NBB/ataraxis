@@ -208,7 +208,8 @@ Release Notes Compliance:
       syntax exempt)
 - [ ] Prose states what the release does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Every sentence in the drafted text stays under 40 words
-- [ ] Free of typos and grammar errors
+- [ ] Free of typos and grammar errors, with every symbol name, file name, and version string verified against the diff
+      or tag output rather than recalled from memory
 - [ ] Condenses many pull requests into a few impactful themes (does not list every pull request)
 - [ ] Does NOT include `## What's Changed` or `**Full Changelog**`
 - [ ] Enumerated changes since the previous release tag, reconciling merge and squash/rebase history against the

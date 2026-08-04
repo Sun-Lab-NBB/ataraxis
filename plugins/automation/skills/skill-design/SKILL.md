@@ -327,7 +327,7 @@ Skill files use two voice styles:
 
 Use sentence case for all section headers ("Verification checklist", not "Verification Checklist").
 
-### Prose restraint
+### Content restraint
 
 The default for a rule is one sentence, and examples, tables, and motivation are earned rather than assumed. Sentences
 over 40 words are broken at a natural clause boundary, in SKILL.md, reference files, and CLAUDE.md alike. Cover each
@@ -428,6 +428,8 @@ Skill File Compliance, reader-judged:
 - [ ] Name matches parent directory name exactly
 - [ ] Description in third person, includes what AND when to use (max 1024 chars, ≤ 5 wrapped lines)
 - [ ] Scope declaration present (what skill covers and does not cover)
+- [ ] Skill addresses one well-defined concern, with unrelated tasks split into separate skills
+- [ ] Skill produces correct results invoked in isolation, with every dependency on another skill referenced explicitly
 - [ ] Degrees of freedom appropriate (low for reproducible, high for creative tasks)
 - [ ] Third-person imperative mood for descriptions
 - [ ] Second person for agent directives ("You MUST...")
@@ -440,8 +442,7 @@ Skill File Compliance, reader-judged:
 - [ ] Each rule defaults to one sentence, with examples and tables earned by the judgment they govern
 - [ ] No rule stated twice inside one file (the same rule in SKILL.md and in a reference is permitted)
 - [ ] Sentences in skill prose, reference files, and CLAUDE.md stay under 40 words
-- [ ] Prose fills each line to 120 before breaking, with no line ending before column 100 while its next word would
-      still fit
+- [ ] Prose fills each line to 120 characters, with no line ending before column 100 while its next word would still fit
 - [ ] No section preamble restating the heading or the frontmatter description above it
 - [ ] No rule restated from a skill that owns it (reference the owning skill instead)
 - [ ] Rules duplicated across skills by necessity keep aligned wording
@@ -450,13 +451,16 @@ Skill File Compliance, reader-judged:
 - [ ] Prose states what the skill does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Skill prose, reference files, and CLAUDE.md free of typos and grammar errors
 - [ ] No auxiliary documentation files (README.md, CHANGELOG.md, etc.)
+- [ ] New plugin registered in `.claude-plugin/marketplace.json`, and `version` bumped in the owning plugin's
+      `.claude-plugin/plugin.json` for material skill changes
 ```
 
 ### Project instructions (CLAUDE.md)
 
 ```text
-CLAUDE.md Compliance, tool-settled (run `rg -n '.{121,}' <file>` and `rg -n '^---$' <file>`):
+CLAUDE.md Compliance, tool-settled (run `rg -n '.{121,}' <file>`, `rg -n '^---$' <file>`, and `wc -l <file>`):
 - [ ] All lines ≤ 120 characters (tables/code blocks may exceed for clarity)
+- [ ] CLAUDE.md under 300 lines (move domain rules into `.claude/rules/*.md` or `@` imports)
 - [ ] Tables use pretty formatting with aligned columns
 - [ ] Code blocks include language identifiers
 - [ ] Uses `##` headings without horizontal rules between sections
@@ -467,7 +471,7 @@ CLAUDE.md Compliance, reader-judged:
 - [ ] Title is `# Claude Code Instructions`
 - [ ] Third person for descriptive content
 - [ ] Second person with emphasis for directives ("You MUST...")
-- [ ] Sections follow recommended order (Session Start, Style Guide, Skills, etc.)
+- [ ] Sections follow recommended order (Session start behavior, Style guide compliance, Available skills, etc.)
 - [ ] Section headings use the canonical spellings (Style guide compliance, MCP server)
 - [ ] Optional sections (Companion library synchronization, Distribution model) present only where the concern applies
 - [ ] Workflow guidance included for common extension tasks
@@ -476,8 +480,7 @@ CLAUDE.md Compliance, reader-judged:
 - [ ] No personality instructions or generic advice
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Sentences in skill prose, reference files, and CLAUDE.md stay under 40 words
-- [ ] Prose fills each line to 120 before breaking, with no line ending before column 100 while its next word would
-      still fit
+- [ ] Prose fills each line to 120 characters, with no line ending before column 100 while its next word would still fit
 - [ ] No section preamble restating the heading or the frontmatter description above it
 - [ ] Edits leave CLAUDE.md no longer than it started unless a genuinely new instruction was added
 - [ ] Skill prose, reference files, and CLAUDE.md free of typos and grammar errors

@@ -288,9 +288,14 @@ Use block comments above the `[tox]` section and before environments that need e
 ### Description fields
 
 Every environment MUST have a `description` field, and that field opens with a bare third-person imperative verb naming
-what the environment does when it runs ("Runs...", "Combines...", "Builds..."), with no environment-name prefix and no
-"This environment..." opener. A description whose `description = <text>` line would pass 120 characters moves to the
-indented form below, where each line fills to 120 before it breaks:
+what the environment does when it runs ("Runs...", "Combines...", "Builds..."). It is one sentence, two when the
+environment reads its configuration from another file. Do not prefix it with the environment name or a "This
+environment..." opener, do not list the commands the environment already declares below it, and do not explain why the
+task matters. See [environment-templates.md](references/environment-templates.md) for a compliant and a non-compliant
+description side by side.
+
+A description whose `description = <text>` line would pass 120 characters moves to the indented form below, where each
+line fills to 120 before it breaks:
 
 ```ini
 [testenv:lint]
@@ -308,13 +313,7 @@ a run of commented settings shares one comment column:
 basepython = py312  # Earliest supported version controls lint/mypy ruleset
 ```
 
-### Comment and description restraint
-
-A `description` field states what the environment does when it runs. It is one sentence, two when the environment reads
-its configuration from another file. Do not restate the environment name, do not list the commands the environment
-already declares below it, and do not explain why the task matters. See
-[environment-templates.md](references/environment-templates.md) for a compliant and a non-compliant description side by
-side.
+### Comment restraint
 
 An inline comment earns its place only when the setting's name and value leave a question open, such as a version pin
 whose reason is external or a flag whose effect is counter-intuitive. Comments describe the configuration as it
@@ -451,14 +450,14 @@ Upload and Deploy Environments:
 Environment Management:
 - [ ] --environment-name uses correct abbreviation with _dev suffix
 - [ ] --python-version set to latest supported version
+- [ ] create, provision, and install accept {posargs:} for invocation-time flags such as --prerelease
 - [ ] export depends on uninstall
 - [ ] install depends on the full pipeline
 
 Formatting:
 - [ ] Every environment has a description field
-- [ ] Descriptions state what the environment does in one or two sentences (no name restatement, no command narration)
-- [ ] Every description field opens with a bare third-person imperative verb (no name prefix, no "This
-      environment..." opener)
+- [ ] Every description opens with a bare third-person imperative verb and states what the environment does in one or
+      two sentences (no name restatement, no "This environment..." opener, no command narration)
 - [ ] Every inline comment answers a question its setting leaves open
 - [ ] Inline comments aligned vertically within their section
 - [ ] Comments and descriptions record current configuration only, never the edit that produced it
@@ -468,8 +467,8 @@ Formatting:
 - [ ] Sentences in comments and description fields stay under 40 words
 - [ ] Comments and description fields free of typos and grammar errors
 - [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings) exempt
-- [ ] Comments and descriptions fill each line to 120 before breaking, with no line ending before column 100 while
-      its next word would still fit
+- [ ] Comments and descriptions fill each line to 120 characters, with no line ending before column 100 while its next
+      word would still fit
 - [ ] Block comments above [tox] section
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)

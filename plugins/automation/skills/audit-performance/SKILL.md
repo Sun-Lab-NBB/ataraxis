@@ -4,7 +4,7 @@ description: >-
   Performs a thorough optimization audit of Python, C++, and C# source, hunting for untraceable numeric widths,
   algorithmic blowup, redundant allocation, hostile memory layout, and boundary, concurrency, and per-archetype language
   costs. Reports only findings whose cost is proven by execution multiplicity, with verbatim citations. Use when
-  auditing a package, firmware, or Unity code for speed, memory, or numeric predictability, or when the user invokes
+  auditing a package, firmware, or Unity code for speed, memory use, or dtype predictability, or when the user invokes
   /audit-performance.
 user-invocable: true
 ---
@@ -442,6 +442,7 @@ Performance Optimization Audit Compliance:
 - [ ] Every finding is PER_CHUNK or hotter, a categorical prohibition, or a size-gated PEAK_MEMORY_FOOTPRINT
 - [ ] Every finding assigned a category, an impact, an evidence class, and a confidence tier
 - [ ] Every finding cites a file location <path>:<line> and quotes the source verbatim
+- [ ] Every finding resting on a style rule quotes that rule verbatim and names its skill and reference file
 - [ ] Every finding states explicit cost arithmetic for the current and the proposed form
 - [ ] Every false-positive guard applied in order, with the discarded-candidate count recorded
 - [ ] No hot-path speculation present, every heat claim backed by a call site <path>:<line>
@@ -467,6 +468,7 @@ Performance Optimization Audit Compliance:
 - [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops
       and commas as clause separators
-- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word fits
+- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would
+      still fit
 - [ ] No file modifications made during the audit
 ```

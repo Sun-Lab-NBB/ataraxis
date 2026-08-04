@@ -493,10 +493,9 @@ The tox.ini structure is identical to the full pipeline except:
 - `envlist` omits `{pyXXX}-test` and `coverage`.
 - The test and coverage environment definitions may be omitted entirely or left as unused definitions for future use.
 - The `install` environment's `depends` list omits test and coverage dependencies.
-- The `lint` environment runs `ruff check --fix ./src`, without `./tests`. A project on this pipeline has no `tests/`
-  directory, and ruff reports `E902 No such file or directory` and exits non-zero on a path that does not exist. The
-  lint block comment drops its sentence about the test directory to match, and `pyproject.toml` carries no shared test
-  corpus (see `/pyproject-style`).
+- The `lint` environment runs `ruff check --fix ./src`, without `./tests`, for the `E902` reason the lint environment
+  template gives above. The lint block comment drops its sentence about the test directory to match, and
+  `pyproject.toml` carries no shared test corpus (see `/pyproject-style`).
 
 A project that later gains a test directory moves to the full pipeline, which means restoring the test and coverage
 environments, adding `./tests` to the lint command, and adding the shared test corpus to `pyproject.toml`. The three
@@ -554,9 +553,8 @@ These are the development-automation commands. Agents normally drive them via `t
 | `import`                     | Creates or updates the mamba environment from the stored `.yml` file     |
 
 `tox -e lint` purges `.pyi` stubs (via `automation-cli purge-stubs`) so they do not interfere with mypy, and `tox -e
-stubs` regenerates them afterward. `ruff check` covers `./src` and `./tests`, which activates the `tests/**/*.py`
-per-file ignores, while `mypy` stays on `./src`, which its exclude list already matches. Reduced Python projects have no
-test directory and pass `./src` alone.
+stubs` regenerates them afterward. See the lint environment template above for the paths `ruff check` and `mypy` each
+receive.
 
 ### automation-cli commands
 

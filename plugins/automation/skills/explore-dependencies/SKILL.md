@@ -208,12 +208,12 @@ If no replacement opportunities are found, state: "No replacement opportunities 
 ## Handling large dependencies
 
 For a dependency with 15 or more public exports, or when the public exports across all dependencies total 30 or more,
-use the Agent tool with the `Explore` agent type to parallelize the API reading. Launch at most 2-3 Explore subagents,
-batching libraries across them rather than one subagent per library. Instruct each subagent to return ONLY the
+use the Agent tool with the `Explore` agent type to parallelize the API reading. Launch at most 2-3 Explore sub-agents,
+batching libraries across them rather than one sub-agent per library. Instruct each sub-agent to return ONLY the
 structured snapshot rows for its assigned libraries (signatures plus one-line summaries), never raw source bodies.
 
 When every dependency has fewer than 15 public exports and they total fewer than 30 across all dependencies, read the
-APIs directly without subagents.
+APIs directly without sub-agents.
 
 ---
 
@@ -253,14 +253,16 @@ Walk every one against the summary you are about to present.
 - [ ] __all__ exports read for each installed Python dependency
 - [ ] C++ (.pio/libdeps) dependencies enumerated from header files where applicable
 - [ ] Reading depth matched the export count: direct read under 15 exports, otherwise at most 3 Explore
-      subagents batching libraries and returning snapshot rows only
+      sub-agents batching libraries and returning snapshot rows only
 - [ ] Public classes documented with constructors and public methods
 - [ ] Public functions documented with signatures and summaries
 - [ ] Constants and enums documented with types and members
 - [ ] Replacement opportunities reported with file:line location and concrete suggested replacement
 - [ ] Every suggested replacement names a symbol present in this run's enumerated __all__ exports, with its
       signature read, and no symbol carried over from the starter heuristics table unconfirmed
+- [ ] Empty replacement scan stated as "No replacement opportunities identified." rather than an omitted section
 - [ ] Output organized by library with consistent table format
+- [ ] C++ sections use an Include line naming the header and a .pio/libdeps source path, not an Import line
 - [ ] Snapshot includes version numbers where available
 - [ ] No code modifications made during exploration
 

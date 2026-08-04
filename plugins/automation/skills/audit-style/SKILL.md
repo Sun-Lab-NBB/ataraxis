@@ -398,7 +398,7 @@ Do NOT make code or documentation changes during the audit. Present findings and
 You MUST verify the audit output against this checklist before presenting it to the user.
 
 ```text
-Style Compliance Audit Output:
+Style Audit Compliance:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Plan stated whether the symbol usage sweep runs in full, runs partially, or is skipped
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
@@ -408,6 +408,7 @@ Style Compliance Audit Output:
 - [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the report
 - [ ] Step 1 file binding executed (every file in scope mapped to its applicable style skill)
+- [ ] `.pyi` stubs judged against the generated-stub rule alone, with no ordinary source findings reported inside them
 - [ ] Step 2 checklists loaded for every applicable style skill
 - [ ] Step 3 deterministic gates run in their read-only form for every tool the project configures
 - [ ] Bare `tox` and `tox -e lint` never run during the audit
@@ -448,8 +449,8 @@ Style Compliance Audit Output:
 - [ ] Adversarial refutation run against every BLOCKING and CONFLICT finding, in fresh sub-agents
 - [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
 - [ ] Step 9 coverage ledger assembled, carrying files in scope, files audited, and files skipped by path
-- [ ] Every file in scope either swept or recorded as UNAUDITED, with any other skip carrying one of the three
-      permitted reasons (user narrowing, generated file, unreadable file)
+- [ ] Every file in scope either swept or recorded as UNAUDITED, with any other skip carrying one of the four
+      permitted reasons (user narrowing, no binding row, generated file, unreadable file)
 - [ ] Ledger states the sub-agent and batch count, the gates that ran, and the gates that failed to run
 - [ ] Ledger states the layout pass status, and the revision whenever the scope was narrowed to a change set
 - [ ] Ledger states the symbol usage pass status with the declaration and reference counts it reconciled
@@ -465,6 +466,7 @@ Style Compliance Audit Output:
 - [ ] Every fix that removes a symbol, an export entry, or a public name carries Approval: REQUIRED
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full
       stops and commas as clause separators
-- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word fits
+- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would
+      still fit
 - [ ] No file modifications made during the audit
 ```

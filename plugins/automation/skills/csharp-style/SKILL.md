@@ -388,8 +388,8 @@ against the code you wrote.
 - [ ] Boolean members documented with "Determines whether..."
 - [ ] File-level XML summary comment present
 - [ ] Sentences in comments and XML docs stay under 40 words
-- [ ] Comment and XML doc lines fill to 120 characters before wrapping (no wrapped line ends before column 100 while
-      its next word still fits)
+- [ ] Comment and XML doc prose fills each line to 120 characters, with no line ending before column 100 while its next
+      word would still fit
 - [ ] Every member defaults to the summary line alone, with a remarks block earned by a nameable non-obvious property
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
 - [ ] Documentation records current behavior only, never the edit that produced it
@@ -426,7 +426,7 @@ against the code you wrote.
 - [ ] No IDE suppression comments (ReSharper/Rider // ReSharper disable etc.); use #pragma warning / [SuppressMessage]
 - [ ] One public type per file; file name matches class name
 - [ ] Unity logging uses Debug.LogError/LogWarning/Log appropriately
-- [ ] XML tag ordering: summary → remarks → typeparam → param → returns → exception
+- [ ] XML tag ordering: summary -> remarks -> typeparam -> param -> returns -> exception
 - [ ] <exception> tags in alphabetical order by type name
 - [ ] <inheritdoc/> used only when base documentation fully describes override behavior
 - [ ] No <example> or <code> tags in XML documentation
@@ -435,31 +435,40 @@ against the code you wrote.
 - [ ] in used only for large readonly struct parameters (not small types or reference types)
 - [ ] out parameters follow TryX pattern (return bool, populate out on success)
 - [ ] Error mechanism matches context (Debug.LogError in MonoBehaviour; exceptions elsewhere)
+- [ ] Error messages state context, constraint, and actual value ("Unable to...", "must be...", "but [actual state]")
 - [ ] Multi-line error messages assigned to variable before passing
 - [ ] Prose used in <remarks> blocks (not bullet lists)
 - [ ] Property summaries are single sentences (no summary + remarks split)
 - [ ] Test methods have only <summary> (no <param>, <returns>, or <exception> tags)
+- [ ] Test classes use the Tests suffix and test methods use MethodName_Scenario_ExpectedResult
 - [ ] I/O operations separated from processing logic
 - [ ] Path.Combine used for path construction (not string concatenation)
 - [ ] StringComparison.Ordinal used for internal string matching
+- [ ] File sections ordered file summary, using directives, namespace, enums, then class declaration
+- [ ] Class members ordered constants, public fields, private fields, properties, lifecycle methods, public methods,
+      private methods, nested classes
+- [ ] Members ordered public -> internal -> protected -> private within each member kind
 - [ ] Methods ordered by call hierarchy within each visibility group
 - [ ] Inline comments use third-person imperative mood
 - [ ] MonoBehaviour fields for Inspector use public camelCase
 - [ ] Private backing fields use [SerializeField] when Inspector access needed
+- [ ] Attribute stacking order: serialization, Unity, editor, validation, custom
 - [ ] Lifecycle methods in execution order (Awake, Start, Update, OnDestroy)
 - [ ] TryGetComponent used for safe component access
 - [ ] No unnecessary GetComponent calls in Update loops
 - [ ] No LINQ in Update/FixedUpdate (allocations in hot paths)
 - [ ] IDisposable resources cleaned up in OnDestroy
-- [ ] Event subscriptions have matching unsubscriptions (OnEnable↔OnDisable, Start↔OnDestroy)
+- [ ] Event subscriptions have matching unsubscriptions (OnEnable<->OnDisable, Start<->OnDestroy)
 - [ ] Coroutines stopped in OnDisable/OnDestroy to prevent orphaned execution
+- [ ] Async methods carry the Async suffix, with async void reserved for Unity event handlers and UI callbacks
+- [ ] CancellationToken passed last, and ConfigureAwait(false) used in library code outside MonoBehaviours
 - [ ] #if UNITY_EDITOR used for editor-only code; [Conditional] preferred over #if DEBUG
 - [ ] Switch expressions used for pure value mapping; switch statements for side effects
 
 Tooling-enforced items. CSharpier and the EditorConfig-configured Roslyn analyzers settle each of
 these, so run `csharpier --check .` and read the analyzer output rather than hand-checking them.
 They stay listed for reviews performed without the tooling.
-- [ ] All lines ≤ 120 characters
+- [ ] All lines <= 120 characters
 - [ ] 4-space indentation, no tabs
 - [ ] Allman brace style (opening braces on new lines)
 - [ ] LF line endings
@@ -468,6 +477,8 @@ They stay listed for reviews performed without the tooling.
 - [ ] Public fields use camelCase (Unity serialized fields)
 - [ ] Public properties use PascalCase
 - [ ] Constants use PascalCase (const and static readonly)
+- [ ] Namespaces, classes, and structs use PascalCase, interfaces use IPascalCase, type parameters use TPascalCase
+- [ ] Local variables and parameters use camelCase
 - [ ] System directives sorted first
 - [ ] Fields marked readonly when only assigned in constructor/initializer
 - [ ] Static methods used when no instance state is accessed

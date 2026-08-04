@@ -60,9 +60,9 @@ purpose.
 Produce the pull request summary following the format rules below. GitHub pre-fills a usable title only when the branch
 carries exactly one commit, in which case it uses that commit's subject and no title draft is needed. When the branch
 carries more than one commit, GitHub pre-fills the title from the branch name instead (for example
-`refactor/project-auditing-optimization`). In that case, also draft a one-line title covering the branch as a whole, in
-the same past tense style as the summary bullets. Present that title above the body. Present the draft to the user. The
-user opens the pull request manually.
+`refactor/project-auditing-optimization`). In that case, also draft a one-line title covering the branch as a whole,
+following the title rules under Format rules. Present that title above the body. Present the draft to the user. The user
+opens the pull request manually.
 
 ---
 
@@ -83,6 +83,9 @@ The summary is a concise bulleted list of the most impactful changes the branch 
 the commit subject line where the same display constraint applies. Summary bullets carry no length cap, since they
 render as wrapped markdown rather than a git log column.
 
+**Title punctuation and tense**: The drafted title starts with a past tense verb from the verb set in `/commit` and ends
+with a period, matching the commit header it becomes on a squash merge.
+
 PR-body prose is exempt from the project-wide separator rule, so it may use `--` and `-` bullet lists, for example when
 referencing CLI flags or listing changes. The past tense rule above applies to every bullet without exception.
 
@@ -100,6 +103,9 @@ referencing CLI flags or listing changes. The past tense rule above applies to e
 ## Content rules
 
 The pull request title and body obey the content rules defined in `/commit`, plus the rules below.
+
+**Title names the change**: The drafted title names what the branch changed, not the activity that produced it, such as
+an audit, a review, or a ticket. A squash merge writes that title into the permanent commit subject line.
 
 **What and why, not how**: Each bullet states *what* the branch changed and *why*, not *how*, and is specific and
 descriptive rather than vague like "Updated various modules".
@@ -147,6 +153,8 @@ Pull Request Compliance:
 - [ ] Bullets ordered from most to least impactful
 - [ ] Drafted a title as well when the active branch carries more than one commit
 - [ ] Drafted title ≤ 72 characters (a squash merge writes it into the commit subject line)
+- [ ] Drafted title starts with a past tense verb and ends with a period
+- [ ] Drafted title names the change rather than the activity that produced it (no audit, review, or ticket)
 - [ ] Summarizes impactful changes; does not reproduce every commit
 - [ ] Each bullet describes *what* changed and *why*, not *how*, and is specific rather than vague (not "Updated
       various modules")

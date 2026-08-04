@@ -11,7 +11,7 @@ preserves context window space for the actual task while keeping detailed refere
 
 ---
 
-## Prose restraint
+## Content restraint
 
 A skill file is loaded into the context of every session that triggers it, so its length is a recurring cost paid by
 every future invocation. Write to the shortest form that still decides the cases the skill exists to decide. Splitting

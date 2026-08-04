@@ -388,7 +388,8 @@ against the code you wrote.
 - [ ] File-level Doxygen comment with @file and @brief present
 - [ ] Doxygen tag order: @brief -> @details -> @warning/@note -> @tparam -> @param -> @returns
 - [ ] Sentences in comments and Doxygen blocks stay under 40 words
-- [ ] Comment and Doxygen prose filled to the 120 character limit rather than broken at a narrower width
+- [ ] Comment and Doxygen prose fills each line to 120 characters, with no line ending before column 100 while its next
+      word would still fit
 - [ ] Every member defaults to the @brief line alone, with longer blocks earned by a nameable non-obvious property
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
 - [ ] Documentation records current behavior only, never the edit that produced it
@@ -426,9 +427,16 @@ against the code you wrote.
 - [ ] Namespaces use snake_case
 - [ ] Macros use UPPER_SNAKE_CASE
 - [ ] Include guards use LIBRARY_PREFIX_FILE_NAME_H pattern
+- [ ] All includes at the top of the file, except the variant-gated includes in the main.cpp #ifdef target block
+- [ ] Angle brackets for library headers, quotes for local project headers
 - [ ] Guard clauses / early returns preferred over deep nesting
+- [ ] Error messages carry context ("Unable to..."), constraint ("must be..."), and the actual value when available
 - [ ] Arguments labeled with trailing inline // parameter comments for boolean literals and repeated parameter types
 - [ ] One primary class per file; file name matches class in snake_case
+- [ ] File sections ordered per the file-level ordering list (@file block, include guard, macros, includes, using
+      directives, namespaces, free constants, enums, structs, classes)
+- [ ] Class members ordered per the file-level ordering list: static_assert, public nested enums, constructors,
+      methods, destructor, then private structs, constants, member variables, and methods
 - [ ] Public members above private members in class definition
 - [ ] Inline comments use third-person imperative mood
 - [ ] No heavy section separator blocks (// ====== or // ------)
@@ -472,6 +480,8 @@ Embedded-Specific Compliance (skip for extension projects):
 - [ ] Structs use PACKED_STRUCT macro for binary serialization
 - [ ] final keyword on leaf classes that should not be subclassed
 - [ ] static constexpr for compile-time constants (not #define)
+- [ ] Test files declare setUp() and tearDown(), register every test in RunUnityTests(), and declare no int main()
+- [ ] Test functions use snake_case names following the test_<action>_<scenario> pattern
 
 Extension-Specific Compliance (skip for embedded projects):
 - [ ] GIL released during blocking operations (nb::gil_scoped_release)

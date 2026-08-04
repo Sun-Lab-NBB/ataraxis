@@ -359,6 +359,8 @@ command-name = "package_name.module:function"
 - Use hyphens for multi-word commands
 - Prefix with project abbreviation for namespacing (e.g., `axci`, `axvs`)
 
+The abbreviation prefix keeps the command clear of the unrelated executables already on a user's PATH.
+
 ### Examples from projects
 
 | Project                          | Command          | Entry point                                                |

@@ -321,9 +321,8 @@ those is real logic made invisible to the coverage gate, and that alone is worth
 For every T1 region, confirm the exclusion annotates the narrowest construct that covers the excluded code, then hunt
 inside it with the ordinary category procedures.
 
-For every T3 region, name the specific branch outcome that never runs and trace what happens when it does. Every `if`
-without an `else`, every short-circuit operand, every ternary arm, every loop that can run zero times, and every
-`except` whose `try` never actually raised belongs here.
+For every T3 region, name the specific branch outcome that never runs and trace what happens when it does. The five
+unmeasured outcomes the coverage tiers section lists all belong here.
 
 An unexercised region is a place to look rather than a finding. It becomes a finding only when the ordinary category
 procedures produce a concrete trigger and a concrete result inside it.

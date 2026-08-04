@@ -341,7 +341,7 @@ You should proactively offer to invoke this skill when:
 You MUST verify your work against this checklist before submitting any layout changes.
 
 ```text
-Project Layout Compliance.
+Project Layout Compliance:
 
 Tool-settled items. `git ls-files` and `ls -a` decide each of these against the archetype tree, so run
 them rather than recalling the layout.
@@ -360,7 +360,7 @@ them rather than recalling the layout.
 - [ ] envs/ holds .yml files alone, with any _spec.txt exports removed
 - [ ] envs/ file names use correct abbreviation prefix
 - [ ] PlatformIO and Unity projects do NOT have envs/
-- [ ] Python projects use tests/ (plural) with _test.py suffix
+- [ ] Python projects use tests/ (plural) with _test.py suffix, mirroring the src/package_name/ subpackage structure
 - [ ] PlatformIO library projects use test/ (singular) with test_ prefix
 - [ ] PlatformIO firmware and Unity projects have no dedicated test directory
 - [ ] Python and C++ projects have docs/ directory

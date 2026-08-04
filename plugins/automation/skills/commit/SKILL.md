@@ -306,6 +306,8 @@ Commit Message Compliance:
 
 ```text
 Commit Execution Compliance:
+- [ ] Ran `git status` without the `-uall` flag
+- [ ] Reported nothing to commit and made no commit when `git status` showed no staged, unstaged, or untracked changes
 - [ ] Determined the active branch and the default branch
 - [ ] If on the default branch, asked the user before creating a new branch
 - [ ] Staged ALL changes with `git add -A`

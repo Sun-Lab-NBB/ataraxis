@@ -87,8 +87,8 @@ at all, which puts its entire runtime path at T0 rather than out of scope.
 
 **Trigger and result** carry every finding. A finding is reportable only when the trigger is written as an executable
 expression, a numbered call sequence, or a line-numbered interleaving, AND the result is written as a concrete value,
-exception, corruption, or hang. A candidate that resists being written that way is discarded. This filter removes the
-most candidates of any rule in the skill.
+exception, corruption, or hang. A candidate that resists being written that way is discarded rather than softened. This
+filter removes the most candidates of any rule in the skill.
 
 **Coverage tier** records why a region escaped the test suite. The tiers are language-neutral, each language fills them
 from its own instrument, and [detection-passes.md](references/detection-passes.md) defines all four alongside the pass
@@ -382,8 +382,7 @@ SIG.
 
 You MUST adhere to the following discipline during every audit.
 
-- Report nothing without a concrete trigger and a concrete result. A candidate that resists being written that way is
-  deleted rather than softened.
+- Report nothing without a concrete trigger and a concrete result, under the evidence model above and Guard 1.
 - Read the full body of every callable, and follow the calls it delegates to, before judging it.
 - Quote both the contract and the implementation verbatim, each with its own `<path>:<line>`.
 - Keep every sentence the report itself writes, outside a verbatim quote, under 40 words and separated by full stops and
@@ -475,6 +474,7 @@ Code Correctness Audit Compliance:
 - [ ] Findings ordered most severe first
 - [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops and commas as clause separators
-- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word fits
+- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would
+      still fit
 - [ ] No file modifications made during the audit
 ```

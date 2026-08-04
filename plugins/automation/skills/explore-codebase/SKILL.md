@@ -71,14 +71,15 @@ present at release (`tox -e stubs`), so a dev tree often has none. Treat their a
 present, exclude `.pyi` from file counts, dependency maps, and test-coverage mapping, and always read the `.py` module
 (not the stub) for docstrings and the documented API. Do not spend tokens reading or editing stubs.
 
-| Tier   | Indicators                                               | Approach                      |
-|--------|----------------------------------------------------------|-------------------------------|
-| Small  | Single package, < 10 source files, no subpackages        | Single-pass exploration       |
-| Medium | Multiple packages, or 10-50 source files                 | Structured four-phase         |
-| Large  | 50+ source files AND (monorepo OR multiple entry points) | Parallel subagent exploration |
+| Tier   | Indicators                                               | Approach                       |
+|--------|----------------------------------------------------------|--------------------------------|
+| Small  | Single package, < 10 source files, no subpackages        | Single-pass exploration        |
+| Medium | Multiple packages, or 10-50 source files                 | Structured four-phase          |
+| Large  | 50+ source files AND (monorepo OR multiple entry points) | Parallel sub-agent exploration |
 
 An MCP server alone does NOT force the Large tier, because MCP servers are common on single-package ataraxis libraries.
-When indicators conflict, choose the lower tier (fewer subagents) unless the source-file count alone clearly exceeds 50.
+When indicators conflict, choose the lower tier (fewer sub-agents) unless the source-file count alone clearly
+exceeds 50.
 
 A CodeGraph index shifts the tier down by one, because the index already holds the structure that the extra readers
 would otherwise reconstruct file by file. An indexed Large project is explored as a Medium one, and an indexed Medium
@@ -95,11 +96,11 @@ return, such as configuration files, environment variables, and directory layout
 
 **Medium projects:** Execute all four exploration phases sequentially, giving each phase focused attention. Use the
 Agent tool with the `Explore` agent type for any phase that requires reading many files. An indexed project rarely needs
-a subagent here, since one CodeGraph call returns what a file-reading subagent would spend many calls collecting.
+a sub-agent here, since one CodeGraph call returns what a file-reading sub-agent would spend many calls collecting.
 
-**Large projects:** Launch 2-3 Explore subagents in parallel using the Agent tool with the `Explore` agent type. Assign
-each subagent a disjoint focus area so no surface is explored twice. Tell each subagent that the repository is indexed
-and that it MUST query CodeGraph before reading files, since subagents do not inherit that context:
+**Large projects:** Launch 2-3 Explore sub-agents in parallel using the Agent tool with the `Explore` agent type. Assign
+each sub-agent a disjoint focus area so no surface is explored twice. Tell each sub-agent that the repository is indexed
+and that it MUST query CodeGraph before reading files, since sub-agents do not inherit that context:
 
 - **Subagent 1** covers structure, entry points, and configuration: Phase 1 (feature discovery and configuration),
   excluding the public API and MCP surfaces assigned to Subagent 3
@@ -108,7 +109,7 @@ and that it MUST query CodeGraph before reading files, since subagents do not in
 - **Subagent 3** covers the API surface, MCP tools, and quality: public API enumeration, MCP-tools enumeration, and
   Phase 4 (test coverage, error handling patterns, technical debt indicators)
 
-Synthesize the subagent findings into a unified summary.
+Synthesize the sub-agent findings into a unified summary.
 
 ### Step 4: Present findings
 
@@ -150,7 +151,7 @@ whole phase. Read these rules before querying:
 ## Exploration phases
 
 Every exploration follows four phases regardless of project size. For small projects, phases may be combined. For large
-projects, phases may be distributed across parallel subagents.
+projects, phases may be distributed across parallel sub-agents.
 
 ### Phase 1: Feature discovery
 
@@ -309,7 +310,8 @@ Walk every one against the summary you are about to present.
 - [ ] Design patterns and cross-cutting concerns documented
 - [ ] Areas of concern noted (technical debt, complexity, missing coverage)
 - [ ] Output uses structured format (headings, tables, lists)
-- [ ] Summary prose fills each line to 120 characters, with no line ending before column 100 while its next word fits
+- [ ] Summary prose fills each line to 120 characters, with no line ending before column 100 while its next word would
+      still fit
 - [ ] No code modifications were made during exploration
 - [ ] Archetype resolved from /project-layout's indicator table, with that archetype's entry points,
       manifest, and public API source used by every phase

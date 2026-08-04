@@ -259,14 +259,12 @@ files.**
 ```text
 PlatformIO Configuration Compliance:
 
-Judgment items. No tool inspects these, so this checklist is their only enforcement. Walk every one
-against the file you wrote. (Parse validity, the library.json $schema, tox -e lint, and pio check
-are the only tool-settled rows.)
+Judgment items. No tool inspects these, so this checklist is their only enforcement. Walk every one against the file you
+wrote. Only parse validity, the library.json $schema, and what pio check and pio test reject are tool-settled.
 - [ ] platformio.ini has one [env:<board>] section per supported board, named for the board
 - [ ] Each env sets platform, board, framework=arduino, monitor_speed, test_framework=unity, build_flags=-std=c++17
 - [ ] library.json carries every required field ($schema, name, version, description, repository, authors, license,
-      frameworks, platforms, headers, export, build), and each [env:<board>] carries platform, board, framework,
-      monitor_speed, test_framework, build_flags
+      frameworks, platforms, headers, export, build)
 - [ ] build_unflags=-std=gnu++11 present on AVR/SAM boards that need it; upload_protocol set where required
 - [ ] [env:<board>] sections follow the board-table order, and keys inside each section follow the field-table order
       (build_unflags before build_flags)
@@ -289,8 +287,8 @@ are the only tool-settled rows.)
 - [ ] Sentences in comments and description fields stay under 40 words
 - [ ] Comments and description fields free of typos and grammar errors
 - [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings, $schema) exempt
-- [ ] Comments and descriptions fill each line to 120 before breaking, with no line ending before column 100 while
-      its next word would still fit
+- [ ] Comments and descriptions fill each line to 120 characters, with no line ending before column 100 while its next
+      word would still fit
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)
 - [ ] Prose states what the configuration does, not what it is not or used to be (contrast only when load-bearing)

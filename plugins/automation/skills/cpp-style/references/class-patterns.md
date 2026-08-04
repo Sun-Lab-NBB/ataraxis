@@ -51,7 +51,7 @@ class Module
 ### Rules for base classes
 
 - Declare pure virtual methods (`= 0`) for the interface that derived classes must implement
-- Provide `virtual ~ClassName() = default` for safe polymorphic deletion
+- Declare the destructor as the destructor patterns section below specifies
 - Place shared utility methods in `protected` scope
 - Use `const` member variables for immutable state set at construction time
 - Constructor parameters use `const` for value types, `&` for reference types
@@ -96,7 +96,7 @@ class BrakeModule final : public Module
 
 - Always use `final` on classes that should not be subclassed
 - Use `override` on all virtual method implementations (enforced by clang-tidy `modernize-use-override`)
-- Use `~ClassName() override = default` for destructors
+- Declare the destructor as the destructor patterns section below specifies
 - Place `static_assert` statements at the top of the class body, before `public:`
 - Constructor should delegate to the base class using the member initializer list
 
@@ -348,7 +348,7 @@ Module(const uint8_t module_type, const uint8_t module_id, Communication& commun
 
 ## Destructor patterns
 
-- Base classes: `virtual ~Module() = default`
+- Base classes: `virtual ~Module() = default`, which keeps polymorphic deletion through a base pointer safe
 - Leaf (final) classes: `~EncoderModule() override = default`
 - Place destructors after the last public method, before the `private:` section
 - Never implement custom destructors unless the class manages non-RAII resources

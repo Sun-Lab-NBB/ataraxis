@@ -389,6 +389,7 @@ Quality:
       implements it
 - [ ] All images have alt text that names what the image shows
 - [ ] Link text names the page or document the link opens (no "click here")
+- [ ] Download links indicate the file type, as in `[User Guide (PDF)](url)`
 - [ ] Technical descriptions cross-referenced against codebase
 - [ ] File paths and class names verified to exist
 - [ ] API examples tested against actual implementation

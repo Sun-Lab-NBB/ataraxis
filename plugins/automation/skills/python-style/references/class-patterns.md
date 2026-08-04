@@ -580,10 +580,8 @@ __all__ = [
   library paths reached by a downstream import. Both placements are legitimate, and neither is reported as a style
   finding unless the user names it as one in that specific case
 - **Explicit `__all__`**: Every `__init__.py` must declare `__all__` with all public API members
-- **Export set**: The import list and `__all__` hold exactly the symbols other packages import, which covers internal
-  implementation symbols and lets a subpackage `__init__.py` list more than the top-level library `__init__.py`. The
-  `/python-style` Cross-package vs within-package imports section states the importing half of the rule, and the two
-  paragraphs below state the exporting half
+- **Export set**: The `/python-style` Cross-package vs within-package imports section states the importing half of the
+  rule, and the two paragraphs below state the exporting half
 
 Any symbol consumed outside the (sub)package that defines it MUST be re-exported from that package's `__init__.py`,
 added to both the import list and `__all__`, and imported through the package namespace rather than through the
