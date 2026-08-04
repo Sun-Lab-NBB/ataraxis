@@ -5,8 +5,8 @@ each names the mechanical procedure that answers it. Run them in order, because 
 resolve a construct's identity gate the passes that judge it.
 
 The passes decompose the workflow steps in the skill. Pass 1 executes Step 2, pass 10 executes Step 4,
-passes 2 through 6 cover Dimension A of Step 5, passes 7 and 8 cover Dimension B, and pass 9 covers
-Dimension C.
+passes 2 through 6 cover Dimension A of Step 5, passes 7 and 8 cover Dimension B, pass 9 covers
+Dimension C, and pass 11 covers Dimension D.
 
 Every pass draws its authority from the checklists Pass 1 loads. A convention absent from every loaded
 checklist is not a violation, whatever a pass below appears to invite.
@@ -23,18 +23,23 @@ checklist is not a violation, whatever a pass below appears to invite.
 - Pass 8: Comment and suppression sweep
 - Pass 9: Cross-file consistency sweep
 - Pass 10: Project layout sweep
+- Pass 11: Symbol usage sweep
 
-## One traversal, ten questions
+## One traversal, eleven questions
 
 Passes 2 through 8 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file
 ONCE and answer every applicable pass during that single traversal, carrying the pass list beside you.
 Re-reading the file set once per pass costs six extra traversals of every line in scope and surfaces
 nothing the single traversal misses.
 
-Three passes sit outside that traversal. Pass 1 runs first, because it builds the ledger every later
+Four passes sit outside that traversal. Pass 1 runs first, because it builds the ledger every later
 pass reports against. Pass 10 runs once on the main agent at Step 4, before the traversal opens,
-because the directory tree belongs to the repository rather than to any file in it. Pass 9 runs last on
-the main agent, because it needs the whole file set in one view.
+because the directory tree belongs to the repository rather than to any file in it. Passes 9 and 11 run
+last on the main agent, because each needs the whole file set in one view.
+
+Pass 11 also takes an input the traversal produces. Every file read during passes 2 through 8 records
+the symbols it DECLARES and the symbols it REFERENCES, so the single traversal supplies the two tables
+pass 11 reconciles rather than paying for a second reading of every file in scope.
 
 Every pass also defers to the Step 3 deterministic gates. Where a configured tool decides a rule, the
 tool's output IS the finding and the pass reports nothing on its own authority.
@@ -135,7 +140,13 @@ Collect every import in the file with its line, then check four properties. Posi
 sits at the top of the file and no deferred or function-local import appears. Form, so a local import
 brings in the required names directly rather than the module holding them. Boundary, so an import
 reaching another package goes through that package's public namespace rather than into a submodule.
-Export surface, so an `__init__` declares the names the checklist requires and keeps them ordered.
+Export surface, so an `__init__` declares `__all__` and orders its entries as the checklist requires.
+
+This pass sees ONE file, so it decides only what that one file reveals. Whether an export list holds
+the right NAMES is a question about the whole file set, because the answer turns on which packages
+import which symbols, and pass 11 owns it. A deep import reaching past a missing export is one
+construct together with that missing export, so Guard 13 reports the pair once, under pass 11, with
+the import site carried as a citation.
 
 Leave import sorting and grouping alone where the checklist delegates it to a formatter, and report
 only the properties the checklist itself states.
@@ -273,3 +284,68 @@ Approval: <REQUIRED when the fix deletes or relocates a tracked path, naming wha
 An absent-path finding carries `Expected path` alone and quotes the archetype tree line that requires
 the path. A stray-path finding carries `Offending path` alone and quotes the checklist item or the tree
 section that excludes it.
+
+---
+
+## Pass 11: Symbol usage sweep
+
+**Question:** Does each symbol's declared visibility match the widest boundary its consumers actually
+cross, and does each symbol have a consumer at all?
+
+This pass runs on the main agent after every per-file pass completes, alongside pass 9, because a
+symbol's tier is a property of the WHOLE file set rather than of the file that declares it. No per-file
+pass can reach these findings. A pass reading one file sees the declaration or the reference, never
+both, so it can no more report an export nobody imports than pass 10 could report a file nobody wrote.
+
+Work in four parts:
+
+**1. Build the declaration table.** One row per symbol the file set declares, carrying the declaring
+path and line, the kind, the declared visibility, the defining module, the defining package, and
+whether that package's `__init__.py` lists the symbol in its import block and in `__all__`.
+
+**2. Build the reference table.** One row per site that references a declared symbol, carrying the
+referencing path and line, the referencing module, the referencing package, and whether the site sits
+under `tests/`. Passes 2 through 8 collect both tables during their single traversal, and in a
+Large-tier run each batch sub-agent returns its share alongside its findings.
+
+**3. Resolve the actual tier of every symbol** by reading its reference rows: `none`, `module-local`,
+`package-local`, or `cross-package`. Discount every row the guards exclude before resolving, which is
+the work Guard 15 defines.
+
+**4. Compare the actual tier against the declared one.** Every mismatch is one of five findings:
+
+| Declared                              | Actual tier   | Finding            | Fix                                   |
+|---------------------------------------|---------------|--------------------|---------------------------------------|
+| Underscore prefix                     | package-local | UNDER_EXPOSED      | Rename the symbol public              |
+| Public name                           | module-local  | OVER_EXPOSED       | Add the underscore prefix             |
+| Absent from the package `__init__.py` | cross-package | MISSING_EXPORT     | Add to the import block and `__all__` |
+| Listed in the package `__init__.py`   | package-local | UNWARRANTED_EXPORT | Remove both entries                   |
+| Any                                   | none          | UNUSED_ASSET       | Remove the asset                      |
+
+Report each finding in the skill's ordinary shape, carrying one added field directly below
+`Current state`:
+
+```text
+Consumer set: <every referencing path and line, or NONE, with the search that established it>
+```
+
+`Location` and `Current state` cite the DECLARATION site and quote its line verbatim, because that is
+what the fix edits. MISSING_EXPORT and UNWARRANTED_EXPORT instead cite the `__init__.py` and quote its
+`__all__` block. Keeping `Current state` verbatim is what lets Check 1 verify these findings unchanged,
+and `Consumer set` carries the one claim no reading of a single file can settle.
+
+Every one of the five is a claim about ABSENCE, which is the shape of claim a partial reading gets
+wrong most often, so `Consumer set` names the search that established it rather than asserting it.
+Confirm each candidate with a repository-wide search for the symbol's name across `src/`, `tests/`, and
+the configuration files carrying runtime registrations, then quote what the search returned. Where the
+repository holds a `.codegraph/` index, `codegraph explore` answers the same question directly and is
+the cheaper confirmation. A candidate whose search never ran, and a finding that cannot name its
+consumer set, are both deleted rather than reported at low confidence.
+
+Categorize UNDER_EXPOSED, MISSING_EXPORT, and a deep import reaching past a missing export as BLOCKING,
+because each names a rule the checklists state with MUST. Categorize OVER_EXPOSED, UNWARRANTED_EXPORT,
+and UNUSED_ASSET as STANDARD.
+
+Run this pass for every language in scope, resolving the tier against the visibility construct the
+bound checklist names, which is the underscore prefix and the `__init__.py` export list in Python, the
+underscore prefix and the public header in C++, and the access modifier in C#.

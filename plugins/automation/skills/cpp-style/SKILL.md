@@ -115,6 +115,13 @@ consistency across languages while respecting each language's idiomatic standard
   symbol referenced from another module is renamed to a public name
 - A symbol consumed outside its owning component is exported through that component's public header,
   never by reaching into an internal header, and tests are the sole exception to both rules
+- Both rules bind downward as well. A symbol referenced only inside its defining translation unit or
+  header keeps the underscore, and a symbol every consumer of which lives inside the owning component
+  stays out of that component's public header. A test is not a consumer for either rule
+- An asset with no consumer is removed rather than kept, which covers functions, methods, classes,
+  constants, enum members, and whole headers. The compiler reports an unused static function and an
+  unused local, and it reports nothing about an unused exported declaration, so that case is found by
+  reading. A symbol exercised only by its own tests is removed together with those tests
 
 ### Project archetypes
 
@@ -473,6 +480,10 @@ against the code you wrote.
 - [ ] Struct data members may be public (snake_case) for passive data holders
 - [ ] Private members use _snake_case prefix
 - [ ] Symbols used outside their defining module are public, and cross-component ones use the public header
+- [ ] Symbols used only inside their defining translation unit or header keep the underscore, and symbols with
+      no consumer outside the owning component stay out of its public header (tests are not consumers)
+- [ ] Every asset has a consumer, so functions, methods, classes, constants, enum members, and whole headers
+      that nothing outside the test suite references are removed rather than kept
 - [ ] Local variables and parameters use snake_case
 - [ ] Constants use kPascalCase prefix (static constexpr)
 - [ ] Enum types and values use kPascalCase prefix

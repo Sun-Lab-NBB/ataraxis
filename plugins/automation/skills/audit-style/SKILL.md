@@ -28,6 +28,9 @@ before submitting findings.
   folding their diagnostics into the report as findings
 - Structural style: element ordering, imports, formatting, naming, type annotations,
   error-handling patterns, file-section ordering
+- Symbol visibility and usage: each symbol's declared tier against the widest boundary its consumers
+  actually cross, the package export lists against the set of packages importing from them, and assets
+  that no consumer references
 - Project-scope layout: the repository directory tree against the archetype tree its indicators
   resolve to, for a project-root target
 - Comment and docstring quality: typos, sentence length, length proportionality, redundancy
@@ -64,7 +67,7 @@ Audit Progress:
 - [ ] Step 2: Style skill checklists loaded and rule ledger built
 - [ ] Step 3: Deterministic gates run and their findings collected
 - [ ] Step 4: Project-scope layout sweep run, or skipped and recorded
-- [ ] Step 5: Line-by-line sweep complete (all three dimensions)
+- [ ] Step 5: Line-by-line sweep complete (all four dimensions)
 - [ ] Step 6: Findings categorized
 - [ ] Step 7: False-positive guards applied
 - [ ] Step 8: Findings verified (citation, refutation)
@@ -80,6 +83,7 @@ Emit a plan before any sweep work fires. The plan must list:
 - Style skills bound to those files (per the binding table in Step 1)
 - Tier classification (small, medium, or large)
 - Whether the Step 4 project-scope layout sweep runs, and the reason when it does not
+- Whether the Pass 11 symbol usage sweep runs in full, runs partially, or is skipped, with the reason
 - Expected finding categories
 
 Pause for user confirmation or a "proceed" signal. This catches misidentified targets before
@@ -95,8 +99,11 @@ Whole-repository coverage is the default and stays the default. Narrow to a chan
 user asks for that in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a
 branch, `git diff --name-only <commit>` for one commit, or `git status --porcelain` for the working
 tree. A narrowed run still reads every surviving file in full, because ordering, visibility grouping,
-and length proportionality are properties of a whole file. Record the narrowing and the revision it
-resolved against in the report, so it states what it did not cover.
+and length proportionality are properties of a whole file. It also still builds the Step 5 reference
+table across the WHOLE repository, because a symbol's tier is decided by consumers a change set does
+not contain, and Guard 16 skips the usage pass outright rather than deciding an absence from a partial
+table. Record the narrowing and the revision it resolved against in the report, so it states what it
+did not cover.
 
 For each file in scope, identify the applicable style skill using the binding table:
 
@@ -156,9 +163,15 @@ Build the batches under three rules:
 Each sub-agent loads ONLY the checklists its own batch binds to, and receives ONLY the rule-ledger
 rows Step 2 built from those checklists.
 
-Only the per-file sweep fans out. Every other step runs on the main agent, because the rule ledger,
-the cross-file consistency pass, categorization, the guards, the verification, and the report each
-need the whole file set in one view or sit on a trust boundary.
+Only the per-file sweep fans out. Every other step runs on the main agent, because the rule ledger, the
+cross-file consistency pass, the symbol usage pass, categorization, the guards, the verification, and
+the report each need the whole file set in one view or sit on a trust boundary.
+
+The fan-out therefore carries a SECOND return value. Every batch sub-agent returns its findings AND the
+declaration and reference rows Pass 11 defines, covering each symbol its files declare and each symbol
+its files reference. Findings alone would leave the main agent unable to run Pass 11 at all, because a
+symbol declared in one batch and consumed in another is invisible to both sub-agents while the main
+agent never reads their files.
 
 Do NOT use the `Explore` agent type for sweep work. Explore returns summaries rather than
 verbatim citations and breaks the "verbatim checklist quote" discipline.
@@ -212,7 +225,9 @@ decide:
   separator punctuation, positive description, and spelling. Identifier vocabulary, meaning full words
   against the abbreviations the checklist enumerates. Element and section ORDERING where the checklist
   states an order the formatter does not enforce. Visibility placement. Cross-file consistency. Every
-  cross-skill conflict.
+  cross-skill conflict. Symbol visibility against actual usage, together with every asset no consumer
+  references, which ruff reaches only for imports outside `__init__.py`, for locals, and for arguments,
+  and carries no rule for at module level.
 
 State in the report which tools ran and which rules the sweep therefore delegated.
 
@@ -233,12 +248,13 @@ every other candidate.
 
 ### Step 5: Line-by-line sweep
 
-Run passes 2 through 9 from [detection-passes.md](references/detection-passes.md) in order, over ONE
-traversal of each file rather than one traversal per pass. Passes 2 through 6 cover Dimension A,
-passes 7 and 8 cover Dimension B, and pass 9 covers Dimension C.
+Run passes 2 through 9 and pass 11 from [detection-passes.md](references/detection-passes.md) in order,
+over ONE traversal of each file rather than one traversal per pass. Passes 2 through 6 cover
+Dimension A, passes 7 and 8 cover Dimension B, pass 9 covers Dimension C, and pass 11 covers
+Dimension D.
 
 For every file in scope, walk top to bottom. For every line, evaluate against every applicable
-checklist item. Track three parallel dimensions.
+checklist item. Track four parallel dimensions.
 
 **Dimension A — Structural style:** Element ordering, imports, formatting, naming, type
 annotations, error-handling patterns, and file-section ordering. The source of truth is the
@@ -265,13 +281,26 @@ requires reading the implementation.
 set. Examples include the same field named differently in two sibling classes, or one module
 following a convention that adjacent modules ignore.
 
+**Dimension D — Symbol visibility and usage:** Each symbol's declared tier against the widest boundary
+its consumers actually cross, and each symbol's consumer set against emptiness. The five findings are a
+private name on a symbol another module references, a public name on a symbol only its own module
+references, a cross-package symbol missing from its package's export list, an export list entry no
+outside package imports, and an asset nothing references at all. Every one is a claim about ABSENCE, so
+each is confirmed by a repository-wide search before it is reported, and Guard 15 discards the
+candidates resting on a consumer no written reference reveals.
+
+While traversing each file, record the symbols it DECLARES and the symbols it REFERENCES. Pass 11
+reconciles the two tables on the main agent after the traversal closes, so the traversal collects them
+rather than paying for a second reading of every file in scope.
+
 List ALL violations in each section. Do NOT stop at the first.
 
 For Large-tier audits, spawn one `general-purpose` sub-agent per batch under the Step 1 rules. Each
 sub-agent receives its batch's file paths, ONLY the checklists those files bind to, ONLY the
 rule-ledger rows built from those checklists, the Step 3 diagnostics for those files, and the
-categorization rules. Sub-agents return findings in the output format defined below. The main agent
-synthesizes after all sub-agents complete.
+categorization rules. Sub-agents return findings in the output format defined below, together with the
+Pass 11 declaration and reference rows for their own files. The main agent synthesizes after all
+sub-agents complete, then runs passes 9 and 11 over the merged result.
 
 For Small and Medium tiers, the main agent performs all sweep work sequentially.
 
@@ -321,8 +350,9 @@ Build the coverage ledger the report carries under its triage header, in the sha
 [verification-protocol.md](references/verification-protocol.md) defines. It records the per-binding
 count of files in scope, files swept, and files UNAUDITED, then names every UNAUDITED file by path,
 the sub-agent and batch count, the gates that ran and the gates that failed to run, the layout pass
-status, and the revision whenever the scope was narrowed to a change set. It exists so a thin pass is
-visible rather than silent.
+status, the symbol usage pass status with the declaration and reference counts it reconciled, and the
+revision whenever the scope was narrowed to a change set. It exists so a thin pass is visible rather
+than silent.
 
 ### Step 10: Produce the findings report
 
@@ -365,8 +395,12 @@ Location: <path>:<line>-<line>
 Current state: "<verbatim quote from the file>"
 Required state: <concrete example or the checklist's "should be" form>
 Suggested fix: <concrete textual edit>
-Approval: <REQUIRED when the fix renames or re-signatures a public symbol, naming what breaks>
+Approval: <REQUIRED when the fix breaks the public API or alters public behavior, naming what breaks>
 ```
+
+The Approval trigger covers REMOVAL alongside renaming and re-signaturing. Deleting a symbol, dropping
+an `__all__` entry, and demoting a public name to an underscore each break a caller exactly as a rename
+does, and a Pass 11 fix is a removal in three of its five forms.
 
 When the same checklist point is violated multiple times within a file, collapse to a single
 finding with a count and representative line citations:
@@ -385,6 +419,11 @@ Suggested fix: Rename idx -> index throughout module.py.
 A Step 4 layout finding uses its own shape, defined under Pass 10 in
 [detection-passes.md](references/detection-passes.md), because `Location: <path>:<line>` cannot cite a
 file that does not exist.
+
+A Pass 11 symbol usage finding uses the shape above with one added `Consumer set` field, defined under
+Pass 11 in [detection-passes.md](references/detection-passes.md). `Current state` stays a verbatim
+quote of the declaration or of the `__all__` block, and the added field carries the consumer evidence
+together with the search that established it.
 
 ---
 
@@ -450,6 +489,7 @@ You MUST verify the audit output against this checklist before presenting it to 
 ```text
 Style Compliance Audit Output:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
+- [ ] Plan stated whether the symbol usage sweep runs in full, runs partially, or is skipped
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
 - [ ] For Large tier, batches built by binding with no batch carrying more than two checklists
 - [ ] For Large tier, every single-file binding, each skill unit, and the docs package given its own sub-agent
@@ -472,7 +512,19 @@ Style Compliance Audit Output:
 - [ ] Rule ledger built in Pass 1, with every rule copied verbatim from a loaded checklist
 - [ ] Detection passes 2 through 9 run in order, with pass 9 run on the main agent over the whole file set
 - [ ] Pass 10 run on the main agent for a project-root target, or skipped with the reason recorded
-- [ ] All three dimensions evaluated (structural, comment/docstring quality, cross-file consistency)
+- [ ] Pass 11 run on the main agent over the whole file set, or skipped with the reason recorded
+- [ ] Declaration and reference rows collected during the single traversal, and returned by every batch sub-agent
+- [ ] Reference table built across the whole repository even where the sweep was narrowed to a change set
+- [ ] Every symbol's declared tier compared against the widest boundary its consumers actually cross
+- [ ] Each package export list compared against the set of packages importing from it, in both directions
+- [ ] Every Pass 11 candidate confirmed by a repository-wide search, with the search result quoted
+- [ ] Every Pass 11 finding carries a Consumer set field, with Current state left a verbatim quote
+- [ ] Citation verification re-ran each Pass 11 search rather than accepting the recorded result
+- [ ] Guard 15 applied, so curated public API, runtime registrations, interface conformance, and generated
+      declarations produced no usage finding, and test references counted as no consumer
+- [ ] Unused imports, locals, and arguments left to ruff rather than re-derived by the usage pass
+- [ ] All four dimensions evaluated (structural, comment/docstring quality, cross-file consistency,
+      symbol visibility and usage)
 - [ ] Every finding anchored to a verbatim checklist quote, or to a tool rule code
 - [ ] Every finding cites <path>:<line>, or the expected or offending path for a layout finding
 - [ ] Findings categorized (BLOCKING, STANDARD, INCONSISTENCY, CONFLICT)
@@ -486,6 +538,7 @@ Style Compliance Audit Output:
 - [ ] Step 9 coverage ledger assembled, carrying files in scope, files swept, and files UNAUDITED by path
 - [ ] Ledger states the sub-agent and batch count, the gates that ran, and the gates that failed to run
 - [ ] Ledger states the layout pass status, and the revision whenever the scope was narrowed to a change set
+- [ ] Ledger states the symbol usage pass status with the declaration and reference counts it reconciled
 - [ ] Triage header present, carrying the category by confidence counts and every discard count
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
 - [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
@@ -495,5 +548,6 @@ Style Compliance Audit Output:
 - [ ] Findings ordered: BLOCKING -> INCONSISTENCY -> CONFLICT -> STANDARD
 - [ ] Cross-skill conflicts surfaced rather than silently resolved
 - [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict
+- [ ] Every fix that removes a symbol, an export entry, or a public name carries Approval: REQUIRED
 - [ ] No file modifications made during the audit
 ```

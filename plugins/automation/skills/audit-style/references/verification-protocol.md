@@ -34,6 +34,11 @@ than a clause of it, because a rule truncated before its exemption reverses its 
 quote appears there character for character. For a collapsed finding carrying several line citations,
 check every line the finding lists.
 
+**The consumer set**, for a Pass 11 finding alone. Re-run the repository-wide search the finding names
+and confirm it returns what the finding says it returned. This citation is checked by RUNNING rather
+than by reading, because the claim is about the whole repository rather than about the cited line, and
+a stale search is how a symbol that acquired a caller last week is reported as unused today.
+
 Delete the finding when either quote fails to appear at its cited location. Repairing the citation is
 FORBIDDEN here. A citation that drifted is evidence that the finding was assembled from recollection
 rather than from the checklist, which makes the rule application resting on it unreliable for the same
@@ -64,6 +69,9 @@ of these holds:
 - The construct is a different kind than the finding assumed, so a different rule governs it
 - The construct sits in a generated block, a vendored tree, or a test file the configuration relaxes
 - For a CONFLICT, the two cited rules can both be satisfied at once
+- For a symbol usage finding, a consumer exists that the stated Consumer set missed. Search the
+  repository yourself rather than trusting the finding's search, and treat a runtime registration, an
+  interface the symbol implements, and an entry in the top-level `__all__` as consumers
 Return CONFIRMED only after reading the full rule including its exemptions and confirming the cited
 line breaks it. Answer REFUTED whenever you are uncertain.
 ```
@@ -123,6 +131,10 @@ Alongside the table, state each of the following:
 - The deterministic gates that ran and the gates that failed to run, naming each tool.
 - The project-scope layout pass status, as `run`, `skipped-not-a-project-root`, or
   `skipped-no-created-or-deleted-files`.
+- The symbol usage pass status, as `run`, `run-partial` naming the tiers left unjudged under a
+  package-directory target, or `skipped-reference-table-incomplete`. State the count of declared
+  symbols and the count of reference sites the pass reconciled, because those two numbers are what
+  separate a reconciliation that ran from one that reported nothing because it saw nothing.
 - The revision the run resolved against, whenever the scope was narrowed to a change set.
 
 A Large-tier audit that produced no findings still reports a non-zero swept count, which distinguishes

@@ -129,9 +129,22 @@ Use **full words**, not abbreviations:
 ### Visibility prefixes and the module boundary
 
 A leading underscore marks a symbol private to the **module** that defines it. This covers functions,
-classes, constants, class attributes, and methods. Any symbol referenced from another module MUST
-carry a public name, so a helper that acquires a caller in a second module is renamed rather than
-imported with its underscore intact:
+classes, constants, class attributes, and methods.
+
+Every symbol sits in exactly one of three tiers, and the tier is decided by the widest boundary the
+symbol's consumers actually cross rather than by the visibility its author intended:
+
+| Widest consumer                    | Name          | Listed in the package `__init__.py` |
+|------------------------------------|---------------|-------------------------------------|
+| The defining module alone          | `_underscore` | No                                  |
+| Another module in the same package | public        | No                                  |
+| Another package                    | public        | Yes                                 |
+
+The name a symbol carries MATCHES its tier in both directions. Any symbol referenced from another
+module MUST carry a public name, so a helper that acquires a caller in a second module is renamed
+rather than imported with its underscore intact. Any symbol referenced only inside the module that
+defines it MUST carry the underscore, so a public name is earned by a real cross-module consumer
+rather than granted by default:
 
 ```python
 # Good - the helper is referenced from another module, so it carries a public name
@@ -141,11 +154,18 @@ from .archive import resolve_archive_path
 from .archive import _resolve_archive_path
 ```
 
-When splitting or refactoring a module, every symbol that now crosses a module boundary is promoted
-to a public name as part of the split. A symbol that stays behind keeps its underscore.
+A public name on a symbol nothing outside its module references is a finding in its own right. It
+advertises a boundary the code does not cross and invites the next module to depend on it, and the fix
+is the added underscore.
 
-Tests are the sole exception. Test modules may access private members of the code under test, and
-ruff ignores `SLF001` under `tests/`.
+When splitting or refactoring a module, every symbol that now crosses a module boundary is promoted to
+a public name as part of the split. A symbol that stays behind keeps its underscore, and a symbol
+whose last external caller went away is demoted back.
+
+Tests are the sole exception. Test modules may access private members of the code under test, and ruff
+ignores `SLF001` under `tests/`. A test is therefore not a cross-module consumer for the purpose of
+the tiers above, so a symbol referenced only by its defining module and by that module's tests keeps
+its underscore.
 
 ### Constants
 
@@ -318,6 +338,11 @@ holds for internal implementation symbols and not only for the curated public AP
 symbol and reaching past the export are two halves of one rule, and a cross-package consumer is
 evidence that the export is missing.
 
+The same test that requires an export also BOUNDS it. A symbol that no package outside the defining
+one consumes does NOT appear in that package's `__init__.py`, in either the import list or `__all__`.
+The absence of a cross-package consumer is evidence that the export is unwarranted, and the fix is the
+removed entry rather than a caller invented to justify it.
+
 Tests are the sole exception. Test modules may import directly from any submodule of any package.
 
 ---
@@ -331,8 +356,43 @@ sibling package. A subpackage that is missing an entry for a symbol another pack
 non-compliant, and the fix is the added export rather than a deeper import at the call site. The
 distribution's top-level `__init__.py` stays narrower and re-exports the curated public API alone.
 
+That set is EXACT rather than generous. A symbol listed while no other package imports it is
+non-compliant in the same way the missing entry is, and the fix is the removed entry. Nothing in the
+toolchain reports this, because `per-file-ignores` waives `F401` for `**/__init__.py`, so an export
+that lost its last consumer draws no diagnostic and survives until a reader checks the export list
+against the set of packages that import from it.
+
 See [class-patterns.md](references/class-patterns.md) for top-level library and subpackage
 `__init__.py` docstring, `__all__`, and console initialization conventions.
+
+---
+
+## Unused assets
+
+An asset with no consumer is REMOVED rather than kept. This covers functions, classes, methods,
+properties, constants, enum members, dataclass fields, type aliases, parameters, and whole modules.
+Dead code carries the full review, documentation, and maintenance cost of live code while proving
+nothing about the library's behavior, and it reads to the next author as a contract something still
+depends on.
+
+Ruff reports only the cases a single file reveals, which are unused imports outside `__init__.py`
+(`F401`), unused local variables (`F841`), and unused arguments (`ARG`). It carries no rule for an
+unused module-level definition, so a function, class, or constant nobody calls clears every gate the
+project runs and is found by reading alone.
+
+Three things count as a consumer, and nothing else does:
+
+- A reference from library code under `src/`
+- An entry in the distribution's top-level `__init__.py` `__all__`, which places the symbol in the
+  curated public API and hands it to downstream code this repository cannot see
+- A registration the interpreter resolves at runtime rather than by name, which covers `pyproject.toml`
+  entry points, Click commands, MCP tool registrations, plugin registries, and `getattr` dispatch
+
+A reference from `tests/` alone is NOT a consumer. A helper that only its own tests exercise is dead
+library code with a live test, and the pair is removed together.
+
+Removing a symbol from the curated public API is a breaking change, so it waits for a release
+permitted to break the API rather than landing as a cleanup.
 
 ---
 
@@ -542,10 +602,15 @@ against the code you wrote.
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
 - [ ] Full words used (no abbreviations like `pos`, `idx`, `val`)
 - [ ] Private members use `_underscore` prefix
-- [ ] Every symbol referenced from another module carries a public name, with the underscore
-      reserved for symbols used only inside the module that defines them
+- [ ] Every symbol referenced from another module carries a public name, and every symbol referenced
+      only inside its defining module carries the underscore (tests are not cross-module consumers)
 - [ ] Every symbol consumed outside its defining (sub)package is re-exported from that package's
       __init__.py, in both the import block and __all__, and imported through the package namespace
+- [ ] No symbol appears in a package's __init__.py import block or __all__ unless a package outside
+      that one imports it, with the top-level __init__.py carrying the curated public API alone
+- [ ] Every asset has a consumer, so functions, classes, methods, constants, enum members, fields,
+      type aliases, and whole modules that nothing under src/ references are removed rather than kept
+- [ ] A symbol exercised only by its own tests is removed together with those tests
 - [ ] Keyword arguments used for function calls (except Numba `jitclass` method calls)
 - [ ] Error handling uses console.error() when ataraxis-base-utilities is available (else raise)
 - [ ] Local imports use direct name imports (no module imports)

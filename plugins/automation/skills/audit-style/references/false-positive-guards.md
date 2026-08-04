@@ -24,6 +24,8 @@ enforce. Several guards below exist for that one failure alone.
 - Guard 12: A conflict is surfaced rather than resolved
 - Guard 13: One rule, one finding
 - Guard 14: Layout paths carry their own exemptions
+- Guard 15: A consumer the reading cannot see is still a consumer
+- Guard 16: A narrowed scope cannot decide an absence
 
 ---
 
@@ -196,3 +198,57 @@ Four classes are discarded outright:
 
 A stray path still reports under a low-confidence archetype when every candidate archetype forbids it,
 and waits on the archetype question otherwise.
+
+---
+
+## Guard 15: A consumer the reading cannot see is still a consumer
+
+Every Pass 11 finding is a claim that something is ABSENT, which is the claim a reading gets wrong most
+often. A symbol reached by a mechanism other than a written reference looks unused to the sweep and is
+load-bearing in the running program, so deleting it or demoting its name breaks the library.
+
+Four classes count as consumed even where the reference table holds no row for them, and a candidate
+resting on any of them is DISCARDED:
+
+1. **The curated public API.** A symbol in the distribution's top-level `__init__.py` `__all__` is
+   consumed by downstream code this repository cannot see, so it is never UNUSED_ASSET, never
+   OVER_EXPOSED, and never UNWARRANTED_EXPORT at that level.
+2. **Runtime registration.** A symbol the interpreter or a framework resolves by string or by
+   registration rather than by name is consumed without a written reference. This covers
+   `pyproject.toml` entry points, Click commands and their groups, MCP tool registrations, pytest
+   plugins and conftest fixtures, plugin and dispatch registries, `getattr` and `__getattr__` lookup,
+   serialization fields read from YAML or JSON, enum members matched by value, Unity serialized fields
+   and lifecycle methods, and embedded interrupt and callback registration.
+3. **Interface conformance.** A method implementing an abstract base, satisfying a protocol,
+   overriding a parent, or carrying a dunder name is consumed through the interface rather than
+   through its own name.
+4. **Generated and vendored declarations.** Guard 5 has already removed these files from scope, so a
+   symbol they declare is unjudged rather than unused.
+
+One class runs the other way. A reference from `tests/` is NOT a consumer for any Pass 11 question, so
+it neither promotes a symbol's tier nor rescues it from UNUSED_ASSET. That is the checklists' own rule
+rather than an inference, so quote the clause stating it before reporting a symbol its tests use.
+
+Guard 2 still binds here. Ruff owns unused imports outside `__init__.py` (`F401`), unused locals
+(`F841`), and unused arguments (`ARG`), so this pass reports NONE of the three on its own authority and
+covers what ruff carries no rule for, which is the unused module-level definition and the unused
+member.
+
+---
+
+## Guard 16: A narrowed scope cannot decide an absence
+
+Pass 11 answers every question from the reference table, so the table's coverage IS the pass's
+authority. A run narrowed to a change set has read only the changed files, and a consumer sitting in an
+unread file leaves no row, which turns every unread consumer into a false OVER_EXPOSED,
+UNWARRANTED_EXPORT, or UNUSED_ASSET finding.
+
+Resolve it by widening rather than by guessing. Build the reference table across the whole repository
+even when the sweep is narrowed, because collecting references is a search rather than a full reading
+of every file. Where that widening cannot run, SKIP the pass and record
+`skipped-reference-table-incomplete` in the coverage ledger, because a silent skip reads as a clean
+result nothing ever checked.
+
+The same reasoning binds the audit's own scope. A package-directory target cannot decide the
+cross-package tier of any symbol it holds, so under such a target report UNDER_EXPOSED and
+MISSING_EXPORT alone and record the remaining three as unjudged.

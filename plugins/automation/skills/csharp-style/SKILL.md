@@ -112,7 +112,15 @@ consistency across languages while respecting each language's idiomatic standard
 - `private` marks a member owned by its declaring type, `internal` a member owned by its assembly
 - Any symbol consumed outside its declaring assembly or namespace is made `public` deliberately
 - No code reaches into another type's internals to work around a missing promotion
-- Test assemblies are the sole exception and may access the internals of the code under test
+- The rule binds downward as well, so a member every consumer of which lives inside the declaring type
+  stays `private` and one whose consumers all live inside the assembly stays `internal`. An access
+  modifier is earned by a real consumer at that boundary rather than granted by default
+- An asset with no consumer is removed rather than kept, which covers methods, properties, fields,
+  types, constants, and enum members. The compiler reports an unused private member and reports
+  nothing about an unused `internal` or `public` one, so those are found by reading
+- Test assemblies are the sole exception and may access the internals of the code under test, so a
+  test is not a consumer for any rule above and a member exercised only by its own tests is removed
+  together with those tests
 
 ---
 
@@ -465,6 +473,10 @@ against the code you wrote.
 - [ ] Enum types and values use PascalCase
 - [ ] Access modifiers always explicit (never rely on implicit private)
 - [ ] Symbols consumed outside their declaring assembly or namespace are public, not reached into
+- [ ] Members whose consumers all live inside the declaring type stay private, and those whose consumers all
+      live inside the assembly stay internal (tests are not consumers)
+- [ ] Every asset has a consumer, so methods, properties, fields, types, constants, and enum members that
+      nothing outside the test suite references are removed rather than kept
 - [ ] Using directives at top of file, outside namespace
 - [ ] System directives sorted first
 - [ ] String interpolation used (not string.Format or concatenation)

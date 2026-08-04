@@ -436,6 +436,10 @@ __all__ = [
   package namespace. This covers internal implementation symbols, so a subpackage `__init__.py` may
   export a broader set than the top-level library `__init__.py`, which lists the curated public API
   alone
+- **Bounded exports**: The export list holds the symbols other packages import and no others. A symbol
+  listed while every one of its consumers lives inside the defining package is removed from both the
+  import list and `__all__`. `per-file-ignores` waives `F401` for `**/__init__.py`, so ruff reports
+  nothing here and the export list is checked against the consumer set by reading
 - **Alphabetical sorting**: Sort `__all__` entries alphabetically
 - **One-time configuration logic**: `__init__.py` files may contain logic that benefits from
   being executed exactly once on import (e.g., setting the multiprocessing start method,
