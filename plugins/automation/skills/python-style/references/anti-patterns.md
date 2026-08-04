@@ -8,36 +8,36 @@ Common anti-patterns to avoid and input/output transformation examples for Pytho
 
 Transform code to match project style:
 
-| Input (What you wrote)                 | Output (Correct style)                                         |
-|----------------------------------------|----------------------------------------------------------------|
-| `def calc(x):`                         | `def calculate_value(x: float) -> float:`                      |
-| `pos = get_pos()`                      | `position = get_position()`                                    |
-| `np.zeros((4,), np.float32)`           | `np.zeros((4,), dtype=np.float32)`                             |
-| `# set x to 5`                         | Remove comment (self-explanatory code)                         |
-| `data: NDArray`                        | `data: NDArray[np.float32]`                                    |
-| `"""A class that processes data."""`   | `"""Processes experimental data."""`                           |
-| `"""Whether to enable filtering."""`   | `"""Determines whether to enable filtering."""`                |
-| `raise ValueError("Bad input")`        | `console.error(message="...", error=ValueError)`               |
-| `print("Starting...")`                 | `console.echo(...)` (use `raw=True` for pre-formatted output)  |
-| `time.sleep(0.005)`                    | `timer.delay(delay=5000)` (microseconds)                       |
-| `elapsed = time.time() - start`        | `elapsed = timer.elapsed` (use PrecisionTimer)                 |
-| `f"{elapsed:.2f}s"` for display        | `timer.format_elapsed()` (human-readable)                      |
-| Manual `while` + `time.sleep` polling  | `for cycle in timer.poll(interval=...):`                       |
-| `time.time() - start < timeout`        | `Timeout(duration=...).expired`                                |
-| `datetime.now().strftime("%Y-%m-%d")`  | `get_timestamp(output_format=TimestampFormats.STRING)`         |
-| `datetime.strptime(s, fmt)`            | `parse_timestamp(date_string=s, format_string=fmt)`            |
-| `duration_s = duration_us / 1_000_000` | `convert_time(time=duration_us, from_units=..., to_units=...)` |
-| `interval = 1_000_000 / hz`            | `rate_to_interval(rate=hz)`                                    |
-| `timedelta(seconds=us / 1e6)`          | `to_timedelta(time=us, from_units=TimeUnits.MICROSECOND)`      |
-| `yaml.dump(config.__dict__, file)`     | `config.to_yaml(file_path=path)` (subclass YamlConfig)         |
-| `if flag == True:`                     | `if flag:` (use truthiness)                                    |
-| `if data != None:`                     | `if data is not None:` (use identity)                          |
-| `'single quotes'`                      | `"double quotes"` (enforced by ruff)                           |
-| `"value: %d" % count`                  | `f"value: {count}"` (f-strings only)                           |
-| `raise ValueError(msg)`                | `console.error(message=msg, error=ValueError)`                 |
-| `max(1, os.cpu_count() - 4)`           | `resolve_worker_count()`                                       |
-| `np.array([v], dtype=dt).view(uint8)`  | `convert_scalar_to_bytes(value=v, dtype=dt)`                   |
-| `np.frombuffer(data, dtype=dt)[0]`     | `convert_bytes_to_scalar(data=data, dtype=dt)`                 |
+| Input (What you wrote)                                        | Output (Correct style)                                         |
+|---------------------------------------------------------------|----------------------------------------------------------------|
+| `def calc(x):`                                                | `def calculate_value(x: float) -> float:`                      |
+| `pos = get_pos()`                                             | `position = get_position()`                                    |
+| `np.zeros((4,), np.float32)`                                  | `np.zeros((4,), dtype=np.float32)`                             |
+| `# set x to 5`                                                | Remove comment (self-explanatory code)                         |
+| `data: NDArray`                                               | `data: NDArray[np.float32]`                                    |
+| `"""A class that processes data."""`                          | `"""Processes experimental data."""`                           |
+| `"""Whether to enable filtering."""`                          | `"""Determines whether to enable filtering."""`                |
+| `raise ValueError("Bad input")`, with ataraxis-base-utilities | `console.error(message="...", error=ValueError)`               |
+| `print("Starting...")`                                        | `console.echo(...)` (use `raw=True` for pre-formatted output)  |
+| `time.sleep(0.005)`                                           | `timer.delay(delay=5000)` (microseconds)                       |
+| `elapsed = time.time() - start`                               | `elapsed = timer.elapsed` (use PrecisionTimer)                 |
+| `f"{elapsed:.2f}s"` for display                               | `timer.format_elapsed()` (human-readable)                      |
+| Manual `while` + `time.sleep` polling                         | `for cycle in timer.poll(interval=...):`                       |
+| `time.time() - start < timeout`                               | `Timeout(duration=...).expired`                                |
+| `datetime.now().strftime("%Y-%m-%d")`                         | `get_timestamp(output_format=TimestampFormats.STRING)`         |
+| `datetime.strptime(s, fmt)`                                   | `parse_timestamp(date_string=s, format_string=fmt)`            |
+| `duration_s = duration_us / 1_000_000`                        | `convert_time(time=duration_us, from_units=..., to_units=...)` |
+| `interval = 1_000_000 / hz`                                   | `rate_to_interval(rate=hz)`                                    |
+| `timedelta(seconds=us / 1e6)`                                 | `to_timedelta(time=us, from_units=TimeUnits.MICROSECOND)`      |
+| `yaml.dump(config.__dict__, file)`                            | `config.to_yaml(file_path=path)` (subclass YamlConfig)         |
+| `if flag == True:`                                            | `if flag:` (use truthiness)                                    |
+| `if data != None:`                                            | `if data is not None:` (use identity)                          |
+| `'single quotes'`                                             | `"double quotes"` (enforced by ruff)                           |
+| `"value: %d" % count`                                         | `f"value: {count}"` (f-strings only)                           |
+| `raise ValueError(msg)`, with ataraxis-base-utilities         | `console.error(message=msg, error=ValueError)`                 |
+| `max(1, os.cpu_count() - 4)`                                  | `resolve_worker_count()`                                       |
+| `np.array([v], dtype=dt).view(uint8)`                         | `convert_scalar_to_bytes(value=v, dtype=dt)`                   |
+| `np.frombuffer(data, dtype=dt)[0]`                            | `convert_bytes_to_scalar(data=data, dtype=dt)`                 |
 
 ---
 
@@ -86,19 +86,19 @@ Transform code to match project style:
 
 ## Code anti-patterns
 
-| Anti-Pattern                       | Problem                  | Solution                                       |
-|------------------------------------|--------------------------|------------------------------------------------|
-| `np.zeros((4,), np.float32)`       | Positional dtype arg     | `np.zeros((4,), dtype=np.float32)`             |
-| `raise ValueError(...)`            | Wrong error handling     | `console.error(message=..., error=ValueError)` |
-| `from typing import Optional`      | Old-style optional       | Use `Type \| None`                              |
-| `@numba.njit` without `cache=True` | Recompiles every run     | `@numba.njit(cache=True)`                      |
-| Inconsistent f-string prefixes     | Confusing multi-line     | Use `f` prefix on all lines                    |
-| `'single quotes'`                  | Violates ruff formatting | Use `"double quotes"`                          |
-| `"val: %d" % x` or `.format()`     | Old-style formatting     | Use f-strings exclusively                      |
-| `if flag is True:` / `== True`     | Redundant comparison     | Use truthiness: `if flag:`                     |
-| `if len(items) == 0:`              | Verbose emptiness check  | Use truthiness: `if not items:`                |
-| Deep nesting for validation        | Hard to read             | Use guard clauses with early returns           |
-| Missing `__all__` in `__init__.py` | Unclear public API       | Add alphabetically sorted `__all__`            |
+| Anti-Pattern                                          | Problem                  | Solution                                       |
+|-------------------------------------------------------|--------------------------|------------------------------------------------|
+| `np.zeros((4,), np.float32)`                          | Positional dtype arg     | `np.zeros((4,), dtype=np.float32)`             |
+| `raise ValueError(...)`, with ataraxis-base-utilities | Wrong error handling     | `console.error(message=..., error=ValueError)` |
+| `from typing import Optional`                         | Old-style optional       | Use `Type \| None`                             |
+| `@numba.njit` without `cache=True`                    | Recompiles every run     | `@numba.njit(cache=True)`                      |
+| Inconsistent f-string prefixes                        | Confusing multi-line     | Use `f` prefix on all lines                    |
+| `'single quotes'`                                     | Violates ruff formatting | Use `"double quotes"`                          |
+| `"val: %d" % x` or `.format()`                        | Old-style formatting     | Use f-strings exclusively                      |
+| `if flag is True:` / `== True`                        | Redundant comparison     | Use truthiness: `if flag:`                     |
+| `if len(items) == 0:`                                 | Verbose emptiness check  | Use truthiness: `if not items:`                |
+| Deep nesting for validation                           | Hard to read             | Use guard clauses with early returns           |
+| Missing `__all__` in `__init__.py`                    | Unclear public API       | Add alphabetically sorted `__all__`            |
 
 ---
 

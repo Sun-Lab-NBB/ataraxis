@@ -201,7 +201,8 @@ skip_install = true
 description =
     Combines test-coverage data from multiple test runs (for different python versions) into a single html file and
     verifies that the combined data covers 100% of the measured statements. The file can be viewed by loading the
-    'reports/coverage_html/index.html'.
+    'reports/coverage_html/index.html'. The task also merges the per-version JUnit test-result reports into
+    'reports/pytest.xml' and writes an xml coverage report to the project root.
 deps = ataraxis-automation=={version}
 setenv = COVERAGE_FILE = reports/.coverage
 depends = {py312, py313, py314}-test

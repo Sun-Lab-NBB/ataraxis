@@ -42,6 +42,7 @@ project-root/
 │   │   └── module_test.py
 │   └── module_test.py                # Test files use _test.py suffix
 ├── .gitignore
+├── .netlify-site                  # Netlify site identifier read by the deploy task
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── LICENSE                           # Apache-2.0 license
 ├── pyproject.toml                    # Build config, metadata, tool settings
@@ -109,6 +110,7 @@ project-root/
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitignore
+├── .netlify-site                  # Netlify site identifier read by the deploy task
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── CMakeLists.txt                    # CMake build config for nanobind extension
 ├── Doxyfile                          # Doxygen documentation configuration
@@ -161,6 +163,7 @@ project-root/
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitignore
+├── .netlify-site                  # Netlify site identifier read by the deploy task
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
 ├── library.json                      # PlatformIO library manifest
@@ -210,6 +213,7 @@ project-root/
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitignore
+├── .netlify-site                  # Netlify site identifier read by the deploy task
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
 ├── LICENSE                           # Apache-2.0 license

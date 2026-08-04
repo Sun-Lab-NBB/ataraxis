@@ -131,8 +131,9 @@ platforms." for microcontroller libraries). The **last bullet** must state the l
 
 ## Table of contents
 
-Link to all H2 sections using lowercase Markdown anchors. Always spell "Acknowledgments" (not "Acknowledgements"). Nest
-H3 subsections when present:
+Link to every H2 section that FOLLOWS the Table of Contents, using lowercase Markdown anchors. The Title, Detailed
+Description, Features, and the Table of Contents heading itself sit above it and are not listed. Always spell
+"Acknowledgments" (not "Acknowledgements"). Nest H3 subsections when present:
 
 ```markdown
 ## Table of Contents

@@ -119,8 +119,9 @@ The file and the `deploy` tox environment are one unit, because that environment
 carries both or neither, and a project that builds documentation without hosting it keeps its `docs` environment and
 drops both. See `/tox-config` for the environment.
 
-The `.codegraph/` directory holds a generated code index. It is present only in repositories that have been indexed, and
-its contents are ignored by version control.
+The `.codegraph/` directory holds a generated code index. It is present only in repositories that have been indexed.
+Every file inside it is ignored by version control except its own `.gitignore`, which is tracked so that the exclusion
+travels with the repository.
 
 ### Python-specific root files
 
