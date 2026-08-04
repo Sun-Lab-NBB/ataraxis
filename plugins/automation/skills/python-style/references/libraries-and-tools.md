@@ -84,10 +84,10 @@ CLIs use [Click](https://click.palletsprojects.com/) with consistent patterns ac
 ### Group and command setup
 
 ```python
-CONTEXT_SETTINGS: dict[str, int] = {"max_content_width": 120}
+_CONTEXT_SETTINGS: dict[str, int] = {"max_content_width": 120}
 
 
-@click.group("axvs", context_settings=CONTEXT_SETTINGS)
+@click.group("axvs", context_settings=_CONTEXT_SETTINGS)
 def axvs_cli() -> None:
     """Manages video capture sessions and camera configurations."""
 

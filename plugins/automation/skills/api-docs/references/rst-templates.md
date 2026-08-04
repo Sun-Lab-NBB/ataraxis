@@ -49,7 +49,8 @@ Welcome to <PROJECT_NAME> API documentation page
 This library is part of the `Ataraxis <https://github.com/Sun-Lab-NBB/ataraxis>`_ framework for AI-assisted scientific
 hardware control, developed in the `Sun (NeuroAI) lab <https://neuroai.github.io/sunlab/>`_ at Cornell University.
 
-This website only contains the API documentation for the classes and methods offered by this library. See the project
+This website contains the API documentation for the classes and methods offered by this library, together with the
+reference for every command exposed by its command-line interface where the project declares one. See the project
 GitHub repository for installation instructions and library usage examples:
 `<PROJECT_NAME> GitHub repository <https://github.com/Sun-Lab-NBB/<PROJECT_NAME>>`_.
 

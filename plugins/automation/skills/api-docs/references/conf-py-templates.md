@@ -11,14 +11,14 @@ Use this template for projects containing only Python source code.
 
 ```python
 # Configuration file for the Sphinx documentation builder.
-import importlib_metadata
+import importlib.metadata
 
 # -- Project information -----------------------------------------------------
 project = '<PROJECT_NAME>'
 copyright = '<YEAR>, Sun (NeuroAI) lab'
 author = '<AUTHOR>'
 # Extracts the project version from the metadata .toml file.
-release = importlib_metadata.version("<PROJECT_NAME>")
+release = importlib.metadata.version("<PROJECT_NAME>")
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -134,14 +134,14 @@ Breathe integration.
 
 ```python
 # Configuration file for the Sphinx documentation builder.
-import importlib_metadata
+import importlib.metadata
 
 # -- Project information -----------------------------------------------------
 project = '<PROJECT_NAME>'
 copyright = '<YEAR>, Sun (NeuroAI) lab'
 author = '<AUTHOR>'
 # Extracts the project version from the .toml file.
-release = importlib_metadata.version("<PROJECT_NAME>")
+release = importlib.metadata.version("<PROJECT_NAME>")
 
 # -- General configuration ---------------------------------------------------
 extensions = [

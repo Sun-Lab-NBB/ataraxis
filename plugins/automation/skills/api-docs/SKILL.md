@@ -165,16 +165,14 @@ MUST NOT add Sphinx or documentation dependencies directly to downstream project
 
 ### conf.py rules
 
-- Version extraction MUST use the `importlib_metadata` backport for Python and hybrid projects. C++-only projects
-  hardcode the version string.
-- The import MUST be written as `import importlib_metadata` and the call MUST stay module-qualified, as
-  `importlib_metadata.version()`. Sphinx reads every module-level name in `conf.py` that matches a configuration key,
-  and `version` is such a key, so the `from importlib_metadata import version` form would make Sphinx adopt the function
+- Version extraction MUST use the standard library `importlib.metadata` for Python and hybrid projects. C++-only
+  projects hardcode the version string.
+- The import MUST be written as `import importlib.metadata` and the call MUST stay module-qualified, as
+  `importlib.metadata.version()`. Sphinx reads every module-level name in `conf.py` that matches a configuration key,
+  and `version` is such a key, so the `from importlib.metadata import version` form would make Sphinx adopt the function
   object as the project version.
-- `importlib_metadata` reaches `conf.py` through `ataraxis-automation`, which bundles it alongside every other
-  documentation dependency. A downstream project declares it only when its own runtime code imports it. A `conf.py` that
-  reads the backport while nothing in the project's dependency tree requires it still builds, until an unrelated bump
-  drops the transitive copy. Treat the undeclared runtime import as the defect.
+- `importlib.metadata` has been in the standard library since Python 3.8, and every project the framework supports
+  declares `requires-python = ">=3.12"`, so the module is always importable and no project declares a dependency for it.
 - Copyright format: `'YEAR, Sun (NeuroAI) lab'` where YEAR is the current year.
 - `author` is the only author key Sphinx defines and it holds a string, so a multi-author project joins the names into
   that one string. A plural `authors` key and a list value both parse without error and reach no template, leaving the
@@ -337,9 +335,7 @@ every one against the files you wrote.
 - [ ] Documentation archetype correctly identified (Python-only, C++-only, or hybrid)
 - [ ] Directory structure matches convention (docs/source/ with conf.py, index.rst, welcome.rst, api.rst)
 - [ ] conf.py uses correct extension stack for the archetype
-- [ ] Version extracted via module-qualified importlib_metadata (Python/hybrid) or hardcoded (C++-only)
-- [ ] importlib_metadata reaches conf.py through ataraxis-automation, and is declared by the project only when
-      its own runtime code imports it
+- [ ] Version extracted via module-qualified importlib.metadata (Python/hybrid) or hardcoded (C++-only)
 - [ ] Copyright uses current year and 'Sun (NeuroAI) lab' format
 - [ ] Author declared as the singular `author` key holding one string (no plural `authors` key, no list value)
 - [ ] Napoleon configured for Google-style only (numpy disabled)

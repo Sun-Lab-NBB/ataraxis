@@ -66,7 +66,7 @@ Set `target-version` to the **lowest** supported Python version for the project 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
-skip-magic-trailing-comma = false  # Like black, ignores trailing commas
+skip-magic-trailing-comma = false  # Like black, honors magic trailing commas
 line-ending = "auto"               # Automatically detects and standardizes line-ending character
 ```
 
@@ -269,7 +269,7 @@ extra_checks = true
 pretty = true
 
 exclude = [
-    "project-name-\\d+",  # The temporary folder setuptools creates when building the sdist
+    "project-name-\\d+",  # The temporary folder created when building the sdist
     "venv.*/",
     "build/",
     "dist/",
@@ -293,7 +293,7 @@ disallow_untyped_defs = true # Enforces function annotation
 warn_unused_ignores = true   # Warns against using 'type: ignore' for packages with type stubs
 
 exclude = [
-    "project-name-\\d+",  # The temporary folder setuptools creates when building the sdist
+    "project-name-\\d+",  # The temporary folder created when building the sdist
     "venv.*/",
     "build/",
     "dist/",

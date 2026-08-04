@@ -142,7 +142,7 @@ on fresh CI checkouts alone.
 ```ini
 [testenv:stubs]
 description =
-    Generates the py.typed marker and the .pyi stub files using the project's wheel distribution.
+    Generates the py.typed marker and the .pyi stub files using the project's sdist distribution.
 depends = lint
 dependency_groups = dev
 commands =
@@ -190,11 +190,12 @@ commands =
 ### coverage environment
 
 ```ini
-# Note: the 'xml' and 'html' commands run with '--fail-under=0' so that both reports are always written to the 'reports'
-# directory. The trailing 'report' command applies the 100% coverage gate configured in the pyproject.toml file and
-# prints the statements that remain uncovered. Every reporting command also combines any data files it finds, so all of
-# them run with '--keep-combined' to preserve the per-version data files consumed by the 'combine' command. Without the
-# flag, the first reporting command deletes those files and the task only succeeds once per test run.
+# Note: the 'xml' and 'html' commands run with '--fail-under=0' so that both reports are always written, the html
+# report to the 'reports' directory and the xml report to the project root. The trailing 'report' command applies the
+# 100% coverage gate configured in the pyproject.toml file and prints the statements that remain uncovered. Every
+# reporting command also combines any data files it finds, so all of them run with '--keep-combined' to preserve the
+# per-version data files consumed by the 'combine' command. Without the flag, the first reporting command deletes those
+# files and the task only succeeds once per test run.
 [testenv:coverage]
 skip_install = true
 description =
@@ -272,10 +273,12 @@ commands =
 [testenv:build]
 skip_install = true
 description =
-    Builds the project's source code distribution (sdist) and binary distribution (wheel).
+    Builds the project's source code distribution (sdist) and binary distribution (wheel), clearing the 'dist'
+    directory beforehand so that artifacts built for an earlier version cannot be carried into the upload task.
 deps = ataraxis-automation=={version}
 allowlist_externals = docker
 commands =
+    python -c "import shutil; shutil.rmtree('dist', ignore_errors=True)"
     python -m build . --sdist
     python -m build . --wheel
 ```
@@ -286,10 +289,12 @@ commands =
 [testenv:build]
 skip_install = true
 description =
-    Builds the project's source code distribution (sdist) and binary distribution (wheel).
+    Builds the project's source code distribution (sdist) and binary distribution (wheel), clearing the 'dist'
+    directory beforehand so that artifacts built for an earlier version cannot be carried into the upload task.
 deps = ataraxis-automation=={version}
 allowlist_externals = docker
 commands =
+    python -c "import shutil; shutil.rmtree('dist', ignore_errors=True)"
     python -m build . --sdist
     cibuildwheel --output-dir dist --platform auto
 ```
@@ -302,7 +307,8 @@ commands =
 [testenv:upload]
 skip_install = true
 description =
-    Uses twine to upload all files inside the project's 'dist' directory to PyPI.
+    Uses twine to upload the wheel ('*.whl') and source ('*.tar.gz') distributions found inside the
+    project's 'dist' directory to PyPI.
 deps = ataraxis-automation=={version}
 commands =
     automation-cli acquire-pypi-token {posargs:}
