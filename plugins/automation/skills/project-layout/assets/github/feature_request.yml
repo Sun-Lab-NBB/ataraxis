@@ -14,7 +14,7 @@ body:
     id: solution
     attributes:
       label: Proposed solution
-      description: The behavior you want the project to support, described from the perspective of the one using it.
+      description: The behavior you want the project to support, described from the user's perspective.
     validations:
       required: true
 

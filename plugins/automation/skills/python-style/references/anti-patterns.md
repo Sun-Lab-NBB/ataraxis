@@ -8,50 +8,50 @@ Common anti-patterns to avoid and input/output transformation examples for Pytho
 
 Transform code to match project style:
 
-| Input (What you wrote)                 | Output (Correct style)                                         |
-|----------------------------------------|----------------------------------------------------------------|
-| `def calc(x):`                         | `def calculate_value(x: float) -> float:`                      |
-| `pos = get_pos()`                      | `position = get_position()`                                    |
-| `np.zeros((4,), np.float32)`           | `np.zeros((4,), dtype=np.float32)`                             |
-| `# set x to 5`                         | Remove comment (self-explanatory code)                         |
-| `data: NDArray`                        | `data: NDArray[np.float32]`                                    |
-| `"""A class that processes data."""`   | `"""Processes experimental data."""`                           |
-| `"""Whether to enable filtering."""`   | `"""Determines whether to enable filtering."""`                |
-| `raise ValueError("Bad input")`        | `console.error(message="...", error=ValueError)`               |
-| `print("Starting...")`                 | `console.echo(...)` (use `raw=True` for pre-formatted output)  |
-| `time.sleep(0.005)`                    | `timer.delay(delay=5000)` (microseconds)                       |
-| `elapsed = time.time() - start`        | `elapsed = timer.elapsed` (use PrecisionTimer)                 |
-| `f"{elapsed:.2f}s"` for display        | `timer.format_elapsed()` (human-readable)                      |
-| Manual `while` + `time.sleep` polling  | `for cycle in timer.poll(interval=...):`                       |
-| `time.time() - start < timeout`        | `Timeout(duration=...).expired`                                |
-| `datetime.now().strftime("%Y-%m-%d")`  | `get_timestamp(output_format=TimestampFormats.STRING)`         |
-| `datetime.strptime(s, fmt)`            | `parse_timestamp(date_string=s, format_string=fmt)`            |
-| `duration_s = duration_us / 1_000_000` | `convert_time(time=duration_us, from_units=..., to_units=...)` |
-| `interval = 1_000_000 / hz`            | `rate_to_interval(rate=hz)`                                    |
-| `timedelta(seconds=us / 1e6)`          | `to_timedelta(time=us, from_units=TimeUnits.MICROSECOND)`      |
-| `yaml.dump(config.__dict__, file)`     | `config.to_yaml(file_path=path)` (subclass YamlConfig)         |
-| `if flag == True:`                     | `if flag:` (use truthiness)                                    |
-| `if data != None:`                     | `if data is not None:` (use identity)                          |
-| `'single quotes'`                      | `"double quotes"` (enforced by ruff)                           |
-| `"value: %d" % count`                  | `f"value: {count}"` (f-strings only)                           |
-| `raise ValueError(msg)`                | `console.error(message=msg, error=ValueError)`                 |
-| `max(1, os.cpu_count() - 4)`           | `resolve_worker_count()`                                       |
-| `np.array([v], dtype=dt).view(uint8)`  | `convert_scalar_to_bytes(value=v, dtype=dt)`                   |
-| `np.frombuffer(data, dtype=dt)[0]`     | `convert_bytes_to_scalar(data=data, dtype=dt)`                 |
+| Input (What you wrote)                                        | Output (Correct style)                                         |
+|---------------------------------------------------------------|----------------------------------------------------------------|
+| `def calc(x):`                                                | `def calculate_value(x: float) -> float:`                      |
+| `pos = get_pos()`                                             | `position = get_position()`                                    |
+| `np.zeros((4,), np.float32)`                                  | `np.zeros((4,), dtype=np.float32)`                             |
+| `# set x to 5`                                                | Remove comment (self-explanatory code)                         |
+| `data: NDArray`                                               | `data: NDArray[np.float32]`                                    |
+| `"""A class that processes data."""`                          | `"""Processes experimental data."""`                           |
+| `"""Whether to enable filtering."""`                          | `"""Determines whether to enable filtering."""`                |
+| `raise ValueError("Bad input")`, with ataraxis-base-utilities | `console.error(message="...", error=ValueError)`               |
+| `print("Starting...")`                                        | `console.echo(...)` (use `raw=True` for pre-formatted output)  |
+| `time.sleep(0.005)`                                           | `timer.delay(delay=5000)` (microseconds)                       |
+| `elapsed = time.time() - start`                               | `elapsed = timer.elapsed` (use PrecisionTimer)                 |
+| `f"{elapsed:.2f}s"` for display                               | `timer.format_elapsed()` (human-readable)                      |
+| Manual `while` + `time.sleep` polling                         | `for cycle in timer.poll(interval=...):`                       |
+| `time.time() - start < timeout`                               | `Timeout(duration=...).expired`                                |
+| `datetime.now().strftime("%Y-%m-%d")`                         | `get_timestamp(output_format=TimestampFormats.STRING)`         |
+| `datetime.strptime(s, fmt)`                                   | `parse_timestamp(date_string=s, format_string=fmt)`            |
+| `duration_s = duration_us / 1_000_000`                        | `convert_time(time=duration_us, from_units=..., to_units=...)` |
+| `interval = 1_000_000 / hz`                                   | `rate_to_interval(rate=hz)`                                    |
+| `timedelta(seconds=us / 1e6)`                                 | `to_timedelta(time=us, from_units=TimeUnits.MICROSECOND)`      |
+| `yaml.dump(config.__dict__, file)`                            | `config.to_yaml(file_path=path)` (subclass YamlConfig)         |
+| `if flag == True:`                                            | `if flag:` (use truthiness)                                    |
+| `if data != None:`                                            | `if data is not None:` (use identity)                          |
+| `'single quotes'`                                             | `"double quotes"` (enforced by ruff)                           |
+| `"value: %d" % count`                                         | `f"value: {count}"` (f-strings only)                           |
+| `raise ValueError(msg)`, with ataraxis-base-utilities         | `console.error(message=msg, error=ValueError)`                 |
+| `max(1, os.cpu_count() - 4)`                                  | `resolve_worker_count()`                                       |
+| `np.array([v], dtype=dt).view(uint8)`                         | `convert_scalar_to_bytes(value=v, dtype=dt)`                   |
+| `np.frombuffer(data, dtype=dt)[0]`                            | `convert_bytes_to_scalar(data=data, dtype=dt)`                 |
 
 ---
 
 ## Documentation anti-patterns
 
-| Anti-Pattern                         | Problem                     | Solution                                |
-|--------------------------------------|-----------------------------|-----------------------------------------|
-| `"""A class that processes data."""` | Noun phrase, not imperative | `"""Processes experimental data."""`    |
-| Bullet lists in docstrings           | Breaks prose flow           | Use complete sentences instead          |
-| `# Set x to 5` before `x = 5`        | States the obvious          | Remove or explain *why*                 |
-| Missing dtype in `NDArray`           | Type checking fails         | Always specify `NDArray[np.float32]`    |
-| `Whether to...` for bool params      | Incomplete phrasing         | Use `Determines whether to...`          |
-| `# ======` section separators        | Visual clutter              | Use blank lines to separate sections    |
-| `:class:` in non-MCP docstrings      | Humans parse prose better   | Use prose; specifiers in MCP tools only |
+| Anti-Pattern                         | Problem                     | Solution                                     |
+|--------------------------------------|-----------------------------|----------------------------------------------|
+| `"""A class that processes data."""` | Noun phrase, not imperative | `"""Processes experimental data."""`         |
+| Bullet lists in docstrings           | Breaks prose flow           | Use complete sentences instead               |
+| `# Set x to 5` before `x = 5`        | States the obvious          | Remove or explain *why*                      |
+| Missing dtype in `NDArray`           | Type checking fails         | Always specify `NDArray[np.float32]`         |
+| `Whether to...` for bool params      | Incomplete phrasing         | Use `Determines whether to...`               |
+| `# ======` section separators        | Visual clutter              | Use blank lines to separate sections         |
+| `:class:` in non-MCP docstrings      | Humans parse prose better   | Use prose, with specifiers in MCP tools only |
 
 ---
 
@@ -67,6 +67,9 @@ Transform code to match project style:
 | Stale issue numbers in comments             | Misleading after issue closure | Remove or update with current reference             |
 | Typos and grammar errors in comments        | Signals unreviewed prose       | Proofread comments and docstrings before submission |
 | Comments narrate what code obviously does   | Adds noise, no signal          | Remove or explain why the code does what it does    |
+| Extended description on a self-evident body | Padding the reader skips       | Keep the summary line alone unless a fact is earned |
+| `# Now also handles the empty case`         | Records the edit, not the code | State current behavior, leave history to the commit |
+| Docstring grown on every edit               | Ratchets toward unreadable     | Rewrite in place, delete what the change made moot  |
 
 ---
 
@@ -83,19 +86,19 @@ Transform code to match project style:
 
 ## Code anti-patterns
 
-| Anti-Pattern                       | Problem                  | Solution                                       |
-|------------------------------------|--------------------------|------------------------------------------------|
-| `np.zeros((4,), np.float32)`       | Positional dtype arg     | `np.zeros((4,), dtype=np.float32)`             |
-| `raise ValueError(...)`            | Wrong error handling     | `console.error(message=..., error=ValueError)` |
-| `from typing import Optional`      | Old-style optional       | Use `Type \| None`                             |
-| `@numba.njit` without `cache=True` | Recompiles every run     | `@numba.njit(cache=True)`                      |
-| Inconsistent f-string prefixes     | Confusing multi-line     | Use `f` prefix on all lines                    |
-| `'single quotes'`                  | Violates ruff formatting | Use `"double quotes"`                          |
-| `"val: %d" % x` or `.format()`     | Old-style formatting     | Use f-strings exclusively                      |
-| `if flag is True:` / `== True`     | Redundant comparison     | Use truthiness: `if flag:`                     |
-| `if len(items) == 0:`              | Verbose emptiness check  | Use truthiness: `if not items:`                |
-| Deep nesting for validation        | Hard to read             | Use guard clauses with early returns           |
-| Missing `__all__` in `__init__.py` | Unclear public API       | Add alphabetically sorted `__all__`            |
+| Anti-Pattern                                          | Problem                  | Solution                                       |
+|-------------------------------------------------------|--------------------------|------------------------------------------------|
+| `np.zeros((4,), np.float32)`                          | Positional dtype arg     | `np.zeros((4,), dtype=np.float32)`             |
+| `raise ValueError(...)`, with ataraxis-base-utilities | Wrong error handling     | `console.error(message=..., error=ValueError)` |
+| `from typing import Optional`                         | Old-style optional       | Use `Type \| None`                             |
+| `@numba.njit` without `cache=True`                    | Recompiles every run     | `@numba.njit(cache=True)`                      |
+| Inconsistent f-string prefixes                        | Confusing multi-line     | Use `f` prefix on all lines                    |
+| `'single quotes'`                                     | Violates ruff formatting | Use `"double quotes"`                          |
+| `"val: %d" % x` or `.format()`                        | Old-style formatting     | Use f-strings exclusively                      |
+| `if flag is True:` / `== True`                        | Redundant comparison     | Use truthiness: `if flag:`                     |
+| `if len(items) == 0:`                                 | Verbose emptiness check  | Use truthiness: `if not items:`                |
+| Deep nesting for validation                           | Hard to read             | Use guard clauses with early returns           |
+| Missing `__all__` in `__init__.py`                    | Unclear public API       | Add alphabetically sorted `__all__`            |
 
 ---
 
@@ -129,15 +132,15 @@ Transform code to match project style:
 
 ## Comment anti-patterns
 
-| Anti-Pattern                                 | Problem                        | Solution                                    |
-|----------------------------------------------|--------------------------------|---------------------------------------------|
-| `# This function sends...`                   | First-person/third-person noun | `# Sends...` (third-person imperative)      |
-| `# ========================`                 | Visual clutter                 | Remove separator; use blank lines instead   |
-| `# ---- Section ----`                        | Visual clutter                 | Remove separator; use blank lines instead   |
-| End-of-line comment on complex logic         | Hard to scan                   | Place comment above the code block          |
-| `x = 5  # Set x to 5`                        | States the obvious             | Remove or explain *why*                     |
-| Adding docstrings to code not written by you | Unnecessary churn              | Only document your changes                  |
-| Type annotations as comments (`# type: int`) | Redundant                      | Use actual type hints in the signature      |
+| Anti-Pattern                                 | Problem                     | Solution                                 |
+|----------------------------------------------|-----------------------------|------------------------------------------|
+| `# This function sends...`                   | Not third-person imperative | `# Sends...` (third-person imperative)   |
+| `# ========================`                 | Visual clutter              | Remove the separator and use blank lines |
+| `# ---- Section ----`                        | Visual clutter              | Remove the separator and use blank lines |
+| End-of-line comment on complex logic         | Hard to scan                | Place comment above the code block       |
+| `x = 5  # Set x to 5`                        | States the obvious          | Remove or explain *why*                  |
+| Adding docstrings to code not written by you | Unnecessary churn           | Only document your changes               |
+| Type annotations as comments (`# type: int`) | Redundant                   | Use actual type hints in the signature   |
 
 ---
 
@@ -152,6 +155,6 @@ These anti-patterns drift toward C++ or C# conventions that do not apply in Pyth
 | `static constexpr` style `TIMEOUT = 100`   | `_TIMEOUT: int = 100` with inline docstring   | Module-level constant with type     |
 | `enum class` style `class Status(Enum):`   | `class Status(StrEnum):` or `(IntEnum):`      | Use StrEnum/IntEnum, not bare Enum  |
 | `/// Doxygen @brief comment`               | `"""Google-style docstring."""`               | Docstrings, not Doxygen             |
-| `// NOLINT` style `# type: ignore`         | `# noqa: CODE` with specific error code       | Specific suppression codes          |
+| `// NOLINT` style bare `# type: ignore`    | `# type: ignore[code]` with the error code    | Specific suppression codes          |
 | `_camelCase` for private members           | `_snake_case` for private members             | snake_case, not camelCase           |
 | `self.publicField` (C# camelCase)          | `self._private_field` or public via property  | Private with `_` prefix             |

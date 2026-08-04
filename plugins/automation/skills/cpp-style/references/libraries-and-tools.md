@@ -1,14 +1,14 @@
 # Libraries, tools, and project patterns
 
-Conventions for Arduino/PlatformIO development, Python C++ extensions (nanobind), clang-format,
-clang-tidy, Doxygen builds, testing, and project-specific constraints in C++ projects.
+Conventions for Arduino/PlatformIO development, Python C++ extensions (nanobind), clang-format, clang-tidy, Doxygen
+builds, testing, and project-specific constraints in C++ projects.
 
 ---
 
 ## Embedded constraints
 
-C++ projects target Arduino-compatible microcontrollers (primarily Teensy 4.1) via
-PlatformIO. The embedded environment imposes strict constraints that differ from desktop C++.
+C++ projects target Arduino-compatible microcontrollers (primarily Teensy 4.1) via PlatformIO. The embedded environment
+imposes strict constraints that differ from desktop C++.
 
 ### Prohibited features
 
@@ -16,7 +16,7 @@ The following C++ features are **prohibited** in embedded code:
 
 | Feature             | Reason                                                               | Alternative                    |
 |---------------------|----------------------------------------------------------------------|--------------------------------|
-| Exceptions          | Non-deterministic runtime cost; often disabled in embedded compilers | Status codes, boolean returns  |
+| Exceptions          | Non-deterministic runtime cost, often disabled in embedded compilers | Status codes, boolean returns  |
 | Dynamic allocation  | `new`/`delete` cause heap fragmentation and non-deterministic timing | Static allocation, templates   |
 | RTTI                | `dynamic_cast`/`typeid` add runtime overhead                         | `static_cast`, `static_assert` |
 | STL containers      | `std::vector`, `std::map` etc. use heap allocation                   | Fixed-size arrays, templates   |
@@ -60,14 +60,13 @@ inline constexpr bool is_same_v = is_same<T, U>::value;
 
 ### File organization
 
-For complete directory trees for PlatformIO library and firmware projects, invoke
-`/project-layout`.
+For complete directory trees for PlatformIO library and firmware projects, invoke `/project-layout`.
 
 ### Header-only libraries
 
-C++ libraries are **header-only**. All code resides in `.h` files with no separate `.cpp`
-implementation files. This simplifies distribution via PlatformIO's library dependency system and
-enables full template specialization at compile time.
+C++ libraries are **header-only**. All code resides in `.h` files with no separate `.cpp` implementation files. This
+simplifies distribution via PlatformIO's library dependency system and enables full template specialization at compile
+time.
 
 ### main.cpp conventions
 
@@ -117,8 +116,8 @@ void loop()
 
 ### NOLINT for global initialization
 
-Global object instantiation with non-trivial constructors triggers
-`cppcoreguidelines-interfaces-global-init`. Suppress with an inline comment:
+Global object instantiation with non-trivial constructors triggers `cppcoreguidelines-interfaces-global-init`. Suppress
+with an inline comment:
 
 ```cpp
 Communication axmc_communication(Serial);  // NOLINT(*-interfaces-global-init)
@@ -127,8 +126,8 @@ TransportLayer<> tl_class(Serial);         // NOLINT(*-interfaces-global-init)
 
 ### Conditional compilation
 
-Use `#define` / `#ifdef` / `#elif defined` / `#else` / `#endif` for hardware variant selection.
-Include a `static_assert(false, ...)` in the `#else` branch to catch missing target definitions:
+Use `#define` / `#ifdef` / `#elif defined` / `#else` / `#endif` for hardware variant selection. Include a
+`static_assert(false, ...)` in the `#else` branch to catch missing target definitions:
 
 ```cpp
 #ifdef ACTOR
@@ -144,12 +143,11 @@ static_assert(false, "Define one of the supported microcontroller targets.");
 
 ## clang-format configuration
 
-C++ projects use a shared `.clang-format` configuration based on the Google style with
-extensive customization for cross-language visual consistency with Python (Black formatter).
+C++ projects use a shared `.clang-format` configuration based on the Google style with extensive customization for
+cross-language visual consistency with Python (Black formatter).
 
-The canonical `.clang-format` files are stored in `assets/embedded/` (for PlatformIO projects)
-and `assets/extension/` (for nanobind projects). The only differences between them are
-`AccessModifierOffset` and `IndentAccessModifiers`.
+The canonical `.clang-format` files are stored in `assets/embedded/` (for PlatformIO projects) and `assets/extension/`
+(for nanobind projects). The only differences between them are `AccessModifierOffset` and `IndentAccessModifiers`.
 
 ### Running clang-format
 
@@ -165,14 +163,12 @@ clang-format --dry-run --Werror src/*.h src/*.cpp
 
 ## clang-tidy configuration
 
-C++ projects use clang-tidy with `WarningsAsErrors: '*'`, treating all enabled warnings
-as build-breaking errors. The canonical configuration is stored in `assets/.clang-tidy` and is
-shared across both embedded and extension archetypes.
+C++ projects use clang-tidy with `WarningsAsErrors: '*'`, treating all enabled warnings as build-breaking errors. The
+canonical configuration is stored in `assets/.clang-tidy` and is shared across both embedded and extension archetypes.
 
 ### Suppressing warnings
 
-When a clang-tidy warning is a false positive, suppress it with `// NOLINT` and a specific
-check pattern:
+When a clang-tidy warning is a false positive, suppress it with `// NOLINT` and a specific check pattern:
 
 ```cpp
 // Suppress specific check
@@ -189,18 +185,16 @@ Rules:
 
 ### IDE inspection directives
 
-IDE-specific inspection-suppression comments (e.g., CLion/ReSharper `// noinspection` or `// ReSharper disable`
-lines) are NOT used and MUST be removed when encountered. clang-tidy is the authoritative linter; only its
-`// NOLINT(<check>)` suppressions bear weight and MUST be preserved.
+IDE-specific inspection-suppression comments (e.g., CLion/ReSharper `// noinspection` or `// ReSharper disable` lines)
+are NOT used and MUST be removed when encountered. clang-tidy is the authoritative linter. Only its `// NOLINT(<check>)`
+suppressions bear weight and MUST be preserved.
 
 ### Resolution policy
 
 Prefer resolving clang-tidy warnings over suppressing them, unless the resolution would:
-- Make the code unnecessarily complex
+- Add a branch, a cast, or a helper that exists only to satisfy the check
 - Hurt performance by adding redundant checks
-- Harm codebase readability instead of helping it
-
-This matches the Python convention for ruff and mypy resolution.
+- Force a rename or a restructuring that leaves the code harder to read than the warning it removes
 
 ### Magic numbers
 
@@ -216,8 +210,7 @@ if (buffer_size < kMinimumPacketSize) { ... }
 if (buffer_size < 5) { ... }
 ```
 
-For values that are inherently clear from context (array indices, bit shifts, common factors),
-suppression with `// NOLINT` and a comment is acceptable.
+For array indices, bit shifts, and common factors, suppression with `// NOLINT` and a comment is acceptable.
 
 ### Running clang-tidy
 
@@ -233,40 +226,23 @@ clang-tidy --fix src/*.h src/*.cpp -- -I include/
 
 ## Doxygen documentation builds
 
-C++ libraries use Doxygen for API documentation, integrated with Sphinx via the Breathe
-extension. The Doxyfile is at the project root. For Sphinx/Breathe configuration conventions,
-invoke `/api-docs`.
-
-### Running Doxygen
-
-```bash
-# Generate XML output for Breathe consumption
-doxygen Doxyfile
-
-# The XML output is typically directed to docs/source/doxygen/xml/
-```
+C++ libraries use Doxygen for API documentation, integrated with Sphinx via the Breathe extension. For the Doxyfile, the
+build command, and the Sphinx/Breathe configuration conventions, invoke `/api-docs`.
 
 ---
 
 ## Testing conventions
 
-### PlatformIO native tests
+### PlatformIO test layout
 
-PlatformIO supports native and embedded unit tests:
-
-```text
-test/
-├── test_cobs/
-│   └── test_cobs.cpp
-├── test_crc/
-│   └── test_crc.cpp
-└── test_transport/
-    └── test_transport.cpp
-```
+Teensy boards drop the serial connection between separately built test suites, so every test in a library lives in one
+flat test file directly under `test/`, named after the component it covers. For that directory tree, invoke
+`/project-layout`.
 
 ### Test file naming
 
-Test files use the pattern `test_<component>.cpp`:
+Test files use the pattern `test_<component>.cpp` and run under the Arduino framework, which supplies its own `main()`.
+Tests are therefore registered in `RunUnityTests()` and executed from `setup()`:
 
 ```cpp
 /**
@@ -275,27 +251,90 @@ Test files use the pattern `test_<component>.cpp`:
  * @brief Verifies the behavior of the COBSProcessor encode and decode methods.
  */
 
-#include <cobs_processor.h>
-#include <unity.h>
+#include <Arduino.h>
+#include <unity.h>  // This is the C testing framework, no connection to the Unity game engine
+#include "cobs_processor.h"
 
+/// Called automatically before each test function. Currently unused.
+void setUp()
+{}
+
+/// Called automatically after each test function. Currently unused.
+void tearDown()
+{}
+
+/// Verifies the COBSProcessor EncodePayload() method.
 void test_encode_empty_payload()
 {
     // Arrange, Act, Assert
 }
 
+/// Verifies the COBSProcessor DecodePayload() method.
 void test_decode_valid_packet()
 {
     // Arrange, Act, Assert
 }
 
-int main()
+/// Specifies the test functions to be executed and controls their runtime.
+int RunUnityTests()
 {
     UNITY_BEGIN();
+
+    // COBS Processor
     RUN_TEST(test_encode_empty_payload);
     RUN_TEST(test_decode_valid_packet);
+
     return UNITY_END();
 }
+
+// Defines the baud rates for different boards.
+
+// For Arduino Due, the maximum non-doubled stable rate is 5.25 Mbps at 84 MHz cpu clock.
+#if defined(ARDUINO_SAM_DUE)
+static constexpr uint32_t kSerialBaudRate = 5250000;
+
+// For Uno, Mega, and other 16 MHz AVR boards, the maximum stable non-doubled rate is 1 Mbps.
+#elif defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA) ||  \
+    defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega2560__) || \
+    defined(__AVR_ATmega168__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega16U4__)
+static constexpr uint32_t kSerialBaudRate = 1000000;
+
+// For all other boards the default 9600 rate is used.
+#else
+static constexpr uint32_t kSerialBaudRate = 9600;
+#endif
+
+/// Runs all tests inside setup() as required by the Arduino framework for one-shot testing.
+void setup()
+{
+    // Starts the serial connection.
+    Serial.begin(kSerialBaudRate);
+
+    // Waits ~2 seconds for the Unity test runner to establish the connection with the board Serial interface. For
+    // teensy, this is less important, since it uses a USB interface which does not reset the board on connection.
+    delay(2000);
+
+    // Runs the required tests.
+    RunUnityTests();
+
+    // Stops the serial communication interface.
+    Serial.end();
+}
+
+/// Intentionally empty. All tests run in setup() as one-shot operations.
+void loop()
+{}
 ```
+
+### Harness rules
+
+- Declare `setUp()` and `tearDown()` even when both are empty, as Unity calls them around every test
+- Register every test with `RUN_TEST` inside `RunUnityTests()`, grouped by the class or method under test
+- Resolve the baud rate through a per-board preprocessor block and pass the result to `Serial.begin()`
+- Call `RunUnityTests()` from `setup()` and leave `loop()` empty
+- Do NOT declare `int main()` in Arduino test files, where it belongs to a native test environment only. The Arduino
+  core supplies `main()` from a static archive, so a test file that declares its own replaces it and the suite reports
+  zero executed tests instead of failing to build
 
 ### Test naming
 
@@ -311,16 +350,13 @@ void test_send_data_exceeds_buffer_size()
 
 - Use `@file` and `@brief` at the file level with "Verifies..." imperative
 - Use comments to describe test intent when not obvious from the name
-- Do NOT add `@param`, `@returns`, or `@throws` tags to test functions. The `@file` and
-  `@brief` tags are sufficient. This matches the Python convention of omitting Args, Returns,
-  and Raises sections from test function docstrings
+- Do NOT add `@param`, `@returns`, or `@throws` tags to test functions. The `@file` and `@brief` tags are sufficient
 
 ---
 
 ## I/O separation
 
-Separate I/O operations from processing logic for testability and reuse. This matches the
-Python and C# convention and is most relevant for extension code:
+Separate I/O operations from processing logic for testability and reuse. This is most relevant for extension code:
 
 ```cpp
 // Good - I/O separated from logic
@@ -351,7 +387,8 @@ int64_t ReadAndComputeElapsed() const
 
 - I/O functions should only perform I/O (read hardware, write serial, access files)
 - Processing functions should take standard data types and return standard data types
-- In embedded code, this separation is limited by hardware constraints — apply where practical
+- In embedded code, hardware constraints limit this separation, so apply it wherever the hardware access can be lifted
+  into its own method without changing the order the hardware requires
 - In extension code, this separation enables easier unit testing without hardware dependencies
 
 ---
@@ -376,8 +413,8 @@ analogReadResolution(12);  // 12-bit resolution (0-4095)
 
 ### Non-blocking patterns
 
-All runtime code must be non-blocking to allow the kernel to service multiple modules. Never use
-blocking waits in the main loop:
+All runtime code must be non-blocking to allow the kernel to service multiple modules. Never use blocking waits in the
+main loop:
 
 ```cpp
 // Good - non-blocking wait using WaitForMicros
@@ -390,15 +427,15 @@ case 2:
 delay(1000);  // Blocks the entire microcontroller for 1 second
 ```
 
-Exception: `delay()` and `delayMicroseconds()` may be used in `SetupModule()` and calibration
-routines where blocking is acceptable.
+Exception: `delay()` and `delayMicroseconds()` may be used in `SetupModule()` and calibration routines where blocking is
+acceptable.
 
 ---
 
 ## Python C++ extension conventions
 
-Python libraries use C++ extensions for performance-critical operations. Extensions are
-built with nanobind and scikit-build-core, targeting desktop platforms (Windows, Linux, macOS).
+Python libraries use C++ extensions for performance-critical operations. Extensions are built with nanobind and
+scikit-build-core, targeting desktop platforms (Windows, Linux, macOS).
 
 ### File organization
 
@@ -415,13 +452,12 @@ Extension-specific naming follows these patterns:
 | nanobind module name  | `snake_case_ext`     | `precision_timer_ext`     |
 | Python wrapper class  | `PascalCase`         | `PrecisionTimer`          |
 
-The `C` prefix on extension classes distinguishes the C++ implementation from the Python wrapper
-class that users interact with directly.
+The `C` prefix on extension classes distinguishes the C++ implementation from the Python wrapper class that users
+interact with directly.
 
 ### nanobind binding patterns
 
-The nanobind module definition appears at the end of the extension source file, after the class
-implementation:
+The nanobind module definition appears at the end of the extension source file, after the class implementation:
 
 ```cpp
 // NOLINTNEXTLINE(performance-unnecessary-value-param)
@@ -446,11 +482,10 @@ NB_MODULE(precision_timer_ext, m)
 ### Rules
 
 - Use `NOLINTNEXTLINE(performance-unnecessary-value-param)` before the `NB_MODULE` macro
-- Use the `"param"_a` literal syntax for keyword argument names (requires `using namespace
-  nb::literals`)
+- Use the `"param"_a` literal syntax for keyword argument names (requires `using namespace nb::literals`)
 - Provide default values matching the C++ constructor/method defaults
 - Include a brief docstring for each exposed method
-- Bind all public methods; do not expose private implementation details
+- Bind all public methods, and leave private implementation details unbound
 
 ### Namespace aliases and using directives
 
@@ -468,8 +503,8 @@ using namespace std::chrono;
 
 ### GIL management
 
-When C++ code performs blocking operations (delays, I/O waits), release the Python GIL to allow
-other Python threads to run:
+When C++ code performs blocking operations (delays, I/O waits), release the Python GIL to allow other Python threads to
+run:
 
 ```cpp
 void Delay(const int64_t duration, const bool block = false) const
@@ -492,8 +527,7 @@ void Delay(const int64_t duration, const bool block = false) const
 
 ### Rules
 
-- Release the GIL (`nb::gil_scoped_release`) during any operation that blocks for more than a
-  trivial duration
+- Release the GIL (`nb::gil_scoped_release`) during any operation that blocks for more than a trivial duration
 - Provide a `block` parameter to let callers choose GIL behavior when appropriate
 - Never access Python objects while the GIL is released
 - Use lambdas to share delay logic between GIL-released and GIL-held paths
@@ -532,16 +566,14 @@ requires = ["scikit-build-core>=0,<1", "nanobind>=2,<3"]
 build-backend = "scikit_build_core.build"
 ```
 
-Constrain these Python build dependencies with major-version ranges (see `/pyproject-style`), not exact
-pins — Python dependencies track major versions, so compatible minor/patch updates are adopted
-automatically. Exact pinning is reserved for microcontroller/PlatformIO dependencies (see
-`/platformio-config`), where stringent hardware requirements make silent minor/patch bumps undesirable.
-The `scikit_build_core.build` backend handles CMake invocation automatically during `pip install`.
+For the version constraints that govern these two entries, invoke `/pyproject-style`. For the matching PlatformIO
+dependency constraints, invoke `/platformio-config`. The `scikit_build_core.build` backend handles CMake invocation
+automatically during `pip install`.
 
 ### `__repr__` for extension classes
 
-Extension classes that are exposed to Python via nanobind should provide a `__repr__` method.
-Follow the Python `__repr__` convention of `ClassName(key=value, key=value)`:
+Extension classes that are exposed to Python via nanobind should provide a `__repr__` method formatted as
+`ClassName(key=value, key=value)`:
 
 ```cpp
 /// Returns a string representation of the timer instance.
@@ -562,19 +594,16 @@ In the nanobind binding, expose `Repr` as `__repr__`:
 - Format: `CClassName(key_attr=value, key_attr=value)`
 - Include only the most important attributes, not every internal field
 - Use the C++ class name (with `C` prefix), not the Python wrapper name
-- This matches the Python `__repr__` convention and the C# `ToString()` convention
 
 ### Error message variable pattern
 
-For extension code that throws exceptions with multi-line messages, assign the message to a
-local variable before passing it. This matches the Python convention of assigning to a
-`message` variable before calling `console.error()`:
+For extension code that throws exceptions with multi-line messages, assign the message to a local variable before
+passing it:
 
 ```cpp
 // Good - message variable for multi-line errors
-std::string message =
-    "Unable to start timer with precision '" + precision + "'. "
-    "Use 'ns', 'us', 'ms', or 's'.";
+std::string message = "Unable to start the timer with the requested precision '" + precision +
+                      "'. Use one of the supported precision options: 'ns', 'us', 'ms', or 's'.";
 throw std::invalid_argument(message);
 
 // Acceptable - short single-line messages passed directly
@@ -590,8 +619,13 @@ Unlike embedded code, extension code may use the full C++ standard library:
 | `std::string`           | String parameters from Python            |
 | `std::chrono`           | High-resolution timing                   |
 | `std::thread`           | Sleep-based delays                       |
+| `std::filesystem::path` | Cross-platform path construction         |
 | `std::invalid_argument` | Error propagation to Python via nanobind |
 | `auto` with lambdas     | Callback patterns for GIL management     |
+
+Compose filesystem paths from `std::filesystem::path` values joined with `operator/`. Appending a literal that contains
+`/` or `\\` to a path value hard-codes one platform's separator, so that form is replaced with the `operator/`
+composition. Embedded code has no filesystem, so this rule binds to extension sources only.
 
 ### Differences from embedded C++
 
@@ -611,13 +645,12 @@ Unlike embedded code, extension code may use the full C++ standard library:
 
 ## Configuration files
 
-Canonical configs are stored in [assets/](assets/). When working in a C++ project, verify that
-`.clang-format` and `.clang-tidy` in the project root match the canonical versions.
+Canonical configs are stored in [../assets/](../assets/). When working in a C++ project, verify that `.clang-format` and
+`.clang-tidy` in the project root match the canonical versions.
 
-- **Embedded** `.clang-format`: [assets/embedded/.clang-format](assets/embedded/.clang-format)
-- **Extension** `.clang-format`: [assets/extension/.clang-format](assets/extension/.clang-format)
-- **Shared** `.clang-tidy`: [assets/.clang-tidy](assets/.clang-tidy)
+- **Embedded** `.clang-format`: [../assets/embedded/.clang-format](../assets/embedded/.clang-format)
+- **Extension** `.clang-format`: [../assets/extension/.clang-format](../assets/extension/.clang-format)
+- **Shared** `.clang-tidy`: [../assets/.clang-tidy](../assets/.clang-tidy)
 
-The two `.clang-format` variants differ only in `AccessModifierOffset` (`0` vs `-2`) and
-`IndentAccessModifiers` (`true` vs `false`). All other settings are identical. The `.clang-tidy`
-configuration is shared across both archetypes.
+The two `.clang-format` variants differ only in `AccessModifierOffset` (`0` vs `-2`) and `IndentAccessModifiers` (`true`
+vs `false`). All other settings are identical. The `.clang-tidy` configuration is shared across both archetypes.

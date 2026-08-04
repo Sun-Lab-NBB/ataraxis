@@ -1,13 +1,13 @@
 # Libraries, tools, and patterns
 
-Conventions for LINQ, resource management, async/await, testing, static analysis, and path
-handling in C# projects.
+Conventions for LINQ, resource management, async/await, testing, static analysis, path handling, and error handling in
+C# projects.
 
 ---
 
 ## LINQ conventions
 
-LINQ is the C# equivalent of Python comprehensions. Prefer **method syntax** over query syntax:
+Prefer **method syntax** over query syntax:
 
 ```csharp
 // Good - method syntax
@@ -21,8 +21,8 @@ var validLengths = (from length in segmentLengths where length > 0f select lengt
 
 ### Deferred execution
 
-LINQ queries are lazily evaluated. Materialize with `.ToList()` or `.ToArray()` when the
-result is used multiple times or when the source collection may change:
+LINQ queries are lazily evaluated. Materialize with `.ToList()` or `.ToArray()` when the result is used multiple times
+or when the source collection may change:
 
 ```csharp
 // Good - materialize when reused
@@ -38,12 +38,12 @@ ProcessZones(activeZones);                           // Second evaluation
 
 ### LINQ in hot paths
 
-You MUST NOT use LINQ in `Update()`, `FixedUpdate()`, or other per-frame methods. LINQ
-allocates intermediate objects that trigger garbage collection. Use explicit loops instead:
+You MUST NOT use LINQ in `Update()`, `FixedUpdate()`, or other per-frame methods. LINQ allocates intermediate objects
+that trigger garbage collection. Use explicit loops instead:
 
 ```csharp
 // Good - explicit loop in Update (no allocations)
-void Update()
+private void Update()
 {
     for (int i = 0; i < _zones.Length; i++)
     {
@@ -54,8 +54,8 @@ void Update()
     }
 }
 
-// Wrong - LINQ in Update (allocates every frame)
-void Update()
+// Avoid - LINQ in Update (allocates every frame)
+private void Update()
 {
     foreach (OccupancyZone zone in _zones.Where(z => z.isActive))
     {
@@ -69,7 +69,7 @@ void Update()
 - Use LINQ for collection initialization, one-time queries, and editor scripts
 - Use explicit loops for per-frame logic and performance-critical paths
 - Prefer `.Select()` over manual list building in non-hot paths
-- Keep lambda expressions short (one line); extract named methods for complex logic
+- Keep lambda expressions to a single line, extracting named methods for complex logic
 - Use `Array.Find()` / `Array.FindIndex()` for simple single-element lookups on arrays
 
 ---
@@ -78,8 +78,7 @@ void Update()
 
 ### Using declarations
 
-Use `using` declarations for resources that implement `IDisposable`. This is the C# equivalent
-of Python's context managers (`with` statements):
+Use `using` declarations for resources that implement `IDisposable`:
 
 ```csharp
 // Good - using declaration (C# 8+, preferred)
@@ -105,14 +104,14 @@ public class SerialController : MonoBehaviour
     private SerialPort _port;
 
     /// <summary>Opens the serial connection.</summary>
-    void Start()
+    private void Start()
     {
         _port = new SerialPort(portName, baudRate);
         _port.Open();
     }
 
     /// <summary>Closes the serial connection when the component is destroyed.</summary>
-    void OnDestroy()
+    private void OnDestroy()
     {
         if (_port != null && _port.IsOpen)
         {
@@ -134,8 +133,8 @@ public class SerialController : MonoBehaviour
 
 ## I/O separation
 
-Separate I/O operations from processing logic for testability and reuse. This matches the
-Python convention in `/python-style`:
+Separate I/O operations from processing logic for testability and reuse. This matches the Python convention in
+`/python-style`:
 
 ```csharp
 // Good - I/O separated from logic
@@ -186,12 +185,12 @@ public async Task<TaskTemplate> LoadConfigAsync(string configPath)
 
 ### Unity-specific
 
-In Unity, prefer coroutines (`IEnumerator` + `StartCoroutine`) for frame-based async
-operations. Use `async/await` with `UniTask` or standard `Task` for true async I/O:
+In Unity, prefer coroutines (`IEnumerator` + `StartCoroutine`) for frame-based async operations. Use `async/await` with
+`UniTask` or standard `Task` for true async I/O:
 
 ```csharp
 // Unity coroutine for frame-based waiting
-IEnumerator WaitAndReset()
+private IEnumerator WaitAndReset()
 {
     yield return new WaitForSeconds(2f);
     ResetState();
@@ -202,18 +201,16 @@ IEnumerator WaitAndReset()
 
 ## Coroutine conventions
 
-Unity coroutines (`IEnumerator` + `StartCoroutine`) are the standard approach for frame-based
-async operations. This is the C# equivalent of the C++ state machine pattern where each stage
-performs one atomic action and returns control to the caller.
+Unity coroutines (`IEnumerator` + `StartCoroutine`) are the standard approach for frame-based async operations.
 
 ### Naming
 
-Coroutine methods do not receive a suffix (unlike `Async` for `async/await` methods). Use a
-descriptive verb phrase that conveys the timed or staged nature of the operation:
+Coroutine methods do not receive a suffix (unlike `Async` for `async/await` methods). Use a descriptive verb phrase that
+conveys the timed or staged nature of the operation:
 
 ```csharp
 /// <summary>Waits for the specified duration then resets the zone state.</summary>
-IEnumerator WaitAndReset()
+private IEnumerator WaitAndReset()
 {
     yield return new WaitForSeconds(2f);
     ResetState();
@@ -221,7 +218,7 @@ IEnumerator WaitAndReset()
 
 /// <summary>Fades the stimulus intensity over the specified duration.</summary>
 /// <param name="duration">The fade duration in seconds.</param>
-IEnumerator FadeStimulus(float duration)
+private IEnumerator FadeStimulus(float duration)
 {
     float elapsed = 0f;
     while (elapsed < duration)
@@ -256,7 +253,7 @@ IEnumerator FadeStimulus(float duration)
 private readonly WaitForSeconds _pollWait = new WaitForSeconds(0.1f);
 
 /// <summary>Polls the sensor at a fixed interval until the threshold is met.</summary>
-IEnumerator PollSensor()
+private IEnumerator PollSensor()
 {
     while (_sensorValue < _threshold)
     {
@@ -305,11 +302,10 @@ public void GetSegmentLengths_ValidPrefabs_ReturnsCorrectLengths()
 
 ### Test documentation
 
-- Use "Verifies..." as the imperative mood for test summaries (matching Python convention)
+- Use "Verifies..." as the third-person imperative mood for test summaries (matching Python convention)
 - Each test method has an XML `<summary>` tag
-- Do NOT add `<param>`, `<returns>`, or `<exception>` tags to test methods. The `<summary>`
-  tag is sufficient. This matches the Python convention of omitting Args, Returns, and Raises
-  sections from test function docstrings
+- Do NOT add `<param>`, `<returns>`, or `<exception>` tags to test methods. The `<summary>` tag is sufficient. This
+  matches the Python convention of omitting Args, Returns, and Raises sections from test function docstrings
 - Use the Arrange-Act-Assert pattern for test body organization
 
 ---
@@ -327,18 +323,18 @@ dotnet_diagnostic.IDE0044.severity = suggestion  # Make field readonly
 dotnet_diagnostic.CA1051.severity = suggestion   # Do not declare visible instance fields
 ```
 
-### Key analyzer equivalents
+### Key analyzers
 
-The C++ projects use clang-tidy with `WarningsAsErrors: '*'`. The C# equivalents are Roslyn
-analyzers configured via EditorConfig:
+Roslyn analyzers configured through EditorConfig carry the automated enforcement in C# projects. The `/cpp-style` skill
+owns the matching clang-tidy configuration for C++ projects:
 
-| clang-tidy Check                                 | Roslyn Equivalent | Description                  |
-|--------------------------------------------------|-------------------|------------------------------|
-| `readability-convert-member-functions-to-static` | `CA1822`          | Member can be made static    |
-| `readability-make-member-function-const`         | `IDE0044`         | Make field readonly          |
-| `bugprone-unused-return-value`                   | `CA1806`          | Do not ignore method results |
-| `modernize-use-override`                         | `CS0114`          | Missing override keyword     |
-| `performance-inefficient-string-concatenation`   | `CA1834`          | Use StringBuilder            |
+| Roslyn analyzer | Description                  |
+|-----------------|------------------------------|
+| `CA1822`        | Member can be made static    |
+| `IDE0044`       | Make field readonly          |
+| `CA1806`        | Do not ignore method results |
+| `CS0114`        | Missing override keyword     |
+| `CA1834`        | Use StringBuilder            |
 
 ### Suppressing warnings
 
@@ -357,8 +353,7 @@ public float trackLength = 10f;
 
 ### Platform and context directives
 
-Use `#if` directives for code that should only compile in specific contexts. This is the C#
-equivalent of C++ `#ifdef` for firmware variants:
+Use `#if` directives for code that should only compile in specific contexts:
 
 ```csharp
 // Good - editor-only code guarded by UNITY_EDITOR
@@ -376,8 +371,8 @@ private static void ValidateOnLoad()
 
 - Use `#if UNITY_EDITOR` for editor tools, custom inspectors, and menu items
 - Use `#if UNITY_STANDALONE` or platform-specific symbols for platform-dependent code
-- Prefer `[System.Diagnostics.Conditional("DEBUG")]` over `#if DEBUG` for method-level
-  conditional compilation (cleaner and avoids call-site `#if` blocks):
+- Prefer `[System.Diagnostics.Conditional("DEBUG")]` over `#if DEBUG` for method-level conditional compilation (cleaner
+  and avoids call-site `#if` blocks):
 
 ```csharp
 // Good - Conditional attribute (callers do not need #if guards)
@@ -393,8 +388,8 @@ Debug.Log($"[DEBUG] {message}");
 #endif
 ```
 
-- Do NOT indent code inside `#if`/`#endif` blocks relative to the directive. The `#` must
-  start at column 0, and the enclosed code follows normal indentation:
+- Do NOT indent code inside `#if`/`#endif` blocks relative to the directive. The `#` must start at column 0, and the
+  enclosed code follows normal indentation:
 
 ```csharp
 // Good - directive at column 0, code at normal indentation
@@ -410,8 +405,8 @@ public class Task : MonoBehaviour
 }
 ```
 
-- Keep `#if` blocks as small as possible. Prefer extracting platform-specific logic into
-  separate methods over wrapping large blocks of code.
+- Keep `#if` blocks as small as possible. Prefer extracting platform-specific logic into separate methods over wrapping
+  large blocks of code.
 
 ---
 
@@ -440,8 +435,8 @@ string configPath = Application.dataPath + "/Configurations/" + "task.yaml";
 
 ## String comparison
 
-Use ordinal comparison for internal string matching. Culture-sensitive comparison introduces
-locale-dependent behavior that can cause subtle bugs across machines:
+Use ordinal comparison for internal string matching. Culture-sensitive comparison introduces locale-dependent behavior
+that can cause subtle bugs across machines:
 
 ```csharp
 // Good - ordinal comparison for internal logic
@@ -471,10 +466,9 @@ if (topicName.Contains("Gimbl"))  // Uses CurrentCulture on some .NET versions
 
 - Use `StringComparison.Ordinal` for protocol strings, topic names, and identifiers
 - Use `StringComparison.OrdinalIgnoreCase` for case-insensitive matching
-- Simple `==` equality is acceptable for straightforward constant comparisons where locale
-  behavior is irrelevant
-- Never use `StringComparison.CurrentCulture` or `StringComparison.InvariantCulture` unless
-  displaying sorted text to users
+- Simple `==` equality is acceptable for straightforward constant comparisons where locale behavior is irrelevant
+- Never use `StringComparison.CurrentCulture` or `StringComparison.InvariantCulture` unless displaying sorted text to
+  users
 
 ---
 
@@ -526,12 +520,12 @@ Use named arguments when a method has:
 
 ### Trailing commas
 
-C# does not enforce trailing commas in the same way as Python. Follow CSharpier's output for
-comma placement in multi-line constructs.
+C# does not enforce trailing commas in the same way as Python. Follow CSharpier's output for comma placement in
+multi-line constructs.
 
 ### Brace rules
 
-Always use braces for control flow statements, even single-line bodies:
+Always use braces for control flow statements, with the single-line guard clause as the one exception:
 
 ```csharp
 // Good
@@ -570,39 +564,38 @@ endOfLine: lf
 
 ### EditorConfig
 
-The `.editorconfig` file enforces naming conventions, brace style, and spacing rules in
-IDEs. It is the source of truth for style rules that CSharpier does not cover (naming,
-`var` preferences, expression-bodied members).
+The `.editorconfig` file enforces naming conventions, brace style, and spacing rules in IDEs. It is the source of truth
+for style rules that CSharpier does not cover (naming, `var` preferences, expression-bodied members).
 
 ### CSharpier ignore
 
-The `.csharpierignore` file excludes Unity-generated directories (`Library/`, `Temp/`,
-`Logs/`) and third-party packages from formatting.
+The `.csharpierignore` file excludes Unity-generated directories (`Library/`, `Temp/`, `Logs/`) and third-party packages
+from formatting.
 
 ---
 
 ## Configuration files
 
-Canonical configs are stored in [assets/](assets/). When working in a C# project, verify that
-`.csharpierrc.yaml`, `.editorconfig`, and `.csharpierignore` in the project root match these:
+Canonical configs are stored in [../assets/](../assets/). When working in a C# project, verify that `.csharpierrc.yaml`,
+`.editorconfig`, and `.csharpierignore` in the project root match these:
 
-- [assets/.csharpierrc.yaml](assets/.csharpierrc.yaml)
-- [assets/.editorconfig](assets/.editorconfig)
-- [assets/.csharpierignore](assets/.csharpierignore)
+- [../assets/.csharpierrc.yaml](../assets/.csharpierrc.yaml)
+- [../assets/.editorconfig](../assets/.editorconfig)
+- [../assets/.csharpierignore](../assets/.csharpierignore)
 
-The `.csharpierignore` contains generic entries only. Individual projects may need additional
-project-specific entries (e.g., paths to auto-generated scripts).
+The `.csharpierignore` contains generic entries only. Individual projects may need additional project-specific entries
+(e.g., paths to auto-generated scripts).
 
 ---
 
 ## Guard clauses and boolean expressions
 
-Prefer early returns (guard clauses) over deeply nested conditionals. Use explicit boolean
-checks, `string.IsNullOrEmpty()` for strings, and `== null` / `!= null` for null checks:
+Prefer early returns (guard clauses) over deeply nested conditionals. Use explicit boolean checks,
+`string.IsNullOrEmpty()` for strings, and `== null` / `!= null` for null checks:
 
 ```csharp
 /// <summary>Checks if the occupancy duration has been met while the animal is in the zone.</summary>
-void Update()
+private void Update()
 {
     if (!isActive || boundaryDisarmed)
         return;
@@ -618,4 +611,66 @@ void Update()
         }
     }
 }
+```
+
+---
+
+## Error handling
+
+MonoBehaviour code reports failures through Unity's logging system and returns without throwing:
+
+```csharp
+if (template == null)
+{
+    Debug.LogError("Failed to load task template from YAML file.");
+    return;
+}
+
+if (Mathf.Abs(measuredLength - configuredLength) > LengthComparisonEpsilon)
+{
+    Debug.LogWarning(
+        $"For {segmentName}, mismatch between prefab length ({measuredLength}) "
+            + $"and configured length ({configuredLength})."
+    );
+}
+```
+
+Editor tools, static utility classes, and pure C# libraries that do not inherit from MonoBehaviour raise standard C#
+exceptions instead:
+
+```csharp
+/// <summary>Parses the task template from raw YAML content.</summary>
+/// <param name="yamlContent">The YAML string to parse.</param>
+/// <returns>The deserialized task template.</returns>
+/// <exception cref="FormatException">The YAML content does not conform to the template schema.</exception>
+public static TaskTemplate ParseTemplate(string yamlContent)
+{
+    if (string.IsNullOrEmpty(yamlContent))
+    {
+        throw new ArgumentException("YAML content must not be null or empty.", nameof(yamlContent));
+    }
+
+    TaskTemplate template = YamlParser.Deserialize<TaskTemplate>(yamlContent);
+    if (template == null)
+    {
+        throw new FormatException("Failed to deserialize task template from YAML content.");
+    }
+    return template;
+}
+```
+
+### Error message format
+
+Assign a multi-line message to a local variable before passing it, and pass a short single-line message directly:
+
+```csharp
+// Good - message variable for multi-line errors
+string message =
+    $"Unable to create corridor for segment '{segmentName}'. "
+    + $"The configured length ({configuredLength}) must match the prefab length "
+    + $"({measuredLength}), but they differ by {Mathf.Abs(measuredLength - configuredLength)}.";
+Debug.LogError(message);
+
+// Acceptable - short single-line messages passed directly
+Debug.LogError("Failed to load task template from YAML file.");
 ```

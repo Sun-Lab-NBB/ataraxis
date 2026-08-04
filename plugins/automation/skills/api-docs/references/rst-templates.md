@@ -1,7 +1,8 @@
 # RST and build file templates
 
-Complete templates for all documentation source files and build wrappers. Replace all
-`<PLACEHOLDER>` values with project-specific information before use.
+Complete templates for all documentation source files and build wrappers. Replace all `<PLACEHOLDER>` values with
+project-specific information before use. Every template's prose is filled to the 120 character limit, under the
+wrap-width rule the skill file defines.
 
 ---
 
@@ -37,19 +38,19 @@ This file requires no customization.
 
 ## welcome.rst
 
-The landing page content. Replace `<PROJECT_NAME>` and `<PROJECT_DESCRIPTION>` with
-project-specific values.
+The landing page content. Replace `<PROJECT_NAME>` and `<PROJECT_DESCRIPTION>` with project-specific values.
 
 ```rst
 Welcome to <PROJECT_NAME> API documentation page
-=================================================
+================================================
 
 <PROJECT_DESCRIPTION>
 
 This library is part of the `Ataraxis <https://github.com/Sun-Lab-NBB/ataraxis>`_ framework for AI-assisted scientific
 hardware control, developed in the `Sun (NeuroAI) lab <https://neuroai.github.io/sunlab/>`_ at Cornell University.
 
-This website only contains the API documentation for the classes and methods offered by this library. See the project
+This website contains the API documentation for the classes and methods offered by this library, together with the
+reference for every command exposed by its command-line interface where the project declares one. See the project
 GitHub repository for installation instructions and library usage examples:
 `<PROJECT_NAME> GitHub repository <https://github.com/Sun-Lab-NBB/<PROJECT_NAME>>`_.
 
@@ -59,15 +60,20 @@ GitHub repository for installation instructions and library usage examples:
 ```
 
 **Rules:**
-- The title underline (`=`) MUST match the exact character length of the title text.
-- `<PROJECT_DESCRIPTION>` is the bare project description — the same sentence used in all other
-  canonical description locations for the project archetype (e.g., `pyproject.toml`, `__init__.py`,
-  `README.md`, or `library.json`). No language prefix ("A Python library that...") and no project
-  name prefix ("project-name is...").
-- For Ataraxis projects, the second paragraph MUST include the standard Ataraxis attribution
-  sentence. For non-Ataraxis projects, this paragraph is optional or may contain other
-  project-relevant context. Either way, additional project-relevant context (e.g., companion
-  libraries, related hardware) MAY be included after the attribution when appropriate.
+- The title reads `Welcome to <PROJECT_NAME> API documentation page`, and the title underline (`=`) MUST match the exact
+  character length of the title text.
+- The first paragraph is `<PROJECT_DESCRIPTION>`, the bare project description, which is the same sentence used in all
+  other canonical description locations for the project archetype (e.g., `pyproject.toml`, `__init__.py`, `README.md`,
+  or `library.json`). No language prefix ("A Python library that...") and no project name prefix ("project-name is...").
+- For Ataraxis projects, the second paragraph MUST include the standard Ataraxis attribution sentence with links to the
+  Ataraxis repository and the Sun (NeuroAI) lab. For a non-Ataraxis project, omit this paragraph by default, and replace
+  it with other project-relevant context only where the description above it is unreadable without that context.
+- Additional project-relevant context after the attribution (e.g., companion libraries, related hardware) is omitted by
+  default, and added only where the project description above it is unreadable without it.
+- The third paragraph is the standard disclaimer that the site carries API documentation only, with a link to the
+  project GitHub repository.
+- The footer declares an explicit RST link target for every inline link the page uses, which are the Ataraxis
+  repository, the project repository, and the attribution link.
 - The GitHub URL uses the `Sun-Lab-NBB` organization.
 
 ### Placeholders
@@ -81,8 +87,8 @@ GitHub repository for installation instructions and library usage examples:
 
 ## api.rst
 
-The API reference page. Structure varies by archetype and project contents. The comment header
-and directive patterns are shown below.
+The API reference page. Structure varies by archetype and project contents. The comment header and directive patterns
+are shown below.
 
 ### Comment header
 

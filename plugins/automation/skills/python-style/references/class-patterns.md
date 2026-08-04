@@ -23,7 +23,7 @@ def __init__(self, field_shape: tuple[int, int], sampling: float) -> None:
 ### Properties vs methods
 
 - Use `@property` for simple attribute access that may involve computation
-- Use methods for operations that clearly "do something" or take parameters
+- Use a method when the call takes parameters, mutates state, or performs I/O
 
 ### Method types
 
@@ -36,6 +36,39 @@ def __init__(self, field_shape: tuple[int, int], sampling: float) -> None:
 - **Private** (`_` prefix): Use for anything internal to the class/module
 - **Public** (no prefix): Use only for methods intended to be used from other modules
 
+A leading underscore marks a symbol private to the **module** that defines it. This covers functions, classes,
+constants, class attributes, and methods.
+
+Every symbol sits in exactly one of three tiers, and the tier is decided by the widest boundary the symbol's consumers
+actually cross rather than by the visibility its author intended:
+
+| Widest consumer                    | Name          | Listed in the package `__init__.py` |
+|------------------------------------|---------------|-------------------------------------|
+| The defining module alone          | `_underscore` | No                                  |
+| Another module in the same package | public        | No                                  |
+| Another package                    | public        | Yes                                 |
+
+The name a symbol carries MATCHES its tier in both directions. Any symbol referenced from another module MUST carry a
+public name, so a helper that acquires a caller in a second module is renamed rather than imported with its underscore
+intact. Any symbol referenced only inside the module that defines it MUST carry the underscore, so a public name is
+earned by a real cross-module consumer rather than granted by default:
+
+```python
+# Good - the helper is referenced from another module, so it carries a public name
+from .archive import resolve_archive_path
+
+# Bad - reaching into another module for a symbol that module marked private
+from .archive import _resolve_archive_path
+```
+
+When splitting or refactoring a module, every symbol that now crosses a module boundary is promoted to a public name as
+part of the split. A symbol that stays behind keeps its underscore, and a symbol whose last external caller went away is
+demoted back.
+
+Tests are the sole exception. Test modules may access private members of the code under test, and ruff ignores `SLF001`
+under `tests/`. A test is therefore not a cross-module consumer for the purpose of the tiers above, so a symbol
+referenced only by its defining module and by that module's tests keeps its underscore.
+
 ### Member ordering
 
 Members within a class body follow this vertical ordering from top to bottom:
@@ -45,15 +78,14 @@ Members within a class body follow this vertical ordering from top to bottom:
 3. **Public methods and properties** (no prefix)
 4. **Private methods and properties** (`_` prefixed)
 
-This mirrors the module-level visibility rule described in the `/python-style` File-level ordering
-section, for the same reason: the reader meets the interface before the helpers that support it. A
-private helper therefore sits below every public member of its class, even when only one public
-member calls it. Within the public group and within the private group, order members by call
-hierarchy or group them by purpose.
+This mirrors the module-level visibility rule described in the `/python-style` File-level ordering section, for the same
+reason: the reader meets the interface before the helpers that support it. A private helper therefore sits below every
+public member of its class, even when only one public member calls it. Within the public group and within the private
+group, order members by call hierarchy or group them by purpose.
 
-Dunder methods are the one exception to visibility ordering. Their leading underscores mark a
-language protocol rather than private visibility, so they stay at the top of the class body where
-readers expect to find construction and representation.
+Dunder methods are the one exception to visibility ordering. Their leading underscores mark a language protocol rather
+than private visibility, so they stay at the top of the class body where readers expect to find construction and
+representation.
 
 ```python
 class ArchiveReader:
@@ -73,8 +105,8 @@ class ArchiveReader:
 
 ### \_\_repr\_\_ conventions
 
-Implement `__repr__` on classes to display the class name and key attributes. Do not implement `__str__` separately
-— `__repr__` serves both purposes.
+Implement `__repr__` on classes to display the class name and key attributes. Do not implement `__str__` separately,
+because `__repr__` serves both purposes.
 
 ```python
 def __repr__(self) -> str:
@@ -87,9 +119,10 @@ def __repr__(self) -> str:
 
 Rules:
 - Format: `ClassName(key_attr=value, key_attr=value)`
-- Include only the most important attributes, not every internal field
+- Include the attributes that let a reader tell one instance from another, which are usually the constructor arguments,
+  and leave out derived caches and buffers
 - Use the actual class name, not a generic string
-- Docstring uses imperative mood: "Returns a string representation of the {ClassName} instance."
+- Docstring uses third-person imperative mood: "Returns a string representation of the {ClassName} instance."
 
 ---
 
@@ -132,11 +165,10 @@ class ProcessingState:
 
 - Use `frozen=True` for configuration objects that should not be modified after creation
 - Omit `frozen=True` for dataclasses that require mutation (state trackers, caches, builders)
-- Use `slots=True` by default on all dataclasses. Slotted dataclasses use less memory, have
-  faster attribute access, and prevent accidental attribute creation. Omit `slots=True` only
-  when the dataclass subclasses a base that relies on `__dict__` for serialization or
-  deserialization (e.g., `YamlConfig`), or when the class otherwise requires dynamic attribute
-  assignment
+- Use `slots=True` by default on all dataclasses. Slotted dataclasses use less memory, have faster attribute access, and
+  prevent accidental attribute creation. Omit `slots=True` only when the dataclass subclasses a base that relies on
+  `__dict__` for serialization or deserialization (e.g., `YamlConfig`), or when the class otherwise requires dynamic
+  attribute assignment
 - Use `field(default_factory=...)` for mutable default values (lists, dicts, sets)
 - Use `field(repr=False)` for internal fields that should not appear in string representation
 - Document each field with inline docstrings using triple-quoted strings
@@ -212,9 +244,9 @@ class CameraLogIds(IntEnum):
 ### Rules
 
 - **Inline docstrings**: Document every enum member with a triple-quoted string on the line below
-- **Class docstring**: Imperative mood ("Defines the..."), do not use Args or Attributes sections
+- **Class docstring**: Third-person imperative mood ("Defines the..."), do not use Args or Attributes sections
 - **Value types**: Use string values for `StrEnum`, integer values for `IntEnum`
-- **Naming**: UPPER_SNAKE_CASE for member names
+- **Naming**: PascalCase for the enum class name, UPPER_SNAKE_CASE for member names
 - **Custom methods**: Add utility methods for type conversion when needed:
 
 ```python
@@ -242,7 +274,7 @@ When stacking multiple decorators on a single method, use the following order (o
 # 4. @property or other descriptors (innermost)
 
 @staticmethod
-@numba.njit(nogil=True, cache=True)  # type: ignore[untyped-decorator]
+@numba.njit(cache=True)  # type: ignore[untyped-decorator]
 def _compute_values(
     target_buffer: NDArray[np.uint8],
     scalar_object: int,
@@ -328,9 +360,9 @@ with tempfile.TemporaryDirectory() as temp_dir:
 
 ## Comprehensions
 
-Always prefer comprehensions over explicit loops when building a new collection. Comprehensions
-are algorithmically more optimal because CPython executes them in a dedicated C-level loop,
-avoiding repeated `list.append()` method lookups and call overhead.
+Always prefer comprehensions over explicit loops when building a new collection. Comprehensions are algorithmically more
+optimal because CPython executes them in a dedicated C-level loop, avoiding repeated `list.append()` method lookups and
+call overhead.
 
 ```python
 # Good - simple comprehension on one line
@@ -355,11 +387,131 @@ result = [
 ### Guidelines
 
 - Always use comprehensions for building lists, dicts, and sets from iteration
-- Split complex comprehensions across multiple lines for readability
-- Use generator expressions (`()`) instead of list comprehensions when the result is only
-  iterated once (e.g., passed directly to `sum()`, `any()`, `all()`)
-- Use explicit loops only when the loop body has **side effects** (I/O, mutation, logging) that
-  do not produce a collection
+- Split a comprehension across multiple lines when the one-line form exceeds the 120 character limit or carries more
+  than one `for` or `if` clause
+- Use generator expressions (`()`) instead of list comprehensions when the result is only iterated once (e.g., passed
+  directly to `sum()`, `any()`, `all()`)
+- Use explicit loops only when the loop body has **side effects** (I/O, mutation, logging) that do not produce a
+  collection
+
+---
+
+## Function calls
+
+**Always use keyword arguments** for clarity:
+
+```python
+# Good
+np.zeros((4,), dtype=np.float32)
+compute_coefficients(interpolation_factor=t, output=result)
+
+# Avoid
+np.zeros((4,), np.float32)
+compute_coefficients(t, result)
+```
+
+Exceptions:
+- Single positional arguments for obvious cases like `range(4)`, `len(array)`.
+- Numba `jitclass` method calls, which do not support keyword arguments. Use positional arguments for these calls and
+  add a brief inline comment if the call is not self-explanatory. Note: standard `@njit` / `@jit` functions do support
+  keyword arguments and are not exempt from this rule.
+
+On the signature side, make boolean flag parameters keyword-only by placing them after a `*,` separator, so callers must
+pass them by name:
+
+```python
+def transfer_directory(source: Path, destination: Path, *, verify_integrity: bool = False,
+                       remove_source: bool = False) -> None: ...
+```
+
+---
+
+## Boolean expressions
+
+Use truthiness checks instead of explicit comparisons to `True` or `False`:
+
+```python
+# Good - truthiness
+if not self._is_enabled:
+    return
+if items:
+    process(items=items)
+if not file_list:
+    console.error(message="No files found.", error=FileNotFoundError)
+
+# Avoid - explicit boolean comparison
+if self._is_enabled == True:   # Wrong
+if self._is_enabled is True:   # Wrong
+if len(items) > 0:             # Wrong - use truthiness instead
+```
+
+**Exception**: Always use `is None` / `is not None` for None checks, never truthiness:
+
+```python
+# Good - explicit None check
+if self._data is not None:
+    process(data=self._data)
+```
+
+---
+
+## Guard clauses
+
+Prefer early returns (guard clauses) over deeply nested conditionals:
+
+```python
+# Good - guard clauses reduce nesting
+def process_session(self, data: NDArray[np.float32], threshold: float) -> NDArray[np.float32]:
+    """Processes session data with the given threshold."""
+    if not self._is_enabled:
+        return data
+
+    if data.size == 0:
+        message = "Unable to process session data. The data array is empty."
+        console.error(message=message, error=ValueError)
+
+    # Main logic at minimal indentation level.
+    filtered = data[data > threshold]
+    return filtered
+```
+
+---
+
+## Blank lines
+
+- **Two blank lines** between top-level definitions (classes, functions)
+- **One blank line** between method definitions within a class
+- **No blank line** after a `def` line before the docstring
+- **One blank line** after import blocks before code
+
+---
+
+## Line length and formatting
+
+- Maximum line length: **120 characters**
+- Break long function calls across multiple lines with trailing commas
+- Use parentheses for multi-line strings in error messages
+
+### String formatting
+
+- **F-strings only**: Always use f-strings for string interpolation. No `%` formatting or `.format()`.
+- **F-string consistency**: When any line requires interpolation, use the `f` prefix on **all** lines of the multi-line
+  string.
+- **Double quotes**: All strings must use double quotes (enforced by ruff). Single quotes are only acceptable inside
+  f-string expressions.
+
+### Trailing commas
+
+- Always use trailing commas when the closing bracket is on a separate line
+- Do not use trailing commas when everything is on one line
+
+### Pathlib
+
+Use `pathlib.Path` for all path manipulation instead of string operations:
+
+```python
+config_path = Path(base_directory) / "config" / "settings.yaml"
+```
 
 ---
 
@@ -369,8 +521,8 @@ There are two types of `__init__.py` files with different docstring requirements
 
 ### Top-level library \_\_init\_\_.py
 
-The top-level `__init__.py` (e.g., `src/library_name/__init__.py`) uses an extended docstring with
-documentation links and authors:
+The top-level `__init__.py` (e.g., `src/library_name/__init__.py`) uses an extended docstring with documentation links
+and authors:
 
 ```python
 """Provides assets for processing and analyzing neural imaging data.
@@ -385,8 +537,8 @@ Authors: Author Name (Handle)
 from .module_one import ClassOne, function_one
 from .module_two import ClassTwo, ClassThree
 
-# console.enable() belongs only in top-level application libraries (the project's entry-point package).
-# Component libraries must NOT enable console — the application entry point handles this.
+# console.enable() belongs here when this library owns the runtime it participates in. A library
+# that runs only as a worker under another library's entry point leaves the call to that caller.
 
 __all__ = [
     "ClassOne",
@@ -398,8 +550,7 @@ __all__ = [
 
 ### Subpackage \_\_init\_\_.py
 
-Subpackage `__init__.py` files (e.g., `src/library_name/subpackage/__init__.py`) use a single-line
-docstring only:
+Subpackage `__init__.py` files (e.g., `src/library_name/subpackage/__init__.py`) use a single-line docstring only:
 
 ```python
 """Provides configuration and runtime data classes for the processing pipeline."""
@@ -416,20 +567,59 @@ __all__ = [
 
 ### Rules
 
-- **Top-level docstring**: The first line MUST be the bare project description — the same sentence
-  used in all other canonical description locations (`pyproject.toml`, `welcome.rst`, `README.md`)
-  with no language or project name prefix. Include documentation link, source repository link,
-  and authors. Email addresses in the `Authors:` line are optional and omitted by default
-- **Subpackage docstring**: Use a single-line docstring describing what the subpackage provides.
-  Do NOT include documentation links, source repository links, or authors — these belong only in
-  the top-level library `__init__.py`
-- **Console initialization**: `console.enable()` belongs only in top-level application libraries
-  that serve as the final entry point. Component and dependency libraries
-  (e.g., `ataraxis-video-system`) must NOT call `console.enable()` — the top-level application
-  is responsible for enabling the console before any component library code runs
+- **Top-level docstring**: The first line MUST be the bare project description, the same sentence used in all other
+  canonical description locations (`pyproject.toml`, `welcome.rst`, `README.md`) with no language or project name
+  prefix. Include documentation link, source repository link, and authors. Email addresses in the `Authors:` line are
+  optional and omitted by default
+- **Subpackage docstring**: Use a single-line docstring describing what the subpackage provides. Do NOT include
+  documentation links, source repository links, or authors, which belong only in the top-level library `__init__.py`
+- **Console initialization**: the test for `console.enable()` and `console.disable()` is whether the code that calls it
+  owns the runtime at that moment. An entry point that the user invokes directly, such as a CLI command, an MCP server,
+  or the `__init__.py` of a library that drives its own pipeline, calls it and is correct to. Code that runs as a worker
+  under another library's entry point leaves the console state to that caller, so the call does not appear on ordinary
+  library paths reached by a downstream import. Both placements are legitimate, and neither is reported as a style
+  finding unless the user names it as one in that specific case
 - **Explicit `__all__`**: Every `__init__.py` must declare `__all__` with all public API members
+- **Export set**: The `/python-style` Cross-package vs within-package imports section states the importing half of the
+  rule, and the two paragraphs below state the exporting half
+
+Any symbol consumed outside the (sub)package that defines it MUST be re-exported from that package's `__init__.py`,
+added to both the import list and `__all__`, and imported through the package namespace rather than through the
+submodule that declares it. This holds for internal implementation symbols and not only for the curated public API, so a
+subpackage `__init__.py` may export a broader set than the distribution's top-level `__init__.py`. Exporting the symbol
+and reaching past the export are two halves of one rule, and a cross-package consumer is evidence that the export is
+missing.
+
+The same test that requires an export also BOUNDS it. A symbol that no package outside the defining one consumes does
+NOT appear in that package's `__init__.py`, in either the import list or `__all__`. The absence of a cross-package
+consumer is evidence that the export is unwarranted, and the fix is the removed entry rather than a caller invented to
+justify it.
+- **Manual check**: `per-file-ignores` waives `F401` for `**/__init__.py`, so the export list is checked by reading it
+  against the set of packages that import from it
 - **Alphabetical sorting**: Sort `__all__` entries alphabetically
-- **One-time configuration logic**: `__init__.py` files may contain logic that benefits from
-  being executed exactly once on import (e.g., setting the multiprocessing start method,
-  configuring environment variables for platform compatibility). Beyond that, `__init__.py` files
-  should contain only imports and `__all__`
+- **One-time configuration logic**: `__init__.py` files may contain logic that benefits from being executed exactly once
+  on import (e.g., setting the multiprocessing start method, configuring environment variables for platform
+  compatibility). See the placement rule below. Beyond that, `__init__.py` files should contain only imports and
+  `__all__`
+
+### Process-wide configuration above the imports
+
+A setting that must run before the import it governs sits above the imports, and every import below it carries `# noqa:
+E402`. The qualifying settings are the multiprocessing start method, the Numba threading layer, an environment variable
+that a dependency reads at import time, and the level of a third-party logger that emits during its own import.
+
+```python
+# Configures the numba threading layer before any numba function compiles. macOS uses OpenMP because
+# tbb4py publishes no Apple Silicon wheel, and every other platform uses TBB.
+import sys
+
+from numba import config
+
+config.THREADING_LAYER = "omp" if sys.platform == "darwin" else "tbb"
+
+from .pipelines import run_pipeline  # noqa: E402
+```
+
+The block states in a comment what it configures and why the position is required, because the position is the only
+thing keeping the setting effective. A reader who cannot see that reason moves the block down during an unrelated
+cleanup and silently disables the setting.

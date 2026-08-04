@@ -15,19 +15,20 @@ The skill's identifier. You MUST ensure it matches the parent directory name.
 | Type       | String                                                           |
 | Required   | Yes                                                              |
 | Max length | 64 characters                                                    |
-| Format     | Lowercase letters, digits, and hyphens only; no consecutive `--` |
+| Format     | Lowercase letters, digits, and hyphens only, no consecutive `--` |
 | Convention | Must match parent directory name: `explore-codebase`, `commit`   |
 
 ### `description`
 
-Explains what the skill does and when to use it. Serves as the primary trigger mechanism — the
-agent reads all skill descriptions at session start to decide when to invoke each skill.
+Explains what the skill does and when to use it. Serves as the primary trigger mechanism, because the agent reads all
+skill descriptions at session start to decide when to invoke each skill.
 
 | Property     | Value                                                  |
 |--------------|--------------------------------------------------------|
 | Type         | String (use YAML `>-` for multi-line)                  |
 | Required     | Strongly recommended                                   |
 | Max length   | 1024 characters                                        |
+| Max lines    | 5 wrapped lines in the folded block                    |
 | Voice        | Third person                                           |
 | Must include | What the skill does AND when to use it ("Use when...") |
 
@@ -56,8 +57,8 @@ Controls whether the skill appears in the `/` slash command menu.
 
 ### `disable-model-invocation`
 
-Prevents the agent from autoloading the skill based on context. When `true`, the skill can only
-be invoked explicitly by the user or by another skill.
+Prevents the agent from autoloading the skill based on context. When `true`, the skill can only be invoked explicitly by
+the user or by another skill.
 
 | Property | Value                                                   |
 |----------|---------------------------------------------------------|
@@ -67,10 +68,9 @@ be invoked explicitly by the user or by another skill.
 
 ### `allowed-tools`
 
-Pre-approves the listed tools (skips the permission prompt) while the skill is active. It does NOT
-restrict the tool pool — every other tool remains callable and normal permission settings still
-apply. To make a skill read-only, use `disallowed-tools` or run it with `context: fork` plus
-`agent: Explore` (the Explore agent denies Write/Edit).
+Pre-approves the listed tools (skips the permission prompt) while the skill is active. It does NOT restrict the tool
+pool. Every other tool remains callable and normal permission settings still apply. To make a skill read-only, use
+`disallowed-tools` or run it with `context: fork` plus `agent: Explore` (the Explore agent denies Write/Edit).
 
 | Property | Value                                                    |
 |----------|----------------------------------------------------------|
@@ -80,9 +80,8 @@ apply. To make a skill read-only, use `disallowed-tools` or run it with `context
 
 ### `disallowed-tools`
 
-Removes the listed tools from the agent's available pool while the skill is active. Use for
-autonomous or read-only skills that must never call certain tools. The restriction clears on the
-next user message.
+Removes the listed tools from the agent's available pool while the skill is active. Use for autonomous or read-only
+skills that must never call certain tools. The restriction clears on the next user message.
 
 | Property | Value                                       |
 |----------|---------------------------------------------|
@@ -101,7 +100,7 @@ Autocomplete hint displayed in the `/` menu to indicate expected arguments.
 
 ### `model`
 
-Override the model used when the skill is active.
+Overrides the model used while the skill is active.
 
 | Property | Value                     |
 |----------|---------------------------|
@@ -110,8 +109,8 @@ Override the model used when the skill is active.
 
 ### `context`
 
-Controls execution context. Set to `fork` to run the skill in a subagent with a separate context
-window, keeping the main conversation context clean.
+Controls execution context. Set to `fork` to run the skill in a sub-agent with a separate context window, keeping the
+main conversation context clean.
 
 | Property | Value  |
 |----------|--------|
@@ -120,7 +119,7 @@ window, keeping the main conversation context clean.
 
 ### `agent`
 
-Specifies which subagent type to use when `context: fork` is set.
+Specifies which sub-agent type to use when `context: fork` is set.
 
 | Property | Value                           |
 |----------|---------------------------------|
@@ -129,8 +128,7 @@ Specifies which subagent type to use when `context: fork` is set.
 
 ### `hooks`
 
-Hooks scoped to the skill's lifecycle. Allows running shell commands when the skill is invoked or
-completed.
+Hooks scoped to the skill's lifecycle. Allows running shell commands when the skill is invoked or completed.
 
 | Property | Value                                              |
 |----------|----------------------------------------------------|
@@ -151,8 +149,8 @@ SKILL.md content can include variables that are replaced at runtime.
 
 ### Dynamic context injection
 
-Use `` !`command` `` syntax to inject the output of a shell command into the skill content at load
-time. This runs during preprocessing before the skill content is presented to the agent.
+Use `` !`command` `` syntax to inject the output of a shell command into the skill content at load time. This runs
+during preprocessing before the skill content is presented to the agent.
 
 **Example:**
 

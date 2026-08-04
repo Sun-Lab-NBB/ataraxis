@@ -1,8 +1,8 @@
 # Example exploration output
 
-A complete worked example of the codebase-exploration output format for a medium or large project.
-Reproduce this structure (headings, tables, lists) when presenting findings. Include all sections for
-medium and large projects; for small projects, omit sections that do not apply.
+A complete worked example of the codebase-exploration output format for a medium or large project. Reproduce this
+structure (headings, tables, lists) when presenting findings. Include all sections for medium and large projects. For
+small projects, omit sections that do not apply.
 
 ```markdown
 ## Project purpose

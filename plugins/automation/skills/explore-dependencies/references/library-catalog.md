@@ -1,7 +1,7 @@
 # Ataraxis library catalog
 
-Static reference for the ataraxis library ecosystem. Use this catalog to understand
-which library covers which domain, resolve import names, and identify dependencies to explore.
+Static reference for the ataraxis library ecosystem. Use this catalog to understand which library covers which domain,
+resolve import names, and identify dependencies to explore.
 
 ---
 
@@ -23,20 +23,18 @@ Core libraries maintained under the Sun-Lab-NBB GitHub organization.
 
 ### C++ libraries (PlatformIO)
 
-These are PlatformIO dependencies for Arduino/Teensy firmware projects, not Python packages. They
-cannot be explored with `python -c "import ..."`. Instead, locate them in the PlatformIO
-`.pio/libdeps/` directory.
+These are PlatformIO dependencies for Arduino/Teensy firmware projects, not Python packages. They cannot be explored
+with `python -c "import ..."`. Instead, locate them in the PlatformIO `.pio/libdeps/` directory.
 
 | Library                     | PlatformIO name                           | Abbr   |
 |-----------------------------|-------------------------------------------|--------|
-| ataraxis-transport-layer-mc | `Sun-Lab-NBB/ataraxis-transport-layer-mc` | axtlmc |
-| ataraxis-micro-controller   | `Sun-Lab-NBB/ataraxis-micro-controller`   | axmc   |
+| ataraxis-transport-layer-mc | `inkaros/ataraxis-transport-layer-mc`     | axtlmc |
+| ataraxis-micro-controller   | `inkaros/ataraxis-micro-controller`       | axmc   |
 
 ### Python + C++ extension
 
-`ataraxis-time` includes C++ extension modules built with nanobind and scikit-build-core. The
-Python import (`ataraxis_time`) exposes the C++ bindings through its public API, so the standard
-Python exploration workflow applies.
+`ataraxis-time` includes C++ extension modules built with nanobind and scikit-build-core. The Python import
+(`ataraxis_time`) exposes the C++ bindings through its public API, so the standard Python exploration workflow applies.
 
 ---
 
@@ -60,13 +58,11 @@ All repositories are under `https://github.com/Sun-Lab-NBB/`:
 
 ## First-party application libraries
 
-A project may also depend on its own first-party application libraries — higher-level packages built
-on top of the ataraxis infrastructure for specific workflows such as experiment orchestration, data
-analysis, or acquisition tooling.
+A project may also depend on its own first-party application libraries, higher-level packages built on top of the
+ataraxis infrastructure for specific workflows such as experiment orchestration, data analysis, or acquisition tooling.
 
-These follow the same exploration workflow as the ataraxis libraries: match the project's first-party
-package prefix in `pyproject.toml`, resolve each with `python -c "import ..."`, and read their
-`__all__` exports.
+These follow the same exploration workflow as the ataraxis libraries: match the project's first-party package prefix in
+`pyproject.toml`, resolve each with `python -c "import ..."`, and read their `__all__` exports.
 
 ---
 

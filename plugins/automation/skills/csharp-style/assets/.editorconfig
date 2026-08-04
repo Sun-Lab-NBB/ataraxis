@@ -26,7 +26,7 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
 # Namespace preferences
-csharp_style_namespace_declarations = file_scoped:suggestion
+csharp_style_namespace_declarations = block_scoped:suggestion
 
 # Brace preferences - Allman style (braces on new lines)
 csharp_new_line_before_open_brace = all
@@ -114,7 +114,7 @@ csharp_style_conditional_delegate_call = true:suggestion
 csharp_style_prefer_null_check_over_type_check = true:suggestion
 
 # Code block preferences
-csharp_prefer_braces = true:suggestion
+csharp_prefer_braces = when_multiline:suggestion
 csharp_prefer_simple_using_statement = true:suggestion
 
 # 'using' directive preferences
@@ -125,6 +125,29 @@ csharp_prefer_static_local_function = true:suggestion
 csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async:suggestion
 
 # Naming conventions (matching C++ conventions where applicable)
+# Roslyn applies the FIRST matching rule in file order, so the modifier-qualified rules are declared
+# ahead of the accessibility-based field rules, which would otherwise shadow them and rename every
+# `private const` and `private static readonly` field to the underscore form.
+
+# Constants with PascalCase (C# convention, differs from C++ k prefix)
+dotnet_naming_rule.constants_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constants
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.constants.applicable_kinds = field, local
+dotnet_naming_symbols.constants.required_modifiers = const
+
+# static readonly fields with PascalCase. Unity never serializes a static field, so the Inspector
+# rationale behind the camelCase public-field rule does not reach them.
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
 # Private fields with underscore prefix
 dotnet_naming_rule.private_fields_should_be_underscore_prefix.severity = suggestion
 dotnet_naming_rule.private_fields_should_be_underscore_prefix.symbols = private_fields
@@ -136,23 +159,57 @@ dotnet_naming_symbols.private_fields.applicable_accessibilities = private
 dotnet_naming_style.underscore_prefix.required_prefix = _
 dotnet_naming_style.underscore_prefix.capitalization = camel_case
 
-# Constants with PascalCase (C# convention, differs from C++ k prefix)
-dotnet_naming_rule.constants_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.constants_should_be_pascal_case.symbols = constants
-dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
-
-dotnet_naming_symbols.constants.applicable_kinds = field, local
-dotnet_naming_symbols.constants.required_modifiers = const
-
-dotnet_naming_style.pascal_case.capitalization = pascal_case
-
 # Public members should be PascalCase
 dotnet_naming_rule.public_members_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.public_members_should_be_pascal_case.symbols = public_symbols
 dotnet_naming_rule.public_members_should_be_pascal_case.style = pascal_case
 
-dotnet_naming_symbols.public_symbols.applicable_kinds = property, method, field, event, delegate
+dotnet_naming_symbols.public_symbols.applicable_kinds = namespace, class, struct, enum, property, method, event, delegate
 dotnet_naming_symbols.public_symbols.applicable_accessibilities = public
+
+# Public fields with camelCase, the name Unity serializes and displays in the Inspector
+dotnet_naming_rule.public_fields_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.public_fields_should_be_camel_case.symbols = public_fields
+dotnet_naming_rule.public_fields_should_be_camel_case.style = camel_case
+
+dotnet_naming_symbols.public_fields.applicable_kinds = field
+dotnet_naming_symbols.public_fields.applicable_accessibilities = public
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+# Interfaces with an I prefix
+dotnet_naming_rule.interfaces_should_be_i_prefixed.severity = suggestion
+dotnet_naming_rule.interfaces_should_be_i_prefixed.symbols = interfaces
+dotnet_naming_rule.interfaces_should_be_i_prefixed.style = i_prefix
+
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+
+dotnet_naming_style.i_prefix.required_prefix = I
+dotnet_naming_style.i_prefix.capitalization = pascal_case
+
+# Type parameters with a T prefix
+dotnet_naming_rule.type_parameters_should_be_t_prefixed.severity = suggestion
+dotnet_naming_rule.type_parameters_should_be_t_prefixed.symbols = type_parameters
+dotnet_naming_rule.type_parameters_should_be_t_prefixed.style = t_prefix
+
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
+
+dotnet_naming_style.t_prefix.required_prefix = T
+dotnet_naming_style.t_prefix.capitalization = pascal_case
+
+# Locals and parameters with camelCase
+dotnet_naming_rule.locals_and_parameters_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.locals_and_parameters_should_be_camel_case.symbols = locals_and_parameters
+dotnet_naming_rule.locals_and_parameters_should_be_camel_case.style = camel_case
+
+dotnet_naming_symbols.locals_and_parameters.applicable_kinds = local, parameter
+
+# Analyzer severities
+dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.IDE0044.severity = suggestion
+dotnet_diagnostic.CA1051.severity = suggestion
+dotnet_diagnostic.CA1806.severity = suggestion
+dotnet_diagnostic.CA1834.severity = suggestion
 
 # YAML files
 [*.{yaml,yml}]

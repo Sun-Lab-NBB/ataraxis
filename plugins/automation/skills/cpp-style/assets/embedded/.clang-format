@@ -1,6 +1,6 @@
 # Provides a C++ format based on the Google style guide and the Black formatter. This results in a visual style that is
 # largely similar between C++ and Python code, improving cross-language developer experience. Note, all contributors
-# should combine this static linter with the Google C++ / C style guide to be fully compatible with project's style
+# should combine this formatter with the Google C++ / C style guide to be fully compatible with the project's style
 # format.
 ---
 BasedOnStyle: Google
@@ -31,7 +31,7 @@ AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false
 BinPackParameters: false
 BitFieldColonSpacing: Both
-BreakBeforeBraces: Custom  # Custom because actually allows BraceWrapping to configure each case individually.
+BreakBeforeBraces: Custom  # Custom allows BraceWrapping to configure each case individually.
 BraceWrapping:
   AfterCaseLabel: true
   AfterClass: true
@@ -83,7 +83,7 @@ MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 PointerAlignment: Left
 ReferenceAlignment: Left
-ReflowComments: false
+ReflowComments: true
 RequiresClausePosition: SingleLine
 RequiresExpressionIndentation: OuterScope
 SeparateDefinitionBlocks: Always

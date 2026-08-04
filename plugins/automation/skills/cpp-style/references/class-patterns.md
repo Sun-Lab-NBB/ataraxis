@@ -1,14 +1,13 @@
 # Class design patterns
 
-Conventions for class design, inheritance, templates, enums, structs, and state machines in
-C++ projects.
+Conventions for class design, inheritance, templates, enums, structs, and state machines in C++ projects.
 
 ---
 
 ## Class hierarchy
 
-C++ libraries use a clear inheritance pattern: abstract base classes define interfaces,
-and `final` template classes provide concrete implementations.
+C++ libraries use a clear inheritance pattern: abstract base classes define interfaces, and `final` template classes
+provide concrete implementations.
 
 ### Base classes
 
@@ -18,8 +17,8 @@ Base classes provide pure virtual methods and shared utilities:
 /**
  * @brief Provides the base class for all hardware module implementations.
  *
- * Derived classes must implement SetCustomParameters(), RunActiveCommand(), and SetupModule()
- * to define their specific hardware interaction logic.
+ * Derived classes must implement SetCustomParameters(), RunActiveCommand(), and SetupModule() to define their
+ * specific hardware interaction logic.
  */
 class Module
 {
@@ -52,7 +51,7 @@ class Module
 ### Rules for base classes
 
 - Declare pure virtual methods (`= 0`) for the interface that derived classes must implement
-- Provide `virtual ~ClassName() = default` for safe polymorphic deletion
+- Declare the destructor as the destructor patterns section below specifies
 - Place shared utility methods in `protected` scope
 - Use `const` member variables for immutable state set at construction time
 - Constructor parameters use `const` for value types, `&` for reference types
@@ -77,8 +76,8 @@ class BrakeModule final : public Module
         enum class kModuleCommands : uint8_t { /* ... */ };
 
         // Constructor delegates to base
-        BrakeModule(const uint8_t module_type, const uint8_t module_id, Communication& comm) :
-            Module(module_type, module_id, comm)
+        BrakeModule(const uint8_t module_type, const uint8_t module_id, Communication& communication) :
+            Module(module_type, module_id, communication)
         {}
 
         // Virtual overrides
@@ -96,9 +95,8 @@ class BrakeModule final : public Module
 ### Rules for leaf classes
 
 - Always use `final` on classes that should not be subclassed
-- Use `override` on all virtual method implementations (enforced by clang-tidy
-  `modernize-use-override`)
-- Use `~ClassName() override = default` for destructors
+- Use `override` on all virtual method implementations (enforced by clang-tidy `modernize-use-override`)
+- Declare the destructor as the destructor patterns section below specifies
 - Place `static_assert` statements at the top of the class body, before `public:`
 - Constructor should delegate to the base class using the member initializer list
 
@@ -106,8 +104,8 @@ class BrakeModule final : public Module
 
 ## Template patterns
 
-Templates are the primary abstraction mechanism in embedded C++ libraries. Hardware
-configuration is specified through template parameters, enabling compile-time specialization.
+Templates are the primary abstraction mechanism in embedded C++ libraries. Hardware configuration is specified through
+template parameters, enabling compile-time specialization.
 
 ### Template parameter conventions
 
@@ -164,10 +162,8 @@ static_assert(
 
 ### static_assert message format
 
-Messages should clearly state what constraint was violated:
 - State the subject and the constraint: `"EncoderModule PinA and PinB cannot be the same!"`
-- For remediation advice, include it: `"Select a different Channel A pin for the EncoderModule
-  instance."`
+- For remediation advice, include it: `"Select a different Channel A pin for the EncoderModule instance."`
 
 ### Template instantiation
 
@@ -209,8 +205,8 @@ enum class kCustomStatusCodes : uint8_t
 - **Scoped**: Always use `enum class`, never unscoped `enum`
 - **Backing type**: Always specify `uint8_t` (or appropriate fixed-width type)
 - **Naming**: Both the enum type and its values use `kPascalCase` prefix
-- **Values**: Assign explicit integer values when they are part of a communication protocol or
-  when specific values are required for interoperability
+- **Values**: Assign explicit integer values when they are part of a communication protocol or when specific values are
+  required for interoperability
 - **Trailing comma**: Include a trailing comma after the last member
 - **Documentation**: Use `///<` trailing comments on each member
 
@@ -219,7 +215,7 @@ enum class kCustomStatusCodes : uint8_t
 Always use `static_cast` when converting between enum values and their underlying type:
 
 ```cpp
-switch (static_cast<kModuleCommands>(GetActiveCommand()))
+switch (static_cast<kModuleCommands>(get_active_command()))
 {
     case kModuleCommands::kCheckState: CheckState(); return true;
     case kModuleCommands::kReset: ResetEncoder(); return true;
@@ -242,7 +238,7 @@ class EncoderModule final : public Module
 };
 ```
 
-Shared enums that span multiple classes belong in a dedicated shared assets' namespace:
+Shared enums that span multiple classes belong in a dedicated shared asset namespace:
 
 ```cpp
 namespace axmc_shared_assets
@@ -257,8 +253,7 @@ namespace axmc_shared_assets
 
 ### Packed structs
 
-Structs used for binary serialization over serial communication must use the `PACKED_STRUCT`
-macro:
+Structs used for binary serialization over serial communication must use the `PACKED_STRUCT` macro:
 
 ```cpp
 /// Stores the instance's addressable runtime parameters.
@@ -270,8 +265,7 @@ struct CustomRuntimeParameters
 } PACKED_STRUCT _custom_parameters;
 ```
 
-The `PACKED_STRUCT` macro is defined in shared assets headers to ensure cross-compiler
-compatibility:
+The `PACKED_STRUCT` macro is defined in shared assets headers to ensure cross-compiler compatibility:
 
 ```cpp
 #if defined(__GNUC__) || defined(__clang__)
@@ -284,9 +278,8 @@ compatibility:
 
 ### Rules
 
-- Use `PACKED_STRUCT` for all structs that cross memory boundaries (serial communication,
-  DMA transfers)
-- Align struct member assignments for readability
+- Use `PACKED_STRUCT` for all structs that cross memory boundaries (serial communication, DMA transfers)
+- Align consecutive struct member assignments, which clang-format applies through `AlignConsecutiveAssignments`
 - Initialize all members with default values
 - Document each member with `///<` trailing comments
 - Declare struct instances as private class members with `_snake_case` naming
@@ -313,8 +306,8 @@ class ValveModule final : public Module
 
 ### Explicit constructors
 
-Use `explicit` on constructors with a single parameter to prevent implicit conversions (enforced
-by clang-tidy `google-explicit-constructor`):
+Use `explicit` on constructors with a single parameter to prevent implicit conversions (enforced by clang-tidy
+`google-explicit-constructor`):
 
 ```cpp
 explicit TransportLayer(Stream& port) :
@@ -334,8 +327,8 @@ BrakeModule(const uint8_t module_type, const uint8_t module_id, Communication& c
 
 ### Constructor initializer formatting
 
-The member initializer list follows the colon on the same line as the constructor signature, with
-each initializer on a new line if there are multiple:
+The member initializer list follows the colon on the same line as the constructor signature, with each initializer on a
+new line if there are multiple:
 
 ```cpp
 // Single initializer - same line
@@ -355,7 +348,7 @@ Module(const uint8_t module_type, const uint8_t module_id, Communication& commun
 
 ## Destructor patterns
 
-- Base classes: `virtual ~Module() = default`
+- Base classes: `virtual ~Module() = default`, which keeps polymorphic deletion through a base pointer safe
 - Leaf (final) classes: `~EncoderModule() override = default`
 - Place destructors after the last public method, before the `private:` section
 - Never implement custom destructors unless the class manages non-RAII resources
@@ -364,8 +357,8 @@ Module(const uint8_t module_type, const uint8_t module_id, Communication& commun
 
 ## State machine pattern
 
-Embedded modules use a stage-based state machine for non-blocking command execution. This
-allows the kernel to service multiple modules within a single loop iteration:
+Embedded modules use a stage-based state machine for non-blocking command execution. This allows the kernel to service
+multiple modules within a single loop iteration:
 
 ```cpp
 void Pulse()
@@ -416,7 +409,7 @@ The `RunActiveCommand()` method dispatches commands using a switch statement:
 ```cpp
 bool RunActiveCommand() override
 {
-    switch (static_cast<kModuleCommands>(GetActiveCommand()))
+    switch (static_cast<kModuleCommands>(get_active_command()))
     {
         case kModuleCommands::kSendPulse: Pulse(); return true;
         case kModuleCommands::kToggleOn: Open(); return true;
@@ -453,8 +446,7 @@ class Module
 };
 ```
 
-This pattern ensures immutability of configuration values throughout the object's lifetime,
-paralleling the `frozen=True` dataclass convention in Python and `readonly` fields in C#.
+This pattern ensures immutability of configuration values throughout the object's lifetime.
 
 ---
 
@@ -462,11 +454,10 @@ paralleling the `frozen=True` dataclass convention in Python and `readonly` fiel
 
 Classes and structs follow different rules for data member visibility:
 
-- **Classes**: All data members must be private (`_snake_case`). Expose them through `get_`/`set_`
-  accessor methods when external access is needed. This enforces encapsulation and keeps the class
-  interface explicit.
-- **Structs**: Public data members (`snake_case`) are allowed for passive data holders that have
-  no invariants or methods beyond simple initialization.
+- **Classes**: All data members must be private (`_snake_case`). Expose them through `get_`/`set_` accessor methods when
+  external access is needed. This enforces encapsulation and keeps the class interface explicit.
+- **Structs**: Public data members (`snake_case`) are allowed for passive data holders that have no invariants or
+  methods beyond simple initialization.
 
 ```cpp
 // Class — all data members private
@@ -494,20 +485,13 @@ struct CustomRuntimeParameters
 } PACKED_STRUCT _custom_parameters;
 ```
 
-This parallels the Python convention where class attributes are always private (`_snake_case`)
-with `@property` accessors, while dataclass fields are public.
-
 ---
 
 ## Accessor vs method decision
 
-This parallels the Python distinction between `@property` (simple attribute access) and
-methods (operations that "do something"):
-
-| Use                    | When                                                      |
-|------------------------|-----------------------------------------------------------|
-| `get_`/`set_` accessor | Returns or sets a single data member with no side effects |
-| PascalCase method      | Performs computation, I/O, or has side effects            |
+Accessor methods use `get_`/`set_` snake_case, following the Google C++ naming convention. A `get_`/`set_` accessor
+returns or sets a single data member with no side effects, and a PascalCase method performs computation, I/O, or has
+side effects.
 
 ```cpp
 // Good - accessor for trivial field access
@@ -524,29 +508,22 @@ bool SendData(uint8_t status_code, const ObjectType& object);
 uint16_t get_checksum() const  // Should be ComputeChecksum()
 ```
 
-At the call site, naming signals intent: `get_`/`set_` means trivial field access, PascalCase
-means the method performs real work.
+At the call site, naming signals intent: `get_`/`set_` means trivial field access, PascalCase means the method performs
+real work.
 
 ---
 
 ## Static vs instance method guidance
 
-This parallels the Python distinction between `@staticmethod`, `@classmethod`, and instance
-methods:
-
-| Use              | When                                                              |
-|------------------|-------------------------------------------------------------------|
-| Instance method  | The method accesses instance members (`this`)                     |
-| `static` method  | The method needs no instance state (utility, factory, validation) |
+An instance method accesses instance members through `this`, and a `static` method needs no instance state, covering
+utilities, factories, and validation helpers.
 
 ### Rules
 
 - Use `static` for methods that do not access instance or base class members
-- Place `static` utility methods in the `private:` section when they are implementation
-  details
+- Place `static` utility methods in the `private:` section when they are implementation details
 - Use `static constexpr` for compile-time helper functions
-- clang-tidy `readability-convert-member-functions-to-static` flags methods that can be made
-  static
+- clang-tidy `readability-convert-member-functions-to-static` flags methods that can be made static
 
 ```cpp
 // Good - static method for stateless utility
@@ -568,8 +545,7 @@ void TransmitBuffer()
 
 ## Using namespace directives
 
-For shared asset namespaces, use `using namespace` at file scope to bring shared types into the
-current scope:
+For shared asset namespaces, use `using namespace` at file scope to bring shared types into the current scope:
 
 ```cpp
 #include "axtlmc_shared_assets.h"
@@ -581,20 +557,18 @@ Rules:
 - Only use `using namespace` for project-internal shared asset namespaces
 - Place `using namespace` after all `#include` directives
 - Never use `using namespace std;`
-- **Header-only libraries**: C++ libraries are header-only (all code resides in `.h`
-  files). In this context, `using namespace` for project-internal shared asset namespaces is
-  allowed in header files because there are no `.cpp` files to place them in. This exception
-  applies only to project-internal namespaces (e.g., `axtlmc_shared_assets`), never to `std` or
-  third-party namespaces
-- **Libraries with `.cpp` files**: Never use `using namespace` in header files (pollutes the
-  global namespace for all includers). Place `using namespace` in `.cpp` files only
+- **Header-only libraries**: C++ libraries are header-only (all code resides in `.h` files). In this context, `using
+  namespace` for project-internal shared asset namespaces is allowed in header files because there are no `.cpp` files
+  to place them in. This exception applies only to project-internal namespaces (e.g., `axtlmc_shared_assets`), never to
+  `std` or third-party namespaces
+- **Libraries with `.cpp` files**: Never use `using namespace` in header files (pollutes the global namespace for all
+  includers). Place `using namespace` in `.cpp` files only
 
 ---
 
 ## Function calls
 
-Prefer clarity to brevity. For functions with multiple parameters of the same type or boolean
-parameters, use inline comments to label arguments:
+For functions with multiple parameters of the same type or boolean parameters, use inline comments to label arguments:
 
 ```cpp
 // Good - labeled arguments clarify meaning
@@ -611,8 +585,8 @@ CompleteCommand();
 
 ## Blank lines
 
-- **One blank line** between method definitions within a class (enforced by clang-format
-  `SeparateDefinitionBlocks: Always`)
+- **One blank line** between method definitions within a class (enforced by clang-format `SeparateDefinitionBlocks:
+  Always`)
 - **One blank line** before access modifiers (`public:`, `private:`)
 - **No blank line** after an opening brace or before a closing brace
 - **One blank line** between logical groups of statements within a method
@@ -628,8 +602,8 @@ CompleteCommand();
 - Brace style: **Allman** (opening braces on new lines for all constructs)
 - Indentation: **4 spaces** (no tabs)
 - Pointer/reference alignment: **Left** (`int* pointer`, `int& reference`)
-- Attributes (`[[nodiscard]]`, `[[maybe_unused]]`, etc.) always appear on their own line directly
-  above the declaration (clang-format `BreakAfterAttributes: Always`); do not write them inline
+- Attributes (`[[nodiscard]]`, `[[maybe_unused]]`, etc.) always appear on their own line directly above the declaration
+  (clang-format `BreakAfterAttributes: Always`). Do not write them inline
 
 ### Aligned assignments
 
@@ -652,8 +626,8 @@ class EncoderModule final : public Module
 
 ### Short statements
 
-Short case labels and simple if/else statements may appear on a single line (enforced by
-clang-format `AllowShortCaseLabelsOnASingleLine: true`):
+Short case labels and simple if/else statements may appear on a single line (enforced by clang-format
+`AllowShortCaseLabelsOnASingleLine: true`):
 
 ```cpp
 case kModuleCommands::kCheckState: CheckState(); return true;

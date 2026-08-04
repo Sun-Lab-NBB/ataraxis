@@ -41,7 +41,7 @@ body:
         The minimal sequence of commands or code that reproduces the bug, starting from a clean project state.
       placeholder: |-
         1. Install the project into a clean environment.
-        2. Call the command or function shown below with the listed arguments.
+        2. Call the failing command or function with the arguments that trigger the bug.
         3. Observe the error reported in the Output section.
     validations:
       required: true

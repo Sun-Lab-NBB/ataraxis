@@ -146,8 +146,8 @@ C++ microcontroller libraries are available via PlatformIO:
 
 ```ini
 lib_deps =
-    Sun-Lab-NBB/ataraxis-micro-controller
-    Sun-Lab-NBB/ataraxis-transport-layer-mc
+    inkaros/ataraxis-micro-controller@^3.0.1
+    inkaros/ataraxis-transport-layer-mc@^3.0.1
 ```
 
 ___
@@ -214,8 +214,11 @@ typed directly as slash commands. All of them are provided by the `automation` p
 |-------------------------|------------------------------------------------------------------------|
 | `/explore-codebase`     | Performs in-depth codebase exploration at the start of a session       |
 | `/explore-dependencies` | Explores installed ataraxis library APIs for dependency awareness      |
-| `/audit-facts`          | Audits documentation files against source code for factual accuracy    |
+| `/audit-project`        | Orchestrates the four audits and merges their findings into one report |
+| `/audit-facts`          | Audits documentation and in-source docstrings for factual accuracy     |
 | `/audit-style`          | Audits files against applicable style skill checklists for compliance  |
+| `/audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
+| `/audit-performance`    | Audits source code for optimization and dtype predictability findings  |
 | `/commit`               | Drafts style-compliant git commit messages                             |
 | `/pr`                   | Drafts a style-compliant pull request summary for the active branch    |
 | `/release`              | Drafts style-compliant release notes summarizing merged pull requests  |
@@ -238,8 +241,11 @@ provide an MCP server.
 | `project-layout`       | Applies ataraxis framework project directory structure conventions     |
 | `tox-config`           | Applies ataraxis framework tox.ini conventions                         |
 | `platformio-config`    | Applies ataraxis framework platformio.ini and library.json conventions |
-| `audit-facts`          | Audits documentation files against source code for factual accuracy    |
+| `audit-project`        | Orchestrates the four audits and merges their findings into one report |
+| `audit-facts`          | Audits documentation and in-source docstrings for factual accuracy     |
 | `audit-style`          | Audits files against applicable style skill checklists for compliance  |
+| `audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
+| `audit-performance`    | Audits source code for optimization and dtype predictability findings  |
 | `commit`               | Drafts style-compliant git commit messages                             |
 | `pr`                   | Drafts a style-compliant pull request summary for the active branch    |
 | `release`              | Drafts style-compliant release notes summarizing merged pull requests  |
@@ -380,7 +386,7 @@ ___
 
 ## Acknowledgments
 
-We thank Anthropic for developing Claude Code and the Model Context Protocol. This work was
+The authors thank Anthropic for developing Claude Code and the Model Context Protocol. This work was
 supported by Cornell University.
 
 For questions or feedback, contact: ik278@cornell.edu, ws467@cornell.edu

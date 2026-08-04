@@ -1,19 +1,19 @@
 # Class and design patterns
 
-Conventions for C# classes, MonoBehaviour components, ScriptableObjects, enums, properties,
-inheritance, and Unity-specific patterns across projects.
+Conventions for C# classes, MonoBehaviour components, ScriptableObjects, enums, properties, inheritance, and
+Unity-specific patterns across projects.
 
 ---
 
 ## MonoBehaviour patterns
 
-MonoBehaviour is the base class for Unity components attached to GameObjects. Most C#
-classes inherit from MonoBehaviour.
+MonoBehaviour is the base class for Unity components attached to GameObjects. Most C# classes inherit from
+MonoBehaviour.
 
 ### Lifecycle method ordering
 
-Unity lifecycle methods must appear in their natural execution order. They are declared
-`private` like any other method — never rely on the implicit default:
+Unity lifecycle methods must appear in their natural execution order. They are declared `private` like any other method,
+with the modifier always written explicitly:
 
 ```csharp
 /// <summary>Manages an infinite corridor VR task with probabilistic segment transitions.</summary>
@@ -60,8 +60,8 @@ public class Task : MonoBehaviour
 
 ### Field serialization
 
-Use `[SerializeField]` for private fields that need Inspector access. Use `[HideInInspector]`
-for public fields that should not appear in the Inspector:
+Use `[SerializeField]` for private fields that need Inspector access. Use `[HideInInspector]` for public fields that
+should not appear in the Inspector:
 
 ```csharp
 /// <summary>The serialized reference to the display configuration.</summary>
@@ -75,8 +75,8 @@ public bool boundaryDisarmed = false;
 
 ### Component access
 
-Use `TryGetComponent<T>()` for safe component access. Cache component references in `Awake()`
-or `Start()` instead of calling `GetComponent<T>()` in `Update()`:
+Use `TryGetComponent<T>()` for safe component access. Cache component references in `Awake()` or `Start()` instead of
+calling `GetComponent<T>()` in `Update()`:
 
 ```csharp
 /// <summary>The cached reference to the mesh renderer component.</summary>
@@ -94,40 +94,20 @@ private void Awake()
 
 ### Collider callbacks
 
-Unity collider callbacks follow a consistent pattern:
-
-```csharp
-/// <summary>Called when the animal enters the trigger zone collider.</summary>
-private void OnTriggerEnter(Collider other)
-{
-    if (!isActive)
-        return;
-
-    _inZone = true;
-    Debug.Log("Animal entered trigger zone.");
-}
-
-/// <summary>Called when the animal exits the trigger zone collider.</summary>
-private void OnTriggerExit(Collider other)
-{
-    if (!isActive)
-        return;
-
-    _inZone = false;
-}
-```
+Open every collider callback (`OnTriggerEnter`, `OnTriggerExit`, `OnCollisionEnter`) with a guard clause that returns
+while the component is inactive.
 
 ---
 
 ## Event subscription patterns
 
-Unity uses multiple event systems. Follow consistent subscription and unsubscription patterns
-to prevent memory leaks and null reference errors.
+Unity uses multiple event systems. Follow consistent subscription and unsubscription patterns to prevent memory leaks
+and null reference errors.
 
 ### UnityEvent subscriptions
 
-Subscribe in `OnEnable()` and unsubscribe in `OnDisable()` for events that should only fire
-while the component is active:
+Subscribe in `OnEnable()` and unsubscribe in `OnDisable()` for events that should only fire while the component is
+active:
 
 ```csharp
 /// <summary>The MQTT channel for receiving lick detection events.</summary>
@@ -166,22 +146,20 @@ private void OnDisable()
 
 ### Guidelines
 
-- **`OnEnable` / `OnDisable`**: Use for events that should only fire while the component is
-  active. This is the default choice for most subscriptions.
-- **`Start` / `OnDestroy`**: Use for events that must persist across enable/disable cycles
-  (e.g., one-time MQTT channel setup).
-- **Symmetry**: Every subscription must have a matching unsubscription in the corresponding
-  lifecycle method. `OnEnable` pairs with `OnDisable`; `Start` pairs with `OnDestroy`.
-- **UnityEvent vs C# event vs Action\<T\>**: Prefer `UnityEvent` for Inspector-configurable
-  callbacks, C# `event` for internal class events, and `Action<T>` delegates for simple
-  one-off callbacks passed as parameters.
+- **`OnEnable` / `OnDisable`**: Use for events that should only fire while the component is active. This is the default
+  choice for most subscriptions.
+- **`Start` / `OnDestroy`**: Use for events that must persist across enable/disable cycles (e.g., one-time MQTT channel
+  setup).
+- **Symmetry**: Every subscription must have a matching unsubscription in the corresponding lifecycle method. `OnEnable`
+  pairs with `OnDisable`, and `Start` pairs with `OnDestroy`.
+- **UnityEvent vs C# event vs Action\<T\>**: Prefer `UnityEvent` for Inspector-configurable callbacks, C# `event` for
+  internal class events, and `Action<T>` delegates for simple one-off callbacks passed as parameters.
 
 ---
 
 ## ScriptableObject patterns
 
-ScriptableObjects store shared data as Unity assets. Use them for configuration that multiple
-components reference:
+ScriptableObjects store shared data as Unity assets. Use them for configuration that multiple components reference:
 
 ```csharp
 namespace Gimbl
@@ -207,7 +185,8 @@ namespace Gimbl
 - Use `[System.Serializable]` attribute for Inspector serialization
 - Public fields with camelCase for Inspector-editable parameters
 - Inherit from `ScriptableObject` (not `MonoBehaviour`) for data-only assets
-- Keep ScriptableObjects focused on data; avoid complex logic
+- Keep a ScriptableObject to data fields and validation, relocating any logic that reads Unity runtime state to a
+  MonoBehaviour
 
 ---
 
@@ -231,8 +210,7 @@ public enum ControllerTypes
 
 ### Enums with explicit values
 
-Use explicit integer values for status codes, protocol identifiers, or values that must remain
-stable across versions:
+Use explicit integer values for status codes, protocol identifiers, or values that must remain stable across versions:
 
 ```csharp
 /// <summary>Defines the MQTT message type codes used by the communication protocol.</summary>
@@ -255,7 +233,7 @@ public enum MessageTypes
 ### Rules
 
 - **XML documentation**: Document every enum member with a `<summary>` tag
-- **Class summary**: Imperative mood ("Defines the...")
+- **Class summary**: Third-person imperative mood ("Defines the...")
 - **PascalCase**: Both enum type names and values use PascalCase
 - **Trailing comma**: Include trailing comma after the last member
 - **Explicit values**: Use only when stability across versions matters (protocols, serialization)
@@ -320,10 +298,8 @@ public abstract class ControllerObject : MonoBehaviour
 ### Rules
 
 - Mark abstract classes with `abstract` keyword
-- Mark abstract methods with `abstract` keyword
-- Derived classes use `override` keyword (not `new`)
-- Use `sealed` on classes that should not be further derived
-- Use `virtual` for methods that may optionally be overridden
+- Follow the Virtual / override / sealed patterns section below for the member keyword rules, which cover `abstract`,
+  `virtual`, `override`, and `sealed`
 
 ---
 
@@ -384,20 +360,14 @@ public class Task : MonoBehaviour
         /// <summary>The array of segment indices in the sequence.</summary>
         public int[] sequence;
     }
-
-    /// <summary>Wraps the scene name for MQTT transmission.</summary>
-    public class SceneNameMessage
-    {
-        /// <summary>The name of the active Unity scene.</summary>
-        public string sceneName;
-    }
 }
 ```
 
 ### Guidelines
 
 - Use nested classes for message types, event args, or helper types specific to the parent
-- Keep nested classes small and focused
+- Keep a nested class to the fields the enclosing class serializes or transmits, moving any type that gains behavior of
+  its own to the top level
 - Document nested classes with the same XML conventions as top-level classes
 - Prefer top-level classes when the type could be reused by other classes
 
@@ -423,26 +393,6 @@ public static class Utility
         }
         return lengths;
     }
-
-    /// <summary>Measures the Z-axis length of a single prefab using its renderer bounds.</summary>
-    /// <param name="prefab">The GameObject to measure.</param>
-    /// <returns>The Z-axis length in Unity units.</returns>
-    public static float GetPrefabLength(GameObject prefab)
-    {
-        Renderer[] renderers = prefab.GetComponentsInChildren<Renderer>();
-        if (renderers.Length == 0)
-        {
-            Debug.LogWarning($"No renderers found on {prefab.name}.");
-            return 0f;
-        }
-
-        Bounds bounds = renderers[0].bounds;
-        for (int i = 1; i < renderers.Length; i++)
-        {
-            bounds.Encapsulate(renderers[i].bounds);
-        }
-        return bounds.size.z;
-    }
 }
 ```
 
@@ -456,9 +406,6 @@ public static class Utility
 
 ## Static vs instance method guidance
 
-This is the C# equivalent of the Python distinction between `@staticmethod`, `@classmethod`,
-and instance methods.
-
 | Use                  | When                                                           |
 |----------------------|----------------------------------------------------------------|
 | Instance method      | The method accesses instance fields or properties (`this`)     |
@@ -467,12 +414,12 @@ and instance methods.
 
 ### Rules
 
-- **Prefer `static`** when a method does not access instance state. Roslyn analyzer `CA1822`
-  flags methods that can be made static.
-- **Extension methods**: Use static methods with `this` parameter for adding behavior to types
-  you do not own. Place extension methods in a static class named `{TypeName}Extensions`.
-- **Factory methods**: Use `static` methods that return new instances of the containing type
-  when construction requires validation or naming clarity:
+- **Prefer `static`** when a method does not access instance state. Roslyn analyzer `CA1822` flags methods that can be
+  made static.
+- **Extension methods**: Use static methods with `this` parameter for adding behavior to types you do not own. Place
+  extension methods in a static class named `{TypeName}Extensions`.
+- **Factory methods**: Use `static` methods that return new instances of the containing type when construction requires
+  validation or naming clarity:
 
 ```csharp
 /// <summary>Creates a segment configuration from the specified YAML entry.</summary>
@@ -490,13 +437,11 @@ public static SegmentConfig FromYaml(Dictionary<string, object> yamlEntry)
 
 ## Immutability patterns
 
-Immutability is a core design principle across all projects, matching the pervasive
-`const` correctness in the C++ codebase.
+Immutability is a core design principle across all projects.
 
 ### Readonly fields
 
-Mark fields as `readonly` when they are only assigned in the constructor or field initializer.
-This is the C# equivalent of C++ `const` member variables:
+Mark fields as `readonly` when they are only assigned in the constructor or field initializer:
 
 ```csharp
 /// <summary>Manages communication with the microcontroller.</summary>
@@ -521,8 +466,7 @@ public class Communication
 
 ### Readonly struct
 
-Use `readonly struct` for small, immutable value types (the C# equivalent of C++ packed
-structs with all-const members):
+Use `readonly struct` for small, immutable value types:
 
 ```csharp
 /// <summary>Represents a 3D position in Unity world space.</summary>
@@ -549,8 +493,7 @@ public readonly struct WorldPosition
 
 ### Record types
 
-Use `record` types for immutable data with value equality semantics (the closest C# equivalent
-to Python's `@dataclass(frozen=True)`):
+Use `record` types for immutable data with value equality semantics:
 
 ```csharp
 /// <summary>Defines a corridor segment configuration loaded from YAML.</summary>
@@ -580,13 +523,12 @@ var modified = segment1 with { LengthCm = 200f };
 
 ## `in`, `ref`, and `out` parameter conventions
 
-These modifiers control how arguments are passed to methods. Correct usage is the C# equivalent
-of C++ const reference passing and output parameters.
+These modifiers control how arguments are passed to methods.
 
 ### `in` parameters
 
-Use `in` for large `readonly struct` parameters to avoid copying. Do NOT use `in` for small
-types (`int`, `float`, `bool`) or reference types — it adds overhead without benefit:
+Use `in` for large `readonly struct` parameters to avoid copying. Do NOT use `in` for small types (`int`, `float`,
+`bool`) or reference types, where it adds overhead without benefit:
 
 ```csharp
 /// <summary>Checks whether the specified world position is within the zone bounds.</summary>
@@ -601,8 +543,7 @@ public bool ContainsPosition(in WorldPosition position)
 
 ### `out` parameters
 
-Use `out` for methods that return multiple values. Follow the `TryX` pattern (return `bool`,
-populate `out` on success):
+Use `out` for methods that return multiple values. Follow the `TryX` pattern (return `bool`, populate `out` on success):
 
 ```csharp
 /// <summary>Attempts to parse the segment index from the segment name.</summary>
@@ -618,8 +559,8 @@ public static bool TryParseSegmentIndex(string segmentName, out int index)
 
 ### `ref` parameters
 
-Use `ref` sparingly, only when a method must modify the caller's variable. Prefer return
-values or `out` parameters over `ref` when possible:
+Use `ref` sparingly, only when a method must modify the caller's variable. Prefer return values or `out` parameters over
+`ref` when possible:
 
 ```csharp
 /// <summary>Advances the segment index, wrapping to zero at the corridor length.</summary>
@@ -643,8 +584,7 @@ public static void AdvanceSegmentIndex(ref int segmentIndex, int corridorLength)
 
 ## Generic constraints
 
-Use generic constraints to enforce compile-time type safety. This is the C# equivalent of C++
-`static_assert` on template parameters:
+Use generic constraints to enforce compile-time type safety:
 
 ```csharp
 /// <summary>Serializes data objects for MQTT transmission.</summary>
@@ -668,8 +608,7 @@ public class TypedChannel<TMessage> where TMessage : class, new()
 
 ### Multi-constraint formatting
 
-When a type has multiple type parameters with constraints, place each `where` clause on its
-own line:
+When a type has multiple type parameters with constraints, place each `where` clause on its own line:
 
 ```csharp
 public class Processor<TInput, TOutput>
@@ -697,8 +636,8 @@ public class Processor<TInput, TOutput>
 
 ### Constructor chaining
 
-Use `: this(...)` for overloaded constructors and `: base(...)` for derived class constructors.
-Place the colon on the same line as the closing parenthesis when it fits:
+Use `: this(...)` for overloaded constructors and `: base(...)` for derived class constructors. Place the colon on the
+same line as the closing parenthesis when it fits:
 
 ```csharp
 /// <summary>Creates a channel with default QoS level.</summary>
@@ -738,8 +677,8 @@ public EncoderModule(int pinA, int pinB)
 
 ### Parameter ordering
 
-Order constructor parameters consistently: identity parameters first, dependencies second,
-optional/configuration parameters last:
+Order constructor parameters consistently: identity parameters first, dependencies second, optional/configuration
+parameters last:
 
 ```csharp
 public Module(byte moduleType, byte moduleId, Communication communication, bool verbose = false)
@@ -807,7 +746,7 @@ public sealed class EncoderModule : Module
 
 ## ToString conventions
 
-Implement `ToString()` for debugging output, matching the Python `__repr__` convention:
+Implement `ToString()` for debugging output:
 
 ```csharp
 /// <summary>Returns a string representation of the segment configuration.</summary>
@@ -820,7 +759,7 @@ public override string ToString()
 ### Rules
 
 - Format: `ClassName(key=value, key=value)`
-- Include only the most important attributes
+- Include the fields a reader needs to tell two instances of the class apart
 - Use the actual class name
 - Summary: "Returns a string representation of the [ClassName] instance."
 
@@ -840,8 +779,7 @@ public void QueueCommand(byte command, bool noblock, uint cycleDelay)
 
 ### Optional parameters vs overloads
 
-Prefer optional parameters for simple default-value cases. Use overloads when the
-implementations differ significantly:
+Prefer optional parameters for simple default-value cases. Use overloads when the implementations differ significantly:
 
 ```csharp
 // Good - optional parameter for simple default
@@ -876,13 +814,12 @@ private float _occupancyDurationMs = 1000f;
 
 ## Switch expressions and pattern matching
 
-Modern C# provides pattern matching syntax. Use it consistently to avoid mixing old-style and
-new-style patterns.
+Modern C# provides pattern matching syntax. Use it consistently to avoid mixing old-style and new-style patterns.
 
 ### Switch expressions
 
-Use switch expressions for simple value-to-value mappings with no side effects. Use switch
-statements when branches contain side effects (logging, mutation, method calls):
+Use switch expressions for simple value-to-value mappings with no side effects. Use switch statements when branches
+contain side effects (logging, mutation, method calls):
 
 ```csharp
 // Good - switch expression for pure value mapping
@@ -958,5 +895,4 @@ if (template != null && template.segments.Length > 0)
 - Always include a `_` (discard) arm in switch expressions for exhaustiveness
 - Always include a `default:` case in switch statements
 - Use type patterns (`is T variable`) instead of separate `is` check + cast
-- Use property patterns sparingly — prefer explicit checks when the pattern is not
-  immediately obvious
+- Use property patterns sparingly, preferring explicit checks when the pattern is not immediately obvious

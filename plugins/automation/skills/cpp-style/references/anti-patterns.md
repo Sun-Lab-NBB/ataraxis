@@ -1,7 +1,6 @@
 # Anti-patterns
 
-Common C++ style violations and their corrections. Use this reference when
-reviewing code before submission.
+Common C++ style violations and their corrections. Use this reference when reviewing code before submission.
 
 ---
 
@@ -46,15 +45,18 @@ reviewing code before submission.
 | Bullet list in @brief details                | Flowing prose paragraph                         | Prose over lists             |
 | `@param` before `@tparam`                    | `@tparam` before `@param`                       | Follow tag ordering          |
 | `bool is_enabled`  `///< Checks if enabled.` | `bool is_enabled`  `///< Determines whether...` | Boolean "Determines whether" |
-| `@code` / `@endcode` example blocks          | Remove — use `@brief`, `@param`, `@returns`     | No examples in Doxygen       |
+| `@code` / `@endcode` example blocks          | Remove and use `@brief`, `@param`, `@returns`   | No examples in Doxygen       |
 
 ---
 
 ## Documentation quality violations
 
+Each Rule label below names a documentation-quality rule defined in [doxygen-and-types.md](doxygen-and-types.md).
+
 | Wrong                                     | Correct                                 | Rule                         |
 |-------------------------------------------|-----------------------------------------|------------------------------|
 | Sentences over 40 words in prose          | Split into shorter sentences            | Sentence length cap          |
+| Comment lines wrapped short of 120 chars  | Fill each line to the 120 char limit    | Wrap width                   |
 | Block length driven by method length      | Match length to conceptual difficulty   | Length proportionality       |
 | Block explains where it is called         | Describe what the method does           | Behavioral scope             |
 | `@param` restates parameter type          | Describe semantics, not types           | No type-signature restating  |
@@ -62,6 +64,9 @@ reviewing code before submission.
 | Stale issue numbers in comments           | Remove or update with current reference | No stale references          |
 | Typos and grammar errors in comments      | Proofread before submission             | Typo-free and grammatical    |
 | Comments narrate what code obviously does | Remove or explain why                   | No narrate-the-code comments |
+| `/** */` block on a self-evident method   | Single `///` summary line               | Summary line is the default  |
+| `// Now also skips unbound pins`          | State current behavior only             | No change narration          |
+| Block grown on every edit                 | Rewrite in place, delete what is moot   | No documentation ratchet     |
 
 ---
 
@@ -85,20 +90,20 @@ reviewing code before submission.
 
 ## Type and const violations
 
-| Wrong                                      | Correct                                     | Rule                            |
-|--------------------------------------------|---------------------------------------------|---------------------------------|
-| `int status`                               | `uint8_t status`                            | Fixed-width integer types       |
-| `short value`                              | `int16_t value`                             | Fixed-width integer types       |
-| `long duration`                            | `uint32_t duration`                         | Fixed-width integer types       |
-| `unsigned int size`                        | `uint32_t size`                             | Fixed-width integer types       |
-| Missing `const` on unchanged local         | `const int32_t new_motion = ...`            | const correctness               |
-| Missing `const` on value parameter         | `void Foo(const uint8_t pin)`               | const value parameters          |
-| Missing `explicit` on constructor          | `explicit TransportLayer(Stream& port)`     | Prevent implicit conversions    |
+| Wrong                                      | Correct                                                          | Rule                            |
+|--------------------------------------------|------------------------------------------------------------------|---------------------------------|
+| `int status`                               | `uint8_t status`                                                 | Fixed-width integer types       |
+| `short value`                              | `int16_t value`                                                  | Fixed-width integer types       |
+| `long duration`                            | `uint32_t duration`                                              | Fixed-width integer types       |
+| `unsigned int size`                        | `uint32_t size`                                                  | Fixed-width integer types       |
+| Missing `const` on unchanged local         | `const int32_t new_motion = ...`                                 | const correctness               |
+| Missing `const` on value parameter         | `void Foo(const uint8_t pin)`                                    | const value parameters          |
+| Missing `explicit` on constructor          | `explicit TransportLayer(Stream& port)`                          | Prevent implicit conversions    |
 | Missing `[[nodiscard]]` on getter          | `[[nodiscard]]` on its own line above `bool ReadData(...) const` | Mark pure query methods         |
-| Missing `override` on virtual              | `bool RunActiveCommand() override`          | Enforced by clang-tidy          |
-| Missing `final` on leaf class              | `class EncoderModule final : public Module` | Prevent unintended subclassing  |
-| `auto result = Process()`                  | `uint8_t result = Process()`                | Explicit types when not obvious |
-| `uint32_t d = static_cast<uint32_t>(x)`    | `auto d = static_cast<uint32_t>(x)`         | auto when type already on RHS   |
+| Missing `override` on virtual              | `bool RunActiveCommand() override`                               | Enforced by clang-tidy          |
+| Missing `final` on leaf class              | `class EncoderModule final : public Module`                      | Prevent unintended subclassing  |
+| `auto result = Process()`                  | `uint8_t result = Process()`                                     | Explicit types when not obvious |
+| `uint32_t d = static_cast<uint32_t>(x)`    | `auto d = static_cast<uint32_t>(x)`                              | auto when type already on RHS   |
 
 ---
 
@@ -150,9 +155,9 @@ reviewing code before submission.
 
 ---
 
-## Cross-language consistency violations
+## Cross-language uniformity violations
 
-These violations break the visual consistency across Python, C#, and C++:
+These violations break the limits Python, C#, and C++ all hold in common:
 
 | Wrong                              | Correct                                 | Rule                         |
 |------------------------------------|-----------------------------------------|------------------------------|
@@ -163,7 +168,7 @@ These violations break the visual consistency across Python, C#, and C++:
 | `Process()` as method name         | `ProcessData()` or specific verb phrase | Descriptive verb phrases     |
 | `int p` as parameter name          | `int32_t position` with full word       | Full words across all langs  |
 | No documentation on private member | Document all members                    | All languages document all   |
-| "This class manages..." in doc     | "Manages..." in doc                     | Imperative mood in all langs |
+| "This class manages..." in doc     | "Manages..." in doc                     | Third-person imperative mood |
 
 ---
 
@@ -180,4 +185,3 @@ Common violations in Python C++ extension (nanobind) code:
 | Accessing Python objects with GIL released          | Only access C++ state while GIL is released                | Thread safety                      |
 | `#include "nanobind/nanobind.h"`                    | `#include <nanobind/nanobind.h>`                           | Angle brackets for library headers |
 | Inline binding code mixed with class implementation | NB_MODULE block at end of file, after class                | Separation of concerns             |
-| Exact-pinned nanobind/scikit-build-core in pyproject | Major-version ranges in build-system.requires (see /pyproject-style) | Python deps track major versions   |

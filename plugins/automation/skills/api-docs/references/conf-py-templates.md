@@ -1,7 +1,7 @@
 # conf.py templates
 
-Complete Sphinx configuration templates for each documentation archetype. Replace all
-`<PLACEHOLDER>` values with project-specific information before use.
+Complete Sphinx configuration templates for each documentation archetype. Replace all `<PLACEHOLDER>` values with
+project-specific information before use.
 
 ---
 
@@ -60,22 +60,23 @@ html_theme = 'furo'
 
 ### Placeholders
 
-| Placeholder      | Description                          | Example                             |
-|------------------|--------------------------------------|-------------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-automation`               |
-| `<YEAR>`         | Current copyright year               | `2026`                              |
-| `<AUTHOR>`       | Author name(s) as string or list     | `'Ivan Kondratyev'` or `['A', 'B']` |
+| Placeholder      | Description                                  | Example                            |
+|------------------|----------------------------------------------|------------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-automation`              |
+| `<YEAR>`         | Current copyright year                       | `2026`                             |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |
 
-**Note:** For projects with a single author, use `author = 'Name'`. For projects with multiple
-authors, use `authors = ['Name1', 'Name2']` (plural field name with a list value).
+**Note:** `author` is the only author key Sphinx defines and it holds a string, so a multi-author project joins the
+names into that one string. A plural `authors` key and a list value both parse without error and reach no template,
+leaving the rendered pages on Sphinx's `Author name not set` default.
 
 ---
 
 ## C++-only archetype
 
-Use this template for projects containing only C++ source code. The version is hardcoded because a
-C++-only project installs no Python distribution for `importlib.metadata` to query, and
-`skip_install = true` is set in the tox docs environment.
+Use this template for projects containing only C++ source code. The version is hardcoded because a C++-only project
+installs no Python distribution for `importlib.metadata` to query, and `skip_install = true` is set in the tox docs
+environment.
 
 ```python
 # Configuration file for the Sphinx documentation builder.
@@ -101,8 +102,8 @@ html_theme = 'furo'
 
 ### Optional: preprocessor macros
 
-If the C++ project uses macros that Doxygen needs to expand, add Breathe preprocessor
-configuration after `breathe_default_project`:
+If the C++ project uses macros that Doxygen needs to expand, add Breathe preprocessor configuration after
+`breathe_default_project`:
 
 ```python
 breathe_doxygen_config_options = {
@@ -113,24 +114,23 @@ breathe_doxygen_config_options = {
 }
 ```
 
-Replace `MACRO_NAME=` with the actual macro definitions needed. Multiple macros can be
-space-separated.
+Replace `MACRO_NAME=` with the actual macro definitions needed. Multiple macros can be space-separated.
 
 ### Placeholders
 
-| Placeholder      | Description                          | Example                             |
-|------------------|--------------------------------------|-------------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-micro-controller`         |
-| `<YEAR>`         | Current copyright year               | `2026`                              |
-| `<AUTHOR>`       | Author name(s) as string or list     | `'Ivan Kondratyev'` or `['A', 'B']` |
-| `<VERSION>`      | Hardcoded version string             | `2.0.0`                             |
+| Placeholder      | Description                                  | Example                            |
+|------------------|----------------------------------------------|------------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-micro-controller`        |
+| `<YEAR>`         | Current copyright year                       | `2026`                             |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |
+| `<VERSION>`      | Hardcoded version string                     | `2.0.0`                            |
 
 ---
 
 ## Hybrid archetype
 
-Use this template for projects containing both Python and C++ source code. Combines the full
-Python configuration with Breathe integration.
+Use this template for projects containing both Python and C++ source code. Combines the full Python configuration with
+Breathe integration.
 
 ```python
 # Configuration file for the Sphinx documentation builder.
@@ -188,8 +188,8 @@ html_theme = 'furo'
 
 ### Placeholders
 
-| Placeholder      | Description                          | Example                             |
-|------------------|--------------------------------------|-------------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml | `ataraxis-time`                     |
-| `<YEAR>`         | Current copyright year               | `2026`                              |
-| `<AUTHOR>`       | Author name(s) as string or list     | `'Ivan Kondratyev'` or `['A', 'B']` |
+| Placeholder      | Description                                  | Example                            |
+|------------------|----------------------------------------------|------------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-time`                    |
+| `<YEAR>`         | Current copyright year                       | `2026`                             |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |
