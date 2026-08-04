@@ -78,6 +78,25 @@ Complete the verification checklist at the end of this file. Every item must pas
 
 ---
 
+## Every file occupies a slot in the tree
+
+A file added to the repository MUST occupy a slot the archetype tree defines. That test decides the question, rather
+than whether the user named the file.
+
+Adding a file to a defined slot is ordinary work and needs no permission. A module under `src/{package_name}/`, a test
+module under `tests/`, a documentation page under `docs/source/`, a skill file under a skill's own directory, and an
+issue template under `.github/ISSUE_TEMPLATE/` are all part of doing the task.
+
+A file that fits NO slot is the violation, and the repository ROOT is where it usually lands, because the root holds a
+fixed set this skill enumerates and nothing else. The recurring offenders are working artifacts: notes, findings,
+reports, audit output, plans, summaries, checklists, scratch scripts, and generated data. A finding belongs in the
+reply to the user, and a plan belongs in the reply to the user. Neither belongs in a tracked file, and a file the user
+has to delete afterwards is worse than no file at all.
+
+Work that genuinely needs a file on disk goes OUTSIDE the repository, in the session scratch directory. When a file
+fits no slot and the task still seems to need it tracked, stop and ask, because the answer decides whether the file
+exists rather than where it goes.
+
 ## Common root files
 
 These files appear at the root of all (or most) projects:
@@ -342,6 +361,8 @@ You MUST verify your work against this checklist before submitting any layout ch
 
 ```text
 Project Layout Compliance:
+- [ ] Every added file occupies a slot the archetype tree defines, with no working artifact (notes, findings,
+      reports, plans, scratch scripts) left in the tree, especially at the repository root
 
 Tool-settled items. `git ls-files` and `ls -a` decide each of these against the archetype tree, so run
 them rather than recalling the layout.

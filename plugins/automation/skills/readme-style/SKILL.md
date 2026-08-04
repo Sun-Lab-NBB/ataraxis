@@ -95,7 +95,7 @@ Sections marked as optional may be omitted based on project type. For the exact 
 14. **Versioning**: Semantic versioning statement with link to repository tags
 15. **Authors**: List of contributors with GitHub profile links
 16. **License**: License type with link to LICENSE file
-17. **Acknowledgments**: Credits to dependency developers and everyone who contributed to the project
+17. **Acknowledgments**: Credits chosen by the maintainer, whose contents this skill never dictates
 
 ### Umbrella README order
 
@@ -124,7 +124,7 @@ applies unchanged, including the `___` horizontal rules, the heading hierarchy, 
     on the framework
 14. **Citation** *(optional)*: BibTeX entry for the framework
 15. **License**: License covering every indexed repository
-16. **Acknowledgments**: Credits to the projects the framework builds on, ending with a contact address
+16. **Acknowledgments**: Credits chosen by the maintainer, ending with a contact address
 
 Versioning and Authors carry no umbrella content, because the indexed repositories tag their own releases and the
 attribution block in the header already names the authors.
@@ -359,7 +359,8 @@ Content:
 - [ ] Dependencies uses standard boilerplate text
 - [ ] API Documentation links to hosted docs
 - [ ] Developers section uses standard mamba/tox template (if present)
-- [ ] Standard ending sections use correct templates (Versioning, Authors, License, Acknowledgments)
+- [ ] Standard ending sections use correct templates (Versioning, Authors, License)
+- [ ] Acknowledgments contents left exactly as the maintainer wrote them, with only the heading spelling checked
 - [ ] Umbrella READMEs omit Versioning and Authors, carrying attribution in the header block
 - [ ] MCP Server section titled "MCP Server" with tools table (if applicable)
 - [ ] CLI commands documented with overview table (if applicable)

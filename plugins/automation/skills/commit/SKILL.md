@@ -76,7 +76,17 @@ Using the branch information from Step 1:
 
 ### Step 5: Stage all changes
 
-Stage every change with `git add -A`, covering tracked modifications, deletions, and untracked files.
+Before staging anything, run `git status --porcelain` and read every line marked `??`. An untracked file is the one
+way a working artifact enters the repository, and `git add -A` admits it silently.
+
+For each untracked file, ask whether it occupies a slot the archetype tree defines, which is the test
+`/project-layout` states. A new module under `src/`, a new test under `tests/`, and a new page under `docs/source/`
+all pass, so stage them. A file that fits no slot fails, and a stray file at the repository root is the usual case.
+When one fails, STOP. Do not stage it, do not commit it, and do not add it to `.gitignore` on your own initiative.
+Report the file and ask what to do with it.
+
+Once every untracked file is accounted for, stage with `git add -A`, covering tracked modifications, deletions, and
+the untracked files that belong in the tree.
 
 ### Step 6: Create the commit
 
@@ -310,6 +320,8 @@ Commit Execution Compliance:
 - [ ] Reported nothing to commit and made no commit when `git status` showed no staged, unstaged, or untracked changes
 - [ ] Determined the active branch and the default branch
 - [ ] If on the default branch, asked the user before creating a new branch
+- [ ] Every untracked file accounted for before staging, with any file occupying no archetype slot reported
+      rather than staged
 - [ ] Staged ALL changes with `git add -A`
 - [ ] Created the commit with the drafted, style-compliant message
 - [ ] Did NOT push and did NOT offer to push automatically

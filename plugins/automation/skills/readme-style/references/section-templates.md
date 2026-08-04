@@ -483,6 +483,11 @@ For Python libraries:
 - The creators of all other dependencies and projects listed in the [pyproject.toml](pyproject.toml) file.
 ```
 
+The bullets above are ILLUSTRATIVE ONLY. The contents of an Acknowledgments section belong entirely to the maintainer,
+who names specific people, names a group, or names no one at all. Never add, remove, reorder, reword, or propose an
+acknowledgment entry, and never report one as a finding. This rule governs the section's contents alone, so the heading
+spelling and the section's position in the ordering stay ordinary style points.
+
 For C++ / PlatformIO libraries, replace `pyproject.toml` with `platformio.ini`:
 
 ```markdown
