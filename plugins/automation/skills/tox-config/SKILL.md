@@ -72,7 +72,7 @@ Collect the project-specific values:
 |--------------------|---------------------------------------|---------------------------|
 | `{package_name}`   | Package directory name under `src/`   | `ataraxis_base_utilities` |
 | `{env_abbr}`       | Short project abbreviation            | `axbu`                    |
-| `{version}`        | Current ataraxis-automation release   | `9.0.0`                   |
+| `{version}`        | Current ataraxis-automation release   | `9.0.1`                   |
 | Python versions    | `requires-python` in `pyproject.toml` | `py312, py313, py314`     |
 | `basepython`       | Earliest supported Python version     | `py312`                   |
 | `--python-version` | Latest supported Python version       | `3.14`                    |
@@ -156,7 +156,7 @@ ataraxis-automation version:
 ```ini
 [testenv:coverage]
 skip_install = true
-deps = ataraxis-automation==9.0.0
+deps = ataraxis-automation==9.0.1
 ```
 
 This pattern applies to: `coverage`, `build`, `upload`, `deploy`, `install`, `uninstall`, `create`, `remove`,
