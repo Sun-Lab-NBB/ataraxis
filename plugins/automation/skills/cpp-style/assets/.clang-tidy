@@ -1,6 +1,9 @@
 # A general catch-all clang-tidy configuration. Equivalent to ruff (for Python), but statically checks C++ and C code.
+# 'google-build-using-namespace' is excluded because the /cpp-style skill prescribes file-scope 'using namespace' for
+# project-internal shared asset namespaces and for the nanobind literals and chrono namespaces. The skill's own rules
+# bound where the directive is allowed, which the blanket check cannot express.
 ---
-Checks: '-*,google-*,-google-runtime-references,
+Checks: '-*,google-*,-google-runtime-references,-google-build-using-namespace,
 bugprone-argument-comment,
 bugprone-assert-side-effect,
 bugprone-bad-signal-to-kill-thread,
