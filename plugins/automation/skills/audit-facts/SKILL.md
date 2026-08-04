@@ -33,7 +33,7 @@ on that step. The verification checklist at the end is mandatory before submitti
 
 **Does not cover:**
 - Style, formatting, section ordering, or convention compliance (see `/audit-style`)
-- Documentation quality such as density, length proportionality, typos, imperative mood,
+- Documentation quality such as density, length proportionality, typos, third-person imperative mood,
   separator punctuation, type-signature restating, and narrate-the-code comments (see
   `/audit-style`)
 - A callable, class, module, or file that carries no documentation at all, which is a style
@@ -141,11 +141,14 @@ Bind every enumerated file to its class and its authoritative source:
 | `docs/**/*.rst`, `docs/**/conf.py`                            | Metadata  | The documented public API and the project build configuration            |
 | `pyproject.toml`, `tox.ini`, `platformio.ini`, `library.json` | Metadata  | The declared dependencies and environments, and the code that reads them |
 | `.github/**/*.yml`, `.github/**/*.md`                         | Metadata  | The workflows, environments, and project layout the template references  |
+| `tests/**/*.py`, `tests/**/*.cpp`, `tests/**/*.cs`            | In-source | The code under test, together with the test body itself                  |
 | `*.py`, `*.pyi`                                               | In-source | The documented module, class, function, and the symbols they call        |
 | `*.h`, `*.hpp`, `*.cpp`                                       | In-source | The documented file, class, method, and the symbols they call            |
 | `*.cs`                                                        | In-source | The documented file, class, member, and the symbols they call            |
 
-A file matching no row is out of scope. Record it in the coverage ledger as UNBOUND.
+A file matching no row is out of scope. Record it in the coverage ledger as UNBOUND. State whether
+`tests/` is audited or read as authority, bind every test path to the tests row rather than to its
+language row, and give it its own coverage-ledger row.
 
 For files that reference external libraries, include the installed package location in the
 authoritative source list for that file. For ataraxis dependencies, invoke
@@ -188,9 +191,9 @@ every later step consumes and tags each claim with the kind that decides which p
 
 Walk each target file top to bottom and extract every verifiable claim.
 
-In metadata documentation, a claim is any verifiable assertion: API names and signatures, file
-paths, directory layouts, canonical filenames, behaviors, configuration values, defaults,
-workflow step orderings, cross-references, version pins, external-library API references,
+In metadata documentation, a claim is any verifiable assertion. That covers API names and signatures,
+file paths, directory layouts, canonical filenames, behaviors, configuration values, and defaults. It
+also covers workflow step orderings, cross-references, version pins, external-library API references,
 numerical facts, existence assertions, and date or version markers.
 
 In in-source documentation, a claim is any assertion the implementation can confirm:
@@ -209,11 +212,7 @@ Pass 1 states what is NOT a claim, and Guard 5 removes anything that reaches the
 ### Step 3: Verify each claim
 
 Run passes 2 through 6 from [detection-passes.md](references/detection-passes.md) in order, over ONE
-walk of the claim ledger, sweeping existence, signatures, behavior, failures, and quantities. Open
-each authoritative source once and settle every claim resolving against it while it is open. The
-existence sweep runs first
-because renames are the most common source of drift and it settles them without reading an
-implementation.
+walk of the claim ledger.
 
 For each claim, locate the authoritative source and compare. You MUST open the source file and
 verify directly. Do NOT verify from memory or training data.
@@ -222,20 +221,11 @@ For metadata claims, read the module, tool, or configuration file the claim name
 external-library claims, read the installed library under `.venv`, conda env, or
 `site-packages`. For ataraxis dependencies, use the API snapshot from `/explore-dependencies`.
 
-For in-source claims, the implementation is the authority. Apply these rules:
+For in-source claims, the implementation is the authority. Passes 3 through 6 define the mechanical
+comparisons, and Guards 2 and 10 define what stops a candidate.
 
-- Read the full body of the documented callable, class, or module before judging its
-  documentation. A summary that looks wrong at the signature is often satisfied deeper in the body
-- Run the mechanical comparisons the passes define, which are parameters and defaults against the
-  signature in Pass 3, the summary against the statements that satisfy it in Pass 4, the documented
-  exceptions against the ones the body raises in Pass 5, and every stated quantity against the
-  declaration that fixes it in Pass 6
-- Confirm every symbol, module, file, or version a comment names still exists under that name
-- Follow the call before flagging. Behavior a docstring describes is often delegated to a helper,
-  and delegated behavior still belongs to the documented callable
-- A `# noqa` or `# type: ignore` code is a claim about a diagnostic. Report it as DRIFT only when
-  the project's linter is available and confirms the line no longer produces that diagnostic.
-  Without the linter, leave the suppression unreported
+Run only the READ-ONLY form of any tool this audit consults, such as `ruff check --no-fix` and
+`mypy .`, because bare `tox` and `tox -e lint` are FORBIDDEN here and reformat the code under audit.
 
 For Large-tier audits, spawn the sub-agents the Step 1 grouping rules define. Each sub-agent receives
 its own files, the documentation class, the authoritative source scope for those files alone, and the
@@ -246,15 +236,18 @@ Cite each source as `<path>:<line>` or `<path>:<line>-<line>`. For an in-source 
 location and the source location commonly sit in the same file a few lines apart, and both are
 still required.
 
-Categorize every claim using one of:
+Categorize every claim with one of these seven verdicts. This step assigns the first five, and the
+omission and contradiction passes in Steps 4 and 6 assign the last two:
 
-| Verdict      | Meaning                                                                    |
-|--------------|----------------------------------------------------------------------------|
-| EXACT        | Claim matches source verbatim                                              |
-| SEMANTIC     | Claim is correct in meaning but uses different wording                     |
-| DRIFT        | Claim was true at one point but has changed in source                      |
-| WRONG        | Claim is factually incorrect                                               |
-| UNVERIFIABLE | Source is missing, or claim is too vague to verify after reasonable search |
+| Verdict       | Meaning                                                                    |
+|---------------|----------------------------------------------------------------------------|
+| EXACT         | Claim matches source verbatim                                              |
+| SEMANTIC      | Claim is correct in meaning but uses different wording                     |
+| DRIFT         | Claim was true at one point but has changed in source                      |
+| WRONG         | Claim is factually incorrect                                               |
+| CONTRADICTION | Claim and another claim about the same thing cannot both be true           |
+| OMISSION      | Partially populated section misses members of the surface it covers        |
+| UNVERIFIABLE  | Source is missing, or claim is too vague to verify after reasonable search |
 
 Also assign a confidence tier to every finding:
 
@@ -265,6 +258,9 @@ Also assign a confidence tier to every finding:
 | LOW        | Pattern detected but source/claim mapping is inferred, not literal |
 
 For UNVERIFIABLE findings, state what you searched for and where you looked.
+
+List ALL non-matching claims in each pass, walking a block that yields one WRONG claim to the end of
+its ledger rows rather than stopping at the first.
 
 ### Step 4: Omission pass
 
@@ -277,8 +273,8 @@ An omission is substantive when the documentation already partially covers a sur
 pieces of it. In metadata documentation, examples include documenting 3 of 5 public functions in
 a module the file walks through, describing a workflow but skipping a required step, or listing
 registries but missing one. In in-source documentation, examples include an `Args:` section that
-documents 3 of 5 parameters, a `Raises:` section that omits an exception the body raises, an
-`Attributes:` section missing an attribute the class assigns, and a Doxygen block carrying
+documents 3 of 5 parameters and a `Raises:` section that omits an exception the body raises. They also
+include an `Attributes:` section missing an attribute the class assigns, and a Doxygen block carrying
 `@param` tags for some parameters of a method.
 
 Do NOT flag documentation for lacking an entire section, format, or convention, and do NOT flag a
@@ -339,11 +335,14 @@ visible rather than silent:
 |---------------------|----------------|---------------|---------------|
 | Metadata            | 12             | 12            | 0             |
 | In-source           | 47             | 47            | 0             |
+| Tests               | 9              | 9             | 0             |
 ```
 
 List every skipped and UNBOUND file by path with its reason, and state the sub-agent count. Skipping
 is allowed only when the user narrowed the scope in Step 0 or Step 1, when a file is generated, or
-when a file is unreadable. A run narrowed to a change set names the revision it resolved against here.
+when a file is unreadable. A tests row bound as authority rather than audited is recorded in the
+skipped list with the reason `authority, not audited`. A run narrowed to a change set names the
+revision it resolved against here.
 A Large-tier audit that produced no in-source findings still reports a non-zero audited count in the
 in-source row, which distinguishes clean documentation from an unrun pass.
 
@@ -351,7 +350,7 @@ in-source row, which distinguishes clean documentation from an unrun pass.
 
 Use the output format below. Open with the triage header from
 [verification-protocol.md](references/verification-protocol.md), which carries the finding counts by
-type and confidence together with every discard count the guards and the Step 8 checks produced.
+verdict and confidence together with every discard count the guards and the Step 8 checks produced.
 
 Skip EXACT and SEMANTIC findings entirely. Report every surviving finding at every confidence tier by
 default, which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when
@@ -372,13 +371,13 @@ Open the report with the triage header from
 report only WRONG, DRIFT, CONTRADICTION, OMISSION, and UNVERIFIABLE findings, in that order.
 
 When the audit spans multiple files, group the HIGH and MEDIUM confidence findings hierarchically:
-documentation class -> file -> finding type -> findings. Collect LOW confidence findings into the
-trailing `Appendix: LOW confidence` section, ordered by the same type sequence.
+documentation class -> file -> finding verdict -> findings. Collect LOW confidence findings into the
+trailing `Appendix: LOW confidence` section, ordered by the same verdict sequence.
 
 Each finding uses this structure:
 
 ```text
-[Type]: <WRONG | DRIFT | CONTRADICTION | OMISSION | UNVERIFIABLE>
+[Verdict]: <WRONG | DRIFT | CONTRADICTION | OMISSION | UNVERIFIABLE>
 [Class]: <METADATA | IN-SOURCE>
 [Confidence]: <HIGH | MEDIUM | LOW>
 Location in file: <path>:<line>-<line>
@@ -396,27 +395,14 @@ and where.
 
 ## Discipline
 
-You MUST adhere to the following discipline during every audit.
+You MUST adhere to the following discipline during every audit, and you MUST apply every guard in
+[false-positive-guards.md](references/false-positive-guards.md) before reporting.
 
-- Never invent source. If you cannot open the source after reasonable search, mark UNVERIFIABLE.
-- Facts the audited repository cannot derive from its own source, such as external toolchain version
-  floors, installer requirements, cross-repository pins, and environment prerequisites, are
-  authoritative by default, and Guard 1 states how to handle them. `/readme-style` is the source of
-  the canonical install-section requirements.
 - Never paraphrase source and present it as a verbatim quote. Use the Read tool and copy.
 - Never expand scope to restructure, restyle, or refactor. This skill produces findings only.
-- Never flag style, formatting, structural, or convention issues. Those belong to
-  `/audit-style`. A docstring or comment enters this report only when a fact inside it disagrees
-  with the code.
-- Never flag a defect, an edge case, or a runtime cost. Those belong to `/audit-correctness` and
-  `/audit-performance`.
-- The implementation is authoritative over the documentation, so the Suggested fix edits the
-  documentation by default. When the code is the side that looks wrong, say so in the Suggested
-  fix and leave the choice to the user. `/audit-correctness` owns that case and its ownership
-  ladder decides between the two skills.
-- Re-exports count: if the documentation says X is in module Y, and X is re-exported by Y but
-  defined elsewhere, that is EXACT, not WRONG.
 - Do not flag subjective preferences (tone, ordering, terminology).
+- Hold the report's own prose to the rules this family enforces, keeping every authored sentence under
+  40 words and separating clauses with full stops and commas rather than semicolons or em-dashes.
 
 ---
 
@@ -428,8 +414,8 @@ You MUST adhere to the following discipline during every audit.
 | `/audit-style`          | Sibling audit for style, formatting, documentation quality, and convention compliance   |
 | `/audit-correctness`    | Sibling audit owning the same mismatch when the code is the side to fix                 |
 | `/audit-performance`    | Sibling audit for cost, speed, memory use, and dtype predictability                     |
-| `/explore-codebase`     | Provides project structure context; invoke first when auditing an unfamiliar codebase   |
-| `/explore-dependencies` | Provides ataraxis API snapshots; invoke before verifying external API claims            |
+| `/explore-codebase`     | Provides project structure context. Invoke first when auditing an unfamiliar codebase   |
+| `/explore-dependencies` | Provides ataraxis API snapshots. Invoke before verifying external API claims            |
 | `/python-style`         | Defines the docstring sections whose contents this skill verifies against Python code   |
 | `/cpp-style`            | Defines the Doxygen tags whose contents this skill verifies against C++ code            |
 | `/csharp-style`         | Defines the XML doc tags whose contents this skill verifies against C# code             |
@@ -465,11 +451,15 @@ Documentation Fact Audit Compliance:
 - [ ] Plan listed per-class file counts, including the in-source count
 - [ ] Both documentation classes enumerated for every directory or repository target
 - [ ] Every file in scope bound to a class and an authoritative source per the binding table
+- [ ] Test files bound explicitly, either audited as their own in-source ledger row or recorded as authority, never
+      left to the enumeration to decide
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
 - [ ] For Large tier, each metadata file, each skill unit, and the docs package given its own sub-agent
 - [ ] For Large tier, in-source batched by package with no language mixing, within 40 and 12 in flight, merging to fit
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
-- [ ] Every claim categorized (EXACT, SEMANTIC, DRIFT, WRONG, UNVERIFIABLE)
+- [ ] Every claim carries a verdict (EXACT, SEMANTIC, DRIFT, WRONG, CONTRADICTION, OMISSION, UNVERIFIABLE)
+- [ ] Every harvested claim carries a verdict, with all non-matching claims in a block reported rather than the
+      first one only
 - [ ] Every claim assigned a confidence tier (HIGH, MEDIUM, LOW)
 - [ ] Every non-EXACT and non-SEMANTIC finding cites a source location <path>:<line>
 - [ ] Claim ledger built in Pass 1, with every claim tagged by kind
@@ -477,6 +467,8 @@ Documentation Fact Audit Compliance:
 - [ ] Every claim verified by reading the source file (no memory-based verification)
 - [ ] Full body of every documented callable read before its documentation was judged
 - [ ] External library claims verified against installed library, not training data
+- [ ] Suppression claims settled only through a read-only tool invocation, with bare `tox` and `tox -e lint` never
+      run and any unavailable tool recorded in the ledger
 - [ ] Omission pass executed and bounded by Step 1 scope (no out-of-scope omission claims)
 - [ ] Cross-file and cross-symbol references verified for accuracy
 - [ ] Internal contradictions surfaced
@@ -485,7 +477,7 @@ Documentation Fact Audit Compliance:
 - [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
 - [ ] Adversarial refutation run against every WRONG and CONTRADICTION finding, in fresh sub-agents
 - [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
-- [ ] Triage header present, carrying the type by confidence counts and every discard count
+- [ ] Triage header present, carrying the verdict by confidence counts and every discard count
 - [ ] Coverage ledger present, with every skipped and UNBOUND file listed by path and reason
 - [ ] In-source row of the ledger shows a non-zero audited count for repository targets
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
@@ -496,4 +488,6 @@ Documentation Fact Audit Compliance:
 - [ ] No file modifications made during the audit
 - [ ] Findings ordered: WRONG -> DRIFT -> CONTRADICTION -> OMISSION -> UNVERIFIABLE
 - [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict
+- [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops
+      and commas as clause separators
 ```

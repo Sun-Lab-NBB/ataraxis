@@ -11,6 +11,8 @@ Every pass applies to both documentation classes. A metadata file's claims resol
 packages and tools it names, and an in-source block's claims resolve against the implementation it
 sits on together with the symbols that implementation calls.
 
+---
+
 ## Contents
 
 - Pass 1: Claim harvest
@@ -22,6 +24,8 @@ sits on together with the symbols that implementation calls.
 - Pass 7: Omission sweep
 - Pass 8: Reference sweep
 - Pass 9: Contradiction sweep
+
+---
 
 ## One traversal, nine questions
 
@@ -187,9 +191,9 @@ Bound this pass by the per-file source scope from Step 1, so no out-of-scope omi
 
 For each documentation section that already covers part of a surface, enumerate the full surface from
 the source and diff it against the section. The surfaces worth enumerating are the parameters of a
-documented callable, the exceptions its body raises, the attributes its class assigns, the public
-functions of a module the file walks through, the steps of a workflow it describes, and the members of
-a registry it lists.
+documented callable, the exceptions its body raises, and the attributes its class assigns. They also
+include the public functions of a module the file walks through, the steps of a workflow it describes,
+and the members of a registry it lists.
 
 A section that covers three of five members is a finding naming the two it misses. A section that is
 absent entirely, and a callable, class, module, or file carrying no documentation at all, are style
@@ -221,9 +225,10 @@ Report only a broken or wrong reference. A working reference produces nothing.
 Group the ledger by subject rather than by file location, so claims about one symbol sit together
 however far apart they were written. Then compare every pair within a group for compatibility.
 
-The productive groupings are a value stated in two places, a behavior described in both a module
-docstring and the docstring of the member implementing it, a default stated in prose and in a table, a
-parameter described differently in a class docstring and in its property, and an ordering given twice.
+The productive groupings are a value stated in two places, and a behavior described in both a module
+docstring and the docstring of the member implementing it. They also include a default stated in prose
+and in a table, a parameter described differently in a class docstring and in its property, and an
+ordering given twice.
 
 Report a contradiction whenever two claims cannot both be true, and name both sides with their
 locations. Where the source settles which side is right, say so, and where it does not, report the

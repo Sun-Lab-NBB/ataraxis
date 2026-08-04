@@ -68,7 +68,7 @@ Audit Progress:
 - [ ] Step 3: Deterministic gates run and their findings collected
 - [ ] Step 4: Project-scope layout sweep run, or skipped and recorded
 - [ ] Step 5: Line-by-line sweep complete (all four dimensions)
-- [ ] Step 6: Findings categorized
+- [ ] Step 6: Severity and confidence assigned
 - [ ] Step 7: False-positive guards applied
 - [ ] Step 8: Findings verified (citation, refutation)
 - [ ] Step 9: Coverage ledger assembled
@@ -80,11 +80,11 @@ Audit Progress:
 Emit a plan before any sweep work fires. The plan must list:
 
 - Files in scope (resolved absolute paths)
-- Style skills bound to those files (per the binding table in Step 1)
+- Style skills bound to those files, meaning the authority each one resolves to in the Step 1 table
 - Tier classification (small, medium, or large)
 - Whether the Step 4 project-scope layout sweep runs, and the reason when it does not
 - Whether the Pass 11 symbol usage sweep runs in full, runs partially, or is skipped, with the reason
-- Expected finding categories
+- Expected finding severities
 
 Pause for user confirmation or a "proceed" signal. This catches misidentified targets before
 tokens burn on the wrong scope.
@@ -101,15 +101,15 @@ branch, `git diff --name-only <commit>` for one commit, or `git status --porcela
 tree. A narrowed run still reads every surviving file in full, because ordering, visibility grouping,
 and length proportionality are properties of a whole file. It also still builds the Step 5 reference
 table across the WHOLE repository, because a symbol's tier is decided by consumers a change set does
-not contain, and Guard 16 skips the usage pass outright rather than deciding an absence from a partial
+not contain. Guard 16 skips the usage pass outright rather than deciding an absence from a partial
 table. Record the narrowing and the revision it resolved against in the report, so it states what it
 did not cover.
 
 For each file in scope, identify the applicable style skill using the binding table:
 
-| File pattern                                                              | Style skill          |
+| File pattern                                                              | Authority            |
 |---------------------------------------------------------------------------|----------------------|
-| `*.py`                                                                    | `/python-style`      |
+| `*.py`, `*.pyi`                                                           | `/python-style`      |
 | `*.cs`, `.editorconfig`, `.csharpierrc.yaml`, `.csharpierignore`          | `/csharp-style`      |
 | `*.h`, `*.hpp`, `*.cpp`, `.clang-format`, `.clang-tidy`, `CMakeLists.txt` | `/cpp-style`         |
 | `README.md`                                                               | `/readme-style`      |
@@ -127,54 +127,28 @@ Where a file matches more than one row, the MOST SPECIFIC pattern wins, which re
 `Project directory tree` row binds no file at all and is executed by the Step 4 layout sweep rather
 than by the per-file passes.
 
-If a file in scope matches no binding row, mark it UNAUDITED in the plan and report (no
-applicable style skill) and flag no findings against it.
+A `.pyi` stub file binds to `/python-style` for its generated-stub rule alone. Judge it against that
+rule rather than against the ordinary source checklist, so the one finding it can carry is evidence of
+hand-authoring in a file the stub generator writes.
+
+If a file in scope matches no binding row, no style skill applies to it. Mark it skipped in the plan
+and report, with the reason `no binding row`, and flag no findings against it.
 
 Classify the audit tier, and note that the three rows partition the file count with no overlap and no
 gap:
 
-| Tier   | Indicators                         | Execution                                              |
-|--------|------------------------------------|--------------------------------------------------------|
-| Small  | 1 file                             | Main agent, sequential                                 |
-| Medium | 2 to 9 files                       | Main agent, file-by-file                               |
+| Tier   | Indicators                         | Execution                                               |
+|--------|------------------------------------|---------------------------------------------------------|
+| Small  | 1 file                             | Main agent, sequential                                  |
+| Medium | 2 to 9 files                       | Main agent, file-by-file                                |
 | Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
-### Batching isolates the style guides
-
-A Large-tier audit BATCHES BY BINDING, so no sub-agent carries more than one or two checklists. This
-is the rule that decides what this audit costs. Every sub-agent re-receives the checklists its files
-bind to, and the loaded checklists of a mixed project root run to tens of thousands of tokens, so a
-sub-agent holding every binding pays for guides it never applies, once per sub-agent.
-
-Build the batches under three rules:
-
-1. **One binding per batch, two at the absolute most.** Group files by the style skill the table above
-   assigned. A batch is Python files, or C++ files, or C# files, and never a mixture.
-2. **A single-file binding gets its own sub-agent.** `README.md`, `pyproject.toml`, and `tox.ini` each
-   bind to a checklist nothing else uses. `platformio.ini` travels with `library.json`, and `CLAUDE.md`
-   with `AGENTS.md`. A skill is one such unit rather than one per file,
-   so its `SKILL.md` and its `references/*.md` travel together, because the progressive-disclosure
-   rules judge a reference file against the `SKILL.md` that loads it. The documentation package
-   under `docs/` is one sub-agent holding `/api-docs` alone.
-3. **Roughly eight files per source batch**, sharing a package or a directory. Forty sub-agents cap
-   the run, twelve run at once, and units beyond forty merge by shared checklist rather than
-   dropping files.
-
-Each sub-agent loads ONLY the checklists its own batch binds to, and receives ONLY the rule-ledger
-rows Step 2 built from those checklists.
-
-Only the per-file sweep fans out. Every other step runs on the main agent, because the rule ledger, the
-cross-file consistency pass, the symbol usage pass, categorization, the guards, the verification, and
-the report each need the whole file set in one view or sit on a trust boundary.
-
-The fan-out therefore carries a SECOND return value. Every batch sub-agent returns its findings AND the
-declaration and reference rows Pass 11 defines, covering each symbol its files declare and each symbol
-its files reference. Findings alone would leave the main agent unable to run Pass 11 at all, because a
-symbol declared in one batch and consumed in another is invisible to both sub-agents while the main
-agent never reads their files.
-
-Do NOT use the `Explore` agent type for sweep work. Explore returns summaries rather than
-verbatim citations and breaks the "verbatim checklist quote" discipline.
+**Batching isolates the style guides.** A Large-tier audit BATCHES BY AUTHORITY, so no sub-agent
+carries more than one or two checklists. Each one loads ONLY the checklists its own batch binds to,
+together with ONLY the rule-ledger rows Step 2 built from them. Only the per-file sweep fans out, and
+every batch returns the Pass 11 declaration and reference rows alongside its findings. See the
+"Batching the fan-out" section of [detection-passes.md](references/detection-passes.md) for the three
+batch-construction rules, the sub-agent caps, the main-agent split, and the agent-type prohibition.
 
 ### Step 2: Load applicable style skill checklists
 
@@ -215,19 +189,9 @@ place of the checklist quote, at HIGH confidence. A diagnostic a tool produced n
 verification in Step 8, because the tool IS the external check.
 
 Then narrow the Step 5 sweep. The passes still run, and their scope shrinks to what the tools cannot
-decide:
-
-- **Delegated to the tools, so the sweep reports nothing on its own authority.** Line length,
-  indentation, blank-line counts, quote and string form, trailing commas, import sorting and grouping,
-  and every rule carried by a ruff code the project enables.
-- **Kept for the sweep, because no tool decides them.** Documentation quality in every form, which is
-  length proportionality, redundancy with the signature, behavioral scope, sentence length, mood,
-  separator punctuation, positive description, and spelling. Identifier vocabulary, meaning full words
-  against the abbreviations the checklist enumerates. Element and section ORDERING where the checklist
-  states an order the formatter does not enforce. Visibility placement. Cross-file consistency. Every
-  cross-skill conflict. Symbol visibility against actual usage, together with every asset no consumer
-  references, which ruff reaches only for imports outside `__init__.py`, for locals, and for arguments,
-  and carries no rule for at module level.
+decide. Guard 2 of [false-positive-guards.md](references/false-positive-guards.md) lists the rules the
+tools own, and the "What the sweep keeps" section of
+[detection-passes.md](references/detection-passes.md) lists the rules the sweep retains.
 
 State in the report which tools ran and which rules the sweep therefore delegated.
 
@@ -238,77 +202,62 @@ procedure and the finding shape this sweep reports in. The directory tree is a s
 per-file pass can reach, because a pass reading a file cannot report the file that is MISSING. The
 sweep runs ONCE, on the main agent, before the per-file batches fan out, never inside a batch sub-agent.
 
-Run it ONLY when the resolved target is a project root, meaning a whole repository. A package directory
-or a single file carries no tree to judge, so the sweep is SKIPPED, and the Step 0 plan and the Step 9
-coverage ledger each record it as `skipped-not-a-project-root`. In change mode, run it only when the
-change set CREATES or DELETES files, because only those alter the tree, and record an edit-only change
-set as `skipped-no-created-or-deleted-files`. Silence is never coverage, so an unrecorded skip reads as
-a clean tree that nothing ever checked. Every layout finding passes through the Step 7 guards like
-every other candidate.
+Run it ONLY when the resolved target is a project root, and in change mode only when the change set
+CREATES or DELETES files. Otherwise the sweep is SKIPPED, and the Step 0 plan and the Step 9 coverage
+ledger each record it as `skipped-not-a-project-root` or `skipped-no-created-or-deleted-files`. Silence
+is never coverage, so an unrecorded skip reads as a clean tree that nothing ever checked. Every layout
+finding passes through the Step 7 guards like every other candidate.
 
 ### Step 5: Line-by-line sweep
 
-Run passes 2 through 9 and pass 11 from [detection-passes.md](references/detection-passes.md) in order,
-over ONE traversal of each file rather than one traversal per pass. Passes 2 through 6 cover
-Dimension A, passes 7 and 8 cover Dimension B, pass 9 covers Dimension C, and pass 11 covers
-Dimension D.
+Run passes 2 through 8 from [detection-passes.md](references/detection-passes.md) in order, over ONE
+traversal of each file rather than one traversal per pass. Passes 9 and 11 run after that traversal
+closes, on the main agent. Passes 2 through 6 cover Dimension A, passes 7 and 8 cover Dimension B,
+pass 9 covers Dimension C, and pass 11 covers Dimension D.
 
 For every file in scope, walk top to bottom. For every line, evaluate against every applicable
 checklist item. Track four parallel dimensions.
 
-**Dimension A — Structural style:** Element ordering, imports, formatting, naming, type
+**Dimension A, structural style:** Element ordering, imports, formatting, naming, type
 annotations, error-handling patterns, and file-section ordering. The source of truth is the
 loaded style skill's main checklist.
 
-**Dimension B — Comment and docstring quality:** Apply the loaded style skill's docstring and
-comment checklist to every comment, docstring, and inline annotation. Typical findings include
-typos, grammar errors, and prose padded with restatements or trivia the reader can infer from the
-code. They also include documentation whose length tracks the size of the code instead of the
-difficulty of understanding it, docstrings that restate the type signature, and comments that
-narrate obvious code behavior. Documentation that describes how the asset is used in the project,
-such as the pipeline stage that calls it or the feature that depends on it, is a finding whenever
-the text leaves the behavior of the asset itself. A common content issue is a sentence exceeding
-40 words. Findings further include prose that separates clauses with a semicolon or an em-dash
-where only full stops and commas belong, together with contrastive or historical framing ("does X,
-not Y" or "formerly did Y") that should state present behavior positively.
+**Dimension B, comment and docstring quality:** Apply the loaded style skill's docstring and comment
+checklist to every comment, docstring, and inline annotation, judging the FORM of the prose rather than
+its factual accuracy. Passes 7 and 8 of [detection-passes.md](references/detection-passes.md) carry the
+eleven checks, which cover typos, grammar, sentence length, length proportionality, redundancy with the
+signature, narrate-the-code comments, behavioral scope, separator punctuation, and positive
+description.
 
-This dimension judges the form of the documentation. A stale reference to a renamed symbol, a
-removed feature, or a closed issue, and a docstring claim that disagrees with the signature or the
-observable behavior, are factual findings that belong to `/audit-facts`, because confirming them
-requires reading the implementation.
-
-**Dimension C — Cross-file consistency:** Naming, ordering, and idiom drift across the file
+**Dimension C, cross-file consistency:** Naming, ordering, and idiom drift across the file
 set. Examples include the same field named differently in two sibling classes, or one module
 following a convention that adjacent modules ignore.
 
-**Dimension D — Symbol visibility and usage:** Each symbol's declared tier against the widest boundary
-its consumers actually cross, and each symbol's consumer set against emptiness. The five findings are a
-private name on a symbol another module references, a public name on a symbol only its own module
-references, a cross-package symbol missing from its package's export list, an export list entry no
-outside package imports, and an asset nothing references at all. Every one is a claim about ABSENCE, so
-each is confirmed by a repository-wide search before it is reported, and Guard 15 discards the
-candidates resting on a consumer no written reference reveals.
+**Dimension D, symbol visibility and usage:** Each symbol's declared tier against the widest boundary
+its consumers actually cross, and each symbol's consumer set against emptiness. Pass 11 of
+[detection-passes.md](references/detection-passes.md) names the five findings this dimension can
+produce. Every one is a claim about ABSENCE, so each is confirmed by a repository-wide search before it
+is reported, and Guard 15 discards the candidates resting on a consumer no written reference reveals.
 
-While traversing each file, record the symbols it DECLARES and the symbols it REFERENCES. Pass 11
-reconciles the two tables on the main agent after the traversal closes, so the traversal collects them
-rather than paying for a second reading of every file in scope.
+While traversing each file, record the symbols it DECLARES and the symbols it REFERENCES, so Pass 11
+can reconcile the two tables on the main agent once the traversal closes.
 
-List ALL violations in each section. Do NOT stop at the first.
+List ALL violations in each pass. Do NOT stop at the first.
 
 For Large-tier audits, spawn one `general-purpose` sub-agent per batch under the Step 1 rules. Each
 sub-agent receives its batch's file paths, ONLY the checklists those files bind to, ONLY the
 rule-ledger rows built from those checklists, the Step 3 diagnostics for those files, and the
-categorization rules. Sub-agents return findings in the output format defined below, together with the
-Pass 11 declaration and reference rows for their own files. The main agent synthesizes after all
-sub-agents complete, then runs passes 9 and 11 over the merged result.
+severity and confidence rules. Sub-agents return findings in the output format defined below, together
+with the Pass 11 declaration and reference rows for their own files. The main agent synthesizes after
+all sub-agents complete, then runs passes 9 and 11 over the merged result.
 
 For Small and Medium tiers, the main agent performs all sweep work sequentially.
 
-### Step 6: Categorize findings
+### Step 6: Assign severity and confidence
 
-Categorize every violation using one of:
+Assign every violation one of these severities:
 
-| Category      | Meaning                                                              |
+| Severity      | Meaning                                                              |
 |---------------|----------------------------------------------------------------------|
 | BLOCKING      | Checklist explicitly states "MUST" or "blocks release"               |
 | STANDARD      | Checklist convention without an explicit blocking flag               |
@@ -347,18 +296,18 @@ check. Record every count the protocol names, because the report's triage header
 ### Step 9: Assemble the coverage ledger
 
 Build the coverage ledger the report carries under its triage header, in the shape
-[verification-protocol.md](references/verification-protocol.md) defines. It records the per-binding
-count of files in scope, files swept, and files UNAUDITED, then names every UNAUDITED file by path,
-the sub-agent and batch count, the gates that ran and the gates that failed to run, the layout pass
-status, the symbol usage pass status with the declaration and reference counts it reconciled, and the
-revision whenever the scope was narrowed to a change set. It exists so a thin pass is visible rather
-than silent.
+[verification-protocol.md](references/verification-protocol.md) defines. It exists so a thin pass is
+visible rather than silent.
+
+Skipping is permitted only for a file the user's narrowing removed from scope, a file matching no
+binding row, a generated or vendored file Guard 5 removes, or a file that cannot be read. A file in
+scope that is neither audited nor recorded as skipped is a coverage gap rather than a permitted skip.
 
 ### Step 10: Produce the findings report
 
 Use the output format below. Open with the triage header from
 [verification-protocol.md](references/verification-protocol.md), which carries the finding counts by
-category and confidence, the tools Step 3 ran, and every discard count.
+severity and confidence, the tools Step 3 ran, and every discard count.
 
 Skip compliant items entirely. Report every surviving finding at every confidence tier by default,
 which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user
@@ -366,20 +315,19 @@ explicitly asks for it via `--min-confidence medium` or equivalent invocation.
 
 The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that
 the report was filtered. LOW means the checklist and source mapping is inferred rather than literal,
-and it never excuses a finding from the verbatim checklist quote the Discipline section requires. LOW
-findings sit in the trailing `Appendix: LOW confidence` section the protocol defines rather than
-interleaved into the file groups, so the body of the report reads at one confidence level.
+and it never excuses a finding from the verbatim checklist quote the Discipline section requires. Hold
+the report's own prose to the rules this audit enforces, keeping every sentence in an authored field
+under 40 words and separating its clauses with full stops and commas rather than semicolons or
+em-dashes.
 
 ---
 
 ## Output format
 
 Open the report with the triage header from
-[verification-protocol.md](references/verification-protocol.md), then the Step 9 coverage ledger. For
-multi-file targets, group the HIGH and MEDIUM confidence findings hierarchically: file -> category ->
-findings. Within each file, order findings by severity: BLOCKING -> INCONSISTENCY -> CONFLICT ->
-STANDARD. Collect LOW confidence findings into the trailing `Appendix: LOW confidence` section, ordered
-by the same sequence.
+[verification-protocol.md](references/verification-protocol.md), then the Step 9 coverage ledger. The
+same protocol defines the grouping, which is file, then severity, with the severities ordered BLOCKING,
+INCONSISTENCY, CONFLICT, STANDARD, and the trailing `Appendix: LOW confidence` section.
 
 Step 4 layout findings belong to no file, so they sit in a leading `Project layout` group ahead of the
 per-file groups, headed by the archetype the sweep resolved and the indicators that resolved it.
@@ -387,7 +335,7 @@ per-file groups, headed by the archetype the sweep resolved and the indicators t
 Each finding uses this structure:
 
 ```text
-[Category]: <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT>
+[Severity]: <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT>
 [Confidence]: <HIGH | MEDIUM | LOW>
 Skill: <skill name, or the tool name for a Step 3 diagnostic>
 Checklist point: "<verbatim quote from the skill's checklist or reference file, or the tool's rule code>"
@@ -402,19 +350,9 @@ The Approval trigger covers REMOVAL alongside renaming and re-signaturing. Delet
 an `__all__` entry, and demoting a public name to an underscore each break a caller exactly as a rename
 does, and a Pass 11 fix is a removal in three of its five forms.
 
-When the same checklist point is violated multiple times within a file, collapse to a single
-finding with a count and representative line citations:
-
-```text
-[Category]: STANDARD
-[Confidence]: HIGH
-Skill: /python-style
-Checklist point: "Full words used (no abbreviations like pos, idx, val)"
-Location: module.py:47, 89, 112, 134 (4 occurrences)
-Current state: "idx" used as loop variable
-Required state: "index"
-Suggested fix: Rename idx -> index throughout module.py.
-```
+When the same checklist point is violated multiple times within a file, collapse to a single finding
+with a count and representative line citations, written as
+`Location: module.py:47, 89, 112, 134 (4 occurrences)`.
 
 A Step 4 layout finding uses its own shape, defined under Pass 10 in
 [detection-passes.md](references/detection-passes.md), because `Location: <path>:<line>` cannot cite a
@@ -448,23 +386,24 @@ You MUST adhere to the following discipline during every audit.
 
 ## Related skills
 
-| Skill                | Relationship                                                                    |
-|----------------------|----------------------------------------------------------------------------------|
-| `/audit-project`     | Orchestrator that runs this audit in wave 1 and merges it with the siblings     |
-| `/audit-facts`       | Sibling audit for factual accuracy of documentation against source code         |
-| `/audit-correctness` | Sibling audit for active and latent bugs and broken stated contracts            |
-| `/audit-performance` | Sibling audit for cost, speed, memory use, and dtype predictability             |
-| `/python-style`      | Provides the Python checklist, loaded when scope contains Python files          |
-| `/cpp-style`         | Provides the C++ checklist, loaded when scope contains C++ files                |
-| `/csharp-style`      | Provides the C# checklist, loaded when scope contains C# files                  |
-| `/readme-style`      | Provides the README checklist, loaded when scope contains README files          |
-| `/pyproject-style`   | Provides the pyproject.toml checklist, loaded when that file is in scope        |
-| `/tox-config`        | Provides the tox.ini checklist, loaded when that file is in scope               |
-| `/platformio-config` | Provides the platformio.ini and library.json checklist, loaded for those files  |
-| `/api-docs`          | Provides the Sphinx docs checklist, loaded when scope contains docs files       |
-| `/skill-design`      | Provides the skill, CLAUDE.md, and AGENTS.md checklist, for those files         |
-| `/project-layout`    | Provides the directory and issue template checklist, for roots and .github      |
-| `/explore-codebase`  | Provides project structure context, invoke first on an unfamiliar codebase      |
+| Skill                   | Relationship                                                                    |
+|-------------------------|---------------------------------------------------------------------------------|
+| `/audit-project`        | Orchestrator that runs this audit in wave 1 and merges it with the siblings     |
+| `/audit-facts`          | Sibling audit for factual accuracy of documentation against source code         |
+| `/audit-correctness`    | Sibling audit for active and latent bugs and broken stated contracts            |
+| `/audit-performance`    | Sibling audit for cost, speed, memory use, and dtype predictability             |
+| `/python-style`         | Provides the Python checklist, loaded when scope contains Python files          |
+| `/cpp-style`            | Provides the C++ checklist, loaded when scope contains C++ files                |
+| `/csharp-style`         | Provides the C# checklist, loaded when scope contains C# files                  |
+| `/readme-style`         | Provides the README checklist, loaded when scope contains README files          |
+| `/pyproject-style`      | Provides the pyproject.toml checklist, loaded when that file is in scope        |
+| `/tox-config`           | Provides the tox.ini checklist, loaded when that file is in scope               |
+| `/platformio-config`    | Provides the platformio.ini and library.json checklist, loaded for those files  |
+| `/api-docs`             | Provides the Sphinx docs checklist, loaded when scope contains docs files       |
+| `/skill-design`         | Provides the skill, CLAUDE.md, and AGENTS.md checklist, for those files         |
+| `/project-layout`       | Provides the directory and issue template checklist, for roots and .github      |
+| `/explore-codebase`     | Provides project structure context, invoke first on an unfamiliar codebase      |
+| `/explore-dependencies` | Provides ataraxis API snapshots the Python checklist's library preferences need |
 
 ---
 
@@ -491,8 +430,8 @@ Style Compliance Audit Output:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Plan stated whether the symbol usage sweep runs in full, runs partially, or is skipped
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
-- [ ] For Large tier, batches built by binding with no batch carrying more than two checklists
-- [ ] For Large tier, every single-file binding, each skill unit, and the docs package given its own sub-agent
+- [ ] For Large tier, batches built by authority with no batch carrying more than two checklists
+- [ ] For Large tier, every single-file authority, each skill batch, and the docs package given its own sub-agent
 - [ ] For Large tier, each sub-agent loaded only its own batch's checklists and rule-ledger rows
 - [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the report
@@ -510,7 +449,8 @@ Style Compliance Audit Output:
 - [ ] Layout checklist presence and absence items applied (envs/, .github/ISSUE_TEMPLATE/, .netlify-site)
 - [ ] Every file in scope walked top to bottom
 - [ ] Rule ledger built in Pass 1, with every rule copied verbatim from a loaded checklist
-- [ ] Detection passes 2 through 9 run in order, with pass 9 run on the main agent over the whole file set
+- [ ] Detection passes 2 through 8 run in order over one traversal of each file
+- [ ] Pass 9 run on the main agent over the whole file set, after that traversal closed
 - [ ] Pass 10 run on the main agent for a project-root target, or skipped with the reason recorded
 - [ ] Pass 11 run on the main agent over the whole file set, or skipped with the reason recorded
 - [ ] Declaration and reference rows collected during the single traversal, and returned by every batch sub-agent
@@ -527,7 +467,7 @@ Style Compliance Audit Output:
       symbol visibility and usage)
 - [ ] Every finding anchored to a verbatim checklist quote, or to a tool rule code
 - [ ] Every finding cites <path>:<line>, or the expected or offending path for a layout finding
-- [ ] Findings categorized (BLOCKING, STANDARD, INCONSISTENCY, CONFLICT)
+- [ ] Every finding assigned a severity (BLOCKING, STANDARD, INCONSISTENCY, CONFLICT)
 - [ ] Every finding assigned a confidence tier (HIGH, MEDIUM, LOW)
 - [ ] Repeated violations of the same checklist point collapsed with counts
 - [ ] Every false-positive guard applied in order, with the discarded-candidate count recorded
@@ -535,11 +475,13 @@ Style Compliance Audit Output:
 - [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
 - [ ] Adversarial refutation run against every BLOCKING and CONFLICT finding, in fresh sub-agents
 - [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
-- [ ] Step 9 coverage ledger assembled, carrying files in scope, files swept, and files UNAUDITED by path
+- [ ] Step 9 coverage ledger assembled, carrying files in scope, files audited, and files skipped by path
+- [ ] Every file in scope either swept or recorded as UNAUDITED, with any other skip carrying one of the three
+      permitted reasons (user narrowing, generated file, unreadable file)
 - [ ] Ledger states the sub-agent and batch count, the gates that ran, and the gates that failed to run
 - [ ] Ledger states the layout pass status, and the revision whenever the scope was narrowed to a change set
 - [ ] Ledger states the symbol usage pass status with the declaration and reference counts it reconciled
-- [ ] Triage header present, carrying the category by confidence counts and every discard count
+- [ ] Triage header present, carrying the severity by confidence counts and every discard count
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
 - [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
 - [ ] No compliant items appear in the report
@@ -549,5 +491,7 @@ Style Compliance Audit Output:
 - [ ] Cross-skill conflicts surfaced rather than silently resolved
 - [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict
 - [ ] Every fix that removes a symbol, an export entry, or a public name carries Approval: REQUIRED
+- [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full
+      stops and commas as clause separators
 - [ ] No file modifications made during the audit
 ```

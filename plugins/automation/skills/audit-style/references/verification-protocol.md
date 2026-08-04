@@ -10,6 +10,8 @@ substitute for either, because that reasoning is the thing under test.
 A finding produced by a Step 3 deterministic gate skips both checks. The tool that produced it already
 is the external check, and it cites a rule code rather than a checklist quote.
 
+---
+
 ## Contents
 
 - Check 1: Citation verification
@@ -17,6 +19,7 @@ is the external check, and it cites a rule code rather than a checklist quote.
 - The triage header
 - The coverage ledger
 - Confidence placement in the report
+- Report prose
 
 ---
 
@@ -36,8 +39,8 @@ check every line the finding lists.
 
 **The consumer set**, for a Pass 11 finding alone. Re-run the repository-wide search the finding names
 and confirm it returns what the finding says it returned. This citation is checked by RUNNING rather
-than by reading, because the claim is about the whole repository rather than about the cited line, and
-a stale search is how a symbol that acquired a caller last week is reported as unused today.
+than by reading, because the claim is about the whole repository rather than about the cited line. A
+stale search is how a symbol that acquired a caller last week is reported as unused today.
 
 Delete the finding when either quote fails to appear at its cited location. Repairing the citation is
 FORBIDDEN here. A citation that drifted is evidence that the finding was assembled from recollection
@@ -50,9 +53,9 @@ Record the count of findings checked and the count deleted.
 
 ## Check 2: Adversarial refutation
 
-Runs against every BLOCKING and CONFLICT finding that survived Check 1. Those two categories are the
+Runs against every BLOCKING and CONFLICT finding that survived Check 1. Those two severities are the
 ones that stop a release or accuse the checklists of disagreeing, so they carry the cost of being
-wrong, and running the check after Check 1 means a finding deleted for a bad citation never consumes a
+wrong. Running the check after Check 1 means a finding deleted for a bad citation never consumes a
 sub-agent.
 
 Spawn one `general-purpose` sub-agent per finding. Give it the finding text, the cited file, the cited
@@ -90,7 +93,7 @@ finding:
 ```text
 Findings: <total> reported, <n> from tools and <n> from the sweep
 
-| Category      | HIGH confidence | MEDIUM confidence | LOW confidence |
+| Severity      | HIGH confidence | MEDIUM confidence | LOW confidence |
 |---------------|-----------------|-------------------|----------------|
 | BLOCKING      | <n>             | <n>               | <n>            |
 | INCONSISTENCY | <n>             | <n>               | <n>            |
@@ -113,20 +116,21 @@ those apart.
 
 ## The coverage ledger
 
-The ledger follows the triage header and records what was swept, so a thin pass is visible rather than
-silent:
+The ledger follows the triage header and records what was audited, so a thin pass is visible rather
+than silent:
 
 ```text
-| Binding        | Files in scope | Files swept | Files UNAUDITED |
-|----------------|----------------|-------------|-----------------|
-| /python-style  | 47             | 47          | 0               |
-| /readme-style  | 1              | 1           | 0               |
-| (no binding)   | 3              | 0           | 3               |
+| Binding        | Files in scope | Files audited | Files skipped |
+|----------------|----------------|---------------|---------------|
+| /python-style  | 47             | 47            | 0             |
+| /readme-style  | 1              | 1             | 0             |
+| (no binding)   | 3              | 0             | 3             |
 ```
 
 Alongside the table, state each of the following:
 
-- Every UNAUDITED file by path, with the binding-table reason it matched no checklist.
+- Every skipped file by path, with its reason, which is the `no binding row` the binding table gives
+  it, the user's narrowing, a generated or vendored file Guard 5 removes, or an unreadable file.
 - The sub-agent and batch count the run used, recorded as `1 (main agent)` for a Small or Medium tier.
 - The deterministic gates that ran and the gates that failed to run, naming each tool.
 - The project-scope layout pass status, as `run`, `skipped-not-a-project-root`, or
@@ -137,18 +141,40 @@ Alongside the table, state each of the following:
   separate a reconciliation that ran from one that reported nothing because it saw nothing.
 - The revision the run resolved against, whenever the scope was narrowed to a change set.
 
-A Large-tier audit that produced no findings still reports a non-zero swept count, which distinguishes
-compliant files from an unrun pass.
+A Large-tier audit that produced no findings still reports a non-zero audited count, which
+distinguishes compliant files from an unrun pass.
+
+Every file in scope is either audited or recorded as skipped by path. Sum the `Files audited` and
+`Files skipped` columns for each binding and compare the total against `Files in scope`. Any residue
+names files the sweep never read and never recorded, which is a coverage gap rather than a permitted
+skip. Skipping is permitted only for a file the user's narrowing removed from scope, a file matching
+no binding row, a generated or vendored file Guard 5 removes, or a file that cannot be read. A skip
+with no stated reason fails this check.
 
 ---
 
 ## Confidence placement in the report
 
-HIGH and MEDIUM confidence findings occupy the body of the report, grouped file, then category, with
-the categories ordered BLOCKING, INCONSISTENCY, CONFLICT, STANDARD.
+HIGH and MEDIUM confidence findings occupy the body of the report, grouped file, then severity, with
+the severities ordered BLOCKING, INCONSISTENCY, CONFLICT, STANDARD.
 
 LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered by the
-same category sequence, rather than interleaved into the file groups. Every finding there still
+same severity sequence, rather than interleaved into the file groups. Every finding there still
 carries its verbatim checklist quote and still passed every guard and both checks above. The appendix
 exists so the body of the report reads at one confidence level, and so a reader who wants only the
 settled findings knows where to stop.
+
+---
+
+## Report prose
+
+The report's own prose obeys the documentation-quality rules this audit enforces on everyone else.
+Keep every sentence in a `Required state`, `Suggested fix`, `Approval`, or `Consumer set` field under
+40 words. Separate clauses with full stops and commas rather than with semicolons or em-dashes, and
+state what the fix does rather than what the code fails to do. Verbatim quotes, tool rule codes, and
+cost arithmetic are exempt, because they are copied rather than written.
+
+Before presenting, split the report's authored fields on sentence boundaries, excluding every verbatim
+quote and every arithmetic or complexity expression, and count the words in each sentence. Any
+sentence over 40 words, and any semicolon or em-dash joining two independent clauses, is rewritten
+before the report is handed over.

@@ -4,9 +4,11 @@ Every candidate finding of `/audit-facts` passes through these guards in order b
 report. The authoritative-source guard runs first and removes the most candidates. Record the count of
 discarded candidates for the report's triage header.
 
-This audit's characteristic false positive is a mismatch that is not a mismatch, produced by reading
-the signature instead of the body, by resolving a name against its definition instead of its
+This audit's characteristic false positive is a mismatch that is not a mismatch. It is produced by
+reading the signature instead of the body, by resolving a name against its definition instead of its
 re-export, or by judging a paraphrase against the wording it paraphrases.
+
+---
 
 ## Contents
 
@@ -62,6 +64,10 @@ When the documentation says X lives in module Y, and Y re-exports X from elsewhe
 Check the package `__init__` before reporting any missing symbol. The framework requires a symbol
 consumed outside its defining package to be exported from that package's `__init__` and imported
 through the package namespace, so re-export is the normal case rather than the exception.
+
+Tests are the exception the framework states. A docstring or comment under `tests/` naming a private
+member, or importing directly from a submodule, is correct rather than a broken reference, because the
+framework permits both there.
 
 ---
 
@@ -136,6 +142,12 @@ type checker can settle whether the line still produces it.
 Report the suppression as DRIFT only when that tool is available and confirms the diagnostic is gone.
 Without the tool, leave the suppression unreported rather than guessing.
 
+Run that tool in its READ-ONLY form only. `ruff check --no-fix` and `mypy .` settle the claim. Bare
+`tox` and `tox -e lint` are FORBIDDEN during an audit, because the `lint` environment reformats the
+source, auto-fixes it, and purges its stubs, which mutates the very code the claims are verified
+against. Where no read-only invocation is available, leave the suppression unreported and record the
+tool as unavailable in the Step 9 coverage ledger.
+
 ---
 
 ## Guard 11: Generated and vendored documentation is out of scope
@@ -176,5 +188,5 @@ ledger rather than reported as UNVERIFIABLE.
 A single stale fact repeated across several files is ONE finding carrying the site list and a count,
 in the same style the sibling audits use for repeated violations.
 
-Equally, one claim that several passes flag is reported once, under the type that describes it most
+Equally, one claim that several passes flag is reported once, under the verdict that describes it most
 precisely, with the others listed as tags. WRONG outranks DRIFT, and both outrank OMISSION.

@@ -14,25 +14,23 @@ patterns (`raise`, `click.echo()`) instead.
 
 **You MUST invoke `/explore-dependencies` to obtain a current API snapshot of each ataraxis
 dependency before writing code that uses ataraxis library features.** The table below is a brief
-domain summary; the canonical domain-to-library mapping is maintained in `/explore-dependencies`
-(`references/library-catalog.md`). The actual APIs may have changed or expanded since this file
-was last updated.
+domain summary. The canonical domain-to-library mapping lives in `/explore-dependencies`, which is
+authoritative for the current API of each dependency.
 
 ### Domain-to-library summary
 
-| Domain                      | Preferred library          | Key assets                                             |
-|-----------------------------|----------------------------|--------------------------------------------------------|
-| Console output, errors      | `ataraxis-base-utilities`  | `Console`, `console.echo()`, `console.error()`         |
-| Progress tracking           | `ataraxis-base-utilities`  | `Console.track()`, `Console.progress()`, `ProgressBar` |
-| List/iterable utilities     | `ataraxis-base-utilities`  | `ensure_list()`, `chunk_iterable()`                    |
-| Worker/job resolution       | `ataraxis-base-utilities`  | `resolve_worker_count()`                               |
-| Byte serialization          | `ataraxis-base-utilities`  | `convert_scalar_to_bytes()` etc.                       |
-| Directory creation          | `ataraxis-base-utilities`  | `ensure_directory_exists()`                            |
-| Precision timing and delays | `ataraxis-time`            | `PrecisionTimer`, `Timeout`                            |
-| Timestamps and conversion   | `ataraxis-time`            | `get_timestamp()`, `convert_time()`                    |
-| YAML configuration          | `ataraxis-data-structures` | `YamlConfig`                                           |
-| Shared memory               | `ataraxis-data-structures` | `SharedMemoryArray`                                    |
-| High-throughput logging     | `ataraxis-data-structures` | `DataLogger`, `LogPackage`                             |
+| Domain                      | Preferred library          | Key APIs                                                         |
+|-----------------------------|----------------------------|------------------------------------------------------------------|
+| Console output, errors      | `ataraxis-base-utilities`  | `Console`, `console.echo()`, `console.error()`                   |
+| Progress tracking           | `ataraxis-base-utilities`  | `Console.track()`, `Console.progress()`, `ProgressBar`           |
+| List/array/filesystem utils | `ataraxis-base-utilities`  | `ensure_list()`, `chunk_iterable()`, `ensure_directory_exists()` |
+| Worker/job resolution       | `ataraxis-base-utilities`  | `resolve_worker_count()`                                         |
+| Byte serialization          | `ataraxis-base-utilities`  | `convert_scalar_to_bytes()` etc.                                 |
+| Precision timing and delays | `ataraxis-time`            | `PrecisionTimer`, `Timeout`                                      |
+| Timestamps and conversion   | `ataraxis-time`            | `get_timestamp()`, `convert_time()`                              |
+| YAML configuration          | `ataraxis-data-structures` | `YamlConfig`                                                     |
+| Shared memory               | `ataraxis-data-structures` | `SharedMemoryArray`                                              |
+| High-throughput logging     | `ataraxis-data-structures` | `DataLogger`, `LogPackage`                                       |
 
 ### Console and error handling notes
 
@@ -128,19 +126,15 @@ def discover_cameras(interface: str) -> None:
 
 ### Output formatting
 
-- Use `console.echo()` for standard CLI output when `ataraxis-base-utilities` is available;
-  use `console.echo(message=..., raw=True)` for pre-formatted tables or aligned output
+- Use `console.echo()` for standard CLI output when `ataraxis-base-utilities` is available, with
+  `console.echo(message=..., raw=True)` for pre-formatted tables or aligned output
 - Use `click.echo()` for projects that do not depend on `ataraxis-base-utilities`
-- Use `console.error()` for error reporting when available; otherwise use standard `raise`
+- Use `console.error()` for error reporting when available, and standard `raise` otherwise
 
 ### Entry points
 
-Define CLI entry points in `pyproject.toml`:
-
-```toml
-[project.scripts]
-axvs = "ataraxis_video_system.cli:axvs_cli"
-```
+Define CLI entry points in `pyproject.toml`. See `/pyproject-style` for the section that declares
+them and for its format.
 
 ---
 
@@ -158,7 +152,7 @@ Test module docstrings use the "Contains tests for..." format:
 
 ### Test function docstrings
 
-Test function docstrings use imperative mood with "Verifies...":
+Test function docstrings use third-person imperative mood with "Verifies...":
 
 ```python
 def test_video_saver_init_repr(tmp_path, has_ffmpeg):
@@ -169,7 +163,7 @@ def test_video_saver_init_repr(tmp_path, has_ffmpeg):
 
 ### Fixture docstrings
 
-Pytest fixtures use imperative mood docstrings describing what the fixture provides:
+Pytest fixtures use third-person imperative mood docstrings describing what the fixture provides:
 
 ```python
 @pytest.fixture(scope="session")
@@ -208,13 +202,9 @@ the same name. `/tox-config` owns the `-n logical --dist loadgroup` flags themse
 
 ### Running checks
 
-Run `tox -e lint` after making changes. This runs both **ruff** (style and formatting) and **mypy** (strict type
-checking) in a single command. All issues must be resolved or suppressed with specific ignore comments.
-
-Ruff checks `./src` and `./tests`, so test files are linted alongside library code. Test files are held to a wider
-ignore list, the shared test corpus documented in `/pyproject-style`, because tests legitimately assert, reach into
-private members, inline expected values, and omit annotations and docstrings. Mypy checks `./src` alone, since the
-test directory is in its exclude list.
+Run `tox -e lint` after making changes, and resolve or suppress every issue it reports. See `/tox-config` for what
+that environment runs, and `/pyproject-style` for the files each checker covers and for the wider ignore list that
+test files carry.
 
 If `tox` is unavailable, the underlying tools can be run directly:
 - `ruff check .` and `ruff format --check .` for style violations
@@ -222,12 +212,31 @@ If `tox` is unavailable, the underlying tools can be run directly:
 
 Prefer `tox -e lint` when possible, as it ensures consistent tool versions and configuration.
 
+`ruff format` is applied to every changed file before the commit. During an audit use the read-only
+`ruff format --diff .` form, because bare `tox -e lint` rewrites and auto-fixes the source under review.
+
 ### Resolution policy
 
-Prefer resolving issues unless the resolution would:
-- Make the code unnecessarily complex
-- Hurt performance by adding redundant checks
-- Harm codebase readability instead of helping it
+Resolve every issue the linter reports. Suppress with a coded `# noqa` or `# type: ignore` only when
+the resolution adds a branch, allocation, or indirection that the rule itself does not require, and
+state that reason in the suppression comment.
+
+### console.error and terminating statements
+
+Ruff reasons about control flow syntactically and does not follow `NoReturn` through a call, so its
+treatment depends on the enclosing return annotation. In a function annotated `-> None`, no `raise`
+or `return` follows the call. In a function annotated with any other return type, ruff `RET503`
+requires a terminating statement on the path that ends in `console.error`, and `RET503` is part of
+the shared corpus that `lint.select = ["ALL"]` enables. Keep an unreachable `return` there, mark it
+with `# pragma: no cover` so it stays outside the measured corpus, and leave the reason in a
+comment:
+
+```python
+# Tail of a guard clause inside a function annotated '-> np.uint64'.
+console.error(message=message, error=ValueError)
+# Satisfies ruff RET503. console.error() is NoReturn, so this line never executes.
+return np.uint64(0)  # pragma: no cover
+```
 
 ### Magic numbers (PLR2004)
 
@@ -258,12 +267,9 @@ The test suite MUST cover 100% of the measured statements, so every statement th
 reach has to be excluded deliberately. Two mechanisms do this, and the size of the target decides
 which one applies.
 
-A module that the suite never exercises as a whole is excluded in `pyproject.toml`, through the
-`omit` list in `[tool.coverage.run]`. This is how user-facing interface modules are handled,
-including `cli.py` and any other Click command module, the MCP server module with its `*_tools.py`
-tool modules, and `__main__.py`. Each member of such a module wraps a function the suite already
-covers, so one `omit` entry replaces an annotation on every member. A module that appears in `omit`
-carries no `# pragma: no cover` comments at all. See `/pyproject-style` for the configuration.
+A module that the suite never exercises as a whole is excluded through the coverage `omit` list,
+which `/pyproject-style` defines together with the interface modules it covers. A module that
+appears in that list carries no `# pragma: no cover` comments at all.
 
 Everything else stays in the measured corpus, and `# pragma: no cover` marks the individual
 statements the suite cannot reach. Use it for defensive or unreachable guard branches, for
@@ -279,12 +285,12 @@ IDE-specific inspection-suppression comments are NOT used in this codebase and M
 The canonical example is the PyCharm/JetBrains `# noinspection ...` directive (e.g.,
 `# noinspection PyShadowingBuiltins` placed above a `copyright` assignment in a Sphinx `conf.py`).
 
-Ruff and mypy are the authoritative checkers; only their suppressions bear weight and MUST be preserved:
+Ruff and mypy are the authoritative checkers, and only their suppressions bear weight and MUST be preserved:
 
 - Ruff: `# noqa: CODE` with the specific error code (see [Using noqa](#using-noqa)).
 - Mypy: `# type: ignore[code]` with the specific error code.
 
-When a real violation cannot be resolved, suppress it with the appropriate ruff or mypy comment — never with an IDE
-directive. Files already excluded from both checkers (for example the Sphinx `conf.py`, excluded via ruff
+When a real violation cannot be resolved, suppress it with the appropriate ruff or mypy comment rather than with an
+IDE directive. Files already excluded from both checkers (for example the Sphinx `conf.py`, excluded via ruff
 `extend-exclude`, and anything under the mypy `docs/` exclusion) need no suppression at all, so they MUST NOT carry
 `# noinspection` comments either.

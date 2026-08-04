@@ -43,15 +43,15 @@ Transform code to match project style:
 
 ## Documentation anti-patterns
 
-| Anti-Pattern                         | Problem                     | Solution                                |
-|--------------------------------------|-----------------------------|-----------------------------------------|
-| `"""A class that processes data."""` | Noun phrase, not imperative | `"""Processes experimental data."""`    |
-| Bullet lists in docstrings           | Breaks prose flow           | Use complete sentences instead          |
-| `# Set x to 5` before `x = 5`        | States the obvious          | Remove or explain *why*                 |
-| Missing dtype in `NDArray`           | Type checking fails         | Always specify `NDArray[np.float32]`    |
-| `Whether to...` for bool params      | Incomplete phrasing         | Use `Determines whether to...`          |
-| `# ======` section separators        | Visual clutter              | Use blank lines to separate sections    |
-| `:class:` in non-MCP docstrings      | Humans parse prose better   | Use prose; specifiers in MCP tools only |
+| Anti-Pattern                         | Problem                     | Solution                                     |
+|--------------------------------------|-----------------------------|----------------------------------------------|
+| `"""A class that processes data."""` | Noun phrase, not imperative | `"""Processes experimental data."""`         |
+| Bullet lists in docstrings           | Breaks prose flow           | Use complete sentences instead               |
+| `# Set x to 5` before `x = 5`        | States the obvious          | Remove or explain *why*                      |
+| Missing dtype in `NDArray`           | Type checking fails         | Always specify `NDArray[np.float32]`         |
+| `Whether to...` for bool params      | Incomplete phrasing         | Use `Determines whether to...`               |
+| `# ======` section separators        | Visual clutter              | Use blank lines to separate sections         |
+| `:class:` in non-MCP docstrings      | Humans parse prose better   | Use prose, with specifiers in MCP tools only |
 
 ---
 
@@ -90,7 +90,7 @@ Transform code to match project style:
 |------------------------------------|--------------------------|------------------------------------------------|
 | `np.zeros((4,), np.float32)`       | Positional dtype arg     | `np.zeros((4,), dtype=np.float32)`             |
 | `raise ValueError(...)`            | Wrong error handling     | `console.error(message=..., error=ValueError)` |
-| `from typing import Optional`      | Old-style optional       | Use `Type \| None`                             |
+| `from typing import Optional`      | Old-style optional       | Use `Type \| None`                              |
 | `@numba.njit` without `cache=True` | Recompiles every run     | `@numba.njit(cache=True)`                      |
 | Inconsistent f-string prefixes     | Confusing multi-line     | Use `f` prefix on all lines                    |
 | `'single quotes'`                  | Violates ruff formatting | Use `"double quotes"`                          |
@@ -132,15 +132,15 @@ Transform code to match project style:
 
 ## Comment anti-patterns
 
-| Anti-Pattern                                 | Problem                        | Solution                                    |
-|----------------------------------------------|--------------------------------|---------------------------------------------|
-| `# This function sends...`                   | First-person/third-person noun | `# Sends...` (third-person imperative)      |
-| `# ========================`                 | Visual clutter                 | Remove separator; use blank lines instead   |
-| `# ---- Section ----`                        | Visual clutter                 | Remove separator; use blank lines instead   |
-| End-of-line comment on complex logic         | Hard to scan                   | Place comment above the code block          |
-| `x = 5  # Set x to 5`                        | States the obvious             | Remove or explain *why*                     |
-| Adding docstrings to code not written by you | Unnecessary churn              | Only document your changes                  |
-| Type annotations as comments (`# type: int`) | Redundant                      | Use actual type hints in the signature      |
+| Anti-Pattern                                 | Problem                     | Solution                                 |
+|----------------------------------------------|-----------------------------|------------------------------------------|
+| `# This function sends...`                   | Not third-person imperative | `# Sends...` (third-person imperative)   |
+| `# ========================`                 | Visual clutter              | Remove the separator and use blank lines |
+| `# ---- Section ----`                        | Visual clutter              | Remove the separator and use blank lines |
+| End-of-line comment on complex logic         | Hard to scan                | Place comment above the code block       |
+| `x = 5  # Set x to 5`                        | States the obvious          | Remove or explain *why*                  |
+| Adding docstrings to code not written by you | Unnecessary churn           | Only document your changes               |
+| Type annotations as comments (`# type: int`) | Redundant                   | Use actual type hints in the signature   |
 
 ---
 
@@ -155,6 +155,6 @@ These anti-patterns drift toward C++ or C# conventions that do not apply in Pyth
 | `static constexpr` style `TIMEOUT = 100`   | `_TIMEOUT: int = 100` with inline docstring   | Module-level constant with type     |
 | `enum class` style `class Status(Enum):`   | `class Status(StrEnum):` or `(IntEnum):`      | Use StrEnum/IntEnum, not bare Enum  |
 | `/// Doxygen @brief comment`               | `"""Google-style docstring."""`               | Docstrings, not Doxygen             |
-| `// NOLINT` style `# type: ignore`         | `# noqa: CODE` with specific error code       | Specific suppression codes          |
+| `// NOLINT` style bare `# type: ignore`    | `# type: ignore[code]` with the error code    | Specific suppression codes          |
 | `_camelCase` for private members           | `_snake_case` for private members             | snake_case, not camelCase           |
 | `self.publicField` (C# camelCase)          | `self._private_field` or public via property  | Private with `_` prefix             |

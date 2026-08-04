@@ -100,8 +100,8 @@ import rules and takes no project-specific section.
 Test code is linted, and it is held to the wider of the two lists. Tests assert, reach into private members, inline
 expected values, and omit annotations and docstrings, all of which library code is forbidden to do. The shared test
 corpus waives exactly the rules that report those patterns, so a rule may be required in one corpus and forbidden in
-the other. `SLF001` is the clearest case: it stays out of the shared block of `lint.ignore` and is a member of the
-shared test corpus.
+the other. `SLF001` is the clearest case: it stays out of the shared block of the universal `lint.ignore` corpus and
+is a member of the shared test corpus.
 
 ### Ruff per-file ignores
 
@@ -162,14 +162,15 @@ force-sort-within-sections = true  # Forces "as" and "from" imports for the same
 length-sort = true                 # Places shorter imports first
 ```
 
-### Universal Ruff ignores
+### The universal `lint.ignore` corpus
 
-Every project carries the same shared corpus, followed by a project-specific section. A category comment heads each
-section and a blank line separates them, matching the layout used for dependency arrays:
+Every project carries the same shared block of the universal `lint.ignore` corpus, followed by a project-specific
+section. A category comment heads each section and a blank line separates them, matching the layout used for
+dependency arrays:
 
 ```toml
 lint.ignore = [
-    # Shared corpus. These entries are present in every Ataraxis framework and Sollertia platform project.
+    # Universal lint.ignore corpus. Present in every Ataraxis framework and Sollertia platform project.
     "W291",    # Conflicts with docstring formatting
     "ANN401",  # While suboptimal, ANY is a helpful type when used with caution
     "BLE001",  # Broad exception handling is necessary at library boundaries
@@ -178,7 +179,7 @@ lint.ignore = [
     "PLR0912", # Sometimes complex functions are necessary
     "PLR0913", # Sometimes complex functions are necessary
     "PLR0915", # Sometimes functions with many statements are necessary
-    "PLR0917", # Call sites pass keyword arguments, so the positional count is immaterial
+    "PLR0917", # PLR0913 already covers argument counts, and call sites pass keyword arguments
     "COM812",  # Conflicts with the formatter
     "ISC001",  # Conflicts with the formatter
     "PT001",   # https://github.com/astral-sh/ruff/issues/8796#issuecomment-1825907715
@@ -186,8 +187,8 @@ lint.ignore = [
     "D107",    # __init__ is documented inside the main class docstring where applicable
     "D205",    # Bugs out for file descriptions
     "PLW0603", # While global statement usage is not ideal, it streamlines certain development patterns
-    "TID252",  # Conflicts with the library import management strategy
-    "CPY001",  # The license is declared in the LICENSE file and the project metadata
+    "TID252",  # Conflicts with the library import management strategy, which requires parent-relative imports
+    "CPY001",  # The license is declared in the LICENSE file and the license and license-files metadata fields
 
     # Project-specific
     "S602",    # Subprocess calls with shell=True are necessary to drive mamba and uv
@@ -197,14 +198,7 @@ lint.ignore = [
 The universal `lint.ignore` corpus stays complete in every project, including where a given rule never fires. Because
 `lint.select = ["ALL"]` adopts each new ruff release automatically, a complete list keeps a newly stabilized rule from
 breaking the lint task over a question the framework has already settled. The same completeness applies to the shared
-test corpus in every project that carries a test directory. Four entries rest on a framework-level decision:
-
-| Ignore    | Framework decision it records                                                                        |
-|-----------|------------------------------------------------------------------------------------------------------|
-| `CPY001`  | Licensing is declared in the `LICENSE` file and the `license` and `license-files` metadata fields    |
-| `TID252`  | The import convention requires parent-relative imports, which this rule bans                         |
-| `PLR0917` | `PLR0913` already covers argument counts, so the positional-only variant restates a settled question |
-| `ANN401`  | `Any` is available where a signature genuinely needs it                                              |
+test corpus in every project that carries a test directory.
 
 ### Project-specific Ruff ignores
 
@@ -224,15 +218,15 @@ below the shared block:
 | `W293`   | Whitespace in UI formatting is needed                       |
 | `TRY301` | Raising inside a helper is needed to build a full traceback |
 
-Keep the security rules `S602` and `S607`, together with `SLF001`, out of the shared block of `lint.ignore`. Each
-reports a genuine risk in a project that has no reason to trip it, and each is added to the project-specific section
-only by a project whose library code needs it.
+Keep the security rules `S602` and `S607`, together with `SLF001`, out of the shared block of the universal
+`lint.ignore` corpus. Each reports a genuine risk in a project that has no reason to trip it, and each is added to the
+project-specific section only by a project whose library code needs it.
 
 `SLF001` carries opposite status in the two corpora, so read the requirement for the one being judged. It stays out of
-the shared block of `lint.ignore`, where it enforces the rule that private members stay inside the module that defines
-them, and it is a required member of the shared test corpus, where tests are the sanctioned exception to that rule. A
-project that lists `SLF001` in the shared test corpus and omits it from the shared block of `lint.ignore` is compliant
-with both rules at once.
+the shared block of the universal `lint.ignore` corpus, where it enforces the rule that private members stay inside the
+module that defines them. It is a required member of the shared test corpus, where tests are the sanctioned exception
+to that rule. A project that lists `SLF001` in the shared test corpus and omits it from the shared block of the
+universal `lint.ignore` corpus is compliant with both rules at once.
 
 ### Ruff unused arguments
 
@@ -314,18 +308,7 @@ exclude = [
 
 ### MyPy exclusion list
 
-The exclusion list is the same for both tiers. All entries are mandatory:
-
-| Entry               | Purpose                                      |
-|---------------------|----------------------------------------------|
-| `project-name-\\d+` | Temporary folder created during sdist builds |
-| `venv.*/`           | Virtual environments                         |
-| `build/`            | Build output directory                       |
-| `dist/`             | Distribution output directory                |
-| `docs/`             | Sphinx / Doxygen documentation directory     |
-| `stubs/`            | stubgen output target directory              |
-| `recipe/`           | grayskull output target directory            |
-| `tests/`            | Test directory (excluded from type checking) |
+The exclusion list is the same for both tiers, and every one of its entries is mandatory.
 
 ---
 
@@ -407,17 +390,15 @@ exclude_lines = [
 ```
 
 `fail_under` applies to every command that renders a report, so `pytest --cov`, `coverage report`,
-`coverage xml`, and `coverage html` all fail once the measured total drops below 100. The `coverage`
-tox environment passes `--fail-under=0` to its artifact-writing commands so that the HTML and XML
-reports are always written, and applies the gate through a trailing `coverage report` call. See
-`/tox-config` for that command sequence.
+`coverage xml`, and `coverage html` all fail once the measured total drops below 100. See
+`/tox-config` for the `coverage` environment command sequence that renders the artifacts and applies
+the gate.
 
 The `source` list in `[tool.coverage.paths]` carries one entry per virtual environment layout the
 project is tested on. POSIX hosts place installed packages under `lib/python*/site-packages/` and
 Windows hosts place them under `Lib/site-packages/`, so both patterns stay in the list for every
-project regardless of the host it is currently developed on. The `coverage` tox environment relies
-on this mapping to fold the per-version data files into one record per source file, which is what
-lets a statement reached on a single tested python version count as covered.
+project regardless of the host it is currently developed on. See `/tox-config` for the `coverage`
+environment that consumes this mapping.
 
 ### Choosing between omit and pragma
 

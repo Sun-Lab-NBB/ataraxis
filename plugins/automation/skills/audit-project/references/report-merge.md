@@ -6,6 +6,8 @@ a construct two of them found, the deduplication rules, and the merged triage he
 This step removes duplicates and settles ownership. It NEVER re-rates a finding, because severity,
 impact, confidence, and evidence belong to the audit that derived them.
 
+---
+
 ## Contents
 
 - The collision rules
@@ -58,8 +60,8 @@ the style rule AND the cited runtime consequence, so keeping both would report o
 Owners: `/audit-correctness` and `/audit-performance`.
 
 `/audit-performance` owns cost and speed. `/audit-correctness` owns a timing property that forms part
-of a CONTRACT, meaning a documented deadline, a watchdog interval, an acquisition rate, or a timeout
-the code computes.
+of a CONTRACT, meaning a documented deadline, a watchdog interval, a real-time acquisition rate, or a
+timeout the code itself computes.
 
 Keep the correctness finding where a contract is cited with the line declaring it. Keep the
 performance finding otherwise. Where both fired on one line and the contract citation is present, keep
@@ -137,17 +139,20 @@ Merge each audit's coverage ledger into one table, keeping the per-audit rows ra
 them, because the audits count different things.
 
 ```text
-| Audit               | Files in scope | Files audited | Files skipped | Notes                            |
-|---------------------|----------------|---------------|---------------|----------------------------------|
-| /audit-facts        | <n>            | <n>           | <n>           | metadata <n>, in-source <n>      |
-| /audit-style        | <n>            | <n>           | <n>           | gates: <tools>, layout: <status> |
-| /audit-correctness  | <n>            | <n>           | <n>           | tiers swept T0-T3                |
-| /audit-performance  | <n>            | <n>           | <n>           | passes 1-9                       |
+| Audit               | Files in scope | Files audited | Files skipped | Notes                             |
+|---------------------|----------------|---------------|---------------|-----------------------------------|
+| /audit-facts        | <n>            | <n>           | <n>           | metadata <n>, in-source <n>       |
+| /audit-style        | <n>            | <n>           | <n>           | gates: <tools>, layout: <status>  |
+| /audit-correctness  | <n>            | <n>           | <n>           | tiers swept T0-T3                 |
+| /audit-performance  | <n>            | <n>           | <n>           | passes as its ledger reports them |
 ```
 
 Each row is filled from the audit's own coverage ledger rather than recounted here. `/audit-style`
 reports files SWEPT and files marked UNAUDITED, one row per style binding, so its row here sums those
 rows and its two counts fill the audited and the skipped columns.
+
+`/audit-performance` reports its pass range per language, because Pass 9 runs over C++ and C# alone,
+so copy each language row rather than stating one range for the audit.
 
 List every skipped file once, with the audits that skipped it and the reason. A file skipped by one
 audit and covered by another is not a gap, and the ledger must show that rather than implying one. A
@@ -160,7 +165,7 @@ clean result, and a Notes cell that hides the failure reports the gap as coverag
 Carry the `/audit-style` project-scope layout pass status verbatim, as `run`,
 `skipped-not-a-project-root`, or `skipped-no-created-or-deleted-files`. That pass sweeps the directory
 tree once per run, so a skip is expected for a package or a single-file target and for a change set
-that edits files in place, while a skip over a whole repository in full mode is a coverage gap.
+that edits files in place. A skip over a whole repository in full mode is a coverage gap.
 
 State the sub-agent or batch count each audit reported, and, for a run narrowed to a change set, the
 base revision each audit resolved that narrowing against.

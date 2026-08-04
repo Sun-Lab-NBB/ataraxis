@@ -66,9 +66,9 @@ html_theme = 'furo'
 | `<YEAR>`         | Current copyright year                       | `2026`                             |
 | `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |
 
-**Note:** `author` is the only author key Sphinx defines, and it holds a string. A multi-author
+**Note:** `author` is the only author key Sphinx defines and it holds a string, so a multi-author
 project joins the names into that one string. A plural `authors` key and a list value both parse
-without error and reach no template, so the rendered pages carry Sphinx's `Author name not set`
+without error and reach no template, leaving the rendered pages on Sphinx's `Author name not set`
 default.
 
 ---

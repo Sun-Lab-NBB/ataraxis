@@ -4,6 +4,8 @@ The ordered sweep passes of `/audit-correctness`, and the named CEAI procedure t
 asks one question of every line in scope. Pass 1 builds the ledgers every later pass consumes, so it
 runs first and to completion on the main agent.
 
+---
+
 ## Contents
 
 - The coverage tiers
@@ -17,6 +19,8 @@ runs first and to completion on the main agent.
 - Pass 8: Language-specific defect sweep
 - Pass 9: Coverage-ranked hunt
 - Pass 10: Test-oracle analysis
+
+---
 
 ## One traversal, ten questions
 
@@ -41,11 +45,17 @@ Pass 9 ranks the sweep by these tiers, and the skill's Step 2 assigns one to eve
 | T2   | A statement, or a partial branch where branch coverage is on, the report lists as missing      |
 | T3   | A branch outcome the report cannot see, which is every branch arm while branch coverage is off |
 
-Where `branch` is unset or false, T3 is the richest hunting ground this skill has, covering every `if`
-without an `else`, every short-circuit operand, every ternary arm, every loop that can run zero times,
-and every `except` whose `try` never actually raised, all while the gate reports success. Where
-`branch = true`, those same outcomes are measured, so the unexercised ones surface as T2 and T3 stays
-empty.
+Where `branch` is unset or false, T3 is the richest hunting ground this skill has, and the gate reports
+success throughout. Five outcomes go unmeasured there:
+
+- Every `if` without an `else`
+- Every short-circuit operand
+- Every ternary arm
+- Every loop that can run zero times
+- Every `except` whose `try` never actually raised
+
+Where `branch = true`, those same outcomes are measured, so the unexercised ones surface as T2 and T3
+stays empty.
 
 ---
 
@@ -127,15 +137,20 @@ kind.
 | Sequence, array | Length 0, 1, 2 equal elements, all equal, all NaN, one non-finite, a zero axis, ndim off by one |
 | Integer         | 0, 1, -1, dtype minimum, dtype maximum, and maximum plus one                                    |
 | Float           | 0.0, -0.0, NaN, positive and negative infinity, a denormal, exactly the boundary constant       |
-| String, path    | Empty, whitespace only, a missing path, a missing parent, a directory, a case clash, a symlink   |
+| String, path    | Empty, whitespace only, a missing path, a missing parent, a directory, a case clash, a symlink  |
 | Optional        | None                                                                                            |
 | Time            | Zero elapsed, a clock that moved backwards, a fixed-width counter at rollover                   |
 
-Then check the four boundary constructs on the line: comparison strictness against the documented open
-or closed interval, slice and index arithmetic where start equals stop and where stop equals the
-length, every reduction or first and last access reachable with an empty input, and every loop
-evaluated at zero and at one iteration, including any variable read after the loop that only the loop
-body assigns.
+Then check the four boundary constructs on the line.
+
+| Construct                  | Check                                                     |
+|----------------------------|-----------------------------------------------------------|
+| Comparison                 | Strictness against the documented open or closed interval |
+| Slice and index arithmetic | Start equal to stop, and stop equal to the length         |
+| Reduction, first, and last | Every access reachable with an empty input                |
+| Loop                       | Evaluation at zero iterations and at one iteration        |
+
+For a loop, also check any variable read after it that only the loop body assigns.
 
 Finally verify DOMINANCE. A guard that would exclude the boundary counts only when it runs on every
 path reaching the line.
@@ -254,7 +269,7 @@ Apply the four concurrency tests: read-modify-write atomicity, publication order
 its flag, lock-ordering cycles across the whole file set, and reentrancy through callbacks. Write each
 failing interleaving as a line-numbered trace.
 
-In the same pass, sweep the single-threaded sharing forms, which need no second context at all:
+In the same pass, sweep the single-threaded sharing forms, which need no second context at all. They are
 mutable default arguments, class-body mutables used as if they were per-instance, mutated module-level
 state, caches handing every caller the same mutable object, and returned references to internal state.
 
@@ -297,12 +312,15 @@ violations, misaligned access, packed-struct and endianness assumptions, static 
 and interrupt-service-routine and `volatile` misuse.
 
 **C#.** Build a lifecycle table per component listing what each lifecycle method reads and writes, then
-check three ordering hazards: a field read in one component's initialization that another component
-assigns in its own, a field assigned late but read in an earlier-running method, and a field assigned
-in a method that never runs for an inactive prefab instance. Check event symmetry, so every
-subscription has its matching unsubscription in the paired lifecycle method. Sweep Unity's overloaded
-null, where a destroyed object compares equal to null while the underlying reference is live, and sweep
-coroutines that outlive their component.
+check three ordering hazards:
+
+- A field read in one component's initialization that another component assigns in its own
+- A field assigned late but read in an earlier-running method
+- A field assigned in a method that never runs for an inactive prefab instance
+
+Check event symmetry, so every subscription has its matching unsubscription in the paired lifecycle
+method. Sweep Unity's overloaded null, where a destroyed object compares equal to null while the
+underlying reference is live, and sweep coroutines that outlive their component.
 
 ---
 
@@ -354,9 +372,13 @@ Classify every assertion touching each symbol:
 | PINNED-STATE | Asserts on an attribute, a file's contents, or a recorded call's arguments |
 | SMOKE        | Calls and asserts nothing, or asserts only that something is truthy        |
 
-Flag the weak-oracle shapes: an exception assertion without a message match, truthiness assertions on
-numeric or array results, approximate comparisons whose tolerance exceeds the effect under test, mocks
-asserted only as called, and assertions on values the function returns unchanged from its input.
+Flag the weak-oracle shapes:
+
+- An exception assertion without a message match
+- Truthiness assertions on numeric or array results
+- Approximate comparisons whose tolerance exceeds the effect under test
+- Mocks asserted only as called
+- Assertions on values the function returns unchanged from its input
 
 For each statement, name the smallest bug-shaped mutation and identify the assertion that would catch
 it. Where none exists, the behavior is UNPINNED.

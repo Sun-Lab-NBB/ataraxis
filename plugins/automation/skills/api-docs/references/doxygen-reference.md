@@ -28,8 +28,8 @@ values with project-specific information.
 ```text
 # This configuration file specifies how Doxygen should parse the docstrings inside the C++ source code files.
 # It is used as part of the tox-automated project building workflow to generate API documentation for extension code.
-# Currently, this file provide the minimal configuration necessary to build the .xml documentation file that is then
-# parsed and merged with python code documentation by sphinx via 'breathe' bridge.
+# This file provides the minimal configuration necessary to build the .xml documentation file that is then
+# parsed and merged with python code documentation by sphinx via the breathe bridge.
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "<PROJECT_NAME>"
@@ -111,7 +111,8 @@ breathe_doxygen_config_options = {
 
 **Note:** Preprocessor options can be specified in either the Doxyfile or via
 `breathe_doxygen_config_options` in conf.py. Using `breathe_doxygen_config_options` overrides
-the corresponding Doxyfile settings. Choose one location and be consistent within a project.
+the corresponding Doxyfile settings. Declare preprocessor options in the Doxyfile by default, and
+use `breathe_doxygen_config_options` only where the project has no Doxyfile.
 
 ---
 

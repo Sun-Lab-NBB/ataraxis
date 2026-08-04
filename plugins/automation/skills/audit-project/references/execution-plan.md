@@ -3,10 +3,11 @@
 The shared-context schema `/audit-project` builds once, the wave definitions, and the sub-agent budget
 that keeps a four-audit run from multiplying its own instruction payload.
 
+---
+
 ## Contents
 
 - The shared context
-- Why the shared context exists
 - Wave definitions
 - Parallelize at exactly one level
 - Sub-agent budget
@@ -17,7 +18,9 @@ that keeps a four-audit run from multiplying its own instruction payload.
 ## The shared context
 
 Built once on the main agent in Step 1, written to the session scratch directory, and handed to every
-audit as its own Step 1 output.
+audit as the output of the discovery steps it would otherwise run. Those steps are Step 1 for
+`/audit-facts` and `/audit-style`, Steps 1 through 3 for `/audit-correctness`, and Steps 1 and 2 for
+`/audit-performance`.
 
 ```text
 inventory:
@@ -45,25 +48,8 @@ The `kind` field takes one of `source`, `metadata-doc`, `build-config`, `test`, 
 Step 2's routing reads it. The `authority` field takes the style skill the file binds to, and the
 audits' batching rules read it.
 
----
-
-## Why the shared context exists
-
-Each of the four audits declares its own discovery work, and three of the four overlap almost
-completely.
-
-| Audit                | Its own discovery                                         | Overlap                   |
-|----------------------|-----------------------------------------------------------|---------------------------|
-| `/audit-facts`       | Inventory, class binding, authoritative sources           | Inventory                 |
-| `/audit-style`       | Inventory, style binding, rule ledger                     | Inventory, authority      |
-| `/audit-correctness` | Inventory, prerequisites, coverage ranking, three ledgers | All of it                 |
-| `/audit-performance` | Inventory, prerequisites, hot-path census                 | All of it, plus callgraph |
-
-Running the four by hand pays for the inventory four times, the prerequisites twice, and the callgraph
-twice, before a single finding exists. Building it once and handing it over removes that entirely.
-
-The audits still RECORD the prerequisites, because their verification checklists require it. They
-record what this file hands them rather than deriving it again.
+Every audit still RECORDS the prerequisites, because its own verification checklist requires it. It
+records what this context hands it rather than deriving them again.
 
 ---
 
@@ -125,13 +111,13 @@ Two limits govern every run, and they are not the same limit.
 | In flight | 12    | Sub-agents running at one moment, across the whole run      |
 | Total     | 40    | Sub-agents started over the whole run, across every audit   |
 
-| Mode and level     | Audit sub-agents                    | Verification sub-agents      |
-|--------------------|-------------------------------------|------------------------------|
-| Change, wave level | 4, one per audit                    | One per top-severity finding |
-| Full, batch level  | One audit at a time, up to 12 alive | One per top-severity finding |
+| Level | Audit sub-agents                              | Verification sub-agents      |
+|-------|-----------------------------------------------|------------------------------|
+| Wave  | Up to 2 per wave, one per audit the wave runs | One per top-severity finding |
+| Batch | One audit at a time, up to 12 alive           | One per top-severity finding |
 
-A wave-level run spends four of the twelve in-flight slots on the audits themselves, which leaves
-eight for the verification refutations each audit spawns in its own verification step. Queue whatever
+A wave-level run spends two of the twelve in-flight slots on the audits themselves, which leaves ten
+for the verification refutations each audit spawns in its own verification step. Queue whatever
 exceeds twelve and start each as a slot frees, because the in-flight limit paces a run rather than
 truncating it.
 

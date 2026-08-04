@@ -3,8 +3,9 @@
 How `/audit-project` resolves a change set, decides which audits that change needs, gates the work on
 the result, and loops until the new code passes.
 
-Change mode exists so a feature, a bugfix, or a refactor is audited while it is still in context, and
-it is the ONE sanctioned use of the explicit change-set scoping each audit defines.
+Change mode exists so a feature, a bugfix, or a refactor is audited while it is still in context.
+
+---
 
 ## Contents
 

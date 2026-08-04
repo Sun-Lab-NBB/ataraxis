@@ -32,8 +32,9 @@ on that step. The verification checklist at the end is mandatory before submitti
 
 **Does not cover:**
 - Active and latent bugs, and behavior that disagrees with the stated contract (see `/audit-correctness`)
-- Style, formatting, naming, and convention compliance, which includes a positional `dtype` argument,
-  a bare `NDArray` annotation, and a missing `cache=True` (see `/audit-style`)
+- Style, formatting, naming, and convention compliance, which includes a positional `dtype` argument, a
+  bare `NDArray` annotation, a missing `cache=True`, a function-local import, and a missing `slots=True`
+  (see `/audit-style`)
 - Factual accuracy of documentation against source code (see `/audit-facts`)
 - Code modifications and optimization work (this skill produces findings only)
 - Codebase exploration (see `/explore-codebase`)
@@ -42,7 +43,9 @@ The boundary against `/audit-style` decides most disputes. That skill owns the F
 this skill owns its NUMERIC OR TEMPORAL CONSEQUENCE. A positional `dtype` argument keeps the width
 explicit and traceable, so it stays a style finding. An ABSENT `dtype` hands the width to NumPy and
 hides it from the source, so it belongs here. A construct that both skills can see enters this
-report only with a cited runtime consequence attached.
+report only with a cited runtime consequence attached. A docstring, Doxygen block, or XML doc comment
+stating a dtype, a width, a unit, or a complexity the implementation does not deliver belongs to
+`/audit-facts`, because the fix edits the prose rather than the code.
 
 ---
 
@@ -136,6 +139,10 @@ version control index, which reports the files that actually ship:
 git ls-files '*.py' '*.pyi' '*.h' '*.hpp' '*.cpp' '*.cs'
 ```
 
+Generated and vendored files stay out of scope, which covers `.pyi` stubs, a virtual environment,
+site-packages, a tox working directory, a build directory, and a vendored third-party tree, each read
+as authority for a callee's cost rather than audited.
+
 Whole-repository coverage is the default and stays the default. Narrow to a change set ONLY when the
 user asks for that in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a
 branch, `git diff --name-only <commit>` for one commit, or `git status --porcelain` for the working
@@ -172,10 +179,10 @@ Python rows as N/A rather than treating their absence as a finding:
 
 Classify the audit tier:
 
-| Tier   | Indicators                         | Execution                                              |
-|--------|------------------------------------|--------------------------------------------------------|
-| Small  | 1 file                             | Main agent, sequential                                 |
-| Medium | 2 to 9 files                       | Main agent, file-by-file                               |
+| Tier   | Indicators                         | Execution                                               |
+|--------|------------------------------------|---------------------------------------------------------|
+| Small  | 1 file                             | Main agent, sequential                                  |
+| Medium | 2 to 9 files                       | Main agent, file-by-file                                |
 | Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
 A Large-tier audit BATCHES rather than fanning out per file. Every sub-agent re-receives the whole
@@ -216,7 +223,7 @@ Pass 2 dispatches to, DTYPE TRACE for Python and WIDTH TRACE for C++ and C#.
 
 For every candidate, classify it against
 [finding-catalog.md](references/finding-catalog.md), which supplies each category's definition,
-mechanical detection procedure, required evidence, and severity guidance.
+mechanical detection procedure, required evidence, and impact guidance.
 
 List ALL candidates in each pass. Do NOT stop at the first.
 
@@ -394,6 +401,8 @@ You MUST adhere to the following discipline during every audit.
   documented convention is reported with that conflict stated, and the decision left to the user.
 - Preserve MEASUREMENT-PENDING findings with their static facts intact, and ask before running any
   benchmark.
+- Hold the report's own prose to the documentation-quality rules this family enforces, keeping every
+  authored sentence under 40 words and separating its clauses with full stops and commas.
 - Never restructure, refactor, or optimize. This skill produces findings only.
 - Treat `console.enable()` and `console.disable()` calls as correct at every library tier.
 
@@ -447,6 +456,8 @@ Performance Optimization Audit Compliance:
 - [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
 - [ ] For Large tier, each sub-agent received its own batch's multiplicity rows and cross-file call sites
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
+- [ ] No finding filed against a stub, a generated file, a vendored tree, a virtual environment, site-packages, a tox
+      working directory, or a build directory
 - [ ] Hot-path census completed on the main agent before any fan-out
 - [ ] Every loop bound traced to the expression and line that sets it
 - [ ] Sweep passes 2 through 9 run in order, with pass 9 restricted to C++ and C# files
@@ -471,8 +482,12 @@ Performance Optimization Audit Compliance:
 - [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
 - [ ] No style, formatting, or convention findings appear (those belong to /audit-style)
 - [ ] No correctness or bug findings appear (those belong to /audit-correctness)
+- [ ] No documentation-side finding appears (a docstring, Doxygen, or XML doc claim the code contradicts belongs to
+      /audit-facts)
 - [ ] No proposal violates a documented project convention without that conflict being stated
 - [ ] Findings ordered by impact, STATIC section before MEASUREMENT-PENDING section
 - [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
+- [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops
+      and commas as clause separators
 - [ ] No file modifications made during the audit
 ```

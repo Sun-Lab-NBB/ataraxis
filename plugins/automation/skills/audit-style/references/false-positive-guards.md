@@ -8,6 +8,8 @@ This audit's characteristic false positive is an INVENTED CONVENTION, meaning a 
 good practice, that no loaded checklist states, and that the audit therefore has no authority to
 enforce. Several guards below exist for that one failure alone.
 
+---
+
 ## Contents
 
 - Guard 1: No ledger row, no finding
@@ -88,6 +90,10 @@ the archetype from the build files before applying any of the last group.
 Stub files, the typing marker, generated API pages, and vendored third-party trees are produced by a
 tool rather than hand-authored, so a style divergence in them is regenerated rather than fixed.
 
+A `.pyi` stub carrying evidence of hand-authoring is the one reportable case, because `/python-style`
+states that the stubs and the typing marker are generated. Report the hand-authoring against that rule
+and report nothing else inside the file.
+
 Audit nothing inside a virtual environment, site-packages, a tox working directory, or a build
 directory. Where a hand-authored file carries an auto-generated block or a documented exception, note
 the exception and skip its enclosing range rather than reporting inside it.
@@ -115,7 +121,7 @@ a violation or propose removing it.
 ## Guard 8: An unbound file produces nothing
 
 A file matching no row of the Step 1 binding table has no applicable checklist, so it is marked
-UNAUDITED in the plan and the report and produces zero findings.
+skipped in the plan and the report, with the reason `no binding row`, and produces zero findings.
 
 Judging it against a checklist bound to a different file type is an invented convention wearing a
 citation.
@@ -124,10 +130,10 @@ citation.
 
 ## Guard 9: Factual findings belong to /audit-facts
 
-A stale reference to a renamed symbol, a removed feature, or a closed issue, a docstring claim that
-disagrees with the signature or the observable behavior, and a suppression comment whose diagnostic no
-longer fires are all FACTUAL, because settling them requires reading the implementation or running a
-tool.
+Three classes of finding are FACTUAL rather than formal. They are a stale reference to a renamed
+symbol, a removed feature, or a closed issue, a docstring claim that disagrees with the signature or
+the observable behavior, and a suppression comment whose diagnostic no longer fires. Settling any of
+them requires reading the implementation or running a tool.
 
 This audit judges the FORM of the prose. Where a block breaks both a form rule and a fact, report the
 form rule here and leave the fact to its owner.
@@ -141,8 +147,9 @@ A defect, an edge case, a race, a leak, and a runtime cost are never findings he
 
 The boundary that decides most disputes is that this audit owns the FORM of a construct and
 `/audit-performance` owns its numeric or temporal consequence. A positional `dtype` argument, a bare
-array annotation, a missing `cache=True`, and a function-local import are style findings here, and
-each enters that report only with a cited runtime consequence attached.
+`NDArray` annotation, a missing `cache=True`, a function-local import, and a missing `slots=True` are
+style findings here, and each enters that report only with its runtime consequence established and
+cited.
 
 ---
 
@@ -216,9 +223,9 @@ resting on any of them is DISCARDED:
 2. **Runtime registration.** A symbol the interpreter or a framework resolves by string or by
    registration rather than by name is consumed without a written reference. This covers
    `pyproject.toml` entry points, Click commands and their groups, MCP tool registrations, pytest
-   plugins and conftest fixtures, plugin and dispatch registries, `getattr` and `__getattr__` lookup,
-   serialization fields read from YAML or JSON, enum members matched by value, Unity serialized fields
-   and lifecycle methods, and embedded interrupt and callback registration.
+   plugins and conftest fixtures, plugin and dispatch registries, and `getattr` and `__getattr__`
+   lookup. It also covers serialization fields read from YAML or JSON, enum members matched by value,
+   Unity serialized fields and lifecycle methods, and embedded interrupt and callback registration.
 3. **Interface conformance.** A method implementing an abstract base, satisfying a protocol,
    overriding a parent, or carrying a dunder name is consumed through the interface rather than
    through its own name.
@@ -230,7 +237,7 @@ it neither promotes a symbol's tier nor rescues it from UNUSED_ASSET. That is th
 rather than an inference, so quote the clause stating it before reporting a symbol its tests use.
 
 Guard 2 still binds here. Ruff owns unused imports outside `__init__.py` (`F401`), unused locals
-(`F841`), and unused arguments (`ARG`), so this pass reports NONE of the three on its own authority and
+(`F841`), and unused arguments (`ARG`), so this pass reports NONE of the three on its own authority. It
 covers what ruff carries no rule for, which is the unused module-level definition and the unused
 member.
 

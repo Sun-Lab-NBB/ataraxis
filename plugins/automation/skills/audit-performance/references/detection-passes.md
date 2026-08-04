@@ -7,6 +7,8 @@ highest-yield passes gate everything after them.
 Passes 1 and 3 through 8 apply to Python, C++, and C# alike. Pass 2 dispatches by language, and Pass 9
 runs over C++ and C# files only.
 
+---
+
 ## Contents
 
 - Pass 1: Hot-path census
@@ -18,6 +20,8 @@ runs over C++ and C# files only.
 - Pass 7: Boundary crossings
 - Pass 8: Memory layout
 - Pass 9: Language-specific cost
+
+---
 
 ## One traversal, nine questions
 
@@ -95,11 +99,11 @@ trace, because every promotion verdict depends on it.
 
 **Step 1.** Pick a seed. Trace scalars as well as arrays, because a scalar carries a dtype and sets
 the promotion floor for every array it touches. Seeds are assignment targets holding arrays,
-parameters annotated `NDArray[...]`, loop variables bound to array slices, every NumPy scalar
-construction such as `np.uint64(0)`, every binding that receives an element extraction like `arr[i]`
-or a reduction result like `arr.sum()`, every module-level numeric constant consumed by array code,
-and every dataclass or configuration attribute annotated with a bare `int` or `float` whose value
-reaches an array expression.
+parameters annotated `NDArray[...]`, and loop variables bound to array slices. Seeds also include
+every NumPy scalar construction such as `np.uint64(0)`, and every binding that receives an element
+extraction like `arr[i]` or a reduction result like `arr.sum()`. The last two seed kinds are every
+module-level numeric constant consumed by array code, and every dataclass or configuration attribute
+annotated with a bare `int` or `float` whose value reaches an array expression.
 
 **Step 2.** Open a ledger with one row per operation and six columns:
 
@@ -112,8 +116,8 @@ DTYPE_UNPINNED_AT_CREATION rules, or a parameter, in which case take the annotat
 unparameterized annotation makes the whole trace UNRESOLVED, and that is itself the finding.
 
 **Step 4.** Walk forward through every use, applying the promotion rules. Arithmetic between an
-integer array and a Python `float` yields float64 under both regimes, and a Python `float` against a
-float array keeps the array's width under both regimes unless the literal's value overflows that
+integer array and a Python `float` yields float64 under both regimes. A Python `float` against a
+float array keeps the array's width under both regimes, unless the literal's value overflows that
 width, which widens only under legacy casting. Record the operand kinds rather than the regime alone.
 Mixing two array widths promotes to the wider. True division of integer arrays yields float64. A
 reduction's default accumulator is often wider than its input. Indexing and `np.where` promote to the
@@ -208,10 +212,10 @@ The three buckets above count allocation EVENTS. This half counts RESIDENT BYTES
 question and the one the buckets cannot answer. A single allocation performed once per file allocates
 once and still exhausts the machine when the file is a stack of imaging frames.
 
-Walk every whole-input materialization: a reader that returns the complete array rather than an
-iterator or a memory-mapped handle, a `read()` or `load` over a path whose size the input decides, a
-list built from every record before any record is processed, a concatenate over every chunk, and a
-`DataFrame` or feather read without column or row selection.
+Walk every whole-input materialization. The shapes are a reader that returns the complete array
+rather than an iterator or a memory-mapped handle, and a `read()` or `load` over a path whose size
+the input decides. The rest are a list built from every record before any record is processed, a
+concatenate over every chunk, and a `DataFrame` or feather read without column or row selection.
 
 For each one, write the high-water expression as element count times element width, taking the count
 from the input dimension that bounds it and the width from the Pass 2 ledger. State what the input

@@ -12,25 +12,6 @@ Do NOT create README.md, INSTALLATION_GUIDE.md, QUICK_REFERENCE.md, CHANGELOG.md
 auxiliary files in the skill directory. The skill directory must contain only SKILL.md and optional
 reference/example/script/asset subdirectories.
 
-**Wrong:**
-
-```text
-my-skill/
-├── SKILL.md
-├── README.md              ← unnecessary
-├── CHANGELOG.md           ← unnecessary
-└── QUICK_REFERENCE.md     ← unnecessary
-```
-
-**Correct:**
-
-```text
-my-skill/
-├── SKILL.md
-└── references/
-    └── detailed-rules.md  ← loaded on demand by the agent
-```
-
 ### Duplicating content across skills
 
 If two skills need the same information, one must reference the other rather than duplicating the

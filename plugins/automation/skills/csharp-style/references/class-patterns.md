@@ -13,7 +13,7 @@ classes inherit from MonoBehaviour.
 ### Lifecycle method ordering
 
 Unity lifecycle methods must appear in their natural execution order. They are declared
-`private` like any other method — never rely on the implicit default:
+`private` like any other method, with the modifier always written explicitly:
 
 ```csharp
 /// <summary>Manages an infinite corridor VR task with probabilistic segment transitions.</summary>
@@ -94,28 +94,8 @@ private void Awake()
 
 ### Collider callbacks
 
-Unity collider callbacks follow a consistent pattern:
-
-```csharp
-/// <summary>Called when the animal enters the trigger zone collider.</summary>
-private void OnTriggerEnter(Collider other)
-{
-    if (!isActive)
-        return;
-
-    _inZone = true;
-    Debug.Log("Animal entered trigger zone.");
-}
-
-/// <summary>Called when the animal exits the trigger zone collider.</summary>
-private void OnTriggerExit(Collider other)
-{
-    if (!isActive)
-        return;
-
-    _inZone = false;
-}
-```
+Open every collider callback (`OnTriggerEnter`, `OnTriggerExit`, `OnCollisionEnter`) with a guard
+clause that returns while the component is inactive.
 
 ---
 
@@ -171,7 +151,7 @@ private void OnDisable()
 - **`Start` / `OnDestroy`**: Use for events that must persist across enable/disable cycles
   (e.g., one-time MQTT channel setup).
 - **Symmetry**: Every subscription must have a matching unsubscription in the corresponding
-  lifecycle method. `OnEnable` pairs with `OnDisable`; `Start` pairs with `OnDestroy`.
+  lifecycle method. `OnEnable` pairs with `OnDisable`, and `Start` pairs with `OnDestroy`.
 - **UnityEvent vs C# event vs Action\<T\>**: Prefer `UnityEvent` for Inspector-configurable
   callbacks, C# `event` for internal class events, and `Action<T>` delegates for simple
   one-off callbacks passed as parameters.
@@ -207,7 +187,8 @@ namespace Gimbl
 - Use `[System.Serializable]` attribute for Inspector serialization
 - Public fields with camelCase for Inspector-editable parameters
 - Inherit from `ScriptableObject` (not `MonoBehaviour`) for data-only assets
-- Keep ScriptableObjects focused on data; avoid complex logic
+- Keep a ScriptableObject to data fields and validation, relocating any logic that reads Unity
+  runtime state to a MonoBehaviour
 
 ---
 
@@ -255,7 +236,7 @@ public enum MessageTypes
 ### Rules
 
 - **XML documentation**: Document every enum member with a `<summary>` tag
-- **Class summary**: Imperative mood ("Defines the...")
+- **Class summary**: Third-person imperative mood ("Defines the...")
 - **PascalCase**: Both enum type names and values use PascalCase
 - **Trailing comma**: Include trailing comma after the last member
 - **Explicit values**: Use only when stability across versions matters (protocols, serialization)
@@ -384,20 +365,14 @@ public class Task : MonoBehaviour
         /// <summary>The array of segment indices in the sequence.</summary>
         public int[] sequence;
     }
-
-    /// <summary>Wraps the scene name for MQTT transmission.</summary>
-    public class SceneNameMessage
-    {
-        /// <summary>The name of the active Unity scene.</summary>
-        public string sceneName;
-    }
 }
 ```
 
 ### Guidelines
 
 - Use nested classes for message types, event args, or helper types specific to the parent
-- Keep nested classes small and focused
+- Keep a nested class to the fields the enclosing class serializes or transmits, moving any type
+  that gains behavior of its own to the top level
 - Document nested classes with the same XML conventions as top-level classes
 - Prefer top-level classes when the type could be reused by other classes
 
@@ -423,26 +398,6 @@ public static class Utility
         }
         return lengths;
     }
-
-    /// <summary>Measures the Z-axis length of a single prefab using its renderer bounds.</summary>
-    /// <param name="prefab">The GameObject to measure.</param>
-    /// <returns>The Z-axis length in Unity units.</returns>
-    public static float GetPrefabLength(GameObject prefab)
-    {
-        Renderer[] renderers = prefab.GetComponentsInChildren<Renderer>();
-        if (renderers.Length == 0)
-        {
-            Debug.LogWarning($"No renderers found on {prefab.name}.");
-            return 0f;
-        }
-
-        Bounds bounds = renderers[0].bounds;
-        for (int i = 1; i < renderers.Length; i++)
-        {
-            bounds.Encapsulate(renderers[i].bounds);
-        }
-        return bounds.size.z;
-    }
 }
 ```
 
@@ -455,9 +410,6 @@ public static class Utility
 ---
 
 ## Static vs instance method guidance
-
-This is the C# equivalent of the Python distinction between `@staticmethod`, `@classmethod`,
-and instance methods.
 
 | Use                  | When                                                           |
 |----------------------|----------------------------------------------------------------|
@@ -490,13 +442,11 @@ public static SegmentConfig FromYaml(Dictionary<string, object> yamlEntry)
 
 ## Immutability patterns
 
-Immutability is a core design principle across all projects, matching the pervasive
-`const` correctness in the C++ codebase.
+Immutability is a core design principle across all projects.
 
 ### Readonly fields
 
-Mark fields as `readonly` when they are only assigned in the constructor or field initializer.
-This is the C# equivalent of C++ `const` member variables:
+Mark fields as `readonly` when they are only assigned in the constructor or field initializer:
 
 ```csharp
 /// <summary>Manages communication with the microcontroller.</summary>
@@ -521,8 +471,7 @@ public class Communication
 
 ### Readonly struct
 
-Use `readonly struct` for small, immutable value types (the C# equivalent of C++ packed
-structs with all-const members):
+Use `readonly struct` for small, immutable value types:
 
 ```csharp
 /// <summary>Represents a 3D position in Unity world space.</summary>
@@ -549,8 +498,7 @@ public readonly struct WorldPosition
 
 ### Record types
 
-Use `record` types for immutable data with value equality semantics (the closest C# equivalent
-to Python's `@dataclass(frozen=True)`):
+Use `record` types for immutable data with value equality semantics:
 
 ```csharp
 /// <summary>Defines a corridor segment configuration loaded from YAML.</summary>
@@ -580,13 +528,12 @@ var modified = segment1 with { LengthCm = 200f };
 
 ## `in`, `ref`, and `out` parameter conventions
 
-These modifiers control how arguments are passed to methods. Correct usage is the C# equivalent
-of C++ const reference passing and output parameters.
+These modifiers control how arguments are passed to methods.
 
 ### `in` parameters
 
 Use `in` for large `readonly struct` parameters to avoid copying. Do NOT use `in` for small
-types (`int`, `float`, `bool`) or reference types — it adds overhead without benefit:
+types (`int`, `float`, `bool`) or reference types, where it adds overhead without benefit:
 
 ```csharp
 /// <summary>Checks whether the specified world position is within the zone bounds.</summary>
@@ -643,8 +590,7 @@ public static void AdvanceSegmentIndex(ref int segmentIndex, int corridorLength)
 
 ## Generic constraints
 
-Use generic constraints to enforce compile-time type safety. This is the C# equivalent of C++
-`static_assert` on template parameters:
+Use generic constraints to enforce compile-time type safety:
 
 ```csharp
 /// <summary>Serializes data objects for MQTT transmission.</summary>
@@ -807,7 +753,7 @@ public sealed class EncoderModule : Module
 
 ## ToString conventions
 
-Implement `ToString()` for debugging output, matching the Python `__repr__` convention:
+Implement `ToString()` for debugging output:
 
 ```csharp
 /// <summary>Returns a string representation of the segment configuration.</summary>
@@ -820,7 +766,7 @@ public override string ToString()
 ### Rules
 
 - Format: `ClassName(key=value, key=value)`
-- Include only the most important attributes
+- Include the fields a reader needs to tell two instances of the class apart
 - Use the actual class name
 - Summary: "Returns a string representation of the [ClassName] instance."
 
@@ -958,5 +904,5 @@ if (template != null && template.segments.Length > 0)
 - Always include a `_` (discard) arm in switch expressions for exhaustiveness
 - Always include a `default:` case in switch statements
 - Use type patterns (`is T variable`) instead of separate `is` check + cast
-- Use property patterns sparingly — prefer explicit checks when the pattern is not
+- Use property patterns sparingly, preferring explicit checks when the pattern is not
   immediately obvious

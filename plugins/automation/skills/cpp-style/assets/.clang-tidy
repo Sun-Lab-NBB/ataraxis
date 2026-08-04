@@ -144,7 +144,8 @@ readability-static-accessed-through-instance,
 readability-static-definition-in-anonymous-namespace,
 readability-string-compare,
 readability-uniqueptr-delete-release,
+readability-magic-numbers,
 readability-use-anyofallof'
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'
-FormatStyle: 'google'
+FormatStyle: 'file'

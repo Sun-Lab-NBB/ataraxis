@@ -60,7 +60,7 @@ All repositories are under `https://github.com/Sun-Lab-NBB/`:
 
 ## First-party application libraries
 
-A project may also depend on its own first-party application libraries — higher-level packages built
+A project may also depend on its own first-party application libraries, higher-level packages built
 on top of the ataraxis infrastructure for specific workflows such as experiment orchestration, data
 analysis, or acquisition tooling.
 

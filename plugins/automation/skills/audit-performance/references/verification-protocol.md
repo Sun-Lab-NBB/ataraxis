@@ -7,12 +7,15 @@ Both checks are external. Check 1 tests the finding against the source file, and
 against a reader who never saw the sweep. Re-reading your own reasoning is no substitute for either,
 because that reasoning is the thing under test.
 
+---
+
 ## Contents
 
 - Check 1: Citation verification
 - Check 2: Adversarial refutation
 - The triage header
 - Confidence placement in the report
+- The report's own prose
 
 ---
 
@@ -105,3 +108,18 @@ impact, rather than interleaved into the file groups. Every finding there still 
 evidence and still passed every guard and both checks above. The appendix exists so the body of the
 report reads at one confidence level, and so a reader who wants only the settled findings knows where
 to stop.
+
+---
+
+## The report's own prose
+
+Hold the report's own prose to the documentation-quality rules this family enforces. Keep every
+sentence in a `Suggested fix`, `Required state`, `Result`, `Cost`, `Trigger`, or `Approval` field
+under 40 words. Separate clauses with full stops and commas rather than semicolons or em-dashes, and
+state what the fix does rather than what the code fails to do. Verbatim quotes and cost arithmetic are
+exempt, because they are copied rather than written.
+
+Before presenting, split the report's authored fields on sentence boundaries, excluding every verbatim
+quote and every arithmetic or complexity expression, and count the words in each sentence. Any
+sentence over 40 words, and any semicolon or em-dash joining two independent clauses, is rewritten
+before the report is handed over.

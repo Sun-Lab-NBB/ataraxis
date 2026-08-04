@@ -59,15 +59,23 @@ GitHub repository for installation instructions and library usage examples:
 ```
 
 **Rules:**
-- The title underline (`=`) MUST match the exact character length of the title text.
-- `<PROJECT_DESCRIPTION>` is the bare project description — the same sentence used in all other
-  canonical description locations for the project archetype (e.g., `pyproject.toml`, `__init__.py`,
-  `README.md`, or `library.json`). No language prefix ("A Python library that...") and no project
-  name prefix ("project-name is...").
+- The title reads `Welcome to <PROJECT_NAME> API documentation page`, and the title underline (`=`)
+  MUST match the exact character length of the title text.
+- The first paragraph is `<PROJECT_DESCRIPTION>`, the bare project description, which is the same
+  sentence used in all other canonical description locations for the project archetype (e.g.,
+  `pyproject.toml`, `__init__.py`, `README.md`, or `library.json`). No language prefix ("A Python
+  library that...") and no project name prefix ("project-name is...").
 - For Ataraxis projects, the second paragraph MUST include the standard Ataraxis attribution
-  sentence. For non-Ataraxis projects, this paragraph is optional or may contain other
-  project-relevant context. Either way, additional project-relevant context (e.g., companion
-  libraries, related hardware) MAY be included after the attribution when appropriate.
+  sentence with links to the Ataraxis repository and the Sun (NeuroAI) lab. For a non-Ataraxis
+  project, omit this paragraph by default, and replace it with other project-relevant context only
+  where the description above it is unreadable without that context.
+- Additional project-relevant context after the attribution (e.g., companion libraries, related
+  hardware) is omitted by default, and added only where the project description above it is
+  unreadable without it.
+- The third paragraph is the standard disclaimer that the site carries API documentation only, with
+  a link to the project GitHub repository.
+- The footer declares an explicit RST link target for every inline link the page uses, which are the
+  Ataraxis repository, the project repository, and the attribution link.
 - The GitHub URL uses the `Sun-Lab-NBB` organization.
 
 ### Placeholders

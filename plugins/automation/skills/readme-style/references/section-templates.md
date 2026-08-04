@@ -14,7 +14,7 @@ Supports tox-based development automation pipelines used by other ataraxis frame
 ```
 
 The title must match the repository and package name (lowercase, hyphenated). The one-line
-description MUST be the bare project description — the same sentence used in all other canonical
+description MUST be the bare project description, the same sentence used in all other canonical
 description locations for the project archetype. No language prefix ("A Python library that...")
 and no project name prefix ("project-name is...").
 
@@ -229,7 +229,7 @@ Replace `PACKAGE-NAME` with the actual PyPI package name.
 
 C++ PlatformIO libraries use a Source and a `### Platformio` subsection (not `### pip`). The
 Source subsection moves the distribution's `src` contents into the consuming project's directory
-and adds the relevant `#include` directives; the Platformio subsection declares the dependency via
+and adds the relevant `#include` directives. The Platformio subsection declares the dependency via
 `lib_deps`:
 
 ```markdown
@@ -311,7 +311,7 @@ This library provides an MCP server that exposes BRIEF DESCRIPTION for AI agent 
 
 Start the MCP server using the CLI:
 
-```
+```bash
 COMMAND mcp
 ```
 
@@ -371,7 +371,7 @@ does.
 
 Optional. When present, Python libraries use the following standard template. Adapt the tox
 environments table and Additional Dependencies section to match the actual tox configuration
-and requirements of the project.
+and requirements of the project, whose environment set `/tox-config` owns.
 
 ````markdown
 ## Developers
@@ -457,7 +457,7 @@ C++ PlatformIO projects differ from the Python template above:
   PlatformIO support) `pio project metadata`.
 - **Additional Dependencies**: Tox and Doxygen (both on the system path), used to build the API
   documentation.
-- **Development Automation**: driven by the PlatformIO CLI; tox is reserved for tasks not covered
+- **Development Automation**: driven by the PlatformIO CLI, with tox reserved for tasks not covered
   by PlatformIO, such as API documentation generation.
 - **PR gate**: the `tox`, `pio check`, and `pio test` tasks must all pass before merging.
 

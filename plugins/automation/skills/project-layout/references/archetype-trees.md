@@ -55,11 +55,9 @@ project-root/
   ataraxis-automation, `axbu` for ataraxis-base-utilities).
 - The `tests/` directory mirrors the `src/package_name/` structure. Test files use the `_test.py`
   suffix (e.g., `automation_test.py`).
-- `.pyi` stub files (and the `py.typed` marker) are GENERATED artifacts, never hand-authored.
-  `tox -e stubs` produces them and they ship with releases, but `tox -e lint`
-  (`automation-cli purge-stubs`) removes them from the working tree during development — so their
-  presence is release-phase-dependent. Do not create, hand-edit, or treat a missing `.pyi` as a
-  layout violation; to change typing, edit the `.py` and regenerate.
+- `.pyi` stub files and the `py.typed` marker are generated artifacts whose presence is
+  release-phase-dependent, so a missing `.pyi` is not a layout violation. See `/python-style` for
+  the stub-file rule.
 - The `.pypirc` file may exist locally but is not committed to version control.
 - Build artifacts (`dist/`, `reports/`, `coverage.xml`) are gitignored.
 
@@ -177,11 +175,12 @@ project-root/
 
 - All library code is **header-only** (`.h` files only, no `.cpp` implementation files).
 - The `main.cpp` in `src/` is a development entry point used for testing during development. It
-  is excluded from the distributed library via `library.json` configuration.
+  is excluded from the distributed library by the `export.exclude` rule that `/platformio-config`
+  owns.
 - The `test/` directory (not `tests/`) follows PlatformIO's native test convention.
 - The `examples/` directory contains runnable example sketches for library consumers.
-- No `envs/` directory — PlatformIO manages its own toolchain environment.
-- No `pyproject.toml` — this is a pure C++ project.
+- No `envs/` directory, because PlatformIO manages its own toolchain environment.
+- No `pyproject.toml`, because this is a pure C++ project.
 
 ---
 
@@ -223,14 +222,14 @@ project-root/
 
 ### Notes
 
-- Firmware projects have no `examples/`, `test/`, or `library.json` — the firmware itself is the
-  final artifact.
+- Firmware projects have no `examples/`, `test/`, or `library.json`, because the firmware itself is
+  the final artifact.
 - All custom modules are header-only `.h` files in `src/` alongside `main.cpp`.
 - The `main.cpp` is the actual firmware entry point (not a development stub like in library
   projects).
 - Uses `#define` / `#ifdef` conditional compilation for hardware variant selection.
-- No `envs/` directory — PlatformIO manages its own toolchain environment.
-- No `pyproject.toml` — this is a pure C++ project.
+- No `envs/` directory, because PlatformIO manages its own toolchain environment.
+- No `pyproject.toml`, because this is a pure C++ project.
 
 ---
 
@@ -286,8 +285,8 @@ project-root/
   corresponding `.cs.meta` file managed by Unity (committed to version control).
 - The `ProjectSettings/` directory contains Unity engine configuration files. These are
   `.asset` files managed by the Unity Editor.
-- No `pyproject.toml`, `tox.ini`, `envs/`, `docs/`, or `tests/` — Unity has its own build and
-  test infrastructure.
+- Unity has its own build and test infrastructure, so a Unity project carries no `pyproject.toml`,
+  `tox.ini`, `envs/`, `docs/`, or `tests/`.
 - Formatting is managed by CSharpier (`.csharpierrc.yaml`) and EditorConfig (`.editorconfig`),
   not by Python-based tools.
 - The `Library/`, `Logs/`, `Temp/`, and `UserSettings/` directories are gitignored.

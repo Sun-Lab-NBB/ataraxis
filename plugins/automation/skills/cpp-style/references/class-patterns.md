@@ -164,7 +164,6 @@ static_assert(
 
 ### static_assert message format
 
-Messages should clearly state what constraint was violated:
 - State the subject and the constraint: `"EncoderModule PinA and PinB cannot be the same!"`
 - For remediation advice, include it: `"Select a different Channel A pin for the EncoderModule
   instance."`
@@ -242,7 +241,7 @@ class EncoderModule final : public Module
 };
 ```
 
-Shared enums that span multiple classes belong in a dedicated shared assets' namespace:
+Shared enums that span multiple classes belong in a dedicated shared asset namespace:
 
 ```cpp
 namespace axmc_shared_assets
@@ -286,7 +285,8 @@ compatibility:
 
 - Use `PACKED_STRUCT` for all structs that cross memory boundaries (serial communication,
   DMA transfers)
-- Align struct member assignments for readability
+- Align consecutive struct member assignments, which clang-format applies through
+  `AlignConsecutiveAssignments`
 - Initialize all members with default values
 - Document each member with `///<` trailing comments
 - Declare struct instances as private class members with `_snake_case` naming
@@ -453,8 +453,7 @@ class Module
 };
 ```
 
-This pattern ensures immutability of configuration values throughout the object's lifetime,
-paralleling the `frozen=True` dataclass convention in Python and `readonly` fields in C#.
+This pattern ensures immutability of configuration values throughout the object's lifetime.
 
 ---
 
@@ -494,20 +493,13 @@ struct CustomRuntimeParameters
 } PACKED_STRUCT _custom_parameters;
 ```
 
-This parallels the Python convention where class attributes are always private (`_snake_case`)
-with `@property` accessors, while dataclass fields are public.
-
 ---
 
 ## Accessor vs method decision
 
-This parallels the Python distinction between `@property` (simple attribute access) and
-methods (operations that "do something"):
-
-| Use                    | When                                                      |
-|------------------------|-----------------------------------------------------------|
-| `get_`/`set_` accessor | Returns or sets a single data member with no side effects |
-| PascalCase method      | Performs computation, I/O, or has side effects            |
+Accessor methods use `get_`/`set_` snake_case, following the Google C++ naming convention. A
+`get_`/`set_` accessor returns or sets a single data member with no side effects, and a PascalCase
+method performs computation, I/O, or has side effects.
 
 ```cpp
 // Good - accessor for trivial field access
@@ -531,13 +523,8 @@ means the method performs real work.
 
 ## Static vs instance method guidance
 
-This parallels the Python distinction between `@staticmethod`, `@classmethod`, and instance
-methods:
-
-| Use              | When                                                              |
-|------------------|-------------------------------------------------------------------|
-| Instance method  | The method accesses instance members (`this`)                     |
-| `static` method  | The method needs no instance state (utility, factory, validation) |
+An instance method accesses instance members through `this`, and a `static` method needs no
+instance state, covering utilities, factories, and validation helpers.
 
 ### Rules
 
@@ -593,8 +580,8 @@ Rules:
 
 ## Function calls
 
-Prefer clarity to brevity. For functions with multiple parameters of the same type or boolean
-parameters, use inline comments to label arguments:
+For functions with multiple parameters of the same type or boolean parameters, use inline
+comments to label arguments:
 
 ```cpp
 // Good - labeled arguments clarify meaning
@@ -629,7 +616,7 @@ CompleteCommand();
 - Indentation: **4 spaces** (no tabs)
 - Pointer/reference alignment: **Left** (`int* pointer`, `int& reference`)
 - Attributes (`[[nodiscard]]`, `[[maybe_unused]]`, etc.) always appear on their own line directly
-  above the declaration (clang-format `BreakAfterAttributes: Always`); do not write them inline
+  above the declaration (clang-format `BreakAfterAttributes: Always`). Do not write them inline
 
 ### Aligned assignments
 

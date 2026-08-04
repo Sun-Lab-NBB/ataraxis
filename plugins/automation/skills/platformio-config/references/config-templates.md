@@ -1,13 +1,13 @@
 # PlatformIO configuration templates
 
 Full annotated templates for `platformio.ini` and `library.json`. Adapt the board set, headers, and
-dependencies to the library; keep field ordering and the mirroring rule.
+dependencies to the library, and keep field ordering and the mirroring rule.
 
 ---
 
 ## platformio.ini
 
-One `[env:<board>]` section per supported board. The Teensy env needs no `build_unflags`; the AVR
+One `[env:<board>]` section per supported board. The Teensy env needs no `build_unflags`. The AVR
 (`mega`) and SAM (`due`) envs add `build_unflags = -std=gnu++11` so `build_flags = -std=c++17` takes
 effect. `lib_deps` is omitted from a board that has no dependencies.
 
@@ -55,11 +55,11 @@ lib_deps =
 
 ## library.json
 
-The published registry manifest. `dependencies` mirrors the union of all `lib_deps` above; each
+The published registry manifest. `dependencies` mirrors the union of all `lib_deps` above. Each
 dependency's `platforms` array names the boards whose `lib_deps` list it (`elapsedMillis` is only in
-`due`/`mega`, so it is scoped to `atmelsam`/`atmelavr`; `digitalWriteFast` and the ataraxis library
-are in every board, so they list all three). `export.exclude` drops `./src/main.cpp`. `headers`
-lists only the public consumer headers — use a bare string for a single-header library.
+`due`/`mega`, so it is scoped to `atmelsam`/`atmelavr`, while `digitalWriteFast` and the ataraxis
+library are in every board, so they list all three). `export.exclude` drops `./src/main.cpp`.
+`headers` lists only the public consumer headers. Use a bare string for a single-header library.
 
 ```json
 {

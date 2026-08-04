@@ -8,19 +8,15 @@ Common C# style violations and how to fix them.
 
 Common transformations at a glance:
 
-| Wrong                              | Correct                            | Rule                         |
-|------------------------------------|------------------------------------|------------------------------|
-| `float pos;`                       | `float position;`                  | Full words, no abbreviations |
-| `private int currentIndex;`        | `private int _currentIndex;`       | Private fields use `_prefix` |
-| `private const float kEpsilon`     | `private const float Epsilon`      | PascalCase constants         |
-| `public bool isReady => ...`       | `public bool IsReady => ...`       | PascalCase properties        |
-| `public void Start() {`            | `public void Start()\n{`           | Allman brace style           |
-| `/// This class manages...`        | `/// Manages...`                   | Imperative mood, no preamble |
-| `/// Is the zone active.`          | `/// Determines whether...`        | Boolean documentation        |
-| `GetComponent<T>()` in `Update`    | Cache in `Awake`/`Start`           | No allocations in hot paths  |
-| `_zones.Where()` in `Update`       | Explicit `for` loop                | No LINQ in hot paths         |
-| Missing `using`/`Dispose()`        | `using var` or `OnDestroy` cleanup | IDisposable resources        |
-| `private int _count;` (assignable) | `private readonly int _count;`     | Readonly when single-assign  |
+| Wrong                              | Correct                            | Rule                                      |
+|------------------------------------|------------------------------------|-------------------------------------------|
+| `public void Start() {`            | Brace on the following line        | Allman brace style                        |
+| `/// This class manages...`        | `/// Manages...`                   | Third-person imperative mood, no preamble |
+| `/// Is the zone active.`          | `/// Determines whether...`        | Boolean documentation                     |
+| `GetComponent<T>()` in `Update`    | Cache in `Awake`/`Start`           | No allocations in hot paths               |
+| `_zones.Where()` in `Update`       | Explicit `for` loop                | No LINQ in hot paths                      |
+| Missing `using`/`Dispose()`        | `using var` or `OnDestroy` cleanup | IDisposable resources                     |
+| `private int _count;` (assignable) | `private readonly int _count;`     | Readonly when single-assign               |
 
 ---
 
@@ -114,7 +110,7 @@ public class TaskManager : MonoBehaviour
 // Wrong - "This class" / "This method" phrasing
 /// <summary>This class manages task state.</summary>
 
-// Correct - imperative mood
+// Correct - third-person imperative mood
 /// <summary>Manages task state and corridor transitions.</summary>
 
 // Wrong - not using "Determines whether" for booleans
@@ -165,16 +161,16 @@ public class Task : MonoBehaviour { }
 
 ## Comment violations
 
-| Wrong                                        | Correct                                        | Rule                              |
-|----------------------------------------------|------------------------------------------------|-----------------------------------|
-| `// This function sends...`                  | `// Sends...`                                  | Third-person imperative           |
-| `// ========================`                | (remove separator)                             | No heavy separator blocks         |
-| `// ---- Section ----`                       | (remove separator)                             | No heavy separator blocks         |
-| End-of-line comment on complex logic         | Comment above the code block                   | Place above, not at end           |
-| `x = 5;  // Set x to 5`                      | `x = 5;`                                       | Don't state the obvious           |
-| Adding XML docs to code not written by you   | Only document your changes                     | Don't add docs to others' code    |
-| `#region Setup` / `#endregion`               | Blank line between logical groups              | No `#region` blocks               |
-| `this.fieldName`                             | `fieldName`                                    | No `this.` (except disambiguation)|
+| Wrong                                      | Correct                           | Rule                               |
+|--------------------------------------------|-----------------------------------|------------------------------------|
+| `// This function sends...`                | `// Sends...`                     | Third-person imperative mood       |
+| `// ========================`              | (remove separator)                | No heavy separator blocks          |
+| `// ---- Section ----`                     | (remove separator)                | No heavy separator blocks          |
+| End-of-line comment on complex logic       | Comment above the code block      | Place above, not at end            |
+| `x = 5;  // Set x to 5`                    | `x = 5;`                          | Don't state the obvious            |
+| Adding XML docs to code not written by you | Only document your changes        | Don't add docs to others' code     |
+| `#region Setup` / `#endregion`             | Blank line between logical groups | No `#region` blocks                |
+| `this.fieldName`                           | `fieldName`                       | No `this.` (except disambiguation) |
 
 ---
 
@@ -219,7 +215,7 @@ The EditorConfig and CSharpier both enforce 4-space indentation. Never use tabs.
 
 ---
 
-## Unity-specific anti-patterns
+## Unity-specific violations
 
 ### GetComponent in Update
 
@@ -283,7 +279,7 @@ private void Update()
 
 ---
 
-## Error handling anti-patterns
+## Error handling violations
 
 ### Silent failures
 
@@ -323,7 +319,7 @@ private void Start()
 
 ---
 
-## Structural anti-patterns
+## Structural violations
 
 ### Deep nesting
 
@@ -379,115 +375,7 @@ private void Initialize() { }
 
 ---
 
-## LINQ anti-patterns
-
-### LINQ in hot paths
-
-```csharp
-// Wrong - LINQ allocates in Update (garbage collection pressure)
-private void Update()
-{
-    foreach (OccupancyZone zone in _zones.Where(z => z.isActive))
-    {
-        zone.CheckOccupancy();
-    }
-}
-
-// Correct - explicit loop with no allocations
-private void Update()
-{
-    for (int i = 0; i < _zones.Length; i++)
-    {
-        if (_zones[i].isActive)
-        {
-            _zones[i].CheckOccupancy();
-        }
-    }
-}
-```
-
-### Multiple enumeration
-
-```csharp
-// Wrong - evaluates the query twice
-IEnumerable<GameObject> activeZones = allZones.Where(zone => zone.isActive);
-Debug.Log($"Active zones: {activeZones.Count()}");  // First evaluation
-ProcessZones(activeZones);                           // Second evaluation
-
-// Correct - materialize with ToList when reused
-List<GameObject> activeZones = allZones.Where(zone => zone.isActive).ToList();
-Debug.Log($"Active zones: {activeZones.Count}");
-ProcessZones(activeZones);
-```
-
-### Query syntax instead of method syntax
-
-```csharp
-// Wrong - query syntax
-var validLengths = (from length in segmentLengths where length > 0f select length).ToList();
-
-// Correct - method syntax
-List<float> validLengths = segmentLengths.Where(length => length > 0f).ToList();
-```
-
----
-
-## Resource management anti-patterns
-
-### Missing IDisposable cleanup
-
-```csharp
-// Wrong - disposable resource never cleaned up
-public class SerialController : MonoBehaviour
-{
-    private SerialPort _port;
-
-    private void Start()
-    {
-        _port = new SerialPort(portName, baudRate);
-        _port.Open();
-    }
-    // _port is never disposed!
-}
-
-// Correct - clean up in OnDestroy
-public class SerialController : MonoBehaviour
-{
-    private SerialPort _port;
-
-    private void Start()
-    {
-        _port = new SerialPort(portName, baudRate);
-        _port.Open();
-    }
-
-    private void OnDestroy()
-    {
-        if (_port != null && _port.IsOpen)
-        {
-            _port.Close();
-            _port.Dispose();
-        }
-    }
-}
-```
-
-### Missing using declaration
-
-```csharp
-// Wrong - StreamReader never disposed
-string content;
-StreamReader reader = new StreamReader(configPath);
-content = reader.ReadToEnd();
-
-// Correct - using declaration ensures disposal
-using var reader = new StreamReader(configPath);
-string content = reader.ReadToEnd();
-```
-
----
-
-## Immutability anti-patterns
+## Immutability violations
 
 ### Missing readonly on single-assignment fields
 
@@ -553,41 +441,9 @@ public readonly struct ZoneState
 
 ---
 
-## String comparison anti-patterns
-
-### Culture-sensitive comparison for internal logic
-
-```csharp
-// Wrong - Contains uses CurrentCulture on some .NET versions
-if (topicName.Contains("Gimbl/Stimulus"))
-{
-    ProcessStimulus();
-}
-
-// Correct - ordinal comparison for protocol strings
-if (topicName.Contains("Gimbl/Stimulus", StringComparison.Ordinal))
-{
-    ProcessStimulus();
-}
-
-// Wrong - StartsWith without StringComparison
-if (configPath.StartsWith("/data"))
-{
-    LoadConfig(configPath);
-}
-
-// Correct - explicit ordinal comparison
-if (configPath.StartsWith("/data", StringComparison.Ordinal))
-{
-    LoadConfig(configPath);
-}
-```
-
----
-
 ## Cross-language consistency violations
 
-These anti-patterns drift toward C++ or Python conventions that do not apply in C#:
+These violations drift toward C++ or Python conventions that do not apply in C#:
 
 ### Naming drift
 
@@ -638,7 +494,7 @@ private float _segmentLength;
 // Wrong - Google-style docstring phrasing from Python convention
 /// <summary>A class that manages task state.</summary>
 
-// Correct - imperative mood without articles
+// Correct - third-person imperative mood without articles
 /// <summary>Manages task state and corridor transitions.</summary>
 
 // Wrong - trailing /// comment from C++ Doxygen convention

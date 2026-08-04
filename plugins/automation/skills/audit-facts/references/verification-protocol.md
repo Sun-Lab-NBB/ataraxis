@@ -7,6 +7,8 @@ Both checks are external. Check 1 tests the finding against the two files it cit
 it against a reader who never saw the verification pass. Re-reading your own reasoning is no
 substitute for either, because that reasoning is the thing under test.
 
+---
+
 ## Contents
 
 - Check 1: Citation verification
@@ -43,7 +45,7 @@ Record the count of findings checked and the count deleted.
 
 ## Check 2: Adversarial refutation
 
-Runs against every WRONG and CONTRADICTION finding that survived Check 1. Those two types assert that
+Runs against every WRONG and CONTRADICTION finding that survived Check 1. Those two verdicts assert that
 the documentation states something the source denies, which is the assertion most worth attacking, and
 running the check after Check 1 means a finding deleted for a bad citation never consumes a sub-agent.
 
@@ -81,7 +83,7 @@ before reading any finding:
 ```text
 Findings: <total> reported, from <n> claims verified
 
-| Type          | HIGH confidence | MEDIUM confidence | LOW confidence |
+| Verdict       | HIGH confidence | MEDIUM confidence | LOW confidence |
 |---------------|-----------------|-------------------|----------------|
 | WRONG         | <n>             | <n>               | <n>            |
 | DRIFT         | <n>             | <n>               | <n>            |
@@ -104,11 +106,12 @@ numbers is what lets a reader tell those apart.
 
 ## Confidence placement in the report
 
-HIGH and MEDIUM confidence findings occupy the body of the report, grouped documentation class, then
-file, then finding type, with the types ordered WRONG, DRIFT, CONTRADICTION, OMISSION, UNVERIFIABLE.
+HIGH and MEDIUM confidence findings occupy the body of the report, grouped by documentation class,
+then file, then finding verdict, with the verdicts ordered WRONG, DRIFT, CONTRADICTION, OMISSION,
+UNVERIFIABLE.
 
 LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered by the
-same type sequence, rather than interleaved into the file groups. Every finding there still carries
+same verdict sequence, rather than interleaved into the file groups. Every finding there still carries
 its full evidence and still passed every guard and both checks above. The appendix exists so the body
 of the report reads at one confidence level, and so a reader who wants only the settled findings knows
 where to stop.

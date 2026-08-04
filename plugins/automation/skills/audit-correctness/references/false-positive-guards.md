@@ -4,6 +4,12 @@ Every candidate finding of `/audit-correctness` passes through these guards in o
 the report. The trigger requirement runs first and removes the most candidates. Record the count of
 discarded candidates for the report's triage header.
 
+This audit's characteristic false positive is a defect that cannot be triggered, produced by naming an
+input the type system forbids, by ignoring a guard that dominates the cited line, or by writing a
+result no reachable path produces. Several guards below exist for that one failure alone.
+
+---
+
 ## Contents
 
 - Guard 1: No trigger, no finding
@@ -105,10 +111,10 @@ candidate fixes stated.
 
 ## Guard 7: Style and convention findings belong to /audit-style
 
-A bare array annotation, a positional `dtype` argument, a missing frozen or slots setting, a positional
-call where a keyword was required, a hand-rolled conversion where a library helper exists, a deeply
-nested validation block, a function-local import, a bare suppression comment, an IDE suppression comment,
-and a hand-edited stub file are every one of them style findings.
+A bare array annotation, a positional `dtype` argument, a missing frozen or slots setting, and a
+positional call where a keyword was required are every one of them style findings. So are a hand-rolled
+conversion where a library helper exists, a deeply nested validation block, a function-local import, a
+bare suppression comment, an IDE suppression comment, and a hand-edited stub file.
 
 Each becomes a finding HERE only once you name the input that produces a wrong VALUE through it. Report
 the wrong value as the finding, cite the style rule as supporting context, and never report the style
@@ -154,8 +160,8 @@ A module in the coverage omit list, a pragma on an unreachable guard or a platfo
 the standard exclude corpus are all deliberate. The exclusion itself is NEVER the finding, so report only
 a concrete defect found inside the excluded region, carrying its own trigger.
 
-One narrow exception is reportable. A module in the omit list that matches none of the qualifying kinds,
-which are command modules, the MCP server module with its tool modules, and process entry points, is real
+One narrow exception is reportable. The qualifying kinds are command modules, the MCP server module with
+its tool modules, and process entry points. A module in the omit list that matches none of them is real
 logic made invisible to the coverage gate, and that is worth reporting.
 
 ---

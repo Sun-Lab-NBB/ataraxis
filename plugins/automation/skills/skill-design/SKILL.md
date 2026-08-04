@@ -64,12 +64,13 @@ Match instruction specificity to task fragility:
 |--------|-----------------------------------|---------------------------------------------------|
 | Low    | Specific commands, few parameters | Operations that must be exactly reproduced        |
 | Medium | Pseudocode or parameterized steps | A preferred pattern exists but details may vary   |
-| High   | Text instructions                 | Multiple valid approaches; agent chooses best one |
+| High   | Text instructions                 | Multiple valid approaches, agent chooses best one |
 
 Use **low freedom** for operations that must be reproducible (commit message format, frontmatter
-structure, formatting rules). Use **high freedom** for creative or analytical tasks (exploration
-summaries, architectural analysis). Default to low freedom when in doubt — reproducibility and
-consistency are preferred over flexibility.
+structure, formatting rules, field specs). Use **medium freedom** for preferred patterns with room
+for adaptation (workflow steps). Use **high freedom** for creative or analytical tasks (exploration
+summaries, architectural analysis). Default to low freedom when in doubt, because reproducibility
+and consistency are preferred over flexibility.
 
 ### Terminology consistency
 
@@ -98,13 +99,12 @@ two kinds is the most common way a long checklist stops working.
 
 ### Progressive disclosure
 
-Keep SKILL.md under 500 lines. Move detailed reference material into separate files that the agent
-loads on demand. See [progressive-disclosure.md](references/progressive-disclosure.md) for
-concrete patterns and directory structure conventions.
+Keep SKILL.md under 500 lines. See [progressive-disclosure.md](references/progressive-disclosure.md)
+for concrete patterns and directory structure conventions.
 
 ---
 
-## Skill creation workflow
+## Workflow
 
 You MUST follow these steps when creating a new skill from scratch.
 
@@ -127,11 +127,8 @@ invoke the skill, so trigger conditions must be specific and comprehensive.
 
 ### Step 3: Determine degrees of freedom
 
-For each aspect of the skill's behavior, decide the appropriate freedom level:
-
-- **Low freedom** for operations that must be exactly reproducible (formatting rules, field specs)
-- **Medium freedom** for preferred patterns with room for adaptation (workflow steps)
-- **High freedom** for creative or analytical tasks (exploration, summarization)
+For each aspect of the skill's behavior, decide the appropriate freedom level using the degrees of
+freedom table above.
 
 ### Step 4: Create the directory structure
 
@@ -167,10 +164,10 @@ Run through the verification checklist at the end of this skill. Then invoke the
 current repository to verify it produces correct behavior. Test with both explicit invocation
 (`/skill-name`) and contextual descriptions to confirm the trigger conditions work.
 
-A new skill under an existing plugin needs no manual registration — the plugin.json `"skills":
-"./skills/"` glob auto-discovers it. If the new skill introduces a new plugin, add that plugin to
-the repo's `.claude-plugin/marketplace.json` `plugins` array. Adding or materially changing a
-plugin's skills should bump `version` in that plugin's `.claude-plugin/plugin.json`.
+A new skill under an existing plugin needs no manual registration, because the plugin.json
+`"skills": "./skills/"` glob auto-discovers it. If the new skill introduces a new plugin, add that
+plugin to the repo's `.claude-plugin/marketplace.json` `plugins` array. Adding or materially
+changing a plugin's skills should bump `version` in that plugin's `.claude-plugin/plugin.json`.
 
 ---
 
@@ -199,9 +196,9 @@ user-invocable: true
 only, max 64 characters. Examples: `explore-codebase`, `commit`, `skill-design`.
 
 **Description**: Third person. Include what the skill does AND when to use it. End with explicit
-trigger conditions ("Use when..."). Max 1024 characters, and keep the folded description to 5 wrapped
-lines or fewer — trim wordy descriptions to the essential coverage and triggers to avoid frontmatter
-bloat.
+trigger conditions ("Use when..."). Max 1024 characters, and keep the folded description to 5
+wrapped lines or fewer. Trim wordy descriptions to the essential coverage and triggers to avoid
+frontmatter bloat.
 
 **`user-invocable`**: Set to `true` for skills invokable via `/skill-name`. Defaults to `true`.
 
@@ -256,20 +253,8 @@ workflow (or equivalent main content) and verification checklist.
 
 ### Scope declarations
 
-Every skill must declare its boundaries using the Covers / Does not cover format:
-
-```markdown
-## Scope
-
-**Covers:**
-- Generating commit messages from local git changes
-- Staging and committing files
-
-**Does not cover:**
-- Pushing to remote repositories
-- Creating pull requests
-- Branch management
-```
+Every skill must declare its boundaries in a `## Scope` section holding a `**Covers:**` bullet list
+followed by a `**Does not cover:**` bullet list, as in the Scope section of this file.
 
 ### Inter-skill references
 
@@ -329,20 +314,8 @@ Rules:
 
 ### Code blocks
 
-Use fenced code blocks with language identifiers:
-
-````markdown
-```yaml
-cues:
-  - name: "A"
-    code: 1
-```
-
-```python
-def process_data() -> None:
-    pass
-```
-````
+Every fence carries a language identifier, such as `yaml`, `python`, `text`, or `markdown`. A block
+that shows Markdown containing its own fences uses a four-backtick outer fence.
 
 ### Section organization
 
@@ -353,11 +326,10 @@ subsections.
 
 Skill files use two voice styles:
 
-- **Descriptive content**: Third person imperative. Example: "Extracts zone positions from
+- **Descriptive content**: Third-person imperative mood. Example: "Extracts zone positions from
   configuration files."
 - **Agent directives**: Second person with "You MUST", "You should". Example: "You MUST use the
-  Agent tool." This deliberate use of strong directives ensures reproducible, consistent behavior
-  across sessions and is an intentional project convention.
+  Agent tool."
 
 ### Sentence case
 
@@ -365,21 +337,23 @@ Use sentence case for all section headers ("Verification checklist", not "Verifi
 
 ### Prose restraint
 
-A skill file is loaded into the context of every session that triggers it, so its length is a
-recurring cost paid by every future invocation. The default for a rule is one sentence, and
-examples, tables, and motivation are earned rather than assumed. See
-[progressive-disclosure.md](references/progressive-disclosure.md) for the full rule set.
+The default for a rule is one sentence, and examples, tables, and motivation are earned rather than
+assumed. Sentences over 40 words are broken at a natural clause boundary, in SKILL.md, reference
+files, and CLAUDE.md alike. Cover each sentence and delete it when you are able to reconstruct it
+from the skill name, the section heading, and the rule it sits under. A section starts with its
+rule, so an opening sentence that announces the section or restates the frontmatter description is
+deleted. Every skill file, reference file, and CLAUDE.md is free of typos and grammatical errors.
+See [progressive-disclosure.md](references/progressive-disclosure.md) for the full rule set.
 
 ### Prose punctuation and positive description
 
 Prose in skill files and CLAUDE.md follows the same two rules the language style skills apply to
-code documentation. First, only the full stop and the comma separate clauses. Do not use a
+code documentation. Prose uses only the full stop and the comma to separate clauses. Do not use a
 semicolon or an em-dash (`--`, `—`, or `–`) as a separator, and use a colon only where it is
-lexically appropriate. A single hyphen stays available as a list marker, inside a table, and in
-compound words, so bulleted change lists are unaffected. Second, state what a thing does and what
-is currently true. Avoid framing by what it is not or what it used to be, and keep a "not Y"
-contrast only when it is load-bearing because it corrects a counter-intuitive assumption, giving
-its reason.
+lexically appropriate. A single hyphen stays available as a list marker, in tables, and in compound
+words, so bulleted change lists are unaffected. State what the skill does and what is currently
+true. Do not frame it by what it is not or what it used to be, and keep a "not Y" contrast only
+when it is load-bearing because it corrects a counter-intuitive assumption, giving its reason.
 
 ---
 
@@ -410,8 +384,7 @@ CLAUDE.md follows the same conventions as skill files with one difference:
 ### Voice
 
 - **Descriptive content**: Third person. Example: "This library provides shared assets..."
-- **Agent directives**: Second person with emphasis. Example: "You MUST invoke the `/python-style`
-  skill..."
+- **Agent directives**: Second person with emphasis. Example: "You MUST invoke the `/python-style` skill..."
 
 ### Content guidelines
 
@@ -420,20 +393,23 @@ CLAUDE.md follows the same conventions as skill files with one difference:
 - Include workflow guidance for common tasks
 - Document integration points with other libraries
 - Only include instructions the agent cannot infer from code inspection alone
+- Leave the file no longer than it started unless the edit adds a genuinely new instruction
 
 ---
 
 ## Related skills
 
-| Skill               | Relationship                                                                     |
-|---------------------|----------------------------------------------------------------------------------|
-| `/python-style`     | Provides formatting conventions that skill files must also follow                |
-| `/cpp-style`        | Provides C++ conventions relevant when skills reference C++ code                 |
-| `/csharp-style`     | Provides C# conventions relevant when skills reference C# code                   |
-| `/project-layout`   | Provides general project directory conventions; this skill owns `skills/` layout |
-| `/readme-style`     | Provides README conventions relevant when skills reference READMEs               |
-| `/commit`           | Should be invoked after completing skill file changes                            |
-| `/explore-codebase` | Provides project context needed when writing project-specific skills             |
+| Skill               | Relationship                                                                           |
+|---------------------|----------------------------------------------------------------------------------------|
+| `/python-style`     | Provides formatting conventions that skill files must also follow                      |
+| `/cpp-style`        | Provides C++ conventions relevant when skills reference C++ code                       |
+| `/csharp-style`     | Provides C# conventions relevant when skills reference C# code                         |
+| `/project-layout`   | Provides general project directory conventions, while this skill owns `skills/` layout |
+| `/readme-style`     | Provides README conventions relevant when skills reference READMEs                     |
+| `/commit`           | Should be invoked after completing skill file changes                                  |
+| `/pr`               | Owns pull request summaries, the change-narrating artifact skills exclude              |
+| `/release`          | Owns release notes, the change-narrating artifact skills exclude                       |
+| `/explore-codebase` | Provides project context needed when writing project-specific skills                   |
 
 ---
 
@@ -444,21 +420,25 @@ You MUST verify your work against the appropriate checklist before submitting.
 ### Skill files (SKILL.md)
 
 ```text
-Skill File Compliance:
+Skill File Compliance, tool-settled (run `rg -n '.{121,}' <file>` and `wc -l <file>`):
+- [ ] All lines ≤ 120 characters (tables/code blocks may exceed for clarity)
+- [ ] SKILL.md under 500 lines (split to reference files if needed)
+- [ ] Tables use pretty formatting with aligned columns
+- [ ] Major sections separated with horizontal rules (`---`)
+- [ ] Code blocks include language identifiers
+- [ ] Sentence case for section headers
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
+      syntax exempt)
+
+Skill File Compliance, reader-judged:
 - [ ] YAML frontmatter with `name` and `description`
 - [ ] `user-invocable: true` set if skill is directly invocable via slash command
 - [ ] Name matches parent directory name exactly
 - [ ] Description in third person, includes what AND when to use (max 1024 chars, ≤ 5 wrapped lines)
 - [ ] Scope declaration present (what skill covers and does not cover)
 - [ ] Degrees of freedom appropriate (low for reproducible, high for creative tasks)
-- [ ] All lines ≤ 120 characters (tables/code blocks may exceed for clarity)
-- [ ] Tables use pretty formatting with aligned columns
-- [ ] Major sections separated with horizontal rules (`---`)
-- [ ] Code blocks include language identifiers
-- [ ] Third person imperative for descriptions
+- [ ] Third-person imperative mood for descriptions
 - [ ] Second person for agent directives ("You MUST...")
-- [ ] Sentence case for section headers
-- [ ] SKILL.md under 500 lines (split to reference files if needed)
 - [ ] References one level deep from SKILL.md (no chains)
 - [ ] Inter-skill references documented if applicable
 - [ ] Verification checklist included
@@ -466,34 +446,45 @@ Skill File Compliance:
 - [ ] Every rule names the procedure that decides compliance and the default it departs from
 - [ ] Checklist groups tool-enforced items separately and names the command that settles them
 - [ ] Each rule defaults to one sentence, with examples and tables earned by the judgment they govern
+- [ ] Each retained sentence survives the cover test (unable to be reconstructed from the skill name, the section
+      heading, and the rule it sits under)
+- [ ] Sentences in skill prose, reference files, and CLAUDE.md stay under 40 words
+- [ ] No section preamble restating the heading or the frontmatter description above it
 - [ ] No rule restated from a skill that owns it (reference the owning skill instead)
 - [ ] Rules duplicated across skills by necessity keep aligned wording
 - [ ] Skill prose records the current skill only, never the edit that produced it
 - [ ] Edits leave the skill no longer than it started unless new cases are genuinely covered
-- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
 - [ ] Prose states what the skill does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] Skill prose, reference files, and CLAUDE.md free of typos and grammar errors
 - [ ] No auxiliary documentation files (README.md, CHANGELOG.md, etc.)
 ```
 
 ### Project instructions (CLAUDE.md)
 
 ```text
-CLAUDE.md Compliance:
-- [ ] Title is `# Claude Code Instructions`
+CLAUDE.md Compliance, tool-settled (run `rg -n '.{121,}' <file>` and `rg -n '^---$' <file>`):
 - [ ] All lines ≤ 120 characters (tables/code blocks may exceed for clarity)
 - [ ] Tables use pretty formatting with aligned columns
 - [ ] Code blocks include language identifiers
+- [ ] Uses `##` headings without horizontal rules between sections
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
+      syntax exempt)
+
+CLAUDE.md Compliance, reader-judged:
+- [ ] Title is `# Claude Code Instructions`
 - [ ] Third person for descriptive content
 - [ ] Second person with emphasis for directives ("You MUST...")
 - [ ] Sections follow recommended order (Session Start, Style Guide, Skills, etc.)
 - [ ] Section headings use the canonical spellings (Style guide compliance, MCP server)
 - [ ] Optional sections (Companion library synchronization, Distribution model) present only where the concern applies
-- [ ] Uses `##` headings without horizontal rules between sections
 - [ ] Workflow guidance included for common extension tasks
 - [ ] Technical claims cross-referenced against codebase
-- [ ] New skills listed in Available Skills table
+- [ ] New skills listed in the Available skills table
 - [ ] No personality instructions or generic advice
-- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
-- [ ] Prose states what is currently true, not what it is not or used to be (contrast only when load-bearing)
+- [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] Sentences in skill prose, reference files, and CLAUDE.md stay under 40 words
+- [ ] No section preamble restating the heading or the frontmatter description above it
+- [ ] Edits leave CLAUDE.md no longer than it started unless a genuinely new instruction was added
+- [ ] Skill prose, reference files, and CLAUDE.md free of typos and grammar errors
 - [ ] No stale references to removed files or features
 ```

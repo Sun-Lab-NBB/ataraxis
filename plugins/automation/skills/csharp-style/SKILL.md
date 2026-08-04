@@ -28,6 +28,7 @@ code. You MUST verify your changes against the checklist before submitting.
 - Cross-language consistency with C++ and Python conventions
 
 **Does not cover:**
+- C# Unity directory structure (see `/project-layout`)
 - README file conventions (see `/readme-style`)
 - Commit message conventions (see `/commit`)
 - Skill file and CLAUDE.md conventions (see `/skill-design`)
@@ -47,13 +48,13 @@ Read this entire file. The core conventions below apply to ALL C# code.
 
 Based on the task, load the appropriate reference files:
 
-| Task                                                                                                                   | Reference to load                                           |
-|------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| Writing or modifying XML docs / type usage / comments                                                                  | [xml-docs-and-types.md](references/xml-docs-and-types.md)   |
-| Writing classes, enums, or Unity components                                                                            | [class-patterns.md](references/class-patterns.md)           |
-| Using LINQ, async, IDisposable, testing; function calls, blank lines, formatting, tooling, config files, guard clauses | [libraries-and-tools.md](references/libraries-and-tools.md) |
-| Deploying or verifying tool config files                                                                               | [assets/](assets/) directory                                |
-| Reviewing code before submission                                                                                       | [anti-patterns.md](references/anti-patterns.md)             |
+| Task                                                                                                                                   | Reference to load                                           |
+|----------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| Writing or modifying XML docs / type usage / comments                                                                                  | [xml-docs-and-types.md](references/xml-docs-and-types.md)   |
+| Writing classes, enums, or Unity components                                                                                            | [class-patterns.md](references/class-patterns.md)           |
+| Using LINQ, async, IDisposable, testing, error handling, function calls, blank lines, formatting, tooling, config files, guard clauses | [libraries-and-tools.md](references/libraries-and-tools.md) |
+| Deploying or verifying tool config files                                                                                               | [assets/](assets/) directory                                |
+| Reviewing code before submission                                                                                                       | [anti-patterns.md](references/anti-patterns.md)             |
 
 Load multiple references when the task spans multiple domains.
 
@@ -90,7 +91,7 @@ consistency across languages while respecting each language's idiomatic standard
 - State what the code does now, not what it avoids doing or formerly did (positive description)
 
 **Shared between C++ and C# only:**
-- Allman brace style (opening braces on new lines; Python uses indentation)
+- Allman brace style (opening braces on new lines, where Python uses indentation)
 
 **C#-specific divergences from C++:**
 - Constants use PascalCase (not `kPrefix` as in C++)
@@ -112,15 +113,14 @@ consistency across languages while respecting each language's idiomatic standard
 - `private` marks a member owned by its declaring type, `internal` a member owned by its assembly
 - Any symbol consumed outside its declaring assembly or namespace is made `public` deliberately
 - No code reaches into another type's internals to work around a missing promotion
-- The rule binds downward as well, so a member every consumer of which lives inside the declaring type
-  stays `private` and one whose consumers all live inside the assembly stays `internal`. An access
-  modifier is earned by a real consumer at that boundary rather than granted by default
-- An asset with no consumer is removed rather than kept, which covers methods, properties, fields,
-  types, constants, and enum members. The compiler reports an unused private member and reports
-  nothing about an unused `internal` or `public` one, so those are found by reading
-- Test assemblies are the sole exception and may access the internals of the code under test, so a
-  test is not a consumer for any rule above and a member exercised only by its own tests is removed
-  together with those tests
+- A member consumed only inside its declaring type stays `private` and one consumed only inside its
+  assembly stays `internal`, so a real consumer at that boundary earns each access modifier
+- An asset with no consumer is removed, which covers methods, properties, fields, types, constants,
+  and enum members
+- The compiler reports an unused `private` member and stays silent about an unused `internal` or
+  `public` one, so those are found by reading
+- Test assemblies are the sole exception and may access the internals of the code under test, so no
+  test counts as a consumer and a member exercised only by its own tests is removed with those tests
 
 ---
 
@@ -215,51 +215,10 @@ See [libraries-and-tools.md](references/libraries-and-tools.md) for named argume
 
 ## Error handling
 
-### Unity projects
-
-Use Unity's logging system for error reporting:
-
-```csharp
-if (template == null)
-{
-    Debug.LogError("Failed to load task template from YAML file.");
-    return;
-}
-
-if (Mathf.Abs(measuredLength - configuredLength) > LengthComparisonEpsilon)
-{
-    Debug.LogWarning(
-        $"For {segmentName}, mismatch between prefab length ({measuredLength}) "
-            + $"and configured length ({configuredLength})."
-    );
-}
-```
-
-### Non-MonoBehaviour code
-
-In editor tools, static utility classes, and pure C# libraries that do not inherit from
-MonoBehaviour, use standard C# exceptions:
-
-```csharp
-/// <summary>Parses the task template from raw YAML content.</summary>
-/// <param name="yamlContent">The YAML string to parse.</param>
-/// <returns>The deserialized task template.</returns>
-/// <exception cref="FormatException">The YAML content does not conform to the template schema.</exception>
-public static TaskTemplate ParseTemplate(string yamlContent)
-{
-    if (string.IsNullOrEmpty(yamlContent))
-    {
-        throw new ArgumentException("YAML content must not be null or empty.", nameof(yamlContent));
-    }
-
-    TaskTemplate template = YamlParser.Deserialize<TaskTemplate>(yamlContent);
-    if (template == null)
-    {
-        throw new FormatException("Failed to deserialize task template from YAML content.");
-    }
-    return template;
-}
-```
+MonoBehaviour code reports failures through Unity's logging system. Editor tools, static utility
+classes, and pure C# libraries that do not inherit from MonoBehaviour raise standard C# exceptions
+instead. See [libraries-and-tools.md](references/libraries-and-tools.md) for worked examples of
+both.
 
 ### When to use each approach
 
@@ -276,23 +235,9 @@ public static TaskTemplate ParseTemplate(string yamlContent)
 
 Use a structured format: context ("Unable to..."), constraint ("must be..."), actual value
 ("but [actual state]."). Use `Debug.LogError()` for failures that prevent continuation,
-`Debug.LogWarning()` for non-critical issues, and `Debug.Log()` for informational messages.
-
-For multi-line error messages, assign the message to a local variable before passing it.
-This matches the Python convention of assigning to a `message` variable before calling
-`console.error()`:
-
-```csharp
-// Good - message variable for multi-line errors
-string message =
-    $"Unable to create corridor for segment '{segmentName}'. "
-    + $"The configured length ({configuredLength}) must match the prefab length "
-    + $"({measuredLength}), but they differ by {Mathf.Abs(measuredLength - configuredLength)}.";
-Debug.LogError(message);
-
-// Acceptable - short single-line messages passed directly
-Debug.LogError("Failed to load task template from YAML file.");
-```
+`Debug.LogWarning()` for non-critical issues, and `Debug.Log()` for informational messages. For
+multi-line error messages, assign the message to a local variable before passing it. This matches
+the Python convention of assigning to a `message` variable before calling `console.error()`.
 
 ### Null handling
 
@@ -306,7 +251,10 @@ Debug.LogError("Failed to load task template from YAML file.");
 
 ## Comments
 
-See [xml-docs-and-types.md](references/xml-docs-and-types.md) for inline comment conventions and what to avoid.
+Heavy section separator blocks (`// ======` or `// ------`) are not used. Blank lines separate the
+logical groups instead, the same replacement `#region` blocks get. See
+[xml-docs-and-types.md](references/xml-docs-and-types.md) for inline comment conventions and what to
+avoid.
 
 ---
 
@@ -354,9 +302,8 @@ All definitions within a file follow this vertical ordering from top to bottom:
 1. **File-level XML documentation** (`/// <summary>` block describing the file)
 2. **Using directives**
 3. **Namespace declaration** (block-scoped is the project convention: `namespace Project.Config { ... }`,
-   with class members indented one level inside the block). Although `assets/.editorconfig` carries
-   `csharp_style_namespace_declarations = file_scoped:suggestion`, the exemplar code overrides it and
-   block-scoped is the practiced form.
+   with class members indented one level inside the block, which `assets/.editorconfig` enforces
+   through `csharp_style_namespace_declarations = block_scoped:suggestion`)
 4. **Enumerations** (type definitions that other code depends on)
 5. **Class declaration** with members in this order:
    a. Constants (`const` and `static readonly` fields)
@@ -371,9 +318,9 @@ All definitions within a file follow this vertical ordering from top to bottom:
 ### Visibility ordering
 
 Within each member kind, order by visibility: `public` -> `internal` -> `protected` ->
-`private`. Always write access modifiers explicitly — never rely on C#'s implicit `private`
-default. Unity lifecycle methods appear in their natural execution order regardless of
-visibility.
+`private`. Always write access modifiers explicitly, so every member states its visibility in
+source rather than inheriting C#'s implicit `private` default. Unity lifecycle methods appear in
+their natural execution order regardless of visibility.
 
 ### Call-hierarchy ordering
 
@@ -403,25 +350,27 @@ See [libraries-and-tools.md](references/libraries-and-tools.md) for guard clause
 
 See [libraries-and-tools.md](references/libraries-and-tools.md) for blank line conventions.
 
+---
+
 ## Formatting, tooling, and configuration files
 
 See [libraries-and-tools.md](references/libraries-and-tools.md) for line length, formatting, and brace
-rules; CSharpier and EditorConfig tooling; and configuration file references.
+rules, for CSharpier and EditorConfig tooling, and for configuration file references.
 
 ---
 
 ## Related skills
 
-| Skill               | Relationship                                                       |
-|---------------------|--------------------------------------------------------------------|
-| `/python-style`     | Provides Python conventions; C# conventions parallel these         |
-| `/cpp-style`        | Provides C++ conventions; C# conventions parallel these            |
-| `/project-layout`   | Provides C# Unity directory tree; invoke for project structure     |
-| `/readme-style`     | Provides README conventions; invoke for README tasks               |
-| `/audit-project`    | Audits the code just written, before it is committed               |
-| `/commit`           | Provides commit message conventions; invoke for commit tasks       |
-| `/skill-design`     | Provides skill file conventions; invoke for skill authoring tasks  |
-| `/explore-codebase` | Provides project context that informs style-compliant code changes |
+| Skill               | Relationship                                                          |
+|---------------------|-----------------------------------------------------------------------|
+| `/python-style`     | Provides the Python conventions that these C# conventions parallel    |
+| `/cpp-style`        | Provides the C++ conventions that these C# conventions parallel       |
+| `/project-layout`   | Provides the C# Unity directory tree, invoke it for project structure |
+| `/readme-style`     | Provides README conventions, invoke it for README tasks               |
+| `/audit-project`    | Audits the code just written, before it is committed                  |
+| `/commit`           | Provides commit message conventions, invoke it for commit tasks       |
+| `/skill-design`     | Provides skill file conventions, invoke it for skill authoring tasks  |
+| `/explore-codebase` | Provides project context that informs style-compliant code changes    |
 
 ---
 
@@ -462,13 +411,10 @@ against the code you wrote.
 - [ ] Comments and XML docs free of typos and grammar errors
 - [ ] Inline comments explain why, not what (no narrate-the-code comments)
 - [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
-- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and code syntax exempt)
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
+      syntax exempt)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Full words used (no abbreviations like pos, idx, val, msg)
-- [ ] Private fields use _camelCase prefix
-- [ ] Public fields use camelCase (Unity serialized fields)
-- [ ] Public properties use PascalCase
-- [ ] Constants use PascalCase (const and static readonly)
 - [ ] Methods use PascalCase (both public and private)
 - [ ] Enum types and values use PascalCase
 - [ ] Access modifiers always explicit (never rely on implicit private)
@@ -478,13 +424,12 @@ against the code you wrote.
 - [ ] Every asset has a consumer, so methods, properties, fields, types, constants, and enum members that
       nothing outside the test suite references are removed rather than kept
 - [ ] Using directives at top of file, outside namespace
-- [ ] System directives sorted first
 - [ ] String interpolation used (not string.Format or concatenation)
 - [ ] Named arguments used for boolean params and ambiguous calls
 - [ ] Null checks use explicit comparison (== null, != null)
 - [ ] Guard clauses / early returns preferred over deep nesting
-- [ ] Fields marked readonly when only assigned in constructor/initializer
 - [ ] No #region blocks; no this. qualifier (except disambiguation)
+- [ ] No heavy section separator blocks (// ====== or // ------)
 - [ ] No IDE suppression comments (ReSharper/Rider // ReSharper disable etc.); use #pragma warning / [SuppressMessage]
 - [ ] One public type per file; file name matches class name
 - [ ] Unity logging uses Debug.LogError/LogWarning/Log appropriately
@@ -504,19 +449,8 @@ against the code you wrote.
 - [ ] I/O operations separated from processing logic
 - [ ] Path.Combine used for path construction (not string concatenation)
 - [ ] StringComparison.Ordinal used for internal string matching
-- [ ] Static methods used when no instance state is accessed
 - [ ] Methods ordered by call hierarchy within each visibility group
-- [ ] Inline comments use third person imperative
-
-Tooling-enforced items. CSharpier resolves each of these, so run it rather than hand-checking.
-They stay listed for reviews performed without the formatter.
-- [ ] All lines ≤ 120 characters
-- [ ] 4-space indentation, no tabs
-- [ ] Allman brace style (opening braces on new lines)
-- [ ] LF line endings
-- [ ] CSharpier formatting applied before commit
-
-Unity-Specific Compliance:
+- [ ] Inline comments use third-person imperative mood
 - [ ] MonoBehaviour fields for Inspector use public camelCase
 - [ ] Private backing fields use [SerializeField] when Inspector access needed
 - [ ] Lifecycle methods in execution order (Awake, Start, Update, OnDestroy)
@@ -528,4 +462,20 @@ Unity-Specific Compliance:
 - [ ] Coroutines stopped in OnDisable/OnDestroy to prevent orphaned execution
 - [ ] #if UNITY_EDITOR used for editor-only code; [Conditional] preferred over #if DEBUG
 - [ ] Switch expressions used for pure value mapping; switch statements for side effects
+
+Tooling-enforced items. CSharpier and the EditorConfig-configured Roslyn analyzers settle each of
+these, so run `csharpier --check .` and read the analyzer output rather than hand-checking them.
+They stay listed for reviews performed without the tooling.
+- [ ] All lines ≤ 120 characters
+- [ ] 4-space indentation, no tabs
+- [ ] Allman brace style (opening braces on new lines)
+- [ ] LF line endings
+- [ ] CSharpier formatting applied before commit
+- [ ] Private fields use _camelCase prefix
+- [ ] Public fields use camelCase (Unity serialized fields)
+- [ ] Public properties use PascalCase
+- [ ] Constants use PascalCase (const and static readonly)
+- [ ] System directives sorted first
+- [ ] Fields marked readonly when only assigned in constructor/initializer
+- [ ] Static methods used when no instance state is accessed
 ```

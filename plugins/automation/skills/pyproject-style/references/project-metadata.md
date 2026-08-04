@@ -35,9 +35,13 @@ from importlib.metadata import version
 __version__ = version("package-name")
 ```
 
+`pyproject.toml` `version` is the SINGLE source of truth for the Python package version, so no other
+file carries a version literal. The documentation build reads the version through the same
+`importlib.metadata` call, and a release bumps this field alone (see `/release`).
+
 ### description
 
-A single sentence describing the project's purpose. The description MUST use bare form — no
+A single sentence describing the project's purpose. The description MUST use bare form, with no
 language prefix ("A Python library that...") and no project name prefix ("project-name is...").
 Start directly with an imperative verb (e.g., "Supports...", "Provides...", "Manages...").
 
@@ -70,7 +74,7 @@ license-files = ["LICENSE"]
 ```
 
 Do NOT use the deprecated table format (`license = { file = "LICENSE" }`). When using SPDX
-license expressions, do NOT include `License ::` trove classifiers — they are redundant and
+license expressions, do NOT include `License ::` trove classifiers. They are redundant and
 deprecated under PEP 639.
 
 ### requires-python
@@ -150,7 +154,7 @@ All production projects use:
 Treat the audience/topic split above as a starting point. Choose the `Topic` classifier to match the project's domain
 rather than always defaulting to `Topic :: Software Development`. Practiced domain-specific values include
 `Topic :: Communications` (ataraxis-communication-interface, ataraxis-transport-layer-pc) and
-`Topic :: Multimedia :: Video` (ataraxis-video-system); projects without a more specific domain keep
+`Topic :: Multimedia :: Video` (ataraxis-video-system). Projects without a more specific domain keep
 `Topic :: Software Development`.
 
 ### Python versions

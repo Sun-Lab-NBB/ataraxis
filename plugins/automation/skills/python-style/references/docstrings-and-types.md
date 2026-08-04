@@ -41,7 +41,7 @@ Do not include Examples sections or in-code examples in docstrings.
 ### Rules
 
 - **Punctuation**: Always use proper punctuation in all documentation.
-- **Imperative mood**: Use verbs like "Computes...", "Defines...", "Configures..." for ALL members.
+- **Third-person imperative mood**: Use verbs like "Computes...", "Defines...", "Configures..." for ALL members.
 - **Boolean descriptions**: Use "Determines whether..." for boolean parameters. For properties that return a boolean,
   use "Returns..." (the property docstring convention supersedes the boolean convention).
 - **Parameters**: Start descriptions with uppercase. Don't repeat type info.
@@ -61,8 +61,8 @@ implementation trivia.
 The default for every member is the summary line by itself, followed by the Args, Returns, and
 Raises sections the signature requires. An extended description, a Notes section, or a second
 paragraph is an exception the code has to earn. It is earned when the member carries a specific
-property the reader is unable to derive, such as a non-obvious algorithm, an invariant the
-signature does not express, a unit or coordinate convention, a performance characteristic that
+property the reader is unable to derive. Such a property is a non-obvious algorithm, an invariant
+the signature does not express, a unit or coordinate convention, a performance characteristic that
 constrains call sites, or a failure mode. Name that property to yourself before writing the extra
 prose. When no such property can be named, the summary line was already complete.
 
@@ -79,9 +79,9 @@ API documentation, and it goes stale the moment the call sites change. A functio
 path documents the path it resolves, leaving the command that later consumes it undocumented here.
 
 One exception applies. A docstring may state that an input arrives in a specific format produced
-by a named peer function, but only when that expectation is genuinely counter-intuitive,
-contradicts the usual convention, or is exceptional enough that the reader is lost without it.
-State the constraint and its reason in one sentence. An input that behaves the way a reader
+by a named peer function. That statement is warranted only when the expectation is genuinely
+counter-intuitive, contradicts the usual convention, or is exceptional enough that the reader is
+lost without it. State the constraint and its reason in one sentence. An input that behaves the way a reader
 already expects needs no such note.
 
 **Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
@@ -105,7 +105,7 @@ boolean indicating success" with "Returns True when the operation succeeds." The
 already conveys the types.
 
 **No narrate-the-code comments**: Inline comments must explain non-obvious context, intent, or
-constraints — not narrate what the code already says. Replace `# increment counter` above
+constraints instead of narrating what the code already says. Replace `# increment counter` above
 `counter += 1` with either no comment, or a comment that explains why the increment matters at
 that point.
 
@@ -149,7 +149,7 @@ keep only the positive statement.
 ### Worked reductions
 
 The rules above name the defects. These pairs show the size of the correction that follows from
-them. Each "Avoid" block is a realistic over-documentation pattern rather than an exaggeration.
+them.
 
 **A self-evident function padded with call-site context and restated types:**
 
@@ -313,8 +313,8 @@ class SessionConfig:
 ### Property docstrings
 
 Property docstrings should ideally be a single sentence, even if it spans multiple lines. Do not
-split a property summary into a one-line summary plus an extended description paragraph — keep it
-as one continuous sentence that wraps naturally at the line-length limit.
+split a property summary into a one-line summary plus an extended description paragraph. Keep it as
+one continuous sentence that wraps naturally at the line-length limit.
 
 ```python
 @property
@@ -332,7 +332,7 @@ def rigid_y_offsets(self) -> NDArray[np.int32]:
 
 ### Module docstrings
 
-Follow the same imperative mood pattern as other docstrings:
+Follow the same third-person imperative mood pattern as other docstrings:
 
 ```python
 """Provides assets for processing and analyzing neural imaging data."""
@@ -365,9 +365,9 @@ def process_data(input_path: Path, output_path: Path) -> None:
 MCP tools serve dual purposes: documenting for developers and providing instructions to AI agents.
 MCP tool docstrings MUST include a `Returns` section describing the response structure so that
 developers reviewing the code can understand the tool's output contract at a glance. As with all
-Returns sections, describe the semantic content without restating the return type — the type
-annotation already conveys that. For tools returning structured responses, name the keys in
-prose and describe what each conveys.
+Returns sections, describe the semantic content without restating the return type, because the type
+annotation already conveys it. For tools returning structured responses, name the keys in prose and
+describe what each conveys.
 
 ```python
 @mcp.tool()
@@ -396,10 +396,10 @@ def start_video_session(
 ### Sphinx cross-reference specifiers
 
 Sphinx specifiers (`:class:`, `:func:`, `:meth:`, `:data:`, `:attr:`) are **allowed only inside
-MCP tool docstrings**, where AI agents consume them as structured cross-references. All other
-documentation — module docstrings, class docstrings, non-MCP function and method docstrings,
-constant and attribute docstrings, and inline comments — must use plain prose. Refer to classes,
-functions, and methods by name in double backticks without a specifier prefix.
+MCP tool docstrings**, where AI agents consume them as structured cross-references. Every other
+form of documentation uses plain prose, which covers module docstrings, class docstrings, non-MCP
+function and method docstrings, constant and attribute docstrings, and inline comments. Refer to
+classes, functions, and methods by name in double backticks without a specifier prefix.
 
 ```python
 # Good — MCP tool docstring (specifiers allowed)
@@ -440,6 +440,30 @@ return (
 
 ---
 
+## Comments
+
+### Inline comments
+
+- Use third-person imperative mood ("Configures..." not "This section configures...")
+- Place above the code, not at end of line (unless very short)
+- Use comments to explain non-obvious logic or provide context
+
+```python
+# The constant 2.046392675 is the theoretical injectivity bound for 2D cubic B-splines.
+limit = (1.0 / 2.046392675) * self._grid_sampling * factor
+```
+
+### What to avoid
+
+- Don't reiterate the obvious (e.g., `# Set x to 5` before `x = 5`)
+- Don't add docstrings/comments to code you didn't write or modify
+- Don't add type annotations as comments (use actual type hints)
+- Don't use heavy section separator blocks (e.g., `# ======` or `# ------`)
+- Don't use IDE-specific suppression comments (e.g., PyCharm `# noinspection ...`). Remove any you encounter. Only
+  ruff (`# noqa: CODE`) and mypy (`# type: ignore[code]`) suppressions are authoritative and must be preserved
+
+---
+
 ## Type annotations
 
 ### General rules
@@ -448,7 +472,7 @@ return (
 - Use `-> None` for functions that don't return a value
 - Use `| None` for optional types (not `Optional[T]`)
 - Use lowercase `tuple`, `list`, `dict` (not `Tuple`, `List`, `Dict`)
-- Avoid `any` type; use explicit union types instead
+- Avoid the `any` type, and use explicit union types instead
 
 ### NumPy arrays
 

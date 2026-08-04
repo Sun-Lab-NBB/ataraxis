@@ -7,8 +7,7 @@ Detailed conventions for C++ Doxygen documentation and type usage across project
 ## Doxygen documentation
 
 Use Doxygen documentation comments for all public and private members. C++ projects use
-the `@tag` syntax (not `\tag`). This matches the Doxygen style used across all C++
-libraries and parallels the Google-style docstrings in Python and XML documentation in C#.
+the `@tag` syntax (not `\tag`).
 
 ### Comment styles
 
@@ -34,7 +33,7 @@ static uint16_t previous_readout = 0;
 
 ### Rules
 
-- **Imperative mood**: Use verbs like "Provides...", "Wraps...", "Monitors...", "Tracks..." for
+- **Third-person imperative mood**: Use verbs like "Provides...", "Wraps...", "Monitors...", "Tracks..." for
   ALL members
 - **Boolean descriptions**: Use "Determines whether..." for boolean members
 - **`///` for inline**: Use single-line `///` for brief member docs (fields, constants, enum
@@ -48,16 +47,17 @@ Beyond structural rules, every Doxygen comment must meet quality criteria that g
 information density, readability, and accuracy.
 
 **Necessary minimalism**: Documentation exists to convey information the reader cannot infer
-from the code itself. Each `///` summary, `/** ... */` block, and inline comment must be as
-short as possible while still conveying every necessary fact. Do not pad with restatements,
-motivational prose, or implementation trivia.
+from the code itself. Each `///` summary, `/** ... */` block, and inline comment keeps only the
+sentences that survive the cover test below. Do not pad with restatements, motivational prose,
+or implementation trivia.
 
 The default for every member is the `@brief` line by itself, followed by the `@tparam`, `@param`,
 and `@returns` tags the signature requires. A `@details` paragraph, a second paragraph after
 `@brief`, or a `@note` is an exception the code has to earn. It is earned when the member carries a
-specific property the reader is unable to derive, such as a non-obvious algorithm, an invariant the
-signature does not express, a unit or pin convention, a timing characteristic that constrains call
-sites, or a hardware failure mode. Name that property to yourself before writing the extra prose.
+specific property the reader is unable to derive. Such a property is a non-obvious algorithm, an
+invariant the signature does not express, a unit or pin convention, a timing characteristic that
+constrains call sites, or a hardware failure mode. Name that property to yourself before writing
+the extra prose.
 When no such property can be named, the `@brief` line was already complete.
 
 **The cover test**: Before keeping a documentation sentence, cover it and try to reconstruct it
@@ -74,10 +74,10 @@ documents the payload it produces, leaving the transmission routine that consume
 here.
 
 One exception applies. A block may state that an input arrives in a specific format produced by a
-named peer method, but only when that expectation is genuinely counter-intuitive, contradicts the
-usual convention, or is exceptional enough that the reader is lost without it. State the constraint
-and its reason in one sentence. An input that behaves the way a reader already expects needs no
-such note.
+named peer method. That statement is allowed only when the expectation is genuinely
+counter-intuitive, contradicts the usual convention, or is exceptional enough that the reader is
+lost without it. State the constraint and its reason in one sentence. An input that behaves the way
+a reader already expects needs no such note.
 
 **Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
 broken into smaller sentences at natural clause boundaries. Long sentences in `@brief`,
@@ -100,7 +100,7 @@ status_code the uint8_t status code` with `@param status_code the status code to
 the packet header.` The type is already on the parameter.
 
 **No narrate-the-code comments**: Inline comments must explain non-obvious context, intent, or
-constraints — not narrate what the code already says. Replace `// increment counter` above
+constraints rather than narrate what the code already says. Replace `// increment counter` above
 `counter++` with either no comment, or a comment that explains why the increment matters at
 that point.
 
@@ -142,8 +142,8 @@ keep only the positive statement.
 
 ### Worked reductions
 
-The rules above name the defects. These pairs show the size of the correction that follows from
-them. Each "Avoid" block is a realistic over-documentation pattern rather than an exaggeration.
+The rules above name the defects. This pair shows the size of the correction that follows from
+them. The "Avoid" block is a realistic over-documentation pattern rather than an exaggeration.
 
 **A self-evident method padded with call-site context and restated types:**
 
@@ -166,61 +166,28 @@ void ResetOverflow();
 The reduction keeps the one fact the name omits, which is what the tracker accumulates. It drops
 the caller, the downstream consumer, and the sentence restating the empty signature.
 
-**A struct member documented with its own type:**
-
-```cpp
-// Avoid
-uint32_t pulse_duration = 35000;  ///< A uint32_t value that stores the pulse duration.
-
-// Good
-uint32_t pulse_duration = 35000;  ///< The time, in microseconds, to keep the valve open.
-```
-
-**Comments that narrate the code and record the edit:**
-
-```cpp
-// Avoid
-// Loop over the pins.
-for (uint8_t index = 0; index < kPinCount; ++index)
-{
-    // Now also skips unbound pins, which was added to fix the startup hang.
-    if (_pins[index] == kUnboundPin) continue;
-}
-
-// Good
-for (uint8_t index = 0; index < kPinCount; ++index)
-{
-    // Unbound pins float at an indeterminate level, so reading them would corrupt the average.
-    if (_pins[index] == kUnboundPin) continue;
-}
-```
-
 ---
 
 ### Tag ordering
 
-Doxygen tags must appear in this order on every member. This matches the Doxygen convention used
-in C++ reference documentation and parallels the Python and C# tag ordering:
+Doxygen tags must appear in this order on every member:
 
-1. `@file` — file identification (file-level comments only)
-2. `@brief` — one-line summary (always first in class/method blocks)
-3. `@details` — extended description (rarely used; prefer adding paragraphs after `@brief`)
-4. `@section` — named sections within file-level or class-level docs
-5. `@warning` — critical usage warnings
-6. `@note` — important notes that are not warnings
-7. `@attention` — attention markers for special considerations
-8. `@tparam` — template parameters, in declaration order
-9. `@param` — function parameters, in declaration order
-10. `@returns` — return value description
+1. `@file`: file identification (file-level comments only)
+2. `@brief`: one-line summary (always first in class/method blocks)
+3. `@details`: extended description (rarely used, prefer adding paragraphs after `@brief`)
+4. `@section`: named sections within file-level or class-level docs
+5. `@warning`: critical usage warnings
+6. `@note`: important notes that are not warnings
+7. `@attention`: attention markers for special considerations
+8. `@tparam`: template parameters, in declaration order
+9. `@param`: function parameters, in declaration order
+10. `@returns`: return value description
 
 Do **not** include `@code` / `@endcode` example blocks in Doxygen documentation. Examples go
 stale as APIs evolve and create maintenance debt. The `@brief`, `@param`, and `@returns` tags
-are sufficient. This parallels the Python convention of not including Examples sections in
-docstrings.
+are sufficient.
 
-This matches Python ordering (summary → extended description → Notes → Args → Returns) and
-C# ordering (summary → remarks → typeparam → param → returns → exception). Omit tags that
-do not apply. Never reorder tags within a documentation block.
+Omit tags that do not apply. Never reorder tags within a documentation block.
 
 ```cpp
 /**
@@ -337,8 +304,7 @@ bool ReadData(ReadObject& object) const
 ### Accessor documentation
 
 Accessor methods (`get_`/`set_` snake_case) should use single-line `///` documentation. Keep
-the summary to a single sentence. This matches the Python convention where property docstrings
-should ideally be a single sentence:
+the summary to a single sentence:
 
 ```cpp
 // Good - single-sentence accessor docs
@@ -376,7 +342,7 @@ enum class kCustomStatusCodes : uint8_t
 Rules:
 - Use `///` before the enum type declaration
 - Use `///<` (trailing Doxygen) after each enum member value
-- Align trailing comments for readability
+- Align trailing comments, which clang-format applies through `AlignTrailingComments`
 - Include explicit integer values when they are part of a communication protocol
 
 ---
@@ -399,9 +365,7 @@ struct CustomRuntimeParameters
 
 ## Prose over lists
 
-Use flowing prose in documentation descriptions rather than bullet lists. This matches the Python
-convention of using narrative paragraphs in extended descriptions and the C# convention of using
-prose in `<remarks>`:
+Use flowing prose in documentation descriptions rather than bullet lists:
 
 ```cpp
 // Good - prose explains the relationship between concepts
@@ -527,7 +491,7 @@ Exception: `#define` is required for Arduino library configuration macros (e.g.,
 
 ### Inline comments
 
-- Use third person imperative ("Configures..." not "This section configures...")
+- Use third-person imperative mood ("Configures..." not "This section configures...")
 - Place above the code, not at end of line (unless short trailing comments)
 - Use comments to explain non-obvious logic or provide hardware-specific context
 
@@ -542,7 +506,3 @@ _overflow = 0;
 - Don't reiterate the obvious (e.g., `// Set x to 5` before `x = 5`)
 - Don't add Doxygen comments to code you didn't write or modify
 - Don't use heavy section separator blocks (e.g., `// ======` or `// ------`)
-- Don't include `@code` / `@endcode` example blocks in Doxygen documentation. Examples go stale
-  as APIs evolve and create maintenance debt. Keep documentation concise — the `@brief`, `@param`,
-  and `@returns` tags are sufficient. This parallels the Python convention of not including
-  Examples sections in docstrings

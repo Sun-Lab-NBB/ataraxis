@@ -100,10 +100,8 @@ projects.
 `[tool.ruff.format]` comes first, then the `[tool.ruff.lint.*]` sub-tables run `pycodestyle`,
 `pydocstyle`, `per-file-ignores`, `isort`, and then the optional `flake8-unused-arguments`.
 
-`[tool.coverage.run]` holds the `omit` list that excludes interface modules from coverage
-measurement, along with the `parallel`, `concurrency`, and `branch` keys used by projects that run
-tests across processes or measure branch coverage. It is omitted only by projects that need none of
-those keys.
+`[tool.coverage.run]` is omitted only by a project that needs none of its keys. See
+[tool-configurations.md](references/tool-configurations.md) for those keys.
 
 `[[tool.mypy.overrides]]` and `[tool.pytest.ini_options]` carry project-specific content, so this
 skill fixes their position and leaves their contents to the project. See
@@ -116,6 +114,10 @@ For C-extension projects using scikit-build-core, replace the hatch build target
 
 ## TOML formatting
 
+pyproject.toml adheres to the **120 character line limit**, matching the `line-length` it sets for
+the project's Python code, and comment prose wraps at 120. A single unbreakable value is exempt,
+such as a URL, a PEP 508 requirement string with markers, or an SPDX expression.
+
 ### Block comments
 
 Use block comments above sections to describe their purpose:
@@ -127,8 +129,8 @@ Use block comments above sections to describe their purpose:
 
 ### Inline comments
 
-Use inline comments for individual values when clarification is needed. Align inline comments
-vertically within a section:
+Align inline comments vertically within a section. The comment restraint section below settles which
+values carry an inline comment:
 
 ```toml
 case-sensitive = true
@@ -174,15 +176,17 @@ lint.ignore = [
 - Use multi-line format for arrays with more than two elements
 - Always use trailing commas in multi-line arrays
 - One element per line
-- Single-line format is acceptable for arrays with one or two short elements
+- Single-line format is acceptable for arrays of one or two elements that fit inside the 120
+  character line limit
 
 ### Comment restraint
 
 A TOML key states its own name and its own value, so a comment beside it is justified only by a
 question the key leaves open. The qualifying questions are a unit that the value does not carry, a
-rationale for a specific bound or version, a coupling to another file that a reader would otherwise
-break, and a decision that looks wrong until its reason is given. A comment that restates the key
-is noise, and a file where every key carries one trains the reader to skip all of them.
+rationale for a specific bound or version, and a coupling to another file that a reader would
+otherwise break. A decision that looks wrong until its reason is given also qualifies. A comment
+that restates the key is noise, and a file where every key carries one trains the reader to skip
+all of them.
 
 Two standing exceptions apply. Every entry in either ruff ignore corpus carries a reason comment,
 because the entry records a decision rather than a value. Every section keeps its one-line block
@@ -206,6 +210,13 @@ Comments also describe the configuration as it currently stands, never the edit 
 Do not record that a bound was raised, that a dependency was added, or that an ignore was removed,
 because the commit message carries that history.
 
+A comment's claim must be true of the key it sits on as it currently reads, covering the value, the
+bound, and the effect the tool actually produces. A comment naming a version, a bound, a path, or a
+coupled file is rewritten or deleted in the same edit that moves that value. Comments must not
+reference closed issue numbers, removed keys or sections, superseded tool versions, or outdated
+TODOs. A ruff ignore whose reason comment cites an upstream issue is re-checked when that issue
+closes, because the ignore usually goes with it.
+
 ### Prose punctuation and positive description
 
 Comment prose in pyproject.toml follows the two project-wide rules for documentation. Prose uses
@@ -214,7 +225,12 @@ only the full stop and the comma to separate clauses. Do not use a semicolon or 
 stays available as a list marker, in tables, and in compound words. State what the setting does and
 what is currently true. Do not frame it by what it is not or what it used to be, and keep a "not Y"
 contrast only when it is load-bearing because it corrects a counter-intuitive assumption, giving its
-reason.
+reason. This rule governs prose only. Code stays exempt, so a `;` in a PEP 508 dependency marker or
+a `--flag` in a CLI reference is left as written.
+
+Sentences over 40 words are difficult to parse and must be broken at natural clause boundaries, in
+block comments, inline comments, and the `description` field alike. Every block comment, inline
+comment, and `description` field must be free of typos and grammatical errors.
 
 ---
 
@@ -248,11 +264,10 @@ Projects use the **major-version range** pattern for all dependencies:
 "scipy>=1,<2"
 ```
 
-This pattern allows patch and minor updates while preventing breaking major version changes. This
-convention applies to both runtime and development dependencies.
+This convention applies to both runtime and development dependencies.
 
-For pre-release or unstable packages (major version 0), pin to the minor version when the minor
-version is significant, or use `>=0,<1` when the full range is acceptable:
+For pre-release or unstable packages (major version 0), the default is `>=0,<1`. Raise the lower
+bound to a specific minor release when the project calls an API that first appeared in that release:
 
 ```toml
 "ruff>=0,<1"
@@ -282,22 +297,23 @@ The wheel configuration always points to the src directory:
 packages = ["src/package_name"]
 ```
 
-Additional directories (e.g., `notebooks`, `examples`) may be included in the wheel when they are
-part of the distributed package.
+Additional directories (e.g., `notebooks`, `examples`) are included in the wheel when a user of the
+installed distribution needs their files, such as an examples directory the README points readers
+to. A directory that only serves development inside the repository stays out.
 
 ---
 
 ## Related skills
 
-| Skill                   | Relationship                                                          |
-|-------------------------|-----------------------------------------------------------------------|
-| `/explore-dependencies` | Explores ataraxis dependency APIs after adding ataraxis deps          |
-| `/python-style`         | Provides coding conventions that pyproject.toml tool configs enforce  |
-| `/readme-style`         | Provides README conventions; the `readme` field references the README |
-| `/project-layout`       | Provides complete directory trees; this skill owns wheel config       |
-| `/tox-config`           | Consumes dependency groups for tox environments; co-evolves with deps |
-| `/commit`               | Should be invoked after completing pyproject.toml changes             |
-| `/explore-codebase`     | Provides project context needed when writing project-specific configs |
+| Skill                   | Relationship                                                           |
+|-------------------------|------------------------------------------------------------------------|
+| `/explore-dependencies` | Explores ataraxis dependency APIs after adding ataraxis deps           |
+| `/python-style`         | Provides coding conventions that pyproject.toml tool configs enforce   |
+| `/readme-style`         | Provides README conventions for the file the `readme` field names      |
+| `/project-layout`       | Provides complete directory trees, while this skill owns wheel config  |
+| `/tox-config`           | Consumes dependency groups for tox environments, co-evolving with deps |
+| `/commit`               | Should be invoked after completing pyproject.toml changes              |
+| `/explore-codebase`     | Provides project context needed when writing project-specific configs  |
 
 ---
 
@@ -318,10 +334,17 @@ pyproject.toml files.**
 ```text
 pyproject.toml Style Compliance:
 
+Settled by tox -e build followed by twine check dist/*:
+- [ ] No duplicate sections or keys
+- [ ] license uses SPDX expression string (PEP 639)
+- [ ] Classifiers match official PyPI classifier list exactly
+
+Judgment items. No tool inspects these, so this checklist is their only enforcement. Walk every one against the file
+you wrote. (The three rows above, plus TOML parse validity, are the only tool-settled items.)
+
 Structure:
 - [ ] Section ordering follows canonical order (build-system, project, urls, scripts, deps, ...)
 - [ ] All required sections present for project type
-- [ ] No duplicate sections or keys
 
 Build System:
 - [ ] [build-system] uses hatchling (pure-Python) or scikit-build-core (C-extension)
@@ -330,16 +353,16 @@ Build System:
 Project Metadata:
 - [ ] name uses lowercase hyphenated format
 - [ ] version follows semantic versioning (X.Y.Z or X.Y.ZrcN)
+- [ ] pyproject.toml version is the single source of the package version, with no second version literal in
+      __init__.py, the docs config, or the README
 - [ ] description is a single descriptive sentence
 - [ ] readme = "README.md"
-- [ ] license uses SPDX expression string (PEP 639)
 - [ ] license-files includes the LICENSE file
 - [ ] No License :: classifiers present (removed per PEP 639)
 - [ ] requires-python specifies supported range
 - [ ] authors and maintainers arrays present with correct format
 - [ ] keywords array present with relevant terms
 - [ ] Classifiers grouped with category comments
-- [ ] Classifiers match official PyPI classifier list exactly
 - [ ] "Typing :: Typed" classifier present
 
 Dependencies:
@@ -370,9 +393,10 @@ Tool Configurations:
 - [ ] Ruff: target-version matches lowest supported Python
 - [ ] Ruff: src = ["src"]
 - [ ] Ruff: lint.select = ["ALL"] with project-specific ignores
-- [ ] Ruff: lint.ignore carries the complete shared block, then any project-specific entries below a blank line
-- [ ] Ruff: S602, S607, and SLF001 stay out of the shared block of lint.ignore, appearing there only as
-      project-specific entries when library code needs them
+- [ ] Ruff: lint.ignore carries the complete shared block of the universal lint.ignore corpus, then any
+      project-specific entries below a blank line
+- [ ] Ruff: S602, S607, and SLF001 stay out of the shared block of the universal lint.ignore corpus, appearing
+      there only as project-specific entries when library code needs them
 - [ ] Ruff: When a tests/ directory exists, per-file-ignores use the tests/**/*.py glob and carry the complete
       shared test corpus, which includes SLF001 and T201
 - [ ] Ruff: The test glob is the root-anchored tests/**/*.py, not the **/tests/**/*.py variant that also waives the
@@ -401,11 +425,18 @@ Tool Configurations:
 Formatting:
 - [ ] Block comments above section headers
 - [ ] Inline comments aligned within sections
+- [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings, $schema) exempt
 - [ ] Multi-line arrays with trailing commas
 - [ ] One element per line in multi-line arrays
 - [ ] Category comments in dependency and classifier arrays
 - [ ] Every inline comment answers a question its key leaves open (no comment restating the key)
 - [ ] Comments record current configuration only, never the edit that produced it
-- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
+- [ ] Every comment's claim is true of the value it sits beside and of the effect the tool actually produces
+- [ ] No stale references in comments (closed issues, removed keys or environments, superseded tool versions,
+      outdated TODOs)
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
+      syntax exempt)
 - [ ] Prose states what the setting does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] Sentences in comments and description fields stay under 40 words
+- [ ] Comments and description fields free of typos and grammar errors
 ```

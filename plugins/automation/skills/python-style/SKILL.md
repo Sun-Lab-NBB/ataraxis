@@ -47,13 +47,13 @@ Read this entire file. The core conventions below apply to ALL Python code.
 
 Based on the task, load the appropriate reference files:
 
-| Task                                                  | Reference to load                                             |
-|-------------------------------------------------------|---------------------------------------------------------------|
-| Writing or modifying any docstring, comment, or type  | [docstrings-and-types.md](references/docstrings-and-types.md) |
-| Writing classes, dataclasses, enums, or `__init__.py` | [class-patterns.md](references/class-patterns.md)             |
-| Using ataraxis libs, Numba, Click, tests              | [libraries-and-tools.md](references/libraries-and-tools.md)   |
-| Using ataraxis library features                       | Invoke `/explore-dependencies` first, then load above         |
-| Reviewing code before submission                      | [anti-patterns.md](references/anti-patterns.md)               |
+| Task                                                                                             | Reference to load                                             |
+|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| Writing or modifying any docstring, comment, or type                                             | [docstrings-and-types.md](references/docstrings-and-types.md) |
+| Writing classes, dataclasses, enums, `__init__.py`, function calls, guard clauses, or formatting | [class-patterns.md](references/class-patterns.md)             |
+| Using ataraxis libs, Numba, Click, tests                                                         | [libraries-and-tools.md](references/libraries-and-tools.md)   |
+| Using ataraxis library features                                                                  | Invoke `/explore-dependencies` first, then load above         |
+| Reviewing code before submission                                                                 | [anti-patterns.md](references/anti-patterns.md)               |
 
 Load multiple references when the task spans multiple domains.
 
@@ -87,7 +87,8 @@ consistency across languages while respecting each language's idiomatic standard
 - No example/code blocks in documentation (they go stale)
 - I/O operations separated from processing logic
 - Only full stops and commas separate clauses in documentation prose (no semicolons, no em-dashes)
-- State what the code does now, not what it avoids doing or formerly did (positive description)
+- State what the code does and what is currently true, not what it is not or used to be (contrast only when
+  load-bearing)
 
 **Python-specific divergences from C++:**
 - Functions and methods use snake_case (not PascalCase as in C++)
@@ -122,55 +123,25 @@ Use **full words**, not abbreviations:
 
 ### Functions
 
+- Use snake_case for every function and method, both public and private
 - Use descriptive verb phrases: `compute_coefficients`, `extract_features`
 - Private functions start with underscore: `_process_batch`, `_validate_input`
 - Avoid generic names like `process`, `handle`, `do_something`
 
 ### Visibility prefixes and the module boundary
 
-A leading underscore marks a symbol private to the **module** that defines it. This covers functions,
-classes, constants, class attributes, and methods.
+A leading underscore marks a symbol private to the **module** that defines it, covering functions,
+classes, constants, class attributes, and methods. The name a symbol carries MATCHES the widest
+boundary its consumers actually cross, so any symbol referenced from another module MUST carry a
+public name and any symbol referenced only inside its defining module MUST carry the underscore.
 
-Every symbol sits in exactly one of three tiers, and the tier is decided by the widest boundary the
-symbol's consumers actually cross rather than by the visibility its author intended:
-
-| Widest consumer                    | Name          | Listed in the package `__init__.py` |
-|------------------------------------|---------------|-------------------------------------|
-| The defining module alone          | `_underscore` | No                                  |
-| Another module in the same package | public        | No                                  |
-| Another package                    | public        | Yes                                 |
-
-The name a symbol carries MATCHES its tier in both directions. Any symbol referenced from another
-module MUST carry a public name, so a helper that acquires a caller in a second module is renamed
-rather than imported with its underscore intact. Any symbol referenced only inside the module that
-defines it MUST carry the underscore, so a public name is earned by a real cross-module consumer
-rather than granted by default:
-
-```python
-# Good - the helper is referenced from another module, so it carries a public name
-from .archive import resolve_archive_path
-
-# Bad - reaching into another module for a symbol that module marked private
-from .archive import _resolve_archive_path
-```
-
-A public name on a symbol nothing outside its module references is a finding in its own right. It
-advertises a boundary the code does not cross and invites the next module to depend on it, and the fix
-is the added underscore.
-
-When splitting or refactoring a module, every symbol that now crosses a module boundary is promoted to
-a public name as part of the split. A symbol that stays behind keeps its underscore, and a symbol
-whose last external caller went away is demoted back.
-
-Tests are the sole exception. Test modules may access private members of the code under test, and ruff
-ignores `SLF001` under `tests/`. A test is therefore not a cross-module consumer for the purpose of
-the tiers above, so a symbol referenced only by its defining module and by that module's tests keeps
-its underscore.
+See [class-patterns.md](references/class-patterns.md) for the three visibility tiers, the promotion
+and demotion that follow a module split, and the test exception.
 
 ### Constants
 
 Module-level constants with type annotations, descriptive names, and inline docstrings. Constants
-intended for export (listed in `__all__`) use bare `UPPER_SNAKE_CASE`; constants internal to a
+intended for export (listed in `__all__`) use bare `UPPER_SNAKE_CASE`, and constants internal to a
 module use `_UPPER_SNAKE_CASE`:
 
 ```python
@@ -185,32 +156,8 @@ MAXIMUM_QUANTIZATION_VALUE: int = 51
 
 ## Function calls
 
-**Always use keyword arguments** for clarity:
-
-```python
-# Good
-np.zeros((4,), dtype=np.float32)
-compute_coefficients(interpolation_factor=t, output=result)
-
-# Avoid
-np.zeros((4,), np.float32)
-compute_coefficients(t, result)
-```
-
-Exceptions:
-- Single positional arguments for obvious cases like `range(4)`, `len(array)`.
-- Numba `jitclass` method calls, which do not support keyword arguments. Use positional
-  arguments for these calls and add a brief inline comment if the call is not self-explanatory.
-  Note: standard `@njit` / `@jit` functions do support keyword arguments and are not exempt
-  from this rule.
-
-On the signature side, make boolean flag parameters keyword-only by placing them after a `*,`
-separator, so callers must pass them by name:
-
-```python
-def transfer_directory(source: Path, destination: Path, *, verify_integrity: bool = False,
-                       remove_source: bool = False) -> None: ...
-```
+See [class-patterns.md](references/class-patterns.md) for keyword-argument conventions, their
+exceptions, and the keyword-only placement of boolean flag parameters.
 
 ---
 
@@ -235,22 +182,10 @@ message format.
 
 `console.error` is typed `NoReturn` and always raises the supplied exception, so treat it as a
 terminating call in guard clauses. Mypy understands the `NoReturn` contract, so it never asks for a
-`raise` or a `return` after the call.
-
-Ruff reasons about control flow syntactically and does not follow `NoReturn` through a call, so its
-treatment depends on the enclosing return annotation. In a function annotated `-> None`, no `raise`
-or `return` follows the call. In a function annotated with any other return type, ruff `RET503`
-requires a terminating statement on the path that ends in `console.error`, and `RET503` is part of
-the shared corpus that `lint.select = ["ALL"]` enables. Keep an unreachable `return` there, mark it
-with `# pragma: no cover` so it stays outside the measured corpus, and leave the reason in a
-comment:
-
-```python
-# Tail of a guard clause inside a function annotated '-> np.uint64'.
-console.error(message=message, error=ValueError)
-# Satisfies ruff RET503. console.error() is NoReturn, so this line never executes.
-return np.uint64(0)  # pragma: no cover
-```
+`raise` or a `return` after the call. Ruff instead reasons syntactically, so a function annotated
+with a return type other than `None` needs an unreachable `return` after the call to satisfy ruff
+`RET503`. See [libraries-and-tools.md](references/libraries-and-tools.md) for that pattern and the
+`# pragma: no cover` annotation it carries.
 
 ### Error message format
 
@@ -264,25 +199,8 @@ return np.uint64(0)  # pragma: no cover
 
 ## Comments
 
-### Inline comments
-
-- Use third person imperative ("Configures..." not "This section configures...")
-- Place above the code, not at end of line (unless very short)
-- Use comments to explain non-obvious logic or provide context
-
-```python
-# The constant 2.046392675 is the theoretical injectivity bound for 2D cubic B-splines.
-limit = (1.0 / 2.046392675) * self._grid_sampling * factor
-```
-
-### What to avoid
-
-- Don't reiterate the obvious (e.g., `# Set x to 5` before `x = 5`)
-- Don't add docstrings/comments to code you didn't write or modify
-- Don't add type annotations as comments (use actual type hints)
-- Don't use heavy section separator blocks (e.g., `# ======` or `# ------`)
-- Don't use IDE-specific suppression comments (e.g., PyCharm `# noinspection ...`). Remove any you encounter — only
-  ruff (`# noqa: CODE`) and mypy (`# type: ignore[code]`) suppressions are authoritative and must be preserved
+See [docstrings-and-types.md](references/docstrings-and-types.md) for inline comment conventions and
+what to avoid.
 
 ---
 
@@ -331,36 +249,15 @@ from .spline_grid import SplineGrid
 ```
 
 The rule binds the exporting side as well. Any symbol consumed outside the (sub)package that defines
-it MUST be re-exported from that package's `__init__.py`, added to both the import list and `__all__`,
-and imported through the package namespace rather than through the submodule that declares it. This
-holds for internal implementation symbols and not only for the curated public API, so a subpackage
-`__init__.py` may export a broader set than the distribution's top-level `__init__.py`. Exporting the
-symbol and reaching past the export are two halves of one rule, and a cross-package consumer is
-evidence that the export is missing.
-
-The same test that requires an export also BOUNDS it. A symbol that no package outside the defining
-one consumes does NOT appear in that package's `__init__.py`, in either the import list or `__all__`.
-The absence of a cross-package consumer is evidence that the export is unwarranted, and the fix is the
-removed entry rather than a caller invented to justify it.
+it MUST be re-exported from that package's `__init__.py`, and a symbol that no outside package
+consumes MUST NOT appear there. See [class-patterns.md](references/class-patterns.md) for both halves
+of that rule.
 
 Tests are the sole exception. Test modules may import directly from any submodule of any package.
 
 ---
 
 ## \_\_init\_\_.py conventions
-
-A package's `__init__.py` defines the set of symbols that package offers to the rest of the
-distribution. Every symbol consumed outside the package appears there twice, once in the import list
-and once in `__all__`, whether the symbol belongs to the curated public API or exists only to serve a
-sibling package. A subpackage that is missing an entry for a symbol another package already imports is
-non-compliant, and the fix is the added export rather than a deeper import at the call site. The
-distribution's top-level `__init__.py` stays narrower and re-exports the curated public API alone.
-
-That set is EXACT rather than generous. A symbol listed while no other package imports it is
-non-compliant in the same way the missing entry is, and the fix is the removed entry. Nothing in the
-toolchain reports this, because `per-file-ignores` waives `F401` for `**/__init__.py`, so an export
-that lost its last consumer draws no diagnostic and survives until a reader checks the export list
-against the set of packages that import from it.
 
 See [class-patterns.md](references/class-patterns.md) for top-level library and subpackage
 `__init__.py` docstring, `__all__`, and console initialization conventions.
@@ -371,9 +268,6 @@ See [class-patterns.md](references/class-patterns.md) for top-level library and 
 
 An asset with no consumer is REMOVED rather than kept. This covers functions, classes, methods,
 properties, constants, enum members, dataclass fields, type aliases, parameters, and whole modules.
-Dead code carries the full review, documentation, and maintenance cost of live code while proving
-nothing about the library's behavior, and it reads to the next author as a contract something still
-depends on.
 
 Ruff reports only the cases a single file reveals, which are unused imports outside `__init__.py`
 (`F401`), unused local variables (`F841`), and unused arguments (`ARG`). It carries no rule for an
@@ -409,9 +303,8 @@ All definitions within a file follow this vertical ordering from top to bottom:
 
 ### Visibility ordering
 
-Public definitions appear **above** private definitions. This matches the C-family convention
-used across all projects (C#, C++), where the public API is presented first and
-implementation details follow. Readers see the interface before the helpers that support it.
+Public definitions appear **above** private definitions, matching the C-family convention used
+across all projects (C#, C++) that presents the interface before the helpers supporting it.
 
 This rule governs two levels. At module level, public functions and classes precede private ones.
 Inside a class body, public methods and properties precede private methods and properties, so a
@@ -431,123 +324,46 @@ called** during the library's runtime. When there is no clear call hierarchy, gr
 Enumerations and dataclasses define the types that worker functions and classes operate on. They
 must appear **above** the functions and classes that use them.
 
-**Exception — dataclass-only modules**: In files whose primary product is the dataclasses
+**Exception, dataclass-only modules**: In files whose primary product is the dataclasses
 themselves, the order is: enumerations first, then public helper functions, then private helper
 functions, then dataclasses at the bottom.
 
 ### Stub files
 
-`.pyi` stub files and the `py.typed` marker are GENERATED, never hand-authored. `tox -e stubs`
-produces them and they ship with releases; never create or hand-edit a stub — change typing by
-editing the `.py` source and regenerating. If stale stubs are cluttering a dev session, purge them
-with `tox -e lint` (`automation-cli purge-stubs`).
+`.pyi` stub files and the `py.typed` marker are GENERATED, never hand-authored, and they ship with
+releases. Change typing by editing the `.py` source and regenerating, rather than by creating or
+hand-editing a stub. See `/tox-config` for the environments that generate and purge stubs.
 
 ---
 
-## Boolean expressions
+## Boolean expressions and guard clauses
 
-Use truthiness checks instead of explicit comparisons to `True` or `False`:
-
-```python
-# Good - truthiness
-if not self._is_enabled:
-    return
-if items:
-    process(items=items)
-if not file_list:
-    console.error(message="No files found.", error=FileNotFoundError)
-
-# Avoid - explicit boolean comparison
-if self._is_enabled == True:   # Wrong
-if self._is_enabled is True:   # Wrong
-if len(items) > 0:             # Wrong - use truthiness instead
-```
-
-**Exception**: Always use `is None` / `is not None` for None checks, never truthiness:
-
-```python
-# Good - explicit None check
-if self._data is not None:
-    process(data=self._data)
-```
+See [class-patterns.md](references/class-patterns.md) for truthiness checks, the `is None`
+exception, and early-return conventions.
 
 ---
 
-## Guard clauses
+## Blank lines, line length, and formatting
 
-Prefer early returns (guard clauses) over deeply nested conditionals:
-
-```python
-# Good - guard clauses reduce nesting
-def process_session(self, data: NDArray[np.float32], threshold: float) -> NDArray[np.float32]:
-    """Processes session data with the given threshold."""
-    if not self._is_enabled:
-        return data
-
-    if data.size == 0:
-        message = "Unable to process session data. The data array is empty."
-        console.error(message=message, error=ValueError)
-
-    # Main logic at minimal indentation level.
-    filtered = data[data > threshold]
-    return filtered
-```
-
----
-
-## Blank lines
-
-- **Two blank lines** between top-level definitions (classes, functions)
-- **One blank line** between method definitions within a class
-- **No blank line** after a `def` line before the docstring
-- **One blank line** after import blocks before code
-
----
-
-## Line length and formatting
-
-- Maximum line length: **120 characters**
-- Break long function calls across multiple lines with trailing commas
-- Use parentheses for multi-line strings in error messages
-
-### String formatting
-
-- **F-strings only**: Always use f-strings for string interpolation. No `%` formatting or
-  `.format()`.
-- **F-string consistency**: When any line requires interpolation, use the `f` prefix on **all**
-  lines of the multi-line string.
-- **Double quotes**: All strings must use double quotes (enforced by ruff). Single quotes are
-  only acceptable inside f-string expressions.
-
-### Trailing commas
-
-- Always use trailing commas when the closing bracket is on a separate line
-- Do not use trailing commas when everything is on one line
-
-### Pathlib
-
-Use `pathlib.Path` for all path manipulation instead of string operations:
-
-```python
-config_path = Path(base_directory) / "config" / "settings.yaml"
-```
+See [class-patterns.md](references/class-patterns.md) for blank-line placement, the 120 character
+limit, string formatting, trailing commas, and pathlib usage.
 
 ---
 
 ## Related skills
 
-| Skill                   | Relationship                                                                  |
-|-------------------------|-------------------------------------------------------------------------------|
-| `/explore-dependencies` | Provides live ataraxis dependency API snapshots; invoke before using features |
-| `/cpp-style`            | Provides C++ conventions; Python conventions parallel these                   |
-| `/csharp-style`         | Provides C# conventions; Python conventions parallel these                    |
-| `/tox-config`           | Provides tox environment conventions, including the parallel test-run flags   |
-| `/pyproject-style`      | Provides pyproject.toml conventions, including the shared test-corpus ignores |
-| `/audit-project`        | Audits the code just written, before it is committed                          |
-| `/readme-style`         | Provides README conventions; invoke for README tasks                          |
-| `/commit`               | Provides commit message conventions; invoke for commit tasks                  |
-| `/skill-design`         | Provides skill file conventions; invoke for skill authoring tasks             |
-| `/explore-codebase`     | Provides project context that informs style-compliant code changes            |
+| Skill                   | Relationship                                                                           |
+|-------------------------|----------------------------------------------------------------------------------------|
+| `/explore-dependencies` | Provides live ataraxis dependency API snapshots, invoked before using library features |
+| `/cpp-style`            | Provides C++ conventions that Python conventions parallel                              |
+| `/csharp-style`         | Provides C# conventions that Python conventions parallel                               |
+| `/tox-config`           | Provides tox environment conventions, including the parallel test-run flags            |
+| `/pyproject-style`      | Provides pyproject.toml conventions, including the shared test-corpus ignores          |
+| `/audit-project`        | Audits the code just written, before it is committed                                   |
+| `/readme-style`         | Provides README conventions, invoked for README tasks                                  |
+| `/commit`               | Provides commit message conventions, invoked for commit tasks                          |
+| `/skill-design`         | Provides skill file conventions, invoked for skill authoring tasks                     |
+| `/explore-codebase`     | Provides project context that informs style-compliant code changes                     |
 
 ---
 
@@ -579,11 +395,14 @@ Judgment items. No tool inspects these, so this checklist is their only enforcem
 against the code you wrote.
 - [ ] Docstring section order: Summary -> Extended Description -> Notes -> Args -> Returns -> Raises
 - [ ] No Examples sections or in-code examples in docstrings
-- [ ] Imperative mood in summaries ("Processes..." not "This method processes...")
+- [ ] Third-person imperative mood in summaries ("Processes..." not "This method processes...")
+- [ ] Boolean parameters and attributes documented with "Determines whether..." (boolean properties use "Returns...")
 - [ ] Prose used instead of bullet lists in docstrings
 - [ ] No Sphinx specifiers (:class:, :func:, :meth:, :data:) outside MCP tool docstrings
 - [ ] Sentences in comments and docstrings stay under 40 words
 - [ ] Every member defaults to the summary line alone, with longer blocks earned by a nameable non-obvious property
+- [ ] @property docstrings are a single sentence (no summary plus extended-description split)
+- [ ] Test functions carry the summary line only, with no Args, Returns, or Raises sections
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
 - [ ] Documentation records current behavior only, never the edit that produced it
 - [ ] Edits leave documentation no longer than it started unless the new behavior is harder to derive
@@ -596,12 +415,15 @@ against the code you wrote.
 - [ ] Comments and docstrings free of typos and grammar errors
 - [ ] Inline comments explain why, not what (no narrate-the-code comments)
 - [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
-- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and code syntax exempt)
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
+      syntax exempt)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Module docstring description is at most 5 sentences, with detail relocated into the members it documents
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
 - [ ] Full words used (no abbreviations like `pos`, `idx`, `val`)
 - [ ] Private members use `_underscore` prefix
+- [ ] Constants use UPPER_SNAKE_CASE (bare when exported in __all__, _UPPER_SNAKE_CASE when module-internal)
+- [ ] Enum classes use PascalCase; enum members use UPPER_SNAKE_CASE
 - [ ] Every symbol referenced from another module carries a public name, and every symbol referenced
       only inside its defining module carries the underscore (tests are not cross-module consumers)
 - [ ] Every symbol consumed outside its defining (sub)package is re-exported from that package's
@@ -613,6 +435,12 @@ against the code you wrote.
 - [ ] A symbol exercised only by its own tests is removed together with those tests
 - [ ] Keyword arguments used for function calls (except Numba `jitclass` method calls)
 - [ ] Error handling uses console.error() when ataraxis-base-utilities is available (else raise)
+- [ ] Error messages assigned to a `message` variable before passing to console.error() or raise
+- [ ] Invoked /explore-dependencies for a current API snapshot of each ataraxis dependency in use
+- [ ] Ataraxis library features used in place of standard library equivalents wherever the project
+      depends on the library that provides them
+- [ ] Console output uses console.echo() instead of print() when ataraxis-base-utilities is
+      available, with raw=True for pre-formatted content
 - [ ] Local imports use direct name imports (no module imports)
 - [ ] Cross-package imports go through package __init__.py (not submodules)
 - [ ] Any pre-import configuration block is limited to settings that must precede the import they govern, states
@@ -626,7 +454,7 @@ against the code you wrote.
 - [ ] Dunder methods kept at the top of the class body, directly after the class docstring
 - [ ] Enums and dataclasses above worker functions and classes
 - [ ] Definitions ordered by call hierarchy or grouped by purpose
-- [ ] Inline comments use third person imperative
+- [ ] Inline comments use third-person imperative mood
 - [ ] No heavy section separator blocks (# ====== or # ------)
 - [ ] No IDE-specific suppression comments (PyCharm # noinspection etc.); only ruff # noqa / mypy # type: ignore kept
 - [ ] Interface modules (cli.py, MCP tool modules, __main__.py) excluded via the pyproject omit list
@@ -635,6 +463,7 @@ against the code you wrote.
 - [ ] Tests contending for a process-wide or on-disk resource carry @pytest.mark.xdist_group, and all
       mutually contending tests share one group name (flags owned by /tox-config)
 - [ ] Numba functions use cache=True
+- [ ] @staticmethod used when a method touches neither self nor cls, @classmethod when it touches cls alone
 - [ ] Decorator stacking order: @staticmethod/@classmethod, @njit, custom, @property
 - [ ] Dataclasses use frozen=True for immutable configs (omit for mutable state)
 - [ ] Dataclasses use slots=True by default (omit for YamlConfig subclasses or classes needing __dict__)
@@ -651,18 +480,14 @@ hand-checking them. They stay listed for reviews performed without the linter.
 - [ ] Google-style docstrings on all public and private members
 - [ ] All parameters and returns have type annotations
 - [ ] Type aliases use PEP 695 `type` statement syntax
+- [ ] Functions and methods use snake_case (both public and private, the private ones underscore-prefixed)
 - [ ] Double quotes used for all strings (enforced by ruff)
 - [ ] F-strings used exclusively (no % formatting or .format())
 - [ ] Lines under 120 characters
+- [ ] 4-space indentation, no tabs
 - [ ] All imports at top of file (no deferred or inline imports)
 - [ ] Import sorting delegated to ruff (do not manually reorder)
 - [ ] Two blank lines between top-level definitions
 - [ ] Trailing commas in multi-line structures
-
-Ataraxis Library Preferences (when ataraxis libraries are dependencies):
-- [ ] Invoked /explore-dependencies to obtain current API snapshot for each ataraxis dependency
-- [ ] Used ataraxis library features instead of standard library equivalents where available
-- [ ] Console output uses console.echo() instead of print(); raw=True for pre-formatted content
-- [ ] Error handling uses console.error() instead of raise (when ataraxis-base-utilities available)
-- [ ] console.enable() / console.disable() placed at runtime-owning entry points rather than on ordinary worker paths
+- [ ] ruff format applied before commit (tox -e lint)
 ```

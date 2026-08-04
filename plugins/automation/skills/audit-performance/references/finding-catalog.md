@@ -5,6 +5,12 @@ its mechanical detection procedure, the evidence a report entry must carry, and 
 Classify every candidate against exactly one category, choosing the most specific one, and list any
 others as tags.
 
+Detection runs from the sweep passes in `detection-passes.md`, which Step 3 of `SKILL.md` loads before
+any candidate is classified. Each entry's detection section therefore names the pass that supplies the
+procedure and adds only the checks specific to that category.
+
+---
+
 ## Contents
 
 - DTYPE_UNPINNED_AT_CREATION
@@ -43,10 +49,10 @@ explicit and traceable, so it belongs to `/audit-style`.
 
 Sweep the scalar surface with equal care, because it is the half auditors skip. Report a module-level
 numeric constant consumed by array code and left as a bare Python literal where a NumPy scalar of the
-matching width belongs, a dataclass or configuration attribute annotated `int` or `float` whose value
-crosses into an array expression or a wire format, a threshold or bound compared against a narrow
-array, and a scalar returned from a public function whose annotation names no width. In each case name
-the width the value actually carries and the width the consumer needs.
+matching width belongs. Report equally a dataclass or configuration attribute annotated `int` or
+`float` whose value crosses into an array expression or a wire format. Report a threshold or bound
+compared against a narrow array, and a scalar returned from a public function whose annotation names
+no width. In each case name the width the value actually carries and the width the consumer needs.
 
 For each UNPINNED hit, write down the dtype NumPy actually produces. `np.zeros`, `np.ones`,
 `np.empty`, `np.full` with a float fill, and `np.linspace` produce float64. `np.arange` with integer
@@ -59,7 +65,7 @@ Compare the produced dtype against the function's annotation, against the dtype 
 combined with, and against the width the on-disk or wire format requires.
 
 **Evidence.** STATIC. Cite the creation call's `<path>:<line>`, quote the call verbatim showing no
-`dtype=` keyword, name the dtype NumPy produces, and prove the width is wrong by quoting either the
+`dtype=` keyword, and name the dtype NumPy produces. Prove the width is wrong by quoting either the
 conflicting annotation with its line or the dtype and creation line of the array it combines with.
 Cite no style rule for this category. `/python-style` prohibits an unparameterized `NDArray`
 annotation and a positional dtype argument, and says nothing about an absent constructor dtype, so
@@ -82,7 +88,7 @@ unpredictable by reading, and the computation runs wider, often at half the SIMD
 intended.
 
 Scalars promote on the same rules and belong here too. An element extracted with `arr[i]` is a NumPy
-scalar carrying the array's dtype, a reduction such as `sum` or `mean` returns a scalar whose width
+scalar carrying the array's dtype. A reduction such as `sum` or `mean` returns a scalar whose width
 often exceeds its input's, and a scalar that later re-enters an array expression carries whatever width
 it accumulated. Trace a scalar's width across a function boundary exactly as you trace an array's.
 
@@ -102,7 +108,7 @@ where it changes the on-disk width. MEDIUM on a mid-size intermediate.
 ## DTYPE_CHURN_AND_UNSTABLE_CONTRACT
 
 **Definition.** Two related defects in dtype discipline. CHURN casts the same data back and forth,
-each cast paying a full array copy, which covers `astype` round-trips, a cast that restores a width an
+each cast paying a full array copy. It covers `astype` round-trips, a cast that restores a width an
 earlier implicit promotion destroyed, and a cast that is a no-op because the array already holds that
 dtype. UNSTABLE CONTRACT lets a function's output width be decided by its input or by runtime data,
 so no caller can predict it, which covers an unparameterized array annotation, a dtype taken from a
@@ -135,11 +141,11 @@ defensive casts at three or more call sites.
 
 **Definition.** The C++ and C# counterpart of the three dtype categories. A value's numeric width is
 untraceable from the source, or it changes without an explicit cast. Covers a bare `int`, `short`,
-`long`, `unsigned`, or `size_t` declaration whose width varies by platform, integer promotion that
-computes an expression at a width neither operand declares, a signed against unsigned comparison that
-converts the signed side, an implicit widening conversion, a narrowing assignment that truncates,
-boxing that moves a value type onto the heap, and a boundary where the traced width disagrees with the
-declared wire, packed-struct, or on-disk width.
+`long`, `unsigned`, or `size_t` declaration whose width varies by platform, and integer promotion
+that computes an expression at a width neither operand declares. Also covers a signed against
+unsigned comparison that converts the signed side, an implicit widening conversion, a narrowing
+assignment that truncates, and boxing that moves a value type onto the heap. The last case is a
+boundary where the traced width disagrees with the declared wire, packed-struct, or on-disk width.
 
 **Detection.** Run the WIDTH TRACE procedure from `detection-passes.md`, per variable and per
 expression. Report every UNPINNED origin, every unjustified IMPLICIT row, and every boundary
@@ -169,10 +175,10 @@ manual accumulation that a reduction already provides.
 **Detection.** Follow Pass 4 of `detection-passes.md`. Apply the jitted-function gate first, classify
 every statement in the body, and name the exact replacement expression.
 
-**Evidence.** STATIC. Cite the loop or comprehension span, quote the header and body verbatim, state
-the trip count with the variable that bounds it and the line where that variable is set, write out the
-proposed NumPy expression in full, and state explicitly that every statement in the body was checked
-and performs no I/O, no mutation of external state, and no logging.
+**Evidence.** STATIC. Cite the loop or comprehension span, and quote the header and body verbatim.
+State the trip count with the variable that bounds it and the line where that variable is set, and
+write out the proposed NumPy expression in full. State explicitly that every statement in the body
+was checked and performs no I/O, no mutation of external state, and no logging.
 
 **Impact.** HIGH when the trip count scales with a data dimension and the body is pure. MEDIUM when
 the trip count is moderate or the replacement reads worse than the loop.
@@ -183,17 +189,17 @@ the trip count is moderate or the replacement reads worse than the loop.
 
 **Definition.** Code whose asymptotic cost exceeds what the task requires. Covers nested iteration
 producing quadratic behavior where a hash join, a sort, or a vectorized set operation is linear or
-n-log-n, a linear search performed inside a loop over another collection, repeated sorting of data
-that is already sorted, and mappings rebuilt on every call.
+n-log-n. Also covers a linear search performed inside a loop over another collection, repeated
+sorting of data that is already sorted, and mappings rebuilt on every call.
 
 **Detection.** Follow Pass 5 of `detection-passes.md`. Distinguish a join, where the inner loop
 searches for a match against the outer element and belongs here, from a loop-invariant inner body,
 which belongs to REDUNDANT_RECOMPUTATION.
 
-**Evidence.** STATIC. Cite each loop header in the nest, give the trip-count expression for each with
-its bound traced to where it is set, write the cost as a product, and for membership findings give the
-container's declared type and its construction site. State the current and the proposed complexity in
-big-O with the variables bound to real quantities.
+**Evidence.** STATIC. Cite each loop header in the nest, and give the trip-count expression for each
+with its bound traced to where it is set. Write the cost as a product, and for membership findings
+give the container's declared type and its construction site. State the current and the proposed
+complexity in big-O with the variables bound to real quantities.
 
 **Impact.** HIGH whenever both bounds scale with data volume. MEDIUM when one bound is data-scaled and
 the other is bounded by configuration in the low hundreds.
@@ -203,16 +209,16 @@ the other is bounded by configuration in the low hundreds.
 ## REDUNDANT_RECOMPUTATION
 
 **Definition.** The same result is computed more than once, or computed and then discarded. Covers
-loop-invariant expressions evaluated every iteration, pure functions called repeatedly with identical
-arguments over a small bounded domain, derived values recomputed on each access, validation repeated
-per element that belongs once at the function boundary, and work whose result is written and never
-read.
+loop-invariant expressions evaluated every iteration, and pure functions called repeatedly with
+identical arguments over a small bounded domain. Also covers derived values recomputed on each
+access, validation repeated per element that belongs once at the function boundary, and work whose
+result is written and never read.
 
 **Detection.** Follow Pass 6 of `detection-passes.md`.
 
-**Evidence.** STATIC. Cite the redundant computation, quote the enclosing loop header with its trip
-count so the repetition factor is explicit, quote the expression verbatim, and prove invariance by
-naming every name the expression depends on and citing the lines checked to show none is rebound
+**Evidence.** STATIC. Cite the redundant computation, and quote the enclosing loop header with its
+trip count so the repetition factor is explicit. Quote the expression verbatim, and prove invariance
+by naming every name the expression depends on and citing the lines checked to show none is rebound
 inside the loop. For a memoization proposal, state the argument domain, its bound, the source of that
 bound, and that the arguments are hashable.
 
@@ -249,10 +255,10 @@ moderately hot loop.
 
 **Definition.** The bytes resident at one moment scale with the size of the input, where a bounded
 form would hold a window instead. Covers a reader that materializes a whole file where a memory-mapped
-handle or a chunked read serves, a list or array built from every record before any record is
-processed, a concatenate that holds every chunk and the joined result at once, a full table read where
-a column or row subset is used, and a transform that keeps its source alive while building a
-full-size destination.
+handle or a chunked read serves, and a list or array built from every record before any record is
+processed. Also covers a concatenate that holds every chunk and the joined result at once, a full
+table read where a column or row subset is used, and a transform that keeps its source alive while
+building a full-size destination.
 
 This is the category that counts RESIDENT BYTES. `HOT_LOOP_ALLOCATION` counts allocation EVENTS, so a
 single allocation performed once per file belongs here rather than there, and a small buffer allocated
@@ -278,9 +284,9 @@ by a configured maximum that leaves the footprint large but predictable.
 
 **Definition.** Data is copied where a view, a slice, or an in-place operation serves. Covers
 `.copy()` on data that is never mutated, `np.array(existing_array)` where `np.asarray` avoids the
-copy, list-then-array construction that materializes a Python list purely as scaffolding, defensive
-copies at boundaries the callee never writes to, `.tolist()` round-trips, and materializing a full
-intermediate where a slice would do.
+copy, and list-then-array construction that materializes a Python list purely as scaffolding. Also
+covers defensive copies at boundaries the callee never writes to, `.tolist()` round-trips, and
+materializing a full intermediate where a slice would do.
 
 **Detection.** Grep every copy. For each `.copy()` or `np.array(x)` where `x` is already an array,
 find every subsequent use of the copy. A copy with no mutating use is removable, where mutating means
@@ -305,9 +311,10 @@ copies and for list scaffolding over data-scaled element counts.
 
 **Definition.** Data is laid out or traversed in an order that fights the cache and the prefetcher.
 Covers iterating a C-contiguous array along its slowest-varying axis, reductions applied along the
-wrong axis, transposes producing non-contiguous views used in bulk, array-of-structures layouts where
-structure-of-arrays would let each field be processed contiguously, chunk sizes chosen without
-reference to the working set, and non-contiguous arrays passed into Numba or C extensions.
+wrong axis, and transposes producing non-contiguous views used in bulk. Also covers
+array-of-structures layouts where structure-of-arrays would let each field be processed contiguously,
+chunk sizes chosen without reference to the working set, and non-contiguous arrays passed into Numba
+or C extensions.
 
 **Detection.** Follow Pass 8 of `detection-passes.md`.
 
@@ -331,18 +338,18 @@ it to machine code and fuse it into one pass. This is the complement to MISSED_V
 the work NumPy expresses poorly.
 
 **Detection.** Confirm the project already depends on Numba before proposing any kernel. Take
-candidates from the loops that failed the Pass 4 vectorization test, and keep those whose body is
-numeric and carries a loop-carried dependency, an early exit a vectorized form would not short-circuit,
+candidates from the loops that failed the Pass 4 vectorization test. Keep those whose body is numeric
+and carries a loop-carried dependency, an early exit a vectorized form would not short-circuit,
 per-element branching that `np.where` would express only by computing both branches, or a running
 state machine over samples. Also treat as candidates the NumPy expression chains of three or more
 operations over the same large arrays, counting one temporary per binary operator and per ufunc
 without `out=`. Verify nopython compatibility by searching the body for constructs Numba rejects.
 
-**Evidence.** STATIC facts plus MEASUREMENT-PENDING payoff. Cite the candidate span, quote the body
-verbatim, name the specific reason it resists vectorization by naming the loop-carried dependency
-variable, the early-exit line, or the branch, give the trip count with its source, enumerate which
-unsupported constructs you searched for and did not find, give every argument dtype from the DTYPE
-TRACE, and state the number of kernel entries per run.
+**Evidence.** STATIC facts plus MEASUREMENT-PENDING payoff. Cite the candidate span and quote the
+body verbatim. Name the specific reason it resists vectorization by naming the loop-carried
+dependency variable, the early-exit line, or the branch, and give the trip count with its source.
+Enumerate which unsupported constructs you searched for and did not find, give every argument dtype
+from the DTYPE TRACE, and state the number of kernel entries per run.
 
 **Impact.** MEDIUM as a proposal, never HIGH on static evidence alone.
 
@@ -351,10 +358,10 @@ TRACE, and state the number of kernel entries per run.
 ## NUMBA_CONFIGURATION_DEFECT
 
 **Definition.** Numba is already in use but configured so its benefit is forfeited. Covers a missing
-`cache=True`, an explicit `forceobj=True` kernel on a hot path, `parallel=True` without `prange` or
-with `prange` on an inner loop, `prange` over a loop carrying a cross-iteration race, signature churn
-from unpinned argument dtypes, a kernel entered so often that dispatch and unboxing dominate, and
-`nogil` used without threading.
+`cache=True`, an explicit `forceobj=True` kernel on a hot path, and `parallel=True` without `prange`
+or with `prange` on an inner loop. Also covers `prange` over a loop carrying a cross-iteration race,
+signature churn from unpinned argument dtypes, a kernel entered so often that dispatch and unboxing
+dominate, and `nogil` used without threading.
 
 **Detection.** Follow the JIT half of Pass 7 in `detection-passes.md`. A missing `cache=True` is also
 a style finding, so report it here with its runtime cost, which is recompilation on every fresh
@@ -377,9 +384,9 @@ that the parallelization this kernel enables is invalid.
 
 **Definition.** Costs imposed by the CPython object model and interpreter dispatch on paths that
 execute many times. Covers repeated attribute and global-name lookups inside loops, call overhead for
-trivial bodies in hot paths, exceptions used as ordinary control flow, string building by repeated
-concatenation, layers of abstraction on hot paths, function-local imports executed per call, and
-objects carrying a `__dict__` where `__slots__` would shrink them.
+trivial bodies in hot paths, and exceptions used as ordinary control flow. Also covers string
+building by repeated concatenation, layers of abstraction on hot paths, function-local imports
+executed per call, and objects carrying a `__dict__` where `__slots__` would shrink them.
 
 **Detection.** Inside each data-scaled loop body, find dotted expressions of depth two or more and
 flag the ones invariant across the loop. Flag module-level and builtin name references only when the
@@ -404,9 +411,9 @@ global lookups, which aggregate into one note per function.
 
 **Definition.** Input and output structured so that per-call overhead, syscall count, or format choice
 dominates the useful work. Covers file operations executed once per record or per element, repeated
-opening of the same path, unbatched reads and writes, an on-disk format or compression setting that
-mismatches the access pattern, serialization round-tripping through Python objects, and I/O
-interleaved into a compute function.
+opening of the same path, and unbatched reads and writes. Also covers an on-disk format or
+compression setting that mismatches the access pattern, serialization round-tripping through Python
+objects, and I/O interleaved into a compute function.
 
 **Detection.** Follow the DISK half of Pass 7 in `detection-passes.md`. Any I/O call at per-record or
 per-element multiplicity is a finding, so state its call count. Group hits by the path expression, and
@@ -477,10 +484,10 @@ floating-point microsecond timing.
 
 **Definition.** C# constructs that allocate or perform avoidable work on a per-frame path, pressuring
 the garbage collector and causing frame-time spikes. Covers LINQ operators inside the per-frame set,
-`GetComponent<T>()` per frame instead of a cached reference, string concatenation and interpolation
-per frame, `new WaitForSeconds(...)` allocated inside a coroutine loop, multiple enumeration of a
-deferred query, boxing and defensive copies from non-`readonly` structs, `static readonly` where
-`const` belongs, and instance methods that never touch `this`.
+`GetComponent<T>()` per frame instead of a cached reference, and string concatenation and
+interpolation per frame. Also covers `new WaitForSeconds(...)` allocated inside a coroutine loop,
+multiple enumeration of a deferred query, boxing and defensive copies from non-`readonly` structs,
+`static readonly` where `const` belongs, and instance methods that never touch `this`.
 
 **Detection.** Follow the C# half of Pass 9 in `detection-passes.md`, working strictly inside the
 per-frame reachability set Pass 1 built. Resolve every receiver's declared type before reporting a

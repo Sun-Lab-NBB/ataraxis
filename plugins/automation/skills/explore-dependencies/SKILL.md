@@ -15,8 +15,8 @@ Explores installed ataraxis dependency source code to build a live API snapshot 
 current project.
 
 You MUST run this skill before writing code that uses ataraxis library features. Static reference
-tables go stale; reading the actual installed source is the only reliable way to know what APIs are
-available and how they work.
+tables go stale, and reading the actual installed source is the only reliable way to know what APIs
+are available and how they work.
 
 ---
 
@@ -31,7 +31,7 @@ available and how they work.
 - Producing a structured "Dependency API snapshot" organized by library
 
 **Does not cover:**
-- Third-party library exploration (NumPy, Click, etc.) — read their docs directly
+- Third-party library exploration (NumPy, Click, etc.), for which you read the docs directly
 - Modifying dependency versions or adding new dependencies (see `/pyproject-style`)
 - Applying Python coding conventions (see `/python-style`)
 - Exploring the project's own codebase structure (see `/explore-codebase`)
@@ -49,11 +49,11 @@ ecosystem, domain-to-library mappings, and import names.
 
 ### Step 2: Identify project dependencies
 
-Read the project's `pyproject.toml` and extract all ataraxis dependencies from
-the `dependencies` array in `[project]`, `[project.optional-dependencies]`, and `[dependency-groups]` (PEP 735;
-ataraxis projects place dev dependencies such as `ataraxis-automation` in `[dependency-groups]`, not
-under `[project.optional-dependencies]` — see `/pyproject-style`). Match package names that start
-with `ataraxis-` (or the project's own first-party namespace prefix).
+Read the project's `pyproject.toml` and extract all ataraxis dependencies from the `dependencies`
+array in `[project]`, `[project.optional-dependencies]`, and `[dependency-groups]` (PEP 735).
+Ataraxis projects place dev dependencies such as `ataraxis-automation` in `[dependency-groups]`,
+not under `[project.optional-dependencies]` (see `/pyproject-style`). Match package names that
+start with `ataraxis-` (or the project's own first-party namespace prefix).
 
 If `pyproject.toml` is not found, check for `setup.cfg`, `setup.py`, or `requirements.txt` as
 fallbacks.
@@ -72,7 +72,7 @@ python -c "import <import_name>; print(<import_name>.__file__)"
 This returns the path to the package's `__init__.py`. The parent directory contains all source
 modules.
 
-Obtain the package version with the hyphenated PyPI name (not the import name); ataraxis
+Obtain the package version with the hyphenated PyPI name, not the import name. Ataraxis
 `__init__.py` files do not expose `__version__`, so resolve it at runtime instead:
 
 ```bash
@@ -82,9 +82,10 @@ python -c "import importlib.metadata; print(importlib.metadata.version('<package
 **Reconcile local or editable checkouts.** When a dependency's resolved `__file__` falls outside
 `site-packages` (e.g. it points to a sibling or parent directory), it is a local or editable checkout
 that may be ahead of or behind the published release. Look up the dependency's GitHub repository from
-[library-catalog.md](references/library-catalog.md) — do NOT hardcode the `Sun-Lab-NBB` org, since
-first-party application libraries may live under a different owner; skip any dependency with no
-cataloged repository — then compare the local version against the latest release:
+[library-catalog.md](references/library-catalog.md). Do NOT hardcode the `Sun-Lab-NBB` org, because
+first-party application libraries may live under a different owner. Skip any dependency with no
+cataloged repository. For every remaining dependency, compare the local version against the latest
+release:
 
 ```bash
 gh api repos/<owner>/<repo>/releases/latest --jq .tag_name
@@ -155,7 +156,8 @@ Report each replacement opportunity with the file location and the suggested lib
 
 Treat the table above as starter heuristics, not an authoritative catalog. Before recommending any
 replacement, confirm the named symbol appears in the `__all__` exports enumerated in Step 4 (and in
-the signature read in Step 5); never suggest a symbol absent from the live snapshot.
+the signature read in Step 5). Never suggest a symbol absent from the live snapshot. Delete a
+replacement row whose symbol is missing from this run's per-library tables rather than repairing it.
 
 ### Step 7: Produce the dependency API snapshot
 
@@ -218,34 +220,34 @@ If no replacement opportunities are found, state: "No replacement opportunities 
 
 ## Handling large dependencies
 
-For dependencies with many exports (15+ public names), or when several dependencies must be read or
-the total export count across all dependencies is large, use the Agent tool with the `Explore` agent
-type to parallelize the API reading. Launch at most 2-3 Explore subagents, batching libraries across
-them rather than one subagent per library. Instruct each subagent to return ONLY the structured
-snapshot rows for its assigned libraries (signatures plus one-line summaries), never raw source
-bodies.
+For a dependency with 15 or more public exports, or when the public exports across all dependencies
+total 30 or more, use the Agent tool with the `Explore` agent type to parallelize the API reading.
+Launch at most 2-3 Explore subagents, batching libraries across them rather than one subagent per
+library. Instruct each subagent to return ONLY the structured snapshot rows for its assigned
+libraries (signatures plus one-line summaries), never raw source bodies.
 
-For small dependencies (fewer than 15 exports), read the APIs directly without subagents.
+When every dependency has fewer than 15 public exports and they total fewer than 30 across all
+dependencies, read the APIs directly without subagents.
 
 ---
 
 ## Related skills
 
-| Skill               | Relationship                                                             |
-|---------------------|--------------------------------------------------------------------------|
-| `/python-style`     | Requires this skill before writing code that uses ataraxis features      |
-| `/cpp-style`        | Provides C++ conventions for ataraxis libraries explored here            |
-| `/pyproject-style`  | Manages dependency versions and additions; defer dependency changes      |
-| `/explore-codebase` | Explores project structure; invoke alongside this skill at session start |
-| `/commit`           | Invoke after completing code changes informed by the API snapshot        |
+| Skill               | Relationship                                                              |
+|---------------------|---------------------------------------------------------------------------|
+| `/python-style`     | Requires this skill before writing code that uses ataraxis features       |
+| `/cpp-style`        | Provides C++ conventions for ataraxis libraries explored here             |
+| `/pyproject-style`  | Manages dependency versions and additions. Defer dependency changes to it |
+| `/explore-codebase` | Explores project structure. Invoke alongside this skill at session start  |
+| `/commit`           | Invoke after completing code changes informed by the API snapshot         |
 
 ---
 
 ## Proactive behavior
 
-This skill should be invoked at session start alongside `/explore-codebase` when the project has
-ataraxis dependencies. The `/python-style` skill explicitly requires this skill before
-writing code that touches ataraxis library domains.
+Invoke at session start alongside `/explore-codebase` when the project has ataraxis dependencies.
+The `/python-style` skill explicitly requires this skill before writing code that touches ataraxis
+library domains.
 
 When invoked proactively, present the dependency API snapshot and replacement opportunities before
 proceeding to code changes. Wait for user acknowledgment before modifying code.
@@ -258,17 +260,28 @@ proceeding to code changes. Wait for user acknowledgment before modifying code.
 
 ```text
 Dependency Exploration Compliance:
+
+Judgment items. No tool inspects the exploration output, so this checklist is its only enforcement.
+Walk every one against the summary you are about to present.
 - [ ] All ataraxis dependencies identified (incl. [dependency-groups], not just [project] dependencies)
-- [ ] Each installed dependency's source location resolved
-- [ ] Local/editable checkouts reconciled against latest GitHub release where a repo is cataloged
 - [ ] Unavailable packages noted and skipped
 - [ ] __all__ exports read for each installed Python dependency
 - [ ] C++ (.pio/libdeps) dependencies enumerated from header files where applicable
+- [ ] Reading depth matched the export count: direct read under 15 exports, otherwise at most 3 Explore
+      subagents batching libraries and returning snapshot rows only
 - [ ] Public classes documented with constructors and public methods
 - [ ] Public functions documented with signatures and summaries
 - [ ] Constants and enums documented with types and members
 - [ ] Replacement opportunities reported with file:line location and concrete suggested replacement
+- [ ] Every suggested replacement names a symbol present in this run's enumerated __all__ exports, with its
+      signature read, and no symbol carried over from the starter heuristics table unconfirmed
 - [ ] Output organized by library with consistent table format
 - [ ] Snapshot includes version numbers where available
 - [ ] No code modifications made during exploration
+
+Tool-settled items. Run `python -c "import <import_name>; print(<import_name>.__file__)"` and
+`gh api repos/<owner>/<repo>/releases/latest --jq .tag_name` to settle these rather than recalling
+them. They stay listed for reviews performed without a shell.
+- [ ] Each installed dependency's source location resolved
+- [ ] Local/editable checkouts reconciled against latest GitHub release where a repo is cataloged
 ```

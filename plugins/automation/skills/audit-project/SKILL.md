@@ -4,7 +4,7 @@ description: >-
   Orchestrates the four ataraxis audits in the order and concurrency their dependencies require, and
   merges their findings into one deduplicated report. Runs in full mode over a repository, package, or
   directory, or in change mode over the files a feature, bugfix, or refactor touched, where it gates
-  the work until the new code passes. Use after completing any implementation task, before committing,
+  the work until the new code passes. Use when completing any implementation task, before committing,
   when auditing a project end to end, or when the user invokes /audit-project.
 user-invocable: true
 ---
@@ -97,14 +97,11 @@ DELETES a file. Tell `/audit-style` which case applies, so the pass runs once ra
 batch or not at all, and carry the status it reports into the merged coverage ledger.
 
 **Parallelize at exactly ONE level.** Each audit already fans out internally over file batches, and
-nesting a fan-out inside a fan-out multiplies the instruction payload by both factors.
+nesting a fan-out inside a fan-out multiplies the instruction payload by both factors. A target under
+10 files parallelizes at the WAVE level, and a target of 10 or more files parallelizes at the BATCH
+level.
 
-| Target size      | Parallel level                                                               |
-|------------------|------------------------------------------------------------------------------|
-| Under 10 files   | WAVE. One sub-agent per audit, and each audit works sequentially inside it   |
-| 10 or more files | BATCH. Audits run one at a time in wave order, each fanning out over batches |
-
-Full detail, including the shared-context schema and the sub-agent budget, lives in
+The level table, the shared-context schema, and the sub-agent budget live in
 [execution-plan.md](references/execution-plan.md).
 
 ---
@@ -175,8 +172,10 @@ wave 2 members there, so the election has nothing to decide.
 
 ### Step 1: Build the shared context
 
-Build it ONCE on the main agent, and write it to the session scratch directory. Every audit receives
-it as its Step 1 output and RECORDS it rather than re-deriving it.
+Build it ONCE on the main agent, and write it to the session scratch directory. Every audit RECORDS
+it rather than re-deriving it, and it stands as the output of the discovery steps that audit would
+otherwise run. Those steps are Step 1 for `/audit-facts` and `/audit-style`, Steps 1 through 3 for
+`/audit-correctness`, and Steps 1 and 2 for `/audit-performance`.
 
 The schema is in [execution-plan.md](references/execution-plan.md). It carries the file inventory with
 each file's authority binding, the per-language prerequisites, the coverage ranking, and the
@@ -222,8 +221,7 @@ satisfied.
 
 Tell `/audit-style` whether the target is a project root, and in change mode whether the change set
 creates or deletes a file, because those two facts decide whether its project-scope layout pass runs.
-Collect the status it reports, which is `run`, `skipped-not-a-project-root`, or
-`skipped-no-created-or-deleted-files`, for the merged coverage ledger.
+Collect the status it reports, in the vocabulary Step 0 states, for the merged coverage ledger.
 
 Collect the deterministic-gate diagnostics `/audit-style` produced into the shared context, so wave 2
 reads them rather than re-deriving them.
@@ -243,8 +241,8 @@ Apply the rules in [report-merge.md](references/report-merge.md), which deduplic
 reported by two audits, resolve the four ownership collisions the audits leave to a caller, and
 collapse one root cause reported at several sites.
 
-Every finding keeps the severity, confidence, and evidence its owning audit assigned. This step
-removes duplicates and settles ownership, and it never re-rates a finding.
+Every finding keeps the severity, impact, confidence, and evidence its owning audit assigned. This
+step removes duplicates and settles ownership, and it never re-rates a finding.
 
 ### Step 6: Produce the report and apply the gate
 
@@ -262,26 +260,8 @@ loop, after which the report states what remains and the decision passes to the 
 ## Output format
 
 Open with the merged triage header from [report-merge.md](references/report-merge.md), then the
-combined coverage ledger, then the findings.
-
-```text
-Mode: <FULL | CHANGE, base <revision>>
-Gate: <PASSED | BLOCKED | ADVISORY ONLY | CAPPED after 3 rounds>   (change mode only)
-Round: <n> of 3                                                     (change mode only)
-
-| Audit               | Ran | Blocking | Advisory | Total | Not run because           |
-|---------------------|-----|----------|----------|-------|---------------------------|
-| /audit-facts        | yes | <n>      | <n>      | <n>   |                           |
-| /audit-style        | yes | <n>      | <n>      | <n>   |                           |
-| /audit-correctness  | no  | 0        | 0        | 0     | DECLINED at Step 0        |
-| /audit-performance  | no  | 0        | 0        | 0     | EMPTY bound file set      |
-
-Adjudicated away by the collision rules: <n>
-Suppressed as cross-audit duplicates: <n>
-Discarded by the false-positive guards: <n> across all audits
-Deleted by citation verification: <n> of <n> checked
-Refuted by adversarial verification: <n> of <n> checked
-```
+combined coverage ledger, then the findings. Both layouts are given there verbatim, and this skill
+emits them unchanged.
 
 Group the findings by AUDIT, then follow each audit's own output format unchanged inside its section,
 including its ordering and its trailing LOW confidence appendix. A reader who wants one audit's report
@@ -317,15 +297,16 @@ You MUST adhere to the following discipline during every run.
 
 ## Related skills
 
-| Skill                   | Relationship                                                                  |
-|-------------------------|-------------------------------------------------------------------------------|
-| `/audit-facts`          | Wave 1 member, owns documentation claims that disagree with the code          |
-| `/audit-style`          | Wave 1 member, owns style, formatting, and documentation quality              |
-| `/audit-correctness`    | Wave 2 member, owns active and latent bugs and broken stated contracts        |
-| `/audit-performance`    | Wave 2 member, owns cost, speed, memory use, and numeric width predictability |
-| `/explore-codebase`     | Provides project structure context, invoke first on an unfamiliar codebase    |
-| `/explore-dependencies` | Provides ataraxis API snapshots the audits verify library calls against       |
-| `/commit`               | Runs after a change-mode gate passes, and never before it                     |
+| Skill                   | Relationship                                                               |
+|-------------------------|----------------------------------------------------------------------------|
+| `/audit-facts`          | Wave 1 member, owns documentation claims that disagree with the code       |
+| `/audit-style`          | Wave 1 member, owns style, formatting, and documentation quality           |
+| `/audit-correctness`    | Wave 2 member, owns active and latent bugs and broken stated contracts     |
+| `/audit-performance`    | Wave 2 member, owns cost, speed, memory use, and dtype predictability      |
+| `/explore-codebase`     | Provides project structure context, invoke first on an unfamiliar codebase |
+| `/explore-dependencies` | Provides ataraxis API snapshots the audits verify library calls against    |
+| `/commit`               | Runs after a change-mode gate passes, and never before it                  |
+| `/pr`                   | Drafts the pull request summary after a change-mode gate passes            |
 
 ---
 
@@ -373,7 +354,7 @@ Project Audit Orchestration Compliance:
 - [ ] /audit-correctness received wave 1's DRIFT and WRONG verdicts for its ownership ladder
 - [ ] Findings merged, with one construct reported by two audits resolved to one owner
 - [ ] Every adjudicated finding carries the audit that yielded and the rule that decided it
-- [ ] No finding re-rated, and every severity, confidence, and evidence left as its audit assigned
+- [ ] No finding re-rated, and every severity, impact, confidence, and evidence left as its audit assigned
 - [ ] Merged triage header present, carrying per-audit counts and every discard count
 - [ ] Each audit's section preserves its own output format, ordering, and LOW confidence appendix
 - [ ] In change mode, the gate verdict stated and every blocking finding named

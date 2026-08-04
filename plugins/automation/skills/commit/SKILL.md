@@ -1,10 +1,11 @@
 ---
 name: commit
 description: >-
-  Stages all local changes and creates a style-compliant git commit, stopping before any push. Drafts the commit
-  message by analyzing all changes relative to the active branch, stages every change, and commits — leaving the push
-  for the user. Use when the user asks to commit, when completing a coding task that should be committed, or when the
-  user invokes /commit. Proactively offer to commit after completing substantial code changes.
+  Stages all local changes and creates a style-compliant git commit, stopping before any push. Drafts
+  the commit message by analyzing all changes relative to the active branch, stages every change, and
+  commits, leaving the push for the user. Offers to commit proactively after completing substantial
+  code changes. Use when the user asks to commit, when completing a coding task that should be
+  committed, or when the user invokes /commit.
 user-invocable: true
 ---
 
@@ -42,8 +43,10 @@ Run the following git commands in parallel using the Bash tool:
 2. `git diff` to see unstaged changes and `git diff --cached` to see staged changes.
 3. `git log --oneline -10` to see recent commit messages for style context.
 4. `git branch --show-current` to determine the active branch, and identify the default branch (commonly `main` or
-   `master`; confirm via `git symbolic-ref --short refs/remotes/origin/HEAD` and strip the `origin/` prefix when a
-   remote exists).
+   `master`). Confirm the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD` and strip the
+   `origin/` prefix when a remote exists. If that command errors with `is not a symbolic ref`, run
+   `git remote set-head origin -a` to populate `origin/HEAD`, otherwise fall back to checking for `main` then
+   `master`.
 
 If `git status` shows no staged, unstaged, or untracked changes, stop and report that there is nothing to commit
 rather than running `git add`/`git commit`.
@@ -75,7 +78,7 @@ Using the branch information from Step 1:
 
 ### Step 5: Stage all changes
 
-Stage every change — tracked modifications, deletions, and untracked files — with `git add -A`.
+Stage every change with `git add -A`, covering tracked modifications, deletions, and untracked files.
 
 ### Step 6: Create the commit
 
@@ -173,7 +176,21 @@ Always end commit messages (header and every bullet) with a period.
 Focus on *what* was changed and *why*, not *how*. Be specific and descriptive.
 
 Commit-message prose is exempt from the project-wide separator rule, so it may use `--` and `-` bullet lists, for
-example when referencing CLI flags or listing changes. Still prefer a positive description of what changed.
+example when referencing CLI flags or listing changes.
+
+State what the commit now does, and do not frame a bullet by what the code no longer does or by how it used to behave
+beyond the removal verb itself. Keep a "not Y" contrast only when it is load-bearing because it corrects a
+counter-intuitive assumption, giving its reason.
+
+### Prose quality
+
+**Typo-free and grammatical**: The commit message must be free of typos and grammatical errors, checked before the
+commit is created, with every symbol name, file name, flag spelling, and version string verified against the diff
+rather than from memory.
+
+**Sentence length**: Every sentence in the commit header and detail bullets stays under 40 words. Break a longer
+sentence at a natural clause boundary, or split it into two bullets. Count the message prose alone, never the git
+commands, paths, or code spans quoted inside it.
 
 ---
 
@@ -199,31 +216,6 @@ Refactored skill architecture to support user-invocable skills.
 -- Added the /commit skill to CLAUDE.md available skills table.
 ```
 
-**Avoid:**
-
-```text
-fixed bug                          # Too vague, no punctuation
-Updated stuff                      # Not specific
-Changes to Task.cs                 # Describes file, not change
-WIP                                # Not descriptive
-Add new feature                    # Present tense, no period
-This commit fixes the login bug    # Unnecessary preamble
-Co-Authored-By: ...                # Authorship does not belong in messages
-Generated with AI assistance       # Tool attribution does not belong
-```
-
----
-
-## Input/output examples
-
-| Input (What was done)                              | Output (Commit message)                                      |
-|----------------------------------------------------|--------------------------------------------------------------|
-| Added user authentication with JWT tokens          | Added JWT-based authentication for user sessions.            |
-| Fixed bug where dates displayed incorrectly        | Fixed date formatting in timezone conversion.                |
-| Updated dependencies and refactored error handling | Updated dependencies and standardized error response format. |
-| Removed deprecated API endpoints                   | Removed deprecated v1 API endpoints from configuration.      |
-| Refactored the zone detection logic for clarity    | Refactored zone detection logic to improve readability.      |
-
 ---
 
 ## Common mistakes
@@ -244,9 +236,9 @@ Generated with AI assistance       # Tool attribution does not belong
 
 | Skill               | Relationship                                                       |
 |---------------------|--------------------------------------------------------------------|
-| `/python-style`     | Provides Python conventions; invoke before making Python changes   |
-| `/cpp-style`        | Provides C++ conventions; invoke before making C++ changes         |
-| `/csharp-style`     | Provides C# conventions; invoke before making C# changes           |
+| `/python-style`     | Provides Python conventions, invoked before making Python changes  |
+| `/cpp-style`        | Provides C++ conventions, invoked before making C++ changes        |
+| `/csharp-style`     | Provides C# conventions, invoked before making C# changes          |
 | `/audit-project`    | Runs the change-mode gate over new code, before this skill commits |
 | `/pr`               | Drafts a pull request summary for the branch after it is committed |
 | `/release`          | Drafts release notes summarizing merged pull requests              |
@@ -266,6 +258,8 @@ user to perform.
 
 ## Verification checklist
 
+### Commit message
+
 **You MUST verify the commit message against this checklist before creating the commit.**
 
 ```text
@@ -275,12 +269,17 @@ Commit Message Compliance:
 - [ ] Ends with a period
 - [ ] Describes *what* was changed and *why*, not *how*
 - [ ] Specific and descriptive (not vague like "Updated stuff")
+- [ ] Free of typos and grammar errors
+- [ ] Every sentence in the drafted text stays under 40 words
+- [ ] Bullets state what the change now does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Multi-line format used for bundled changes (if applicable)
 - [ ] Multi-line bullets prefixed with `-- ` and each ends with a period
 - [ ] Contains NO authorship details, co-author tags, or attribution
 - [ ] Contains NO references to tools or AI unless explicitly requested by the user
 - [ ] Contains ONLY information about the changes themselves
 ```
+
+### Commit execution
 
 **You MUST verify the commit operation against this checklist before handing off.**
 

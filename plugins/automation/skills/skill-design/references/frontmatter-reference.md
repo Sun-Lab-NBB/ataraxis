@@ -15,19 +15,20 @@ The skill's identifier. You MUST ensure it matches the parent directory name.
 | Type       | String                                                           |
 | Required   | Yes                                                              |
 | Max length | 64 characters                                                    |
-| Format     | Lowercase letters, digits, and hyphens only; no consecutive `--` |
+| Format     | Lowercase letters, digits, and hyphens only, no consecutive `--` |
 | Convention | Must match parent directory name: `explore-codebase`, `commit`   |
 
 ### `description`
 
-Explains what the skill does and when to use it. Serves as the primary trigger mechanism — the
-agent reads all skill descriptions at session start to decide when to invoke each skill.
+Explains what the skill does and when to use it. Serves as the primary trigger mechanism, because
+the agent reads all skill descriptions at session start to decide when to invoke each skill.
 
 | Property     | Value                                                  |
 |--------------|--------------------------------------------------------|
 | Type         | String (use YAML `>-` for multi-line)                  |
 | Required     | Strongly recommended                                   |
 | Max length   | 1024 characters                                        |
+| Max lines    | 5 wrapped lines in the folded block                    |
 | Voice        | Third person                                           |
 | Must include | What the skill does AND when to use it ("Use when...") |
 
@@ -68,7 +69,7 @@ be invoked explicitly by the user or by another skill.
 ### `allowed-tools`
 
 Pre-approves the listed tools (skips the permission prompt) while the skill is active. It does NOT
-restrict the tool pool — every other tool remains callable and normal permission settings still
+restrict the tool pool. Every other tool remains callable and normal permission settings still
 apply. To make a skill read-only, use `disallowed-tools` or run it with `context: fork` plus
 `agent: Explore` (the Explore agent denies Write/Edit).
 
@@ -101,7 +102,7 @@ Autocomplete hint displayed in the `/` menu to indicate expected arguments.
 
 ### `model`
 
-Override the model used when the skill is active.
+Overrides the model used while the skill is active.
 
 | Property | Value                     |
 |----------|---------------------------|

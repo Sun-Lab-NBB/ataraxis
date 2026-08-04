@@ -169,6 +169,13 @@ These dependencies will be automatically resolved when the library is installed.
 The method will return a tuple of timestamps.
 ```
 
+**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be broken
+into smaller sentences at natural clause boundaries.
+
+**Typo-free and grammatical**: Every section of the README must be free of typos and grammatical
+errors, with the `Acknowledgments` spelling the one named exception the rule cannot settle on its
+own, because both spellings are correct English.
+
 **Notes and warnings**: Use `***Note,***` for important information. Use `***Warning!***` or
 `***Critical!***` for dangerous operations or essential requirements. Do not use GitHub-specific
 alert syntax (`> [!NOTE]`) as it does not render on PyPI.
@@ -201,19 +208,21 @@ documentation instead and keep the README's usage material to the smallest path 
 to a working first result.
 
 **No marketing prose**: State what the library does. Do not describe it as powerful, flexible,
-seamless, robust, comprehensive, or easy to use, and do not explain why its problem matters. A
-reader who opened the README has already accepted the premise.
+seamless, robust, comprehensive, or easy to use, and do not explain why its problem matters.
 
 **No section preamble**: A section starts with its content. Sentences that announce the section,
 such as "This section describes the installation process", restate the heading directly above them.
 
-**No change narration**: The README describes the library as it currently stands. Version history,
-migration notes, and the record of what changed belong to the release notes, so do not accumulate
-them here.
+**No change narration**: The README describes the library as it currently stands, never the edit
+that produced it. Version history and migration notes belong to the release notes, so do not
+accumulate them here.
 
 **No ratchet**: Updating a README section is not a reason to lengthen it. When a change leaves the
 documented behavior intact, leave the section as it stands. When behavior changes, rewrite the
 affected sentences and delete the ones the change made redundant.
+
+**Length proportionality**: Section length must be proportional to how hard the subject is for a
+reader to get right, which is independent of how much code implements it.
 
 **Worked reduction:**
 
@@ -259,9 +268,9 @@ Use a single H1 (`#`) for the project title. All sections use H2 (`##`). Subsect
 
 ## Accessibility
 
-- Every image must have meaningful alt text: `![Description of the image](url)`
+- Every image must have alt text that names what the image shows: `![Description of the image](url)`
 - Avoid filenames as alt text (e.g., do not use `![screenshot1.png](...)`)
-- Use descriptive link text that hints at the destination; avoid "click here" patterns
+- Every link's text must name the page or document it opens. Text such as "click here" fails that test
 - Indicate file types for downloads: `[User Guide (PDF)](url)`
 
 ---
@@ -304,16 +313,19 @@ cross-reference against the current state of the codebase to ensure accuracy.
 
 ## Related skills
 
-| Skill               | Relationship                                                     |
-|---------------------|------------------------------------------------------------------|
-| `/python-style`     | Provides Python conventions; invoke for Python tasks             |
-| `/cpp-style`        | Provides C++ conventions; invoke for C++ tasks                   |
-| `/csharp-style`     | Provides C# conventions; invoke for C# tasks                     |
-| `/pyproject-style`  | Provides pyproject.toml conventions; one-line description synced |
-| `/project-layout`   | Provides project directory conventions; README is a root file    |
-| `/skill-design`     | Provides skill conventions; invoke for skill authoring tasks     |
-| `/commit`           | Provides commit message conventions; invoke after README changes |
-| `/explore-codebase` | Provides project context for cross-referencing README claims     |
+| Skill                | Relationship                                                     |
+|----------------------|------------------------------------------------------------------|
+| `/python-style`      | Provides Python conventions, invoke for Python tasks             |
+| `/cpp-style`         | Provides C++ conventions, invoke for C++ tasks                   |
+| `/csharp-style`      | Provides C# conventions, invoke for C# tasks                     |
+| `/pyproject-style`   | Provides pyproject.toml conventions, one-line description synced |
+| `/project-layout`    | Provides project directory conventions, README is a root file    |
+| `/skill-design`      | Provides skill conventions, invoke for skill authoring tasks     |
+| `/commit`            | Provides commit message conventions, invoke after README changes |
+| `/explore-codebase`  | Provides project context for cross-referencing README claims     |
+| `/api-docs`          | Owns the hosted API documentation the README links to            |
+| `/tox-config`        | Owns the tox environments the Developers template lists          |
+| `/platformio-config` | Owns the lib_deps pin the C++ Installation template shows        |
 
 ---
 
@@ -365,18 +377,24 @@ Style:
 - [ ] Present tense as default
 - [ ] `***Note,***` / `***Warning!***` for callouts (not GitHub alerts)
 - [ ] No GitHub-specific features (alerts, details/summary, picture, task lists)
-- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
+      syntax exempt)
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] README prose free of typos and grammar errors
 
 Quality:
+- [ ] Sentences in README prose stay under 40 words
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, description, and heading)
 - [ ] API surface is linked rather than reproduced (no per-parameter or per-method listings)
 - [ ] No marketing adjectives (powerful, flexible, seamless, robust, comprehensive, easy to use)
 - [ ] No section preamble restating the heading above it
+- [ ] README records the library as it currently stands, never the edit that produced it
 - [ ] No version history or migration notes (those belong to the release notes)
 - [ ] Updates leave sections no longer than they started unless behavior genuinely changed
-- [ ] All images have meaningful alt text
-- [ ] Link text is descriptive (no "click here")
+- [ ] Section length proportional to how hard the subject is for a reader to get right, not to how much code
+      implements it
+- [ ] All images have alt text that names what the image shows
+- [ ] Link text names the page or document the link opens (no "click here")
 - [ ] Technical descriptions cross-referenced against codebase
 - [ ] File paths and class names verified to exist
 - [ ] API examples tested against actual implementation

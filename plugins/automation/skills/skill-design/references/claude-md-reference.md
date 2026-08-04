@@ -103,16 +103,9 @@ be shared with the team:
 
 ## Quality criteria
 
-Use these weighted criteria when evaluating CLAUDE.md quality:
-
-| Criterion            | Weight | Description                                             |
-|----------------------|--------|---------------------------------------------------------|
-| Commands/workflows   | High   | Copy-paste ready commands for build, test, lint, deploy |
-| Architecture clarity | High   | Clear directory structure and component relationships   |
-| Non-obvious patterns | Medium | Project-specific gotchas and conventions                |
-| Conciseness          | Medium | Dense, information-rich content without filler          |
-| Currency             | High   | Up-to-date with current codebase state                  |
-| Actionability        | High   | Every instruction leads to a concrete action            |
+A CLAUDE.md complies when it passes the CLAUDE.md checklist in `/skill-design`. Beyond that
+checklist, the default is that every instruction names a command to run or a concrete action to
+take, and an instruction that restates a language default is deleted rather than kept.
 
 ---
 
@@ -157,8 +150,9 @@ the following rules carry over unchanged:
 - The 120 character line limit, pretty table formatting, and language identifiers on code blocks
 - Third person for descriptive content, and second person with emphasis for agent directives
 - Sentence case for section headings
-- Prose punctuation and positive description, meaning the full stop and the comma as the only clause
-  separators and a statement of what is currently true
+- Prose punctuation and positive description. The full stop and the comma are the only clause separators,
+  with no semicolon or em-dash. The single hyphen stays available as a list marker and in compound words,
+  and the prose states what is currently true rather than what it is not or used to be
 
 The CLAUDE.md verification checklist in `/skill-design` applies to `AGENTS.md` unchanged. The `@` import
 syntax and the `.claude/rules/*.md` files are Claude Code loading mechanisms, so a tool that reads

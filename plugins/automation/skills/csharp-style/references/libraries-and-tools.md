@@ -1,13 +1,13 @@
 # Libraries, tools, and patterns
 
-Conventions for LINQ, resource management, async/await, testing, static analysis, and path
-handling in C# projects.
+Conventions for LINQ, resource management, async/await, testing, static analysis, path handling,
+and error handling in C# projects.
 
 ---
 
 ## LINQ conventions
 
-LINQ is the C# equivalent of Python comprehensions. Prefer **method syntax** over query syntax:
+Prefer **method syntax** over query syntax:
 
 ```csharp
 // Good - method syntax
@@ -54,7 +54,7 @@ private void Update()
     }
 }
 
-// Wrong - LINQ in Update (allocates every frame)
+// Avoid - LINQ in Update (allocates every frame)
 private void Update()
 {
     foreach (OccupancyZone zone in _zones.Where(z => z.isActive))
@@ -69,7 +69,7 @@ private void Update()
 - Use LINQ for collection initialization, one-time queries, and editor scripts
 - Use explicit loops for per-frame logic and performance-critical paths
 - Prefer `.Select()` over manual list building in non-hot paths
-- Keep lambda expressions short (one line); extract named methods for complex logic
+- Keep lambda expressions to a single line, extracting named methods for complex logic
 - Use `Array.Find()` / `Array.FindIndex()` for simple single-element lookups on arrays
 
 ---
@@ -78,8 +78,7 @@ private void Update()
 
 ### Using declarations
 
-Use `using` declarations for resources that implement `IDisposable`. This is the C# equivalent
-of Python's context managers (`with` statements):
+Use `using` declarations for resources that implement `IDisposable`:
 
 ```csharp
 // Good - using declaration (C# 8+, preferred)
@@ -203,8 +202,7 @@ private IEnumerator WaitAndReset()
 ## Coroutine conventions
 
 Unity coroutines (`IEnumerator` + `StartCoroutine`) are the standard approach for frame-based
-async operations. This is the C# equivalent of the C++ state machine pattern where each stage
-performs one atomic action and returns control to the caller.
+async operations.
 
 ### Naming
 
@@ -305,7 +303,7 @@ public void GetSegmentLengths_ValidPrefabs_ReturnsCorrectLengths()
 
 ### Test documentation
 
-- Use "Verifies..." as the imperative mood for test summaries (matching Python convention)
+- Use "Verifies..." as the third-person imperative mood for test summaries (matching Python convention)
 - Each test method has an XML `<summary>` tag
 - Do NOT add `<param>`, `<returns>`, or `<exception>` tags to test methods. The `<summary>`
   tag is sufficient. This matches the Python convention of omitting Args, Returns, and Raises
@@ -327,18 +325,18 @@ dotnet_diagnostic.IDE0044.severity = suggestion  # Make field readonly
 dotnet_diagnostic.CA1051.severity = suggestion   # Do not declare visible instance fields
 ```
 
-### Key analyzer equivalents
+### Key analyzers
 
-The C++ projects use clang-tidy with `WarningsAsErrors: '*'`. The C# equivalents are Roslyn
-analyzers configured via EditorConfig:
+Roslyn analyzers configured through EditorConfig carry the automated enforcement in C# projects.
+The `/cpp-style` skill owns the matching clang-tidy configuration for C++ projects:
 
-| clang-tidy Check                                 | Roslyn Equivalent | Description                  |
-|--------------------------------------------------|-------------------|------------------------------|
-| `readability-convert-member-functions-to-static` | `CA1822`          | Member can be made static    |
-| `readability-make-member-function-const`         | `IDE0044`         | Make field readonly          |
-| `bugprone-unused-return-value`                   | `CA1806`          | Do not ignore method results |
-| `modernize-use-override`                         | `CS0114`          | Missing override keyword     |
-| `performance-inefficient-string-concatenation`   | `CA1834`          | Use StringBuilder            |
+| Roslyn analyzer | Description                  |
+|-----------------|------------------------------|
+| `CA1822`        | Member can be made static    |
+| `IDE0044`       | Make field readonly          |
+| `CA1806`        | Do not ignore method results |
+| `CS0114`        | Missing override keyword     |
+| `CA1834`        | Use StringBuilder            |
 
 ### Suppressing warnings
 
@@ -357,8 +355,7 @@ public float trackLength = 10f;
 
 ### Platform and context directives
 
-Use `#if` directives for code that should only compile in specific contexts. This is the C#
-equivalent of C++ `#ifdef` for firmware variants:
+Use `#if` directives for code that should only compile in specific contexts:
 
 ```csharp
 // Good - editor-only code guarded by UNITY_EDITOR
@@ -618,4 +615,67 @@ private void Update()
         }
     }
 }
+```
+
+---
+
+## Error handling
+
+MonoBehaviour code reports failures through Unity's logging system and returns without throwing:
+
+```csharp
+if (template == null)
+{
+    Debug.LogError("Failed to load task template from YAML file.");
+    return;
+}
+
+if (Mathf.Abs(measuredLength - configuredLength) > LengthComparisonEpsilon)
+{
+    Debug.LogWarning(
+        $"For {segmentName}, mismatch between prefab length ({measuredLength}) "
+            + $"and configured length ({configuredLength})."
+    );
+}
+```
+
+Editor tools, static utility classes, and pure C# libraries that do not inherit from MonoBehaviour
+raise standard C# exceptions instead:
+
+```csharp
+/// <summary>Parses the task template from raw YAML content.</summary>
+/// <param name="yamlContent">The YAML string to parse.</param>
+/// <returns>The deserialized task template.</returns>
+/// <exception cref="FormatException">The YAML content does not conform to the template schema.</exception>
+public static TaskTemplate ParseTemplate(string yamlContent)
+{
+    if (string.IsNullOrEmpty(yamlContent))
+    {
+        throw new ArgumentException("YAML content must not be null or empty.", nameof(yamlContent));
+    }
+
+    TaskTemplate template = YamlParser.Deserialize<TaskTemplate>(yamlContent);
+    if (template == null)
+    {
+        throw new FormatException("Failed to deserialize task template from YAML content.");
+    }
+    return template;
+}
+```
+
+### Error message format
+
+Assign a multi-line message to a local variable before passing it, and pass a short single-line
+message directly:
+
+```csharp
+// Good - message variable for multi-line errors
+string message =
+    $"Unable to create corridor for segment '{segmentName}'. "
+    + $"The configured length ({configuredLength}) must match the prefab length "
+    + $"({measuredLength}), but they differ by {Mathf.Abs(measuredLength - configuredLength)}.";
+Debug.LogError(message);
+
+// Acceptable - short single-line messages passed directly
+Debug.LogError("Failed to load task template from YAML file.");
 ```

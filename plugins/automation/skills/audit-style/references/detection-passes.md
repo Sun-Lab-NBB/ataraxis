@@ -11,6 +11,8 @@ Dimension C, and pass 11 covers Dimension D.
 Every pass draws its authority from the checklists Pass 1 loads. A convention absent from every loaded
 checklist is not a violation, whatever a pass below appears to invite.
 
+---
+
 ## Contents
 
 - Pass 1: Rule ledger
@@ -25,6 +27,8 @@ checklist is not a violation, whatever a pass below appears to invite.
 - Pass 10: Project layout sweep
 - Pass 11: Symbol usage sweep
 
+---
+
 ## One traversal, eleven questions
 
 Passes 2 through 8 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file
@@ -38,11 +42,69 @@ because the directory tree belongs to the repository rather than to any file in 
 last on the main agent, because each needs the whole file set in one view.
 
 Pass 11 also takes an input the traversal produces. Every file read during passes 2 through 8 records
-the symbols it DECLARES and the symbols it REFERENCES, so the single traversal supplies the two tables
-pass 11 reconciles rather than paying for a second reading of every file in scope.
+the symbols it DECLARES and the symbols it REFERENCES. The single traversal therefore supplies the two
+tables pass 11 reconciles rather than paying for a second reading of every file in scope.
 
-Every pass also defers to the Step 3 deterministic gates. Where a configured tool decides a rule, the
-tool's output IS the finding and the pass reports nothing on its own authority.
+---
+
+## What the sweep keeps
+
+Every pass defers to the Step 3 deterministic gates. Where a configured tool decides a rule, the
+tool's output IS the finding and the pass reports nothing on its own authority. Guard 2 of
+`false-positive-guards.md` lists what the tools own, which is line length, indentation, blank-line
+counts, quote and string form, trailing commas, import sorting and grouping, and every rule carried by
+a ruff code the project enables.
+
+The sweep keeps the rules no tool decides:
+
+- Documentation quality in every form, which is length proportionality, redundancy with the signature,
+  behavioral scope, sentence length, mood, separator punctuation, positive description, and spelling.
+- Identifier vocabulary, meaning full words against the abbreviations the checklist enumerates.
+- Element and section ORDERING where the checklist states an order the formatter does not enforce.
+- Visibility placement.
+- Cross-file consistency, and every cross-skill conflict.
+- Symbol visibility against actual usage, together with every asset no consumer references. Ruff
+  reaches that only for imports outside `__init__.py`, for locals, and for arguments, and carries no
+  rule for an unused module-level definition or an unused member.
+
+---
+
+## Batching the fan-out
+
+A Large-tier audit BATCHES BY AUTHORITY, so no sub-agent carries more than one or two checklists. This
+is the rule that decides what this audit costs. Every sub-agent re-receives the checklists its files
+bind to, and the loaded checklists of a mixed project root run to tens of thousands of tokens, so a
+sub-agent holding every authority pays for guides it never applies, once per sub-agent.
+
+Build the batches under three rules:
+
+1. **One authority per batch, two at the absolute most.** Group files by the authority the Step 1
+   binding table assigned. A batch is Python files, or C++ files, or C# files, and never a mixture.
+2. **A single-file authority gets its own sub-agent.** `README.md`, `pyproject.toml`, and `tox.ini`
+   each bind to a checklist nothing else uses. `platformio.ini` travels with `library.json`, and
+   `CLAUDE.md` with `AGENTS.md`. A skill is one such batch rather than one per file, so its
+   `SKILL.md` and its `references/*.md` travel together, because the progressive-disclosure rules
+   judge a reference file against the `SKILL.md` that loads it. The documentation package under
+   `docs/` is one sub-agent holding `/api-docs` alone.
+3. **Roughly eight files per source batch**, sharing a package or a directory. Forty sub-agents cap
+   the run, twelve run at once, and batches beyond forty merge by shared checklist rather than
+   dropping files.
+
+Each sub-agent loads ONLY the checklists its own batch binds to, and receives ONLY the rule-ledger
+rows Step 2 built from those checklists.
+
+Only the per-file sweep fans out. Every other step runs on the main agent. The rule ledger, the
+cross-file consistency pass, the symbol usage pass, the severity rating, the guards, the verification,
+and the report each need the whole file set in one view or sit on a trust boundary.
+
+The fan-out therefore carries a SECOND return value. Every batch sub-agent returns its findings AND the
+declaration and reference rows Pass 11 defines, covering each symbol its files declare and each symbol
+its files reference. Findings alone would leave the main agent unable to run Pass 11 at all, because a
+symbol declared in one batch and consumed in another is invisible to both sub-agents while the main
+agent never reads their files.
+
+Do NOT use the `Explore` agent type for sweep work. Explore returns summaries rather than
+verbatim citations and breaks the "verbatim checklist quote" discipline.
 
 ---
 
@@ -145,8 +207,8 @@ Export surface, so an `__init__` declares `__all__` and orders its entries as th
 This pass sees ONE file, so it decides only what that one file reveals. Whether an export list holds
 the right NAMES is a question about the whole file set, because the answer turns on which packages
 import which symbols, and pass 11 owns it. A deep import reaching past a missing export is one
-construct together with that missing export, so Guard 13 reports the pair once, under pass 11, with
-the import site carried as a citation.
+construct together with that missing export, so Guard 13 of `false-positive-guards.md` reports the
+pair once, under pass 11, with the import site carried as a citation.
 
 Leave import sorting and grouping alone where the checklist delegates it to a formatter, and report
 only the properties the checklist itself states.
@@ -159,9 +221,9 @@ only the properties the checklist itself states.
 
 Sweep the file for the constructs the loaded checklist names, and for each one check whether the
 prescribed form is the one in use. The recurring subjects are error reporting and its message format,
-comparison forms for booleans and for null, guard clauses against nested conditionals, resource
-management through a scoped construct, path handling, string interpolation and quoting, and the
-library helper the checklist prefers over a hand-rolled equivalent.
+comparison forms for booleans and for null, guard clauses against nested conditionals, and resource
+management through a scoped construct. They also cover path handling, string interpolation and
+quoting, and the library helper the checklist prefers over a hand-rolled equivalent.
 
 Judge each against the checklist text rather than against general good practice, and report only where
 the checklist names the prescribed form. This pass is where invented conventions enter a report most
@@ -183,17 +245,20 @@ Walk every documentation block and check:
 3. Mood and person against the checklist's stated voice.
 4. Prose form against the checklist's structural rules, which covers prose against bullet lists and
    the specifier forms permitted in each context.
-5. Sentence length against the checklist's stated word limit.
+5. Sentence length against the checklist's stated word limit, which is commonly 40 words.
 6. Length proportionality, so the block's size tracks the difficulty of understanding the code rather
    than the length of the code.
 7. Redundancy, so the block avoids restating the type signature and avoids padding the reader can
    infer from the code directly.
 8. Behavioral scope, so the block describes the asset's own behavior rather than the pipeline stage or
    feature that consumes it.
-9. Separator punctuation against the checklist's rule.
+9. Separator punctuation against the checklist's rule, so clauses are separated by full stops and
+   commas rather than by a semicolon or an em-dash.
 10. Positive description, so the text states present behavior rather than framing it by what it is not
-    or what it formerly did.
-11. Spelling and grammar.
+    or what it used to be. Contrastive and historical framing ("does X, not Y" or "used to do Y") is a
+    finding, with a load-bearing contrast that carries its reason exempt.
+11. Spelling and grammar against the checklist's stated language variant, checked word by word rather
+    than by impression.
 
 Check each block against all eleven rather than stopping at the first, because these violations
 co-occur and a block corrected for one frequently still breaks three others.
@@ -227,10 +292,10 @@ This pass runs on the main agent after every per-file pass completes, because it
 set in one view.
 
 Build a convention table across the file set with one row per recurring decision and one column per
-file, then read each row for disagreement. The rows worth building are the name given to the same
-concept in sibling classes, the ordering scheme within comparable files, the declaration form chosen
-for comparable types, the error-reporting form, the documentation section set on comparable members,
-and the import style for comparable dependencies.
+file, then read each row for disagreement. The rows worth building start with the name given to the
+same concept in sibling classes, the ordering scheme within comparable files, and the declaration form
+chosen for comparable types. The remaining rows are the error-reporting form, the documentation
+section set on comparable members, and the import style for comparable dependencies.
 
 Report a row where files disagree and the loaded checklist permits both forms only separately, which
 is an INCONSISTENCY rather than a violation of any single rule. Where the checklist prescribes one
@@ -269,7 +334,7 @@ Report each finding in the shape below, which replaces the skill's ordinary find
 `Location: <path>:<line>` citation cannot point at a file that does not exist:
 
 ```text
-[Category]: <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT>
+[Severity]: <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT>
 [Confidence]: <HIGH | MEDIUM | LOW>
 Skill: /project-layout
 Checklist point: "<verbatim archetype tree line, or verbatim layout checklist item>"
@@ -299,9 +364,10 @@ both, so it can no more report an export nobody imports than pass 10 could repor
 
 Work in four parts:
 
-**1. Build the declaration table.** One row per symbol the file set declares, carrying the declaring
-path and line, the kind, the declared visibility, the defining module, the defining package, and
-whether that package's `__init__.py` lists the symbol in its import block and in `__all__`.
+**1. Build the declaration table.** One row per symbol the file set declares. Each row carries the
+declaring path and line, the kind, the declared visibility, the defining module, and the defining
+package, together with whether that package's `__init__.py` lists the symbol in its import block and
+in `__all__`.
 
 **2. Build the reference table.** One row per site that references a declared symbol, carrying the
 referencing path and line, the referencing module, the referencing package, and whether the site sits
@@ -310,7 +376,7 @@ Large-tier run each batch sub-agent returns its share alongside its findings.
 
 **3. Resolve the actual tier of every symbol** by reading its reference rows: `none`, `module-local`,
 `package-local`, or `cross-package`. Discount every row the guards exclude before resolving, which is
-the work Guard 15 defines.
+the work Guard 15 of `false-positive-guards.md` defines.
 
 **4. Compare the actual tier against the declared one.** Every mismatch is one of five findings:
 
@@ -342,10 +408,10 @@ repository holds a `.codegraph/` index, `codegraph explore` answers the same que
 the cheaper confirmation. A candidate whose search never ran, and a finding that cannot name its
 consumer set, are both deleted rather than reported at low confidence.
 
-Categorize UNDER_EXPOSED, MISSING_EXPORT, and a deep import reaching past a missing export as BLOCKING,
-because each names a rule the checklists state with MUST. Categorize OVER_EXPOSED, UNWARRANTED_EXPORT,
-and UNUSED_ASSET as STANDARD.
+Rate UNDER_EXPOSED, MISSING_EXPORT, and a deep import reaching past a missing export as BLOCKING,
+because each names a rule the checklists state with MUST. Rate OVER_EXPOSED, UNWARRANTED_EXPORT, and
+UNUSED_ASSET as STANDARD.
 
 Run this pass for every language in scope, resolving the tier against the visibility construct the
-bound checklist names, which is the underscore prefix and the `__init__.py` export list in Python, the
-underscore prefix and the public header in C++, and the access modifier in C#.
+bound checklist names. That construct is the underscore prefix and the `__init__.py` export list in
+Python, the underscore prefix and the public header in C++, and the access modifier in C#.

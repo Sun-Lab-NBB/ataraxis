@@ -7,6 +7,8 @@ Both checks are external. Check 1 tests the finding against the source file, and
 against a reader who never saw the sweep. Re-reading your own reasoning is no substitute for either,
 because that reasoning is the thing under test.
 
+---
+
 ## Contents
 
 - Check 1: Citation verification

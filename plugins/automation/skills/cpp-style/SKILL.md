@@ -82,7 +82,7 @@ consistency across languages while respecting each language's idiomatic standard
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- A leading underscore marks a symbol private to the module or class that defines it (`_snake_case`
+- A leading underscore marks a symbol private to the file or class that defines it (`_snake_case`
   for any private Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
@@ -93,10 +93,10 @@ consistency across languages while respecting each language's idiomatic standard
 - State what the code does now, not what it avoids doing or formerly did (positive description)
 
 **Shared between C++ and C# only:**
-- Allman brace style (opening braces on new lines; Python uses indentation)
+- Allman brace style (opening braces on new lines, where Python uses indentation)
 
 **C++-specific divergences from Python:**
-- Methods use PascalCase; accessors use `get_`/`set_` snake_case (not bare snake_case as in Python)
+- Methods use PascalCase, and accessors use `get_`/`set_` snake_case (not bare snake_case as in Python)
 - Constants use `kPascalCase` prefix (not `_UPPER_SNAKE_CASE` as in Python)
 - Enum values use `kPascalCase` prefix (not `UPPER_SNAKE_CASE` as in Python)
 - Documentation uses Doxygen `@tags` (not Google-style docstrings)
@@ -112,7 +112,7 @@ consistency across languages while respecting each language's idiomatic standard
 
 **Symbol visibility:**
 - A leading underscore marks a symbol private to the translation unit or header that defines it, and a
-  symbol referenced from another module is renamed to a public name
+  symbol referenced from another translation unit or header is renamed to a public name
 - A symbol consumed outside its owning component is exported through that component's public header,
   never by reaching into an internal header, and tests are the sole exception to both rules
 - Both rules bind downward as well. A symbol referenced only inside its defining translation unit or
@@ -125,17 +125,19 @@ consistency across languages while respecting each language's idiomatic standard
 
 ### Project archetypes
 
-C++ code falls into two paradigms with shared style but different constraints:
+C++ code falls into two archetypes with shared style but different constraints:
 
 - **Embedded** (Arduino/PlatformIO): No exceptions, no dynamic allocation, no RTTI, no STL heap
   containers. Uses status codes and boolean returns for error handling. Builds via PlatformIO.
 - **Extension** (Python/nanobind): Full STL allowed. Exceptions allowed (nanobind translates them
-  to Python exceptions). Builds via CMake + scikit-build-core. Requires GIL management.
+  to Python exceptions). Builds via CMake + scikit-build-core. Requires GIL management. Filesystem
+  paths compose from `std::filesystem::path` values joined with `operator/`, never from strings
+  concatenated around a hard-coded separator.
 
 All naming, documentation, and tooling conventions apply identically to both. Formatting is identical
 except for `AccessModifierOffset` and `IndentAccessModifiers`, which differ per archetype (see
 [references/libraries-and-tools.md](references/libraries-and-tools.md)). The verification checklist
-marks items that apply to only one paradigm.
+marks items that apply to only one archetype.
 
 ---
 
@@ -179,27 +181,8 @@ Use **full words**, not abbreviations:
 
 ### Accessors (getters and setters)
 
-Accessor methods use `get_`/`set_` snake_case to visually distinguish trivial field access from
-methods that perform real work. This follows the Google C++ naming convention:
-
-```cpp
-/// Returns the size of the instance's transmission buffer, in bytes.
-[[nodiscard]]
-static constexpr uint16_t get_transmission_buffer_size()
-{
-    return kTransmissionBufferSize;
-}
-
-/// Returns the size of the payload currently stored in the instance's transmission buffer.
-[[nodiscard]]
-uint8_t get_bytes_in_transmission_buffer() const
-{
-    return _transmission_buffer[kBufferLayout::kPayloadSizeIndex];
-}
-```
-
-At the call site, casing signals intent: PascalCase means work is being done, `get_`/`set_`
-snake_case means simple field access.
+See [class-patterns.md](references/class-patterns.md) for the accessor versus method decision and its
+call-site rationale.
 
 ### Constants
 
@@ -221,7 +204,9 @@ static constexpr int32_t kMultiplier = kInvertDirection ? -1 : 1;  // NOLINT(*-d
 
 ## Function calls
 
-See [class-patterns.md](references/class-patterns.md) for argument-labeling conventions in function calls.
+Calls that pass a boolean literal, or two or more arguments of the same declared type, label each
+such argument with a trailing inline comment naming the parameter. See
+[class-patterns.md](references/class-patterns.md) for argument-labeling conventions in function calls.
 
 ---
 
@@ -229,19 +214,9 @@ See [class-patterns.md](references/class-patterns.md) for argument-labeling conv
 
 ### Embedded projects (Arduino/PlatformIO)
 
-Embedded microcontrollers prohibit exceptions, RTTI, and dynamic allocation. Use status codes
-and boolean returns:
-
-```cpp
-bool RunActiveCommand() override
-{
-    switch (static_cast<kModuleCommands>(get_active_command()))
-    {
-        case kModuleCommands::kCheckState: CheckState(); return true;
-        default: return false;
-    }
-}
-```
+Embedded microcontrollers prohibit exceptions, RTTI, and dynamic allocation. Use status codes and
+boolean returns. See [class-patterns.md](references/class-patterns.md) for the command dispatch
+pattern that carries them.
 
 ### Extension projects (Python/nanobind)
 
@@ -302,9 +277,9 @@ clang-format enforces include sorting (`SortIncludes: CaseSensitive`). The conve
 4. **Local headers**: `"encoder_module.h"`, `"valve_module.h"`
 
 All includes must be at the top of the file, except the variant-gated includes inside a `#ifdef`
-target-selection block in `main.cpp`. Include sorting is enforced by **clang-format** — do
-not manually reorder. Use angle brackets (`<header.h>`) for library headers and quotes
-(`"header.h"`) for local project headers.
+target-selection block in `main.cpp`. Include sorting is enforced by **clang-format**, so do not
+manually reorder. Use angle brackets (`<header.h>`) for library headers and quotes (`"header.h"`)
+for local project headers.
 
 ---
 
@@ -316,7 +291,7 @@ All definitions within a file follow this vertical ordering from top to bottom:
 2. **Include guard** (`#ifndef` / `#define`)
 3. **Macro definitions** (if any, e.g., `#define ENCODER_USE_INTERRUPTS`)
 4. **Include directives**
-5. **Using directives** (`using namespace` — allowed in header-only libraries; see the using
+5. **Using directives** (`using namespace`, allowed in header-only libraries, see the using
    namespace section of [class-patterns.md](references/class-patterns.md))
 6. **Namespace declarations** (for shared asset files)
 7. **Free constants** (`static constexpr` at file scope)
@@ -365,35 +340,7 @@ See [class-patterns.md](references/class-patterns.md) for guard-clause and early
 
 ## Data member visibility
 
-**Classes** must keep all data members private (`_snake_case`) and expose them through
-`get_`/`set_` accessors when external access is needed. This enforces encapsulation and keeps
-the class interface explicit.
-
-**Structs** may use public data members (`snake_case`) for passive data holders that have no
-invariants or methods beyond simple initialization. Packed structs used for binary serialization
-are the primary example.
-
-```cpp
-// Class — all data members private, accessed via getters
-class TransportLayer
-{
-    public:
-        [[nodiscard]]
-        uint8_t get_runtime_status() const
-        {
-            return _runtime_status;
-        }
-
-    private:
-        uint8_t _runtime_status = 0;
-};
-
-// Struct — public members allowed for passive data
-struct CustomRuntimeParameters
-{
-        uint32_t pulse_duration = 35000;  ///< The time, in microseconds, to keep the valve open.
-} PACKED_STRUCT;
-```
+See [class-patterns.md](references/class-patterns.md) for the class and struct data member visibility rules.
 
 ---
 
@@ -419,16 +366,16 @@ See [libraries-and-tools.md](references/libraries-and-tools.md) for `.clang-form
 
 | Skill                | Relationship                                                                                       |
 |----------------------|----------------------------------------------------------------------------------------------------|
-| `/python-style`      | Provides Python conventions; C++ conventions parallel these                                        |
-| `/csharp-style`      | Provides C# conventions; C++ conventions parallel these                                            |
-| `/readme-style`      | Provides README conventions; invoke for README tasks                                               |
-| `/commit`            | Provides commit message conventions; invoke for commit tasks                                       |
-| `/skill-design`      | Provides skill file conventions; invoke for skill authoring tasks                                  |
+| `/python-style`      | Provides Python conventions. C++ conventions parallel these                                        |
+| `/csharp-style`      | Provides C# conventions. C++ conventions parallel these                                            |
+| `/readme-style`      | Provides README conventions. Invoke for README tasks                                               |
+| `/commit`            | Provides commit message conventions. Invoke for commit tasks                                       |
+| `/skill-design`      | Provides skill file conventions. Invoke for skill authoring tasks                                  |
 | `/explore-codebase`  | Provides project context that informs style-compliant code changes                                 |
 | `/api-docs`          | Provides Doxygen/Breathe API documentation build conventions                                       |
 | `/project-layout`    | Provides the directory tree that C++ source and test files live in                                 |
 | `/audit-project`     | Audits the code just written, before it is committed                                               |
-| `/platformio-config` | Covers platformio.ini and library.json field/section conventions; cpp-style covers C++ source only |
+| `/platformio-config` | Covers platformio.ini and library.json field/section conventions. cpp-style covers C++ source only |
 
 ---
 
@@ -470,7 +417,8 @@ against the code you wrote.
 - [ ] Comments and Doxygen blocks free of typos and grammar errors
 - [ ] Inline comments explain why, not what (no narrate-the-code comments)
 - [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
-- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and code syntax exempt)
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
+      syntax exempt)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Full words used (no abbreviations like pos, idx, val, buf)
 - [ ] Classes use PascalCase
@@ -479,7 +427,8 @@ against the code you wrote.
 - [ ] Class data members are private (_snake_case) with get_/set_ accessors
 - [ ] Struct data members may be public (snake_case) for passive data holders
 - [ ] Private members use _snake_case prefix
-- [ ] Symbols used outside their defining module are public, and cross-component ones use the public header
+- [ ] Symbols used outside their defining translation unit or header are public, and cross-component ones
+      use the public header
 - [ ] Symbols used only inside their defining translation unit or header keep the underscore, and symbols with
       no consumer outside the owning component stay out of its public header (tests are not consumers)
 - [ ] Every asset has a consumer, so functions, methods, classes, constants, enum members, and whole headers
@@ -492,9 +441,10 @@ against the code you wrote.
 - [ ] Macros use UPPER_SNAKE_CASE
 - [ ] Include guards use LIBRARY_PREFIX_FILE_NAME_H pattern
 - [ ] Guard clauses / early returns preferred over deep nesting
+- [ ] Arguments labeled with trailing inline // parameter comments for boolean literals and repeated parameter types
 - [ ] One primary class per file; file name matches class in snake_case
 - [ ] Public members above private members in class definition
-- [ ] Inline comments use third person imperative
+- [ ] Inline comments use third-person imperative mood
 - [ ] No heavy section separator blocks (// ====== or // ------)
 - [ ] No @code/@endcode example blocks in Doxygen documentation
 - [ ] Prose used in @brief details (not bullet lists)
@@ -502,14 +452,14 @@ against the code you wrote.
 - [ ] get_/set_ used for trivial field access; PascalCase for methods with side effects
 - [ ] Methods ordered by call hierarchy within each visibility group
 - [ ] I/O operations separated from processing logic (especially in extension code)
-- [ ] Magic numbers replaced with named static constexpr constants
 - [ ] Test functions have only @file and @brief (no @param, @returns, or @throws)
 - [ ] Linting warnings resolved (not suppressed) unless resolution adds unnecessary complexity
 - [ ] NOLINT comments for legitimate clang-tidy false positives only
 - [ ] No IDE inspection directives (CLion/ReSharper // noinspection etc.); only clang-tidy // NOLINT suppressions kept
 
-Tooling-enforced items. clang-format and clang-tidy resolve or report each of these, so run them
-rather than hand-checking. They stay listed for reviews performed without the tools.
+Tooling-enforced items. Run clang-format -i src/*.h src/*.cpp and clang-tidy src/*.h src/*.cpp -- -I include/
+to resolve or report each of these rather than hand-checking them. They stay listed for reviews performed
+without the tools.
 - [ ] All lines <= 120 characters
 - [ ] 4-space indentation, no tabs
 - [ ] Allman brace style (opening braces on new lines)
@@ -520,6 +470,10 @@ rather than hand-checking. They stay listed for reviews performed without the to
 - [ ] Template declarations on separate lines
 - [ ] Static methods used when no instance state is accessed (readability-convert-member-functions-to-static)
 - [ ] explicit keyword on single-argument constructors (google-explicit-constructor)
+- [ ] Magic numbers replaced with named static constexpr constants (readability-magic-numbers)
+- [ ] [[nodiscard]] on const getter methods (modernize-use-nodiscard)
+- [ ] Virtual destructors on leaf and base classes use = default (modernize-use-equals-default)
+- [ ] NB_MODULE block carries NOLINTNEXTLINE(performance-unnecessary-value-param), extension projects only
 - [ ] clang-format applied before commit
 - [ ] clang-tidy passes with zero warnings
 
@@ -530,16 +484,14 @@ Embedded-Specific Compliance (skip for extension projects):
 - [ ] static_assert used for compile-time template parameter validation
 - [ ] Scoped enums (enum class) with explicit backing type (uint8_t)
 - [ ] Structs use PACKED_STRUCT macro for binary serialization
-- [ ] [[nodiscard]] on const getter methods
-- [ ] virtual destructors use = default on leaf and base classes
 - [ ] final keyword on leaf classes that should not be subclassed
 - [ ] static constexpr for compile-time constants (not #define)
 
 Extension-Specific Compliance (skip for embedded projects):
-- [ ] NB_MODULE binding block at end of file with NOLINTNEXTLINE suppression
 - [ ] GIL released during blocking operations (nb::gil_scoped_release)
 - [ ] CMakeLists.txt uses nanobind_add_module with NB_STATIC
 - [ ] Extension class prefixed with C (e.g., CPrecisionTimer) to distinguish from Python wrapper
 - [ ] __repr__ method exposed via nanobind using CClassName(key=value) format
 - [ ] Multi-line error messages assigned to variable before passing to throw
+- [ ] std::filesystem::path with operator/ used for path construction in extension code (not string concatenation)
 ```

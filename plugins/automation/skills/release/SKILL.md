@@ -40,7 +40,7 @@ Run the following git commands using the Bash tool:
 1. Identify the previous release tag with `git tag --sort=-v:refname` (most recent first) or
    `git describe --tags --abbrev=0`.
 2. List the pull requests merged since that tag with `git log <previous-tag>..HEAD --merges --format='%h %s%n%b'`.
-   The `Merge pull request #N from ...` subject line names only the number and source branch — the pull request
+   The `Merge pull request #N from ...` subject line names only the number and source branch, while the pull request
    title and description live in the commit body, so you MUST read the body (not `--oneline`) to draft the notes.
 3. Review the aggregate change scope with `git diff <previous-tag>..HEAD --stat`.
 
@@ -56,18 +56,18 @@ and note that this is the first release.
 
 Determine whether the project is an independent library or part of a unified, cross-dependent library set:
 
-- **Cross-dependent set** — the project ships as one of a unified set of sibling libraries released and versioned
+- **Cross-dependent set**: the project ships as one of a unified set of sibling libraries released and versioned
   together, so the release notes MUST include a compatibility statement (Step 4).
-- **Independent library** — the project (like the ataraxis libraries) has no enforced cross-dependency web, so the
+- **Independent library**: the project (like the ataraxis libraries) has no enforced cross-dependency web, so the
   release notes MUST NOT include a compatibility statement.
 
 ### Step 3: Infer and recommend the release type
 
 Infer the release type from the change set and recommend it to the user. You MUST ask the user to confirm the type
-before finalizing the notes — never decide it unilaterally.
+before finalizing the notes. The user decides the type, so never decide it unilaterally.
 
-For C++ PlatformIO libraries the release version is single-sourced from `library.json` (not pyproject.toml); see
-`/platformio-config`.
+For C++ PlatformIO libraries the release version is single-sourced from `library.json` rather than pyproject.toml,
+which is where Python projects hold it. See `/platformio-config`.
 
 | Type  | Use case                                                                                 |
 |-------|------------------------------------------------------------------------------------------|
@@ -77,9 +77,9 @@ For C++ PlatformIO libraries the release version is single-sourced from `library
 
 ### Step 4: Resolve the compatibility statement (cross-dependent sets only)
 
-For cross-dependent releases, the compatibility statement names the sibling-library versions this release is designed to
-work with. You cannot reliably infer these — ask the user to confirm the compatible sibling-library versions and
-include them verbatim. For independent libraries, skip this step entirely.
+For cross-dependent releases, the compatibility statement names the sibling-library versions this release is designed
+to work with. You cannot reliably infer these, so ask the user to confirm the compatible sibling-library versions
+and include them verbatim. For independent libraries, skip this step entirely.
 
 ### Step 5: Draft the release notes
 
@@ -104,8 +104,8 @@ GitHub release manually.
 ### Rules
 
 - The first line is `### {type} Release` using the user-confirmed type.
-- For cross-dependent releases, follow the header with a single compatibility sentence naming the confirmed sibling-library
-  versions. Omit this line entirely for independent libraries.
+- For cross-dependent releases, follow the header with a single compatibility sentence naming the confirmed
+  sibling-library versions. Omit this line entirely for independent libraries.
 - `**Major Changes:**` introduces a numbered list (`1.`, `2.`, …) of the most impactful changes, ordered from most to
   least impactful.
 - Each item is a complete, descriptive sentence in past tense (see the verb set in `/commit`) ending with a period.
@@ -118,13 +118,14 @@ GitHub release manually.
 
 Prose uses only the full stop and the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`, or
 `–`) as a separator, and use a colon only where it is lexically appropriate. A single hyphen stays available as a list
-marker, in tables, and in compound words. State what the subject does and what is currently true. Do not frame it by
-what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing because it corrects a
-counter-intuitive assumption, giving its reason.
+marker, in tables, and in compound words. A `--` naming a CLI flag or an argument separator, like any token inside a
+code span, is not a clause separator and is left as written. State what the subject does and what is currently true.
+Do not frame it by what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing
+because it corrects a counter-intuitive assumption, giving its reason.
 
 ### Examples
 
-**Good (independent library — no compatibility statement):**
+**Good (independent library, no compatibility statement):**
 
 ```text
 ### Major Release
@@ -136,12 +137,12 @@ counter-intuitive assumption, giving its reason.
 3. Added a log processing (data extraction) pipeline.
 ```
 
-**Good (cross-dependent set — compatibility statement included):**
+**Good (cross-dependent set, compatibility statement included):**
 
 ```text
 ### Minor Release
 
-This release remains compatible with `acquisition` v5, `behavior` v3, and `analysis` v1.
+This release is designed to work with `acquisition` v5, `behavior` v3, and `analysis` v1.
 
 **Major Changes:**
 
@@ -153,13 +154,17 @@ This release remains compatible with `acquisition` v5, `behavior` v3, and `analy
 
 ## Content rules
 
-**Changes only.** The release notes must describe ONLY the changes themselves. Nothing else belongs in them.
+The release notes follow the content rules `/commit` defines for commit messages. They describe ONLY the changes
+themselves, and `/commit` carries the forbidden-content list that applies here verbatim.
 
-**Forbidden content:**
-- Authorship details, co-author tags, or attribution lines
-- References to tools, agents, or AI assistance unless the user explicitly requests it
-- Metadata unrelated to the changes (timestamps, ticket numbers, etc. unless requested)
-- Commentary on the process used to make the changes
+**What and why, not how**: Each item states *what* the release changed and *why*, not *how*, and is specific and
+descriptive rather than vague like "Updated various modules".
+
+**Sentence length**: Every sentence in a release note item stays under 40 words, broken at a natural clause boundary
+or split into two numbered items when it runs longer.
+
+**Typo-free and grammatical**: The release notes must be free of typos and grammatical errors, with every symbol
+name, file name, and version string verified against the diff or tag output rather than recalled from memory.
 
 ---
 
@@ -167,7 +172,7 @@ This release remains compatible with `acquisition` v5, `behavior` v3, and `analy
 
 | Skill                | Relationship                                                             |
 |----------------------|--------------------------------------------------------------------------|
-| `/commit`            | Provides the past tense verb set and punctuation conventions reused here |
+| `/commit`            | Provides the past tense verb set and the content rules reused here       |
 | `/pr`                | Drafts the per-branch pull request summaries that releases aggregate     |
 | `/explore-codebase`  | Provides project context that helps write accurate summaries             |
 | `/platformio-config` | Owns library.json whose version field is the C++ library release version |
@@ -196,11 +201,19 @@ Release Notes Compliance:
 - [ ] Sibling-library versions confirmed by the user (cross-dependent sets only)
 - [ ] `**Major Changes:**` numbered list ordered from most to least impactful
 - [ ] Each item is past tense and ends with a period
-- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons and hyphen bullets fine)
+- [ ] Each item describes *what* changed and *why*, not *how*, and is specific rather than vague (not "Updated
+      various modules")
+- [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
+      syntax exempt)
 - [ ] Prose states what the release does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] Every sentence in the drafted text stays under 40 words
+- [ ] Free of typos and grammar errors
 - [ ] Condenses many pull requests into a few impactful themes (does not list every pull request)
 - [ ] Does NOT include `## What's Changed` or `**Full Changelog**`
+- [ ] Enumerated changes since the previous release tag, reconciling merge and squash/rebase history against the
+      `--stat` scope
 - [ ] Contains NO authorship details, co-author tags, or attribution
 - [ ] Contains NO references to tools or AI unless explicitly requested by the user
+- [ ] Contains ONLY information about the changes themselves
 - [ ] Did NOT create a tag or GitHub release
 ```

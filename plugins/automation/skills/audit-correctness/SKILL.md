@@ -82,9 +82,9 @@ language that lacks it.
 | Declared contract | Annotations and the Google-style docstring   | The signature, `const`, and the Doxygen block | The signature, nullability, and the XML doc   |
 
 Where a language ships no coverage instrument, build the ranking by reading its test suite and mapping
-each test to the symbols it exercises, then treat every symbol no test reaches as the top tier. Embedded
-firmware frequently carries no unit tests at all, which puts its entire runtime path in that tier rather
-than out of scope.
+each test to the symbols it exercises, then treat every symbol no test reaches as T0. Embedded firmware
+frequently carries no unit tests at all, which puts its entire runtime path at T0 rather than out of
+scope.
 
 ---
 
@@ -93,7 +93,7 @@ than out of scope.
 **Trigger and result** carry every finding. A finding is reportable only when the trigger is written
 as an executable expression, a numbered call sequence, or a line-numbered interleaving, AND the result
 is written as a concrete value, exception, corruption, or hang. A candidate that resists being written
-that way is discarded. This filter removes more candidates than every other rule in the skill.
+that way is discarded. This filter removes the most candidates of any rule in the skill.
 
 **Coverage tier** records why a region escaped the test suite. The tiers are language-neutral, each
 language fills them from its own instrument, and [detection-passes.md](references/detection-passes.md)
@@ -116,13 +116,13 @@ Copy this progress checklist into your response and check off items as you compl
 ```text
 Audit Progress:
 - [ ] Step 0: Plan produced and confirmed
-- [ ] Step 1: Target resolved, tier selected, prerequisites recorded
+- [ ] Step 1: Target resolved, audit tier selected, prerequisites recorded
 - [ ] Step 2: Coverage ranking established
 - [ ] Step 3: Contract, state, and callgraph ledgers built
 - [ ] Step 4: Sweep passes 2 through 10 complete
 - [ ] Step 5: Ownership adjudicated and findings categorized
 - [ ] Step 6: False-positive guards applied
-- [ ] Step 7: Findings verified (citation, refutation, re-derivation)
+- [ ] Step 7: Findings verified (citation, refutation)
 - [ ] Step 8: Coverage ledger assembled
 - [ ] Step 9: Report produced
 ```
@@ -237,12 +237,10 @@ When the artifacts are absent or stale, ask the user before regenerating. On app
 are FORBIDDEN during an audit, because the `lint` environment reformats the source, auto-fixes it, and
 purges its stubs, which mutates the very code under audit.
 
-Where no coverage machinery exists, build the ranking by reading the language's own test suite and
-mapping each test to the symbols it exercises. For C++ this is the PlatformIO or CTest suite, and for
-C# the Unity Test Framework suite. Every symbol no test reaches is T0, every symbol a test merely
-constructs or smoke-calls is T2, and every branch arm is T3, because no instrument observed any of
-them. Embedded firmware often carries no test suite at all, which puts its entire runtime path at T0
-and makes it the highest-priority region in the whole audit rather than an out-of-scope one.
+Where no coverage machinery exists, build the ranking from the language's own test suite, as the
+Language coverage section above prescribes. Every symbol no test reaches is T0, every symbol a test
+merely constructs or smoke-calls is T2, and every branch arm is T3, because no instrument observed any
+of them.
 
 Assign every line in scope a coverage tier and rank the sweep by tier, T0 first.
 
@@ -260,11 +258,9 @@ every line, and the file also holds the named CEAI procedure that
 Pass 2 and several categories call. Pass 8 runs over C++ and C# files alone, and Pass 9 consumes the
 Step 2 ranking.
 
-For every candidate, classify it against
-[finding-catalog.md](references/finding-catalog.md), which supplies each category's definition,
-mechanical detection procedure, required evidence, and severity guidance.
-
-List ALL candidates in each pass. Do NOT stop at the first.
+For every candidate, classify it against [finding-catalog.md](references/finding-catalog.md), which
+supplies each category's definition, mechanical detection procedure, required evidence, and severity
+guidance. List ALL candidates in each pass. Do NOT stop at the first.
 
 For Large-tier audits, spawn one `general-purpose` sub-agent per file batch. Each sub-agent receives
 its batch's file paths, the Step 2 ranking rows and the Step 3 ledger rows for those files alone, the
@@ -301,9 +297,9 @@ Run the two checks in [verification-protocol.md](references/verification-protoco
    sub-agent per finding, instructed to refute it and to answer REFUTED under uncertainty.
 
 Both checks are external, testing the finding against the source and against a reader who never saw
-the sweep. Re-reading your own reasoning is no substitute, because that reasoning is the thing under
-test. Record every count the protocol names, because the Step 8 ledger and the report's triage header
-carry them.
+the sweep. They catch the failure mode this audit produces most often, which is asserting a trigger no
+reachable path supplies. Record every count the protocol names, because the Step 8 ledger and the
+report's triage header carry them.
 
 ### Step 8: Assemble the coverage ledger
 
@@ -353,7 +349,7 @@ file before classifying any candidate.
 | NUMERIC_DEFECT               | A result wrong because of the numeric representation                     |
 | STATE_LIFECYCLE_DEFECT       | An object used outside the window in which it is valid                   |
 | RESOURCE_LEAK                | An acquired resource left unreleased on a reachable path                 |
-| DURABILITY_DEFECT            | Persisted bytes a crash or a second writer can leave wrong or partial   |
+| DURABILITY_DEFECT            | Persisted bytes a crash or a second writer can leave wrong or partial    |
 | CONCURRENCY_DEFECT           | A defect needing two execution contexts to manifest                      |
 | ERROR_HANDLING_DEFECT        | The error path itself is wrong                                           |
 | SHARED_MUTABLE_STATE_DEFAULT | State unintentionally shared across calls, instances, or importers       |
@@ -408,6 +404,8 @@ You MUST adhere to the following discipline during every audit.
   written that way is deleted rather than softened.
 - Read the full body of every callable, and follow the calls it delegates to, before judging it.
 - Quote both the contract and the implementation verbatim, each with its own `<path>:<line>`.
+- Keep every sentence the report itself writes, outside a verbatim quote, under 40 words and separated
+  by full stops and commas alone.
 - Run the ownership ladder before every contract-versus-behavior finding, and route rung 4 results to
   `/audit-facts`.
 - Verify every external library contract by reading the installed package rather than from memory.
@@ -495,5 +493,6 @@ Code Correctness Audit Compliance:
 - [ ] No missing test reported as a defect, and no coverage percentage reported as a defect
 - [ ] Findings ordered most severe first
 - [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
+- [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops and commas as clause separators
 - [ ] No file modifications made during the audit
 ```
