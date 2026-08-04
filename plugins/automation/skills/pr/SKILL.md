@@ -1,10 +1,10 @@
 ---
 name: pr
 description: >-
-  Drafts a style-compliant pull request summary by analyzing all changes on the active branch relative to
-  the default branch. Produces a concise, bulleted summary of the most impactful changes for the user to
-  paste when opening the pull request, and a title as well when the branch carries more than one commit. Use
-  when the user is about to open a pull request, asks for a PR summary, or invokes /pr.
+  Drafts a style-compliant pull request summary by analyzing all changes on the active branch relative to the default
+  branch. Produces a concise, bulleted summary of the most impactful changes for the user to paste when opening the pull
+  request, and a title as well when the branch carries more than one commit. Use when the user is about to open a pull
+  request, asks for a PR summary, or invokes /pr.
 user-invocable: true
 ---
 
@@ -38,11 +38,10 @@ You MUST follow these steps exactly when this skill is invoked.
 
 Run the following git commands in parallel using the Bash tool:
 
-1. Determine the active branch with `git branch --show-current` and the default branch, which is commonly `main`
-   or `master`. Confirm the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD` and strip the
-   `origin/` prefix when a remote exists. If that command errors with `is not a symbolic ref`, run
-   `git remote set-head origin -a` to populate `origin/HEAD`, otherwise fall back to checking for `main` then
-   `master`.
+1. Determine the active branch with `git branch --show-current` and the default branch, which is commonly `main` or
+   `master`. Confirm the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD` and strip the `origin/`
+   prefix when a remote exists. If that command errors with `is not a symbolic ref`, run `git remote set-head origin -a`
+   to populate `origin/HEAD`, otherwise fall back to checking for `main` then `master`.
 2. If the active branch IS the default branch, stop: no pull request can be drafted from the default branch (the
    `<default-branch>..HEAD` diff range is empty). Tell the user to switch to or create a feature branch first.
 3. `git log <default-branch>..HEAD --oneline` to list the commits unique to the active branch.
@@ -58,12 +57,12 @@ purpose.
 
 ### Step 3: Draft the summary
 
-Produce the pull request summary following the format rules below. GitHub pre-fills a usable title only when
-the branch carries exactly one commit, in which case it uses that commit's subject and no title draft is
-needed. When the branch carries more than one commit, GitHub pre-fills the title from the branch name
-instead (for example `refactor/project-auditing-optimization`). In that case, also draft a one-line title
-covering the branch as a whole, in the same past tense style as the summary bullets. Present that title
-above the body. Present the draft to the user. The user opens the pull request manually.
+Produce the pull request summary following the format rules below. GitHub pre-fills a usable title only when the branch
+carries exactly one commit, in which case it uses that commit's subject and no title draft is needed. When the branch
+carries more than one commit, GitHub pre-fills the title from the branch name instead (for example
+`refactor/project-auditing-optimization`). In that case, also draft a one-line title covering the branch as a whole, in
+the same past tense style as the summary bullets. Present that title above the body. Present the draft to the user. The
+user opens the pull request manually.
 
 ---
 
@@ -77,16 +76,15 @@ The summary is a concise bulleted list of the most impactful changes the branch 
 - Each bullet occupies one line, under the line-break rule `/commit` defines. GitHub soft-wraps the body, so a
   hand-wrapped bullet renders as a rigid block.
 - Order bullets from most to least impactful.
-- Summarize, and do NOT reproduce every commit. Bundle minor changes into a single bullet
-  (e.g., `-- Fixed various documentation and code style inconsistencies.`).
+- Summarize, and do NOT reproduce every commit. Bundle minor changes into a single bullet (e.g., `-- Fixed various
+  documentation and code style inconsistencies.`).
 
-**Title length limit**: The drafted title must be no longer than 72 characters, because a squash merge writes it
-into the commit subject line where the same display constraint applies. Summary bullets carry no length cap, since
-they render as wrapped markdown rather than a git log column.
+**Title length limit**: The drafted title must be no longer than 72 characters, because a squash merge writes it into
+the commit subject line where the same display constraint applies. Summary bullets carry no length cap, since they
+render as wrapped markdown rather than a git log column.
 
-PR-body prose is exempt from the project-wide separator rule, so it may use `--` and `-` bullet lists, for
-example when referencing CLI flags or listing changes. The past tense rule above applies to every bullet
-without exception.
+PR-body prose is exempt from the project-wide separator rule, so it may use `--` and `-` bullet lists, for example when
+referencing CLI flags or listing changes. The past tense rule above applies to every bullet without exception.
 
 **Example:**
 
@@ -106,15 +104,15 @@ The pull request title and body obey the content rules defined in `/commit`, plu
 **What and why, not how**: Each bullet states *what* the branch changed and *why*, not *how*, and is specific and
 descriptive rather than vague like "Updated various modules".
 
-**Positive description**: State what the branch now does. Do not frame a bullet by what the code no longer does or
-by how it used to behave, beyond the removal verb itself. Keep a "not Y" contrast only when it is load-bearing
-because it corrects a counter-intuitive assumption, and give its reason.
+**Positive description**: State what the branch now does. Do not frame a bullet by what the code no longer does or by
+how it used to behave, beyond the removal verb itself. Keep a "not Y" contrast only when it is load-bearing because it
+corrects a counter-intuitive assumption, and give its reason.
 
-**Sentence length**: Every sentence in the drafted title and summary bullets stays under 40 words, broken at a
-natural clause boundary or split into two bullets when it runs longer.
+**Sentence length**: Every sentence in the drafted title and summary bullets stays under 40 words, broken at a natural
+clause boundary or split into two bullets when it runs longer.
 
-**Typo-free and grammatical**: The drafted title and summary bullets must be free of typos and grammatical errors,
-with every symbol name, file name, and flag spelling verified against the diff rather than recalled from memory.
+**Typo-free and grammatical**: The drafted title and summary bullets must be free of typos and grammatical errors, with
+every symbol name, file name, and flag spelling verified against the diff rather than recalled from memory.
 
 ---
 

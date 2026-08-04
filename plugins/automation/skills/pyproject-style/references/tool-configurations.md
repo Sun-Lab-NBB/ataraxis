@@ -56,8 +56,8 @@ extend-exclude = ["conf.py"]
 lint.select = ["ALL"]
 ```
 
-Set `target-version` to the **lowest** supported Python version for the project (e.g., `"py312"`
-for `>=3.12,<3.15`, `"py314"` for `>=3.14,<3.15`).
+Set `target-version` to the **lowest** supported Python version for the project (e.g., `"py312"` for `>=3.12,<3.15`,
+`"py314"` for `>=3.14,<3.15`).
 
 ### Ruff format
 
@@ -99,9 +99,9 @@ import rules and takes no project-specific section.
 
 Test code is linted, and it is held to the wider of the two lists. Tests assert, reach into private members, inline
 expected values, and omit annotations and docstrings, all of which library code is forbidden to do. The shared test
-corpus waives exactly the rules that report those patterns, so a rule may be required in one corpus and forbidden in
-the other. `SLF001` is the clearest case: it stays out of the shared block of the universal `lint.ignore` corpus and
-is a member of the shared test corpus.
+corpus waives exactly the rules that report those patterns, so a rule may be required in one corpus and forbidden in the
+other. `SLF001` is the clearest case: it stays out of the shared block of the universal `lint.ignore` corpus and is a
+member of the shared test corpus.
 
 ### Ruff per-file ignores
 
@@ -114,9 +114,9 @@ is a member of the shared test corpus.
 ]
 ```
 
-When a `tests/` directory exists, add a second per-file-ignores key for test files. Spell the glob as
-`tests/**/*.py`, which matches both direct children of `tests/` and files nested in its subdirectories. The shared
-test corpus below is present in every project, followed by any project-specific entries:
+When a `tests/` directory exists, add a second per-file-ignores key for test files. Spell the glob as `tests/**/*.py`,
+which matches both direct children of `tests/` and files nested in its subdirectories. The shared test corpus below is
+present in every project, followed by any project-specific entries:
 
 ```toml
 "tests/**/*.py" = [
@@ -146,8 +146,8 @@ both families, so the prefixes keep the list stable as tests are added.
 These entries take effect only when the lint task passes the test directory to `ruff check`. A lint task that checks
 `./src` alone leaves the whole key inert. See `/tox-config` for the lint task definition.
 
-Projects extend this key with their own entries below the shared block. When judging a test file, read the project's
-own `"tests/**/*.py"` key as well, because every code it lists is waived for that project's test files.
+Projects extend this key with their own entries below the shared block. When judging a test file, read the project's own
+`"tests/**/*.py"` key as well, because every code it lists is waived for that project's test files.
 
 ### Ruff isort
 
@@ -163,8 +163,8 @@ length-sort = true                 # Places shorter imports first
 ### The universal `lint.ignore` corpus
 
 Every project carries the same shared block of the universal `lint.ignore` corpus, followed by a project-specific
-section. A category comment heads each section and a blank line separates them, matching the layout used for
-dependency arrays:
+section. A category comment heads each section and a blank line separates them, matching the layout used for dependency
+arrays:
 
 ```toml
 lint.ignore = [
@@ -223,8 +223,8 @@ project-specific section only by a project whose library code needs it.
 `SLF001` carries opposite status in the two corpora, so read the requirement for the one being judged. It stays out of
 the shared block of the universal `lint.ignore` corpus, where it enforces the rule that private members stay inside the
 module that defines them. It is a required member of the shared test corpus, where tests are the sole sanctioned
-exception to that rule. A project that lists `SLF001` in the shared test corpus and omits it from the shared block
-of the universal `lint.ignore` corpus is compliant with both rules at once.
+exception to that rule. A project that lists `SLF001` in the shared test corpus and omits it from the shared block of
+the universal `lint.ignore` corpus is compliant with both rules at once.
 
 ### Ruff unused arguments
 
@@ -312,8 +312,8 @@ The exclusion list is the same for both tiers, and every one of its entries is m
 
 ## Pytest configuration
 
-Projects with a `tests/` directory declare the import mode so that a bare `pytest` invocation resolves
-test modules the same way the `test` tox task does:
+Projects with a `tests/` directory declare the import mode so that a bare `pytest` invocation resolves test modules the
+same way the `test` tox task does:
 
 ```toml
 # Pytest configuration. The import mode is declared here so that a bare 'pytest' invocation resolves test modules the
@@ -322,29 +322,26 @@ test modules the same way the `test` tox task does:
 addopts = "--import-mode=importlib"
 ```
 
-`importlib` mode imports each test module under its own name without inserting its directory into
-`sys.path`, which is what lets identically named modules coexist in sibling test directories under
-the `tests/**/*.py` layout.
+`importlib` mode imports each test module under its own name without inserting its directory into `sys.path`, which is
+what lets identically named modules coexist in sibling test directories under the `tests/**/*.py` layout.
 
-A project whose tests spawn subprocesses that unpickle callables defined in test modules adds
-`pythonpath` so those workers resolve the `tests` package:
+A project whose tests spawn subprocesses that unpickle callables defined in test modules adds `pythonpath` so those
+workers resolve the `tests` package:
 
 ```toml
 pythonpath = ["."]
 ```
 
-The src layout keeps this entry from shadowing the installed distribution the suite measures coverage
-against. Add it only for a project that spawns such workers, and state the reason in the comment above
-the section.
+The src layout keeps this entry from shadowing the installed distribution the suite measures coverage against. Add it
+only for a project that spawns such workers, and state the reason in the comment above the section.
 
 ---
 
 ## Coverage configuration
 
-The test suite MUST cover 100% of the measured statements. The `[tool.coverage.report]` section
-declares that gate, and the `[tool.coverage.run]` section lists the files that stay outside the
-measured corpus. These settings are identical across all projects, apart from the project-specific
-`omit` entries:
+The test suite MUST cover 100% of the measured statements. The `[tool.coverage.report]` section declares that gate, and
+the `[tool.coverage.run]` section lists the files that stay outside the measured corpus. These settings are identical
+across all projects, apart from the project-specific `omit` entries:
 
 ```toml
 # Lists the source files excluded from coverage measurement in full. Interface modules, such as the CLI, are covered
@@ -387,47 +384,43 @@ exclude_lines = [
 ]
 ```
 
-`fail_under` applies to every command that renders a report, so `pytest --cov`, `coverage report`,
-`coverage xml`, and `coverage html` all fail once the measured total drops below 100. See
-`/tox-config` for the `coverage` environment command sequence that renders the artifacts and applies
-the gate.
+`fail_under` applies to every command that renders a report, so `pytest --cov`, `coverage report`, `coverage xml`, and
+`coverage html` all fail once the measured total drops below 100. See `/tox-config` for the `coverage` environment
+command sequence that renders the artifacts and applies the gate.
 
-The `source` list in `[tool.coverage.paths]` carries one entry per virtual environment layout the
-project is tested on. POSIX hosts place installed packages under `lib/python*/site-packages/` and
-Windows hosts place them under `Lib/site-packages/`, so both patterns stay in the list for every
-project regardless of the host it is currently developed on. See `/tox-config` for the `coverage`
-environment that consumes this mapping.
+The `source` list in `[tool.coverage.paths]` carries one entry per virtual environment layout the project is tested on.
+POSIX hosts place installed packages under `lib/python*/site-packages/` and Windows hosts place them under
+`Lib/site-packages/`, so both patterns stay in the list for every project regardless of the host it is currently
+developed on. See `/tox-config` for the `coverage` environment that consumes this mapping.
 
 ### Choosing between omit and pragma
 
-Two mechanisms remove code from the coverage requirement. Choose between them by the size of the
-target.
+Two mechanisms remove code from the coverage requirement. Choose between them by the size of the target.
 
 | Target                                                   | Mechanism                  | Declared in            |
 |----------------------------------------------------------|----------------------------|------------------------|
 | A whole module that the test suite never exercises       | `[tool.coverage.run] omit` | `pyproject.toml`       |
 | A statement or branch inside an otherwise-covered module | `# pragma: no cover`       | The source line itself |
 
-Whole-module exclusion belongs in `omit`. The canonical case is a user-facing interface module,
-where every member wraps a function the suite already covers, so listing the file once is clearer
-and cheaper to maintain than annotating each of its members. The modules that qualify are:
+Whole-module exclusion belongs in `omit`. The canonical case is a user-facing interface module, where every member wraps
+a function the suite already covers, so listing the file once is clearer and cheaper to maintain than annotating each of
+its members. The modules that qualify are:
 
 - `cli.py`, and any other module that defines Click commands.
 - The MCP server module and its `*_tools.py` tool modules.
 - `__main__.py`, and similar process entry points.
 
-Write each `omit` pattern with a leading wildcard so that it matches both the `src/` tree and the
-`site-packages` copy that the test environments measure on any host, for example
-`"*/package_name/cli.py"`. A module listed in `omit` carries no `# pragma: no cover` comments,
-because the whole file already sits outside the measured corpus.
+Write each `omit` pattern with a leading wildcard so that it matches both the `src/` tree and the `site-packages` copy
+that the test environments measure on any host, for example `"*/package_name/cli.py"`. A module listed in `omit` carries
+no `# pragma: no cover` comments, because the whole file already sits outside the measured corpus.
 
-Every other module stays in the measured corpus, and the individual statements the suite cannot
-reach carry a targeted `# pragma: no cover`. See `/python-style` for the statements that qualify.
+Every other module stays in the measured corpus, and the individual statements the suite cannot reach carry a targeted
+`# pragma: no cover`. See `/python-style` for the statements that qualify.
 
 ### Additional coverage settings
 
-Projects with multiprocessing or parallel test execution add these keys to the same
-`[tool.coverage.run]` section that carries the `omit` list:
+Projects with multiprocessing or parallel test execution add these keys to the same `[tool.coverage.run]` section that
+carries the `omit` list:
 
 ```toml
 [tool.coverage.run]
@@ -435,17 +428,16 @@ parallel = true
 concurrency = ["multiprocessing", "thread"]
 ```
 
-A project may also measure branch coverage, which reports a conditional or loop whose alternate path
-no test takes:
+A project may also measure branch coverage, which reports a conditional or loop whose alternate path no test takes:
 
 ```toml
 [tool.coverage.run]
 branch = true
 ```
 
-`branch = true` raises what `fail_under = 100` demands, since a partial branch counts as a gap once
-the key is present. Add it to a project whose suite already passes with it, rather than to a project
-that would need new tests written to restore the gate.
+`branch = true` raises what `fail_under = 100` demands, since a partial branch counts as a gap once the key is present.
+Add it to a project whose suite already passes with it, rather than to a project that would need new tests written to
+restore the gate.
 
 ---
 
@@ -473,5 +465,5 @@ test-command = "pytest {project}/tests -n logical --dist loadgroup"
 test-requires = ["pytest", "pytest-xdist"]
 ```
 
-Platform-specific architecture settings use `[tool.cibuildwheel.linux]`,
-`[tool.cibuildwheel.windows]`, and `[tool.cibuildwheel.macos]` sub-tables.
+Platform-specific architecture settings use `[tool.cibuildwheel.linux]`, `[tool.cibuildwheel.windows]`, and
+`[tool.cibuildwheel.macos]` sub-tables.

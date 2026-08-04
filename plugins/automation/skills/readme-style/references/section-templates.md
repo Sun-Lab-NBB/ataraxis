@@ -1,8 +1,7 @@
 # Section templates
 
-Exact templates for every README section. Load this reference when creating or updating README
-files. Every template's prose is filled to the 120 character limit, under the wrap-width rule the
-skill file defines.
+Exact templates for every README section. Load this reference when creating or updating README files. Every template's
+prose is filled to the 120 character limit, under the wrap-width rule the skill file defines.
 
 ---
 
@@ -14,14 +13,13 @@ skill file defines.
 Supports tox-based development automation pipelines used by other ataraxis framework projects.
 ```
 
-The title must match the repository and package name (lowercase, hyphenated). The one-line
-description MUST be the bare project description, the same sentence used in all other canonical
-description locations for the project archetype. No language prefix ("A Python library that...")
-and no project name prefix ("project-name is...").
+The title must match the repository and package name (lowercase, hyphenated). The one-line description MUST be the bare
+project description, the same sentence used in all other canonical description locations for the project archetype. No
+language prefix ("A Python library that...") and no project name prefix ("project-name is...").
 
-This template covers library READMEs. An umbrella README titles itself with the framework name in
-its display casing and follows the title with a bold tagline, so it has no package name to match and
-no other canonical location to stay in sync with. See the umbrella README order in the skill file.
+This template covers library READMEs. An umbrella README titles itself with the framework name in its display casing and
+follows the title with a bold tagline, so it has no package name to match and no other canonical location to stay in
+sync with. See the umbrella README order in the skill file.
 
 The canonical description locations vary by archetype:
 
@@ -39,8 +37,8 @@ The canonical description locations vary by archetype:
 
 ### Python libraries
 
-Python libraries use the following 8 badges in this exact order. A blank line must separate
-the one-line description from the first badge.
+Python libraries use the following 8 badges in this exact order. A blank line must separate the one-line description
+from the first badge.
 
 ```markdown
 ![PyPI - Version](https://img.shields.io/pypi/v/PACKAGE-NAME)
@@ -74,15 +72,15 @@ An umbrella repository publishes no package, so it carries the license badge alo
 
 ### Other project types
 
-For MATLAB projects, use `matlab` and `license` badges. For Unity/C# projects, use `C#`, `Unity`,
-and license badges. Match the badge URLs from existing projects of the same type.
+For MATLAB projects, use `matlab` and `license` badges. For Unity/C# projects, use `C#`, `Unity`, and license badges.
+Match the badge URLs from existing projects of the same type.
 
 ---
 
 ## Horizontal rule after badges
 
-A triple underscore horizontal rule separates the header block (title, description, badges) from
-the body content. This must immediately follow the last badge line:
+A triple underscore horizontal rule separates the header block (title, description, badges) from the body content. This
+must immediately follow the last badge line:
 
 ```markdown
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/PACKAGE-NAME)
@@ -94,13 +92,12 @@ ___
 
 ## Detailed description
 
-An expanded explanation of the library's purpose, typically 2-4 sentences. Placed immediately
-after the horizontal rule under a `## Detailed Description` heading.
+An expanded explanation of the library's purpose, typically 2-4 sentences. Placed immediately after the horizontal rule
+under a `## Detailed Description` heading.
 
-For Ataraxis ecosystem libraries, end the detailed description with a sentence linking to the
-main project: "This library is part of the
-[Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework for AI-assisted scientific
-hardware control."
+For Ataraxis ecosystem libraries, end the detailed description with a sentence linking to the main project: "This
+library is part of the [Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework for AI-assisted scientific hardware
+control."
 
 ```markdown
 ___
@@ -117,10 +114,9 @@ for AI-assisted scientific hardware control.
 
 ## Features
 
-Optional. When present, use a bulleted list of key capabilities. The **first bullet** states the
-supported platforms/OS ("Supports Windows, Linux, and macOS." for PC libraries, "Supports all
-recent Arduino and Teensy architectures and platforms." for microcontroller libraries). The
-**last bullet** must state the license type:
+Optional. When present, use a bulleted list of key capabilities. The **first bullet** states the supported platforms/OS
+("Supports Windows, Linux, and macOS." for PC libraries, "Supports all recent Arduino and Teensy architectures and
+platforms." for microcontroller libraries). The **last bullet** must state the license type:
 
 ```markdown
 ## Features
@@ -135,8 +131,8 @@ recent Arduino and Teensy architectures and platforms." for microcontroller libr
 
 ## Table of contents
 
-Link to all H2 sections using lowercase Markdown anchors. Always spell "Acknowledgments" (not
-"Acknowledgements"). Nest H3 subsections when present:
+Link to all H2 sections using lowercase Markdown anchors. Always spell "Acknowledgments" (not "Acknowledgements"). Nest
+H3 subsections when present:
 
 ```markdown
 ## Table of Contents
@@ -154,8 +150,7 @@ Link to all H2 sections using lowercase Markdown anchors. Always spell "Acknowle
 - [Acknowledgments](#acknowledgments)
 ```
 
-Include only sections that exist in the README. Omit nested entries for subsections that are not
-present.
+Include only sections that exist in the README. Omit nested entries for subsections that are not present.
 
 ---
 
@@ -187,10 +182,9 @@ dependencies.
 
 ## Installation
 
-Python libraries use two subsections: Source and pip. Short shell commands (such as
-`pip install PACKAGE-NAME`, `pip install .`, `tox -e lint`) should be inlined with backticks
-rather than placed in fenced code blocks. Reserve fenced code blocks for multi-line code samples
-such as Python usage examples.
+Python libraries use two subsections: Source and pip. Short shell commands (such as `pip install PACKAGE-NAME`, `pip
+install .`, `tox -e lint`) should be inlined with backticks rather than placed in fenced code blocks. Reserve fenced
+code blocks for multi-line code samples such as Python usage examples.
 
 ### Source subsection
 
@@ -225,10 +219,9 @@ Replace `PACKAGE-NAME` with the actual PyPI package name.
 
 ### C++ / PlatformIO libraries
 
-C++ PlatformIO libraries use a Source and a `### Platformio` subsection (not `### pip`). The
-Source subsection moves the distribution's `src` contents into the consuming project's directory
-and adds the relevant `#include` directives. The Platformio subsection declares the dependency via
-`lib_deps`:
+C++ PlatformIO libraries use a Source and a `### Platformio` subsection (not `### pip`). The Source subsection moves the
+distribution's `src` contents into the consuming project's directory and adds the relevant `#include` directives. The
+Platformio subsection declares the dependency via `lib_deps`:
 
 ```markdown
 ## Installation
@@ -250,8 +243,8 @@ and adds the relevant `#include` directives. The Platformio subsection declares 
 2. Add the project's `#include` directives at the top of the main.cpp file and each consuming header file.
 ```
 
-Replace `PROJECT-NAME` with the repository name, `PACKAGE-NAME` with the PlatformIO registry
-package name, and `MAJOR` with the current major version.
+Replace `PROJECT-NAME` with the repository name, `PACKAGE-NAME` with the PlatformIO registry package name, and `MAJOR`
+with the current major version.
 
 ---
 
@@ -269,8 +262,7 @@ Keep examples minimal and link to full documentation for advanced usage.
 
 ## CLI commands
 
-For libraries with CLI interfaces, document commands using a brief overview followed by a
-command table:
+For libraries with CLI interfaces, document commands using a brief overview followed by a command table:
 
 ```markdown
 ### CLI Commands
@@ -286,16 +278,15 @@ This library provides the `COMMAND` CLI that exposes the following commands:
 Use `COMMAND --help` or `COMMAND SUBCOMMAND --help` for detailed usage information.
 ```
 
-For complex CLIs with many commands, add subsections for each command or command group after the
-overview table.
+For complex CLIs with many commands, add subsections for each command or command group after the overview table.
 
 ---
 
 ## MCP server
 
-Libraries that provide MCP servers document this functionality under Usage. Always use the section
-title "MCP Server" (or "MCP Servers" when the library exposes more than one server). Do not use
-"MCP Server (Agentic Integration)" or other variants.
+Libraries that provide MCP servers document this functionality under Usage. Always use the section title "MCP Server"
+(or "MCP Servers" when the library exposes more than one server). Do not use "MCP Server (Agentic Integration)" or other
+variants.
 
 ````markdown
 ### MCP Server
@@ -326,9 +317,8 @@ plugin from the marketplace to automatically register the MCP server with compat
 skills available.
 ````
 
-Always use a table for the Available Tools section (not a bullet list). Replace `COMMAND` with
-the actual CLI command and `PLUGIN-NAME` with the name of the ataraxis marketplace plugin that
-distributes the assets for this library.
+Always use a table for the Available Tools section (not a bullet list). Replace `COMMAND` with the actual CLI command
+and `PLUGIN-NAME` with the name of the ataraxis marketplace plugin that distributes the assets for this library.
 
 ---
 
@@ -348,25 +338,23 @@ Replace the URL with the actual documentation URL. Documentation links follow th
 
 ## AI-Assisted Development as an H2 section
 
-The AI-Assisted Development section is an H3 under Developers by default, where it tells a
-contributor which plugin carries the project's agent assets. A project whose primary interface is an
-agent, meaning the documented path to using it runs through its MCP server and skills rather than
-through its Python API, promotes the section to H2 and places it immediately after API Documentation.
-Promotion moves the section to where a user reads rather than where a contributor reads, and the
-title stays `AI-Assisted Development` at either level.
+The AI-Assisted Development section is an H3 under Developers by default, where it tells a contributor which plugin
+carries the project's agent assets. A project whose primary interface is an agent, meaning the documented path to using
+it runs through its MCP server and skills rather than through its Python API, promotes the section to H2 and places it
+immediately after API Documentation. Promotion moves the section to where a user reads rather than where a contributor
+reads, and the title stays `AI-Assisted Development` at either level.
 
-A promoted section carries what its readers need to start, which is the plugin name, the tools or
-skills the plugin exposes, and the client registration step. Keep the tool listing to a table and
-link the API documentation for everything past the first working result, exactly as the Usage section
-does.
+A promoted section carries what its readers need to start, which is the plugin name, the tools or skills the plugin
+exposes, and the client registration step. Keep the tool listing to a table and link the API documentation for
+everything past the first working result, exactly as the Usage section does.
 
 ---
 
 ## Developers
 
-Optional. When present, Python libraries use the following standard template. Adapt the tox
-environments table and Additional Dependencies section to match the actual tox configuration
-and requirements of the project, whose environment set `/tox-config` owns.
+Optional. When present, Python libraries use the following standard template. Adapt the tox environments table and
+Additional Dependencies section to match the actual tox configuration and requirements of the project, whose environment
+set `/tox-config` owns.
 
 ````markdown
 ## Developers
@@ -442,22 +430,20 @@ manually or via a CLI command typically resolves the issue.
 
 C++ PlatformIO projects differ from the Python template above:
 
-- **Installing the Project**: install the [PlatformIO](https://platformio.org/install/integration)
-  IDE/plugin instead of mamba/tox, then run `pio project init` and (for IDEs lacking native
-  PlatformIO support) `pio project metadata`.
-- **Additional Dependencies**: Tox and Doxygen (both on the system path), used to build the API
-  documentation.
-- **Development Automation**: driven by the PlatformIO CLI, with tox reserved for tasks not covered
-  by PlatformIO, such as API documentation generation.
+- **Installing the Project**: install the [PlatformIO](https://platformio.org/install/integration) IDE/plugin instead of
+  mamba/tox, then run `pio project init` and (for IDEs lacking native PlatformIO support) `pio project metadata`.
+- **Additional Dependencies**: Tox and Doxygen (both on the system path), used to build the API documentation.
+- **Development Automation**: driven by the PlatformIO CLI, with tox reserved for tasks not covered by PlatformIO, such
+  as API documentation generation.
 - **PR gate**: the `tox`, `pio check`, and `pio test` tasks must all pass before merging.
 
 ---
 
 ## Standard ending sections
 
-The final four sections close every library README in this exact order. An umbrella README closes with
-License and Acknowledgments alone, because the indexed repositories tag their own releases and the
-header attribution block already names the authors.
+The final four sections close every library README in this exact order. An umbrella README closes with License and
+Acknowledgments alone, because the indexed repositories tag their own releases and the header attribution block already
+names the authors.
 
 ### Versioning
 
@@ -503,7 +489,6 @@ For C++ / PlatformIO libraries, replace `pyproject.toml` with `platformio.ini`:
 - The creators of all other dependencies and projects listed in the [platformio.ini](platformio.ini) file.
 ```
 
-Additional project-specific acknowledgments may be added between the two standard bullets. A library
-Acknowledgments section credits dependency developers and contributors, so it names no institution and
-links to no institutional page. An umbrella Acknowledgments section credits the projects the framework
-builds on and ends with a contact address.
+Additional project-specific acknowledgments may be added between the two standard bullets. A library Acknowledgments
+section credits dependency developers and contributors, so it names no institution and links to no institutional page.
+An umbrella Acknowledgments section credits the projects the framework builds on and ends with a contact address.

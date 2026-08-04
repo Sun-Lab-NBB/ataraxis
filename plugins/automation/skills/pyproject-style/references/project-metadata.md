@@ -15,8 +15,7 @@ name = "ataraxis-automation"
 name = "project-name"
 ```
 
-The import name uses underscores (`ataraxis_automation`), while the package name uses hyphens
-(`ataraxis-automation`).
+The import name uses underscores (`ataraxis_automation`), while the package name uses hyphens (`ataraxis-automation`).
 
 ### version
 
@@ -27,26 +26,26 @@ version = "7.1.0"
 version = "2.0.0rc9"
 ```
 
-Projects use static versioning (hard-coded in pyproject.toml). To access the version at
-runtime, use `importlib.metadata`:
+Projects use static versioning (hard-coded in pyproject.toml). To access the version at runtime, use
+`importlib.metadata`:
 
 ```python
 from importlib.metadata import version
 __version__ = version("package-name")
 ```
 
-`pyproject.toml` `version` is the SINGLE source of truth for the Python package version, so no other
-file carries a version literal. The documentation build reads the version through the same
-`importlib.metadata` call, and a release bumps this field alone (see `/release`).
+`pyproject.toml` `version` is the SINGLE source of truth for the Python package version, so no other file carries a
+version literal. The documentation build reads the version through the same `importlib.metadata` call, and a release
+bumps this field alone (see `/release`).
 
 ### description
 
-A single sentence describing the project's purpose. The description MUST use bare form, with no
-language prefix ("A Python library that...") and no project name prefix ("project-name is...").
-Start directly with an imperative verb (e.g., "Supports...", "Provides...", "Manages...").
+A single sentence describing the project's purpose. The description MUST use bare form, with no language prefix ("A
+Python library that...") and no project name prefix ("project-name is..."). Start directly with an imperative verb
+(e.g., "Supports...", "Provides...", "Manages...").
 
-This exact description MUST be used verbatim in every canonical description location that exists
-for the project archetype. For Python projects, these are:
+This exact description MUST be used verbatim in every canonical description location that exists for the project
+archetype. For Python projects, these are:
 1. `pyproject.toml` `description` field
 2. Top-level `__init__.py` module docstring (first line)
 3. `docs/source/welcome.rst` first paragraph
@@ -73,9 +72,8 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 ```
 
-Do NOT use the deprecated table format (`license = { file = "LICENSE" }`). When using SPDX
-license expressions, do NOT include `License ::` trove classifiers. They are redundant and
-deprecated under PEP 639.
+Do NOT use the deprecated table format (`license = { file = "LICENSE" }`). When using SPDX license expressions, do NOT
+include `License ::` trove classifiers. They are redundant and deprecated under PEP 639.
 
 ### requires-python
 
@@ -152,10 +150,9 @@ All production projects use:
 ```
 
 Treat the audience/topic split above as a starting point. Choose the `Topic` classifier to match the project's domain
-rather than always defaulting to `Topic :: Software Development`. Practiced domain-specific values include
-`Topic :: Communications` (ataraxis-communication-interface, ataraxis-transport-layer-pc) and
-`Topic :: Multimedia :: Video` (ataraxis-video-system). Projects without a more specific domain keep
-`Topic :: Software Development`.
+rather than always defaulting to `Topic :: Software Development`. Practiced domain-specific values include `Topic ::
+Communications` (ataraxis-communication-interface, ataraxis-transport-layer-pc) and `Topic :: Multimedia :: Video`
+(ataraxis-video-system). Projects without a more specific domain keep `Topic :: Software Development`.
 
 ### Python versions
 
@@ -224,8 +221,8 @@ classifiers = [
 ]
 ```
 
-Do NOT include `License ::` classifiers. The license is declared via the `license` field using
-a PEP 639 SPDX expression.
+Do NOT include `License ::` classifiers. The license is declared via the `license` field using a PEP 639 SPDX
+expression.
 
 ---
 
@@ -279,9 +276,8 @@ Use `sys_platform` markers for platform-conditional dependencies:
 
 ## Dependency groups (PEP 735)
 
-Development dependencies use `[dependency-groups]` instead of `[project.optional-dependencies]`.
-Dependency groups are NOT published to PyPI, which is semantically correct for development-only
-tooling.
+Development dependencies use `[dependency-groups]` instead of `[project.optional-dependencies]`. Dependency groups are
+NOT published to PyPI, which is semantically correct for development-only tooling.
 
 ### dev group
 
@@ -305,14 +301,13 @@ dev = [
 ]
 ```
 
-The `ataraxis-automation` bound above tracks the current major release of that project, so it moves
-with each new ataraxis-automation major version. See `/tox-config` for the matching pin used by the
-utility tox environments.
+The `ataraxis-automation` bound above tracks the current major release of that project, so it moves with each new
+ataraxis-automation major version. See `/tox-config` for the matching pin used by the utility tox environments.
 
 Install via: `uv sync --group dev` or `pip install --group dev`
 
-The type stub packages vary by project. Include stubs for any dependency that does not ship
-inline types. Common type stubs:
+The type stub packages vary by project. Include stubs for any dependency that does not ship inline types. Common type
+stubs:
 
 | Stub package                     | For dependency |
 |----------------------------------|----------------|
@@ -326,11 +321,11 @@ inline types. Common type stubs:
 | `scipy-stubs`                    | scipy          |
 | `google-api-python-client-stubs` | google-api     |
 
-The `ataraxis-automation` project itself omits the `ataraxis-automation` dependency from its
-dev group since it is self-referential.
+The `ataraxis-automation` project itself omits the `ataraxis-automation` dependency from its dev group since it is
+self-referential.
 
-Do NOT use `[project.optional-dependencies]` for development dependencies. That section is
-reserved for user-facing optional feature extras (if any exist).
+Do NOT use `[project.optional-dependencies]` for development dependencies. That section is reserved for user-facing
+optional feature extras (if any exist).
 
 ---
 
@@ -344,8 +339,8 @@ Homepage = "https://github.com/Sun-Lab-NBB/project-name"
 Documentation = "https://project-name-api-docs.netlify.app/"
 ```
 
-`Homepage` is required and always points to the GitHub repository. `Documentation` is included
-when hosted API documentation exists.
+`Homepage` is required and always points to the GitHub repository. `Documentation` is included when hosted API
+documentation exists.
 
 ---
 

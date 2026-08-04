@@ -1,22 +1,19 @@
 ---
 name: explore-dependencies
 description: >-
-  Explores installed ataraxis dependency source code to build a live API snapshot of the public
-  classes, functions, and constants/enums each dependency exports, flagging where project code
-  reimplements existing library functionality. Use when starting a session on a project with
-  ataraxis dependencies, before writing code that uses ataraxis library features, or when the user
-  asks about available library APIs.
+  Explores installed ataraxis dependency source code to build a live API snapshot of the public classes, functions, and
+  constants/enums each dependency exports, flagging where project code reimplements existing library functionality. Use
+  when starting a session on a project with ataraxis dependencies, before writing code that uses ataraxis library
+  features, or when the user asks about available library APIs.
 user-invocable: true
 ---
 
 # Dependency exploration
 
-Explores installed ataraxis dependency source code to build a live API snapshot for the
-current project.
+Explores installed ataraxis dependency source code to build a live API snapshot for the current project.
 
-You MUST run this skill before writing code that uses ataraxis library features. Static reference
-tables go stale, and reading the actual installed source is the only reliable way to know what APIs
-are available and how they work.
+You MUST run this skill before writing code that uses ataraxis library features. Static reference tables go stale, and
+reading the actual installed source is the only reliable way to know what APIs are available and how they work.
 
 ---
 
@@ -44,22 +41,19 @@ You MUST follow these steps when this skill is invoked.
 
 ### Step 1: Load the library catalog
 
-Read [library-catalog.md](references/library-catalog.md) to understand the ataraxis library
-ecosystem, domain-to-library mappings, and import names.
+Read [library-catalog.md](references/library-catalog.md) to understand the ataraxis library ecosystem, domain-to-library
+mappings, and import names.
 
 ### Step 2: Identify project dependencies
 
-Read the project's `pyproject.toml` and extract all ataraxis dependencies from the `dependencies`
-array in `[project]`, `[project.optional-dependencies]`, and `[dependency-groups]` (PEP 735).
-Ataraxis projects place dev dependencies such as `ataraxis-automation` in `[dependency-groups]`,
-not under `[project.optional-dependencies]` (see `/pyproject-style`). Match package names that
-start with `ataraxis-` (or the project's own first-party namespace prefix).
+Read the project's `pyproject.toml` and extract all ataraxis dependencies from the `dependencies` array in `[project]`,
+`[project.optional-dependencies]`, and `[dependency-groups]` (PEP 735). Ataraxis projects place dev dependencies such as
+`ataraxis-automation` in `[dependency-groups]`, not under `[project.optional-dependencies]` (see `/pyproject-style`).
+Match package names that start with `ataraxis-` (or the project's own first-party namespace prefix).
 
-If `pyproject.toml` is not found, check for `setup.cfg`, `setup.py`, or `requirements.txt` as
-fallbacks.
+If `pyproject.toml` is not found, check for `setup.cfg`, `setup.py`, or `requirements.txt` as fallbacks.
 
-Record each dependency with its package name and corresponding import name (replace hyphens with
-underscores).
+Record each dependency with its package name and corresponding import name (replace hyphens with underscores).
 
 ### Step 3: Locate installed source code
 
@@ -69,36 +63,32 @@ For each identified dependency, resolve the installed package location:
 python -c "import <import_name>; print(<import_name>.__file__)"
 ```
 
-This returns the path to the package's `__init__.py`. The parent directory contains all source
-modules.
+This returns the path to the package's `__init__.py`. The parent directory contains all source modules.
 
-Obtain the package version with the hyphenated PyPI name, not the import name. Ataraxis
-`__init__.py` files do not expose `__version__`, so resolve it at runtime instead:
+Obtain the package version with the hyphenated PyPI name, not the import name. Ataraxis `__init__.py` files do not
+expose `__version__`, so resolve it at runtime instead:
 
 ```bash
 python -c "import importlib.metadata; print(importlib.metadata.version('<package-name>'))"
 ```
 
-**Reconcile local or editable checkouts.** When a dependency's resolved `__file__` falls outside
-`site-packages` (e.g. it points to a sibling or parent directory), it is a local or editable checkout
-that may be ahead of or behind the published release. Look up the dependency's GitHub repository from
-[library-catalog.md](references/library-catalog.md). Do NOT hardcode the `Sun-Lab-NBB` org, because
-first-party application libraries may live under a different owner. Skip any dependency with no
-cataloged repository. For every remaining dependency, compare the local version against the latest
-release:
+**Reconcile local or editable checkouts.** When a dependency's resolved `__file__` falls outside `site-packages` (e.g.
+it points to a sibling or parent directory), it is a local or editable checkout that may be ahead of or behind the
+published release. Look up the dependency's GitHub repository from [library-catalog.md](references/library-catalog.md).
+Do NOT hardcode the `Sun-Lab-NBB` org, because first-party application libraries may live under a different owner. Skip
+any dependency with no cataloged repository. For every remaining dependency, compare the local version against the
+latest release:
 
 ```bash
 gh api repos/<owner>/<repo>/releases/latest --jq .tag_name
 ```
 
-Flag any drift between the local checkout and the latest release before treating the local API as
-authoritative.
+Flag any drift between the local checkout and the latest release before treating the local API as authoritative.
 
-For C++ ataraxis libraries (ataraxis-transport-layer-mc, ataraxis-micro-controller), the
-`python -c "import ..."` resolution does not apply. Locate the source under `.pio/libdeps/<lib>/src`,
-read the library version from the `version` field of the library's `library.json` (not
-`importlib.metadata`), and enumerate public classes from the library's header files rather than from
-`__all__` (see Step 4).
+For C++ ataraxis libraries (ataraxis-transport-layer-mc, ataraxis-micro-controller), the `python -c "import ..."`
+resolution does not apply. Locate the source under `.pio/libdeps/<lib>/src`, read the library version from the `version`
+field of the library's `library.json` (not `importlib.metadata`), and enumerate public classes from the library's header
+files rather than from `__all__` (see Step 4).
 
 If a package is not installed, note it as unavailable and skip to the next dependency.
 
@@ -111,9 +101,8 @@ For each installed Python dependency:
 3. For each exported name, identify whether it is a class, function, constant, or enum
 4. Group exports by category (classes, functions, constants/enums)
 
-For C++ dependencies there is no `__init__.py` or `__all__`. Instead, read the public header files
-under `.pio/libdeps/<lib>/src` and enumerate the public classes, structs, and enums they declare,
-grouping them the same way.
+For C++ dependencies there is no `__init__.py` or `__all__`. Instead, read the public header files under
+`.pio/libdeps/<lib>/src` and enumerate the public classes, structs, and enums they declare, grouping them the same way.
 
 ### Step 5: Read API details
 
@@ -130,13 +119,11 @@ For each public class and function discovered in Step 4:
    - **Public methods**: Method names and their signatures
    - **Class/static methods**: Any `@classmethod` or `@staticmethod` methods
 
-Focus on signatures and summaries. Do not read full method bodies unless needed to understand
-behavior.
+Focus on signatures and summaries. Do not read full method bodies unless needed to understand behavior.
 
 ### Step 6: Identify replacement opportunities
 
-Scan the project's source code for patterns that duplicate functionality provided by the
-discovered dependency APIs:
+Scan the project's source code for patterns that duplicate functionality provided by the discovered dependency APIs:
 
 | Pattern in project code                    | Likely replacement                           |
 |--------------------------------------------|----------------------------------------------|
@@ -154,15 +141,15 @@ discovered dependency APIs:
 
 Report each replacement opportunity with the file location and the suggested library alternative.
 
-Treat the table above as starter heuristics, not an authoritative catalog. Before recommending any
-replacement, confirm the named symbol appears in the `__all__` exports enumerated in Step 4 (and in
-the signature read in Step 5). Never suggest a symbol absent from the live snapshot. Delete a
-replacement row whose symbol is missing from this run's per-library tables rather than repairing it.
+Treat the table above as starter heuristics, not an authoritative catalog. Before recommending any replacement, confirm
+the named symbol appears in the `__all__` exports enumerated in Step 4 (and in the signature read in Step 5). Never
+suggest a symbol absent from the live snapshot. Delete a replacement row whose symbol is missing from this run's
+per-library tables rather than repairing it.
 
 ### Step 7: Produce the dependency API snapshot
 
-Present the results using the output format below. This snapshot gives the agent (and user) a
-complete picture of what the project's ataraxis dependencies provide.
+Present the results using the output format below. This snapshot gives the agent (and user) a complete picture of what
+the project's ataraxis dependencies provide.
 
 ---
 
@@ -198,8 +185,8 @@ Organize the snapshot by library, with sections for each dependency.
 | `EnumName`      | `enum` | Members: `MEMBER_A`, `MEMBER_B`, ... |
 ```
 
-For C++ libraries, replace the `**Import:**` line with an `**Include:**` line naming the header (e.g.
-`#include "transport_layer.h"`) and set `**Source:**` to the `.pio/libdeps/<lib>/src` location.
+For C++ libraries, replace the `**Import:**` line with an `**Include:**` line naming the header (e.g. `#include
+"transport_layer.h"`) and set `**Source:**` to the `.pio/libdeps/<lib>/src` location.
 
 ### Replacement opportunities section
 
@@ -220,14 +207,13 @@ If no replacement opportunities are found, state: "No replacement opportunities 
 
 ## Handling large dependencies
 
-For a dependency with 15 or more public exports, or when the public exports across all dependencies
-total 30 or more, use the Agent tool with the `Explore` agent type to parallelize the API reading.
-Launch at most 2-3 Explore subagents, batching libraries across them rather than one subagent per
-library. Instruct each subagent to return ONLY the structured snapshot rows for its assigned
-libraries (signatures plus one-line summaries), never raw source bodies.
+For a dependency with 15 or more public exports, or when the public exports across all dependencies total 30 or more,
+use the Agent tool with the `Explore` agent type to parallelize the API reading. Launch at most 2-3 Explore subagents,
+batching libraries across them rather than one subagent per library. Instruct each subagent to return ONLY the
+structured snapshot rows for its assigned libraries (signatures plus one-line summaries), never raw source bodies.
 
-When every dependency has fewer than 15 public exports and they total fewer than 30 across all
-dependencies, read the APIs directly without subagents.
+When every dependency has fewer than 15 public exports and they total fewer than 30 across all dependencies, read the
+APIs directly without subagents.
 
 ---
 
@@ -245,12 +231,11 @@ dependencies, read the APIs directly without subagents.
 
 ## Proactive behavior
 
-Invoke at session start alongside `/explore-codebase` when the project has ataraxis dependencies.
-The `/python-style` skill explicitly requires this skill before writing code that touches ataraxis
-library domains.
+Invoke at session start alongside `/explore-codebase` when the project has ataraxis dependencies. The `/python-style`
+skill explicitly requires this skill before writing code that touches ataraxis library domains.
 
-When invoked proactively, present the dependency API snapshot and replacement opportunities before
-proceeding to code changes. Wait for user acknowledgment before modifying code.
+When invoked proactively, present the dependency API snapshot and replacement opportunities before proceeding to code
+changes. Wait for user acknowledgment before modifying code.
 
 ---
 

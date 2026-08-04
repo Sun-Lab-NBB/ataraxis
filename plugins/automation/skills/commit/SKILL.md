@@ -1,11 +1,10 @@
 ---
 name: commit
 description: >-
-  Stages all local changes and creates a style-compliant git commit, stopping before any push. Drafts
-  the commit message by analyzing all changes relative to the active branch, stages every change, and
-  commits, leaving the push for the user. Offers to commit proactively after completing substantial
-  code changes. Use when the user asks to commit, when completing a coding task that should be
-  committed, or when the user invokes /commit.
+  Stages all local changes and creates a style-compliant git commit, stopping before any push. Drafts the commit message
+  by analyzing all changes relative to the active branch, stages every change, and commits, leaving the push for the
+  user. Offers to commit proactively after completing substantial code changes. Use when the user asks to commit, when
+  completing a coding task that should be committed, or when the user invokes /commit.
 user-invocable: true
 ---
 
@@ -43,13 +42,12 @@ Run the following git commands in parallel using the Bash tool:
 2. `git diff` to see unstaged changes and `git diff --cached` to see staged changes.
 3. `git log --oneline -10` to see recent commit messages for style context.
 4. `git branch --show-current` to determine the active branch, and identify the default branch (commonly `main` or
-   `master`). Confirm the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD` and strip the
-   `origin/` prefix when a remote exists. If that command errors with `is not a symbolic ref`, run
-   `git remote set-head origin -a` to populate `origin/HEAD`, otherwise fall back to checking for `main` then
-   `master`.
+   `master`). Confirm the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD` and strip the `origin/`
+   prefix when a remote exists. If that command errors with `is not a symbolic ref`, run `git remote set-head origin -a`
+   to populate `origin/HEAD`, otherwise fall back to checking for `main` then `master`.
 
-If `git status` shows no staged, unstaged, or untracked changes, stop and report that there is nothing to commit
-rather than running `git add`/`git commit`.
+If `git status` shows no staged, unstaged, or untracked changes, stop and report that there is nothing to commit rather
+than running `git add`/`git commit`.
 
 ### Step 2: Analyze changes
 
@@ -73,8 +71,8 @@ Using the branch information from Step 1:
 - If the active branch is NOT the default branch, commit onto the active branch as-is.
 - If the active branch IS the default branch, you MUST ask the user whether to create a new branch before committing.
   Recommend creating one (default to yes), but do NOT proceed until the user confirms. If they confirm, create and
-  switch to a descriptively named branch with `git switch -c <branch-name>` (e.g., `feature/...`, `bugfix/...`)
-  derived from the change. If they decline, commit directly onto the default branch.
+  switch to a descriptively named branch with `git switch -c <branch-name>` (e.g., `feature/...`, `bugfix/...`) derived
+  from the change. If they decline, commit directly onto the default branch.
 
 ### Step 5: Stage all changes
 
@@ -121,11 +119,11 @@ Stop there. Pushing is the supervising user's decision.
 
 The message is a record of *what changed in the code*, not *how or by whom the changes were produced*.
 
-**The header names the change, not its origin.** Cover the header and ask what it tells a reader about the code.
-A header naming the activity that produced the change, such as an audit, a review, a ticket, or a user request,
-describes the process and is rewritten to name the change instead. A reader running `git log` a year later has no
-access to that activity, so naming it spends the one line they do read. When the change set is a group of unrelated
-fixes, name the areas they touch, as in `Fixed various bugs in environment, credential, and upload handling.`
+**The header names the change, not its origin.** Cover the header and ask what it tells a reader about the code. A
+header naming the activity that produced the change, such as an audit, a review, a ticket, or a user request, describes
+the process and is rewritten to name the change instead. A reader running `git log` a year later has no access to that
+activity, so naming it spends the one line they do read. When the change set is a group of unrelated fixes, name the
+areas they touch, as in `Fixed various bugs in environment, credential, and upload handling.`
 
 ---
 
@@ -133,8 +131,8 @@ fixes, name the areas they touch, as in `Fixed various bugs in environment, cred
 
 ### Format
 
-**Header line limit**: The first line (header) must be no longer than 72 characters. This ensures proper display in
-Git logs, GitHub, and other tools.
+**Header line limit**: The first line (header) must be no longer than 72 characters. This ensures proper display in Git
+logs, GitHub, and other tools.
 
 **Single-line commits**: Use for focused, single-purpose changes.
 
@@ -144,8 +142,8 @@ Fixed a bug that allowed valves to violate keepalive guard.
 Optimized the behavior of camera ID discovery functionality.
 ```
 
-**Multi-line commits**: Use for changes that bundle related modifications. Insert a blank line after the header,
-then prefix each detail bullet with `-- `.
+**Multi-line commits**: Use for changes that bundle related modifications. Insert a blank line after the header, then
+prefix each detail bullet with `-- `.
 
 ```text
 Added MCP server module for agentic library interaction.
@@ -158,10 +156,10 @@ Added MCP server module for agentic library interaction.
 
 ### Line breaks
 
-Each bullet occupies exactly one line, however long that line runs. Git, GitHub, and terminal pagers soft-wrap the
-text themselves, so a hand-wrapped bullet renders as a rigid block that reflows badly at every other width. The test
-is mechanical: in the message source, no line after the header begins with whitespace. Bullets carry no character
-cap, and one running past roughly 30 words is usually two changes that split into two bullets.
+Each bullet occupies exactly one line, however long that line runs. Git, GitHub, and terminal pagers soft-wrap the text
+themselves, so a hand-wrapped bullet renders as a rigid block that reflows badly at every other width. The test is
+mechanical: in the message source, no line after the header begins with whitespace. Bullets carry no character cap, and
+one running past roughly 30 words is usually two changes that split into two bullets.
 
 ```text
 Updated the environment export to write through a temporary file.
@@ -205,8 +203,8 @@ counter-intuitive assumption, giving its reason.
 ### Prose quality
 
 **Typo-free and grammatical**: The commit message must be free of typos and grammatical errors, checked before the
-commit is created, with every symbol name, file name, flag spelling, and version string verified against the diff
-rather than from memory.
+commit is created, with every symbol name, file name, flag spelling, and version string verified against the diff rather
+than from memory.
 
 **Sentence length**: Every sentence in the commit header and detail bullets stays under 40 words. Break a longer
 sentence at a natural clause boundary, or split it into two bullets. Count the message prose alone, never the git
@@ -272,8 +270,8 @@ Refactored skill architecture to support user-invocable skills.
 After completing substantial code changes (new features, bug fixes, refactors), proactively offer to commit. For
 example: "Would you like me to stage and commit these changes?"
 
-Stage and commit when invoked, but NEVER push and never offer to push automatically. Always leave the push for the
-user to perform.
+Stage and commit when invoked, but NEVER push and never offer to push automatically. Always leave the push for the user
+to perform.
 
 ---
 

@@ -1,10 +1,10 @@
 ---
 name: python-style
 description: >-
-  Applies Python coding conventions when writing, reviewing, or refactoring code. Covers
-  .py files, docstrings, type annotations, naming, formatting, error handling, imports, file
-  ordering, and ataraxis library preferences. Use when writing new Python code, modifying existing
-  code, reviewing pull requests, or when the user asks about Python coding standards.
+  Applies Python coding conventions when writing, reviewing, or refactoring code. Covers .py files, docstrings, type
+  annotations, naming, formatting, error handling, imports, file ordering, and ataraxis library preferences. Use when
+  writing new Python code, modifying existing code, reviewing pull requests, or when the user asks about Python coding
+  standards.
 user-invocable: false
 ---
 
@@ -12,8 +12,8 @@ user-invocable: false
 
 Applies Python coding conventions.
 
-You MUST read this skill and load the relevant reference files before writing or modifying Python
-code. You MUST verify your changes against the checklist before submitting.
+You MUST read this skill and load the relevant reference files before writing or modifying Python code. You MUST verify
+your changes against the checklist before submitting.
 
 ---
 
@@ -63,24 +63,23 @@ Write or modify Python code following all conventions from this file and the loa
 
 ### Step 4: Verify compliance
 
-Complete the verification checklist at the end of this file. Every item must pass before
-submitting work. For anti-pattern examples, load
-[anti-patterns.md](references/anti-patterns.md).
+Complete the verification checklist at the end of this file. Every item must pass before submitting work. For
+anti-pattern examples, load [anti-patterns.md](references/anti-patterns.md).
 
 ---
 
 ## Cross-language consistency
 
-Projects span Python, C++, and C#. These conventions maximize visual and structural
-consistency across languages while respecting each language's idiomatic standards.
+Projects span Python, C++, and C#. These conventions maximize visual and structural consistency across languages while
+respecting each language's idiomatic standards.
 
 **Shared across all languages:**
 - 120 character line limit, with wrapped prose filled to that limit rather than broken at a narrower width
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- A leading underscore marks a symbol private to the module or class that defines it (`_snake_case`
-  for any private Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
+- A leading underscore marks a symbol private to the module or class that defines it (`_snake_case` for any private
+  Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
 - Prose over bullet lists in documentation
@@ -130,19 +129,18 @@ Use **full words**, not abbreviations:
 
 ### Visibility prefixes and the module boundary
 
-A leading underscore marks a symbol private to the **module** that defines it, covering functions,
-classes, constants, class attributes, and methods. The name a symbol carries MATCHES the widest
-boundary its consumers actually cross, so any symbol referenced from another module MUST carry a
-public name and any symbol referenced only inside its defining module MUST carry the underscore.
+A leading underscore marks a symbol private to the **module** that defines it, covering functions, classes, constants,
+class attributes, and methods. The name a symbol carries MATCHES the widest boundary its consumers actually cross, so
+any symbol referenced from another module MUST carry a public name and any symbol referenced only inside its defining
+module MUST carry the underscore.
 
-See [class-patterns.md](references/class-patterns.md) for the three visibility tiers, the promotion
-and demotion that follow a module split, and the test exception.
+See [class-patterns.md](references/class-patterns.md) for the three visibility tiers, the promotion and demotion that
+follow a module split, and the test exception.
 
 ### Constants
 
-Module-level constants with type annotations, descriptive names, and inline docstrings. Constants
-intended for export (listed in `__all__`) use bare `UPPER_SNAKE_CASE`, and constants internal to a
-module use `_UPPER_SNAKE_CASE`:
+Module-level constants with type annotations, descriptive names, and inline docstrings. Constants intended for export
+(listed in `__all__`) use bare `UPPER_SNAKE_CASE`, and constants internal to a module use `_UPPER_SNAKE_CASE`:
 
 ```python
 _MINIMUM_SAMPLE_COUNT: int = 100
@@ -156,8 +154,8 @@ MAXIMUM_QUANTIZATION_VALUE: int = 51
 
 ## Function calls
 
-See [class-patterns.md](references/class-patterns.md) for keyword-argument conventions, their
-exceptions, and the keyword-only placement of boolean flag parameters.
+See [class-patterns.md](references/class-patterns.md) for keyword-argument conventions, their exceptions, and the
+keyword-only placement of boolean flag parameters.
 
 ---
 
@@ -177,15 +175,13 @@ def process_data(self, data: NDArray[np.float32], threshold: float) -> None:
         console.error(message=message, error=ValueError)
 ```
 
-In projects that do not depend on `ataraxis-base-utilities`, use standard `raise` with the same
-message format.
+In projects that do not depend on `ataraxis-base-utilities`, use standard `raise` with the same message format.
 
-`console.error` is typed `NoReturn` and always raises the supplied exception, so treat it as a
-terminating call in guard clauses. Mypy understands the `NoReturn` contract, so it never asks for a
-`raise` or a `return` after the call. Ruff instead reasons syntactically, so a function annotated
-with a return type other than `None` needs an unreachable `return` after the call to satisfy ruff
-`RET503`. See [libraries-and-tools.md](references/libraries-and-tools.md) for that pattern and the
-`# pragma: no cover` annotation it carries.
+`console.error` is typed `NoReturn` and always raises the supplied exception, so treat it as a terminating call in guard
+clauses. Mypy understands the `NoReturn` contract, so it never asks for a `raise` or a `return` after the call. Ruff
+instead reasons syntactically, so a function annotated with a return type other than `None` needs an unreachable
+`return` after the call to satisfy ruff `RET503`. See [libraries-and-tools.md](references/libraries-and-tools.md) for
+that pattern and the `# pragma: no cover` annotation it carries.
 
 ### Error message format
 
@@ -199,8 +195,7 @@ with a return type other than `None` needs an unreachable `return` after the cal
 
 ## Comments
 
-See [docstrings-and-types.md](references/docstrings-and-types.md) for inline comment conventions and
-what to avoid.
+See [docstrings-and-types.md](references/docstrings-and-types.md) for inline comment conventions and what to avoid.
 
 ---
 
@@ -211,11 +206,10 @@ what to avoid.
 
 ### Process-wide configuration above the imports
 
-A setting that must be applied before the import it governs runs sits above the imports in the
-top-level `__init__.py`, and every import below it carries `# noqa: E402`. Such a setting takes
-effect only if it precedes the import, so moving it down changes behavior rather than formatting.
-Configuration carrying no such ordering requirement stays below the imports. See
-[class-patterns.md](references/class-patterns.md) for the qualifying settings and an example.
+A setting that must be applied before the import it governs runs sits above the imports in the top-level `__init__.py`,
+and every import below it carries `# noqa: E402`. Such a setting takes effect only if it precedes the import, so moving
+it down changes behavior rather than formatting. Configuration carrying no such ordering requirement stays below the
+imports. See [class-patterns.md](references/class-patterns.md) for the qualifying settings and an example.
 
 ### Local import rules
 
@@ -248,10 +242,9 @@ from ..configuration.single_day import RuntimeContext, SingleDayConfiguration
 from .spline_grid import SplineGrid
 ```
 
-The rule binds the exporting side as well. Any symbol consumed outside the (sub)package that defines
-it MUST be re-exported from that package's `__init__.py`, and a symbol that no outside package
-consumes MUST NOT appear there. See [class-patterns.md](references/class-patterns.md) for both halves
-of that rule.
+The rule binds the exporting side as well. Any symbol consumed outside the (sub)package that defines it MUST be
+re-exported from that package's `__init__.py`, and a symbol that no outside package consumes MUST NOT appear there. See
+[class-patterns.md](references/class-patterns.md) for both halves of that rule.
 
 Tests are the sole exception. Test modules may import directly from any submodule of any package.
 
@@ -259,34 +252,33 @@ Tests are the sole exception. Test modules may import directly from any submodul
 
 ## \_\_init\_\_.py conventions
 
-See [class-patterns.md](references/class-patterns.md) for top-level library and subpackage
-`__init__.py` docstring, `__all__`, and console initialization conventions.
+See [class-patterns.md](references/class-patterns.md) for top-level library and subpackage `__init__.py` docstring,
+`__all__`, and console initialization conventions.
 
 ---
 
 ## Unused assets
 
-An asset with no consumer is REMOVED rather than kept. This covers functions, classes, methods,
-properties, constants, enum members, dataclass fields, type aliases, parameters, and whole modules.
+An asset with no consumer is REMOVED rather than kept. This covers functions, classes, methods, properties, constants,
+enum members, dataclass fields, type aliases, parameters, and whole modules.
 
-Ruff reports only the cases a single file reveals, which are unused imports outside `__init__.py`
-(`F401`), unused local variables (`F841`), and unused arguments (`ARG`). It carries no rule for an
-unused module-level definition, so a function, class, or constant nobody calls clears every gate the
-project runs and is found by reading alone.
+Ruff reports only the cases a single file reveals, which are unused imports outside `__init__.py` (`F401`), unused local
+variables (`F841`), and unused arguments (`ARG`). It carries no rule for an unused module-level definition, so a
+function, class, or constant nobody calls clears every gate the project runs and is found by reading alone.
 
 Three things count as a consumer, and nothing else does:
 
 - A reference from library code under `src/`
-- An entry in the distribution's top-level `__init__.py` `__all__`, which places the symbol in the
-  curated public API and hands it to downstream code this repository cannot see
-- A registration the interpreter resolves at runtime rather than by name, which covers `pyproject.toml`
-  entry points, Click commands, MCP tool registrations, plugin registries, and `getattr` dispatch
+- An entry in the distribution's top-level `__init__.py` `__all__`, which places the symbol in the curated public API
+  and hands it to downstream code this repository cannot see
+- A registration the interpreter resolves at runtime rather than by name, which covers `pyproject.toml` entry points,
+  Click commands, MCP tool registrations, plugin registries, and `getattr` dispatch
 
-A reference from `tests/` alone is NOT a consumer. A helper that only its own tests exercise is dead
-library code with a live test, and the pair is removed together.
+A reference from `tests/` alone is NOT a consumer. A helper that only its own tests exercise is dead library code with a
+live test, and the pair is removed together.
 
-Removing a symbol from the curated public API is a breaking change, so it waits for a release
-permitted to break the API rather than landing as a cleanup.
+Removing a symbol from the curated public API is a breaking change, so it waits for a release permitted to break the API
+rather than landing as a cleanup.
 
 ---
 
@@ -303,43 +295,40 @@ All definitions within a file follow this vertical ordering from top to bottom:
 
 ### Visibility ordering
 
-Public definitions appear **above** private definitions, matching the C-family convention used
-across all projects (C#, C++) that presents the interface before the helpers supporting it.
+Public definitions appear **above** private definitions, matching the C-family convention used across all projects (C#,
+C++) that presents the interface before the helpers supporting it.
 
-This rule governs two levels. At module level, public functions and classes precede private ones.
-Inside a class body, public methods and properties precede private methods and properties, so a
-private helper sits below every public member of its class rather than beside the member that calls
-it. Dunder methods are exempt and keep their conventional position at the top of the class body,
-directly after the class docstring. See [class-patterns.md](references/class-patterns.md) for the
-full class member order.
+This rule governs two levels. At module level, public functions and classes precede private ones. Inside a class body,
+public methods and properties precede private methods and properties, so a private helper sits below every public member
+of its class rather than beside the member that calls it. Dunder methods are exempt and keep their conventional position
+at the top of the class body, directly after the class docstring. See [class-patterns.md](references/class-patterns.md)
+for the full class member order.
 
 ### Call-hierarchy ordering
 
-Within each visibility group, definitions should **loosely follow the order in which they are
-called** during the library's runtime. When there is no clear call hierarchy, group definitions
-**by purpose**.
+Within each visibility group, definitions should **loosely follow the order in which they are called** during the
+library's runtime. When there is no clear call hierarchy, group definitions **by purpose**.
 
 ### Enumerations and dataclasses first
 
-Enumerations and dataclasses define the types that worker functions and classes operate on. They
-must appear **above** the functions and classes that use them.
+Enumerations and dataclasses define the types that worker functions and classes operate on. They must appear **above**
+the functions and classes that use them.
 
-**Exception, dataclass-only modules**: In files whose primary product is the dataclasses
-themselves, the order is: enumerations first, then public helper functions, then private helper
-functions, then dataclasses at the bottom.
+**Exception, dataclass-only modules**: In files whose primary product is the dataclasses themselves, the order is:
+enumerations first, then public helper functions, then private helper functions, then dataclasses at the bottom.
 
 ### Stub files
 
-`.pyi` stub files and the `py.typed` marker are GENERATED, never hand-authored, and they ship with
-releases. Change typing by editing the `.py` source and regenerating, rather than by creating or
-hand-editing a stub. See `/tox-config` for the environments that generate and purge stubs.
+`.pyi` stub files and the `py.typed` marker are GENERATED, never hand-authored, and they ship with releases. Change
+typing by editing the `.py` source and regenerating, rather than by creating or hand-editing a stub. See `/tox-config`
+for the environments that generate and purge stubs.
 
 ---
 
 ## Boolean expressions and guard clauses
 
-See [class-patterns.md](references/class-patterns.md) for truthiness checks, the `is None`
-exception, and early-return conventions.
+See [class-patterns.md](references/class-patterns.md) for truthiness checks, the `is None` exception, and early-return
+conventions.
 
 ---
 
@@ -347,14 +336,14 @@ exception, and early-return conventions.
 
 ### Wrap width
 
-Break a comment or docstring line only where it would otherwise pass 120 characters, and fill each line to that
-limit before breaking. Prose wrapped at a narrower width reads as a rigid block, re-wraps badly at any other
-viewport, and advertises a limit the project does not set. The test is mechanical: a wrapped line that ends before
-column 100 while its next word would still fit under 120 is re-flowed. A line ending early because the sentence or
-the paragraph ends, or because it holds a table row, a list item, or a code span, is already correct.
+Break a comment or docstring line only where it would otherwise pass 120 characters, and fill each line to that limit
+before breaking. Prose wrapped at a narrower width reads as a rigid block, re-wraps badly at any other viewport, and
+advertises a limit the project does not set. The test is mechanical: a wrapped line that ends before column 100 while
+its next word would still fit under 120 is re-flowed. A line ending early because the sentence or the paragraph ends, or
+because it holds a table row, a list item, or a code span, is already correct.
 
-See [class-patterns.md](references/class-patterns.md) for blank-line placement, the 120 character
-limit, string formatting, trailing commas, and pathlib usage.
+See [class-patterns.md](references/class-patterns.md) for blank-line placement, the 120 character limit, string
+formatting, trailing commas, and pathlib usage.
 
 ---
 
@@ -377,17 +366,15 @@ limit, string formatting, trailing commas, and pathlib usage.
 
 ## Proactive behavior
 
-When reviewing or modifying code, proactively check for style violations and fix them. When
-writing new code, apply all conventions from this skill and its references without being asked.
-If you notice existing code near your changes that violates conventions, mention it to the user
-but do not fix it unless asked.
+When reviewing or modifying code, proactively check for style violations and fix them. When writing new code, apply all
+conventions from this skill and its references without being asked. If you notice existing code near your changes that
+violates conventions, mention it to the user but do not fix it unless asked.
 
 ---
 
 ## Verification checklist
 
-**You MUST verify your edits against this checklist before submitting any changes to Python
-files.**
+**You MUST verify your edits against this checklist before submitting any changes to Python files.**
 
 ```text
 Python Style Compliance:

@@ -1,11 +1,10 @@
 ---
 name: cpp-style
 description: >-
-  Applies C++ coding conventions when writing, reviewing, or refactoring code. Covers .h, .hpp, and
-  .cpp files, Doxygen documentation, naming, formatting, error handling, includes, file ordering,
-  template patterns, embedded (Arduino/PlatformIO) conventions, and Python C++ extension
-  (nanobind/scikit-build-core) conventions. Use when writing or modifying C++ code, reviewing pull
-  requests, or when the user asks about C++ coding standards.
+  Applies C++ coding conventions when writing, reviewing, or refactoring code. Covers .h, .hpp, and .cpp files, Doxygen
+  documentation, naming, formatting, error handling, includes, file ordering, template patterns, embedded
+  (Arduino/PlatformIO) conventions, and Python C++ extension (nanobind/scikit-build-core) conventions. Use when writing
+  or modifying C++ code, reviewing pull requests, or when the user asks about C++ coding standards.
 user-invocable: false
 ---
 
@@ -13,8 +12,8 @@ user-invocable: false
 
 Applies C++ coding conventions.
 
-You MUST read this skill and load the relevant reference files before writing or modifying C++
-code. You MUST verify your changes against the checklist before submitting.
+You MUST read this skill and load the relevant reference files before writing or modifying C++ code. You MUST verify
+your changes against the checklist before submitting.
 
 ---
 
@@ -66,24 +65,23 @@ Write or modify C++ code following all conventions from this file and the loaded
 
 ### Step 4: Verify compliance
 
-Complete the verification checklist at the end of this file. Every item must pass before
-submitting work. For anti-pattern examples, load
-[anti-patterns.md](references/anti-patterns.md).
+Complete the verification checklist at the end of this file. Every item must pass before submitting work. For
+anti-pattern examples, load [anti-patterns.md](references/anti-patterns.md).
 
 ---
 
 ## Cross-language consistency
 
-Projects span Python, C++, and C#. These conventions maximize visual and structural
-consistency across languages while respecting each language's idiomatic standards.
+Projects span Python, C++, and C#. These conventions maximize visual and structural consistency across languages while
+respecting each language's idiomatic standards.
 
 **Shared across all languages:**
 - 120 character line limit, with wrapped prose filled to that limit rather than broken at a narrower width
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- A leading underscore marks a symbol private to the file or class that defines it (`_snake_case`
-  for any private Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
+- A leading underscore marks a symbol private to the file or class that defines it (`_snake_case` for any private Python
+  symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
 - Prose over bullet lists in documentation
@@ -111,33 +109,32 @@ consistency across languages while respecting each language's idiomatic standard
 - Consecutive assignment alignment IS used (C# CSharpier does not support it)
 
 **Symbol visibility:**
-- A leading underscore marks a symbol private to the translation unit or header that defines it, and a
-  symbol referenced from another translation unit or header is renamed to a public name
-- A symbol consumed outside its owning component is exported through that component's public header,
-  never by reaching into an internal header, and tests are the sole exception to both rules
-- Both rules bind downward as well. A symbol referenced only inside its defining translation unit or
-  header keeps the underscore, and a symbol every consumer of which lives inside the owning component
-  stays out of that component's public header. A test is not a consumer for either rule
-- An asset with no consumer is removed rather than kept, which covers functions, methods, classes,
-  constants, enum members, and whole headers. The compiler reports an unused static function and an
-  unused local, and it reports nothing about an unused exported declaration, so that case is found by
-  reading. A symbol exercised only by its own tests is removed together with those tests
+- A leading underscore marks a symbol private to the translation unit or header that defines it, and a symbol referenced
+  from another translation unit or header is renamed to a public name
+- A symbol consumed outside its owning component is exported through that component's public header, never by reaching
+  into an internal header, and tests are the sole exception to both rules
+- Both rules bind downward as well. A symbol referenced only inside its defining translation unit or header keeps the
+  underscore, and a symbol every consumer of which lives inside the owning component stays out of that component's
+  public header. A test is not a consumer for either rule
+- An asset with no consumer is removed rather than kept, which covers functions, methods, classes, constants, enum
+  members, and whole headers. The compiler reports an unused static function and an unused local, and it reports nothing
+  about an unused exported declaration, so that case is found by reading. A symbol exercised only by its own tests is
+  removed together with those tests
 
 ### Project archetypes
 
 C++ code falls into two archetypes with shared style but different constraints:
 
-- **Embedded** (Arduino/PlatformIO): No exceptions, no dynamic allocation, no RTTI, no STL heap
-  containers. Uses status codes and boolean returns for error handling. Builds via PlatformIO.
-- **Extension** (Python/nanobind): Full STL allowed. Exceptions allowed (nanobind translates them
-  to Python exceptions). Builds via CMake + scikit-build-core. Requires GIL management. Filesystem
-  paths compose from `std::filesystem::path` values joined with `operator/`, never from strings
-  concatenated around a hard-coded separator.
+- **Embedded** (Arduino/PlatformIO): No exceptions, no dynamic allocation, no RTTI, no STL heap containers. Uses status
+  codes and boolean returns for error handling. Builds via PlatformIO.
+- **Extension** (Python/nanobind): Full STL allowed. Exceptions allowed (nanobind translates them to Python exceptions).
+  Builds via CMake + scikit-build-core. Requires GIL management. Filesystem paths compose from `std::filesystem::path`
+  values joined with `operator/`, never from strings concatenated around a hard-coded separator.
 
-All naming, documentation, and tooling conventions apply identically to both. Formatting is identical
-except for `AccessModifierOffset` and `IndentAccessModifiers`, which differ per archetype (see
-[references/libraries-and-tools.md](references/libraries-and-tools.md)). The verification checklist
-marks items that apply to only one archetype.
+All naming, documentation, and tooling conventions apply identically to both. Formatting is identical except for
+`AccessModifierOffset` and `IndentAccessModifiers`, which differ per archetype (see
+[references/libraries-and-tools.md](references/libraries-and-tools.md)). The verification checklist marks items that
+apply to only one archetype.
 
 ---
 
@@ -181,8 +178,8 @@ Use **full words**, not abbreviations:
 
 ### Accessors (getters and setters)
 
-See [class-patterns.md](references/class-patterns.md) for the accessor versus method decision and its
-call-site rationale.
+See [class-patterns.md](references/class-patterns.md) for the accessor versus method decision and its call-site
+rationale.
 
 ### Constants
 
@@ -193,8 +190,8 @@ Use `static constexpr` with the `kPascalCase` prefix and a Doxygen comment:
 static constexpr uint16_t kMinimumPacketSize = 5;
 ```
 
-For constants derived from template parameters, add the `// NOLINT(*-dynamic-static-initializers)`
-suppression when clang-tidy reports a false positive:
+For constants derived from template parameters, add the `// NOLINT(*-dynamic-static-initializers)` suppression when
+clang-tidy reports a false positive:
 
 ```cpp
 static constexpr int32_t kMultiplier = kInvertDirection ? -1 : 1;  // NOLINT(*-dynamic-static-initializers)
@@ -204,9 +201,9 @@ static constexpr int32_t kMultiplier = kInvertDirection ? -1 : 1;  // NOLINT(*-d
 
 ## Function calls
 
-Calls that pass a boolean literal, or two or more arguments of the same declared type, label each
-such argument with a trailing inline comment naming the parameter. See
-[class-patterns.md](references/class-patterns.md) for argument-labeling conventions in function calls.
+Calls that pass a boolean literal, or two or more arguments of the same declared type, label each such argument with a
+trailing inline comment naming the parameter. See [class-patterns.md](references/class-patterns.md) for
+argument-labeling conventions in function calls.
 
 ---
 
@@ -214,14 +211,13 @@ such argument with a trailing inline comment naming the parameter. See
 
 ### Embedded projects (Arduino/PlatformIO)
 
-Embedded microcontrollers prohibit exceptions, RTTI, and dynamic allocation. Use status codes and
-boolean returns. See [class-patterns.md](references/class-patterns.md) for the command dispatch
-pattern that carries them.
+Embedded microcontrollers prohibit exceptions, RTTI, and dynamic allocation. Use status codes and boolean returns. See
+[class-patterns.md](references/class-patterns.md) for the command dispatch pattern that carries them.
 
 ### Extension projects (Python/nanobind)
 
-Extension code may throw exceptions for error propagation to Python. nanobind automatically
-translates C++ exceptions to Python exceptions:
+Extension code may throw exceptions for error propagation to Python. nanobind automatically translates C++ exceptions to
+Python exceptions:
 
 ```cpp
 throw std::invalid_argument("Unsupported precision. Use 'ns', 'us', 'ms', or 's'.");
@@ -237,8 +233,8 @@ static_assert(kPinA != kPinB, "EncoderModule PinA and PinB cannot be the same!")
 
 ### Error message format
 
-Use a structured format: context ("Unable to..."), constraint ("must be..."), actual value
-("but received..."). For runtime errors, include the actual value when available.
+Use a structured format: context ("Unable to..."), constraint ("must be..."), actual value ("but received..."). For
+runtime errors, include the actual value when available.
 
 ---
 
@@ -263,9 +259,8 @@ Use `#ifndef` / `#define` / `#endif` with a library-prefixed identifier:
 #endif  //AXTLMC_TRANSPORT_LAYER_H
 ```
 
-The guard identifier follows the pattern: `LIBRARY_PREFIX_FILE_NAME_H`. Use the library's
-abbreviated prefix (e.g., `AXTLMC` for ataraxis-transport-layer-mc, `AXMC` for
-ataraxis-micro-controller).
+The guard identifier follows the pattern: `LIBRARY_PREFIX_FILE_NAME_H`. Use the library's abbreviated prefix (e.g.,
+`AXTLMC` for ataraxis-transport-layer-mc, `AXMC` for ataraxis-micro-controller).
 
 ### Include ordering
 
@@ -276,10 +271,9 @@ clang-format enforces include sorting (`SortIncludes: CaseSensitive`). The conve
 3. **Project headers**: `<transport_layer.h>`, `<module.h>`, `<kernel.h>`
 4. **Local headers**: `"encoder_module.h"`, `"valve_module.h"`
 
-All includes must be at the top of the file, except the variant-gated includes inside a `#ifdef`
-target-selection block in `main.cpp`. Include sorting is enforced by **clang-format**, so do not
-manually reorder. Use angle brackets (`<header.h>`) for library headers and quotes (`"header.h"`)
-for local project headers.
+All includes must be at the top of the file, except the variant-gated includes inside a `#ifdef` target-selection block
+in `main.cpp`. Include sorting is enforced by **clang-format**, so do not manually reorder. Use angle brackets
+(`<header.h>`) for library headers and quotes (`"header.h"`) for local project headers.
 
 ---
 
@@ -291,44 +285,35 @@ All definitions within a file follow this vertical ordering from top to bottom:
 2. **Include guard** (`#ifndef` / `#define`)
 3. **Macro definitions** (if any, e.g., `#define ENCODER_USE_INTERRUPTS`)
 4. **Include directives**
-5. **Using directives** (`using namespace`, allowed in header-only libraries, see the using
-   namespace section of [class-patterns.md](references/class-patterns.md))
+5. **Using directives** (`using namespace`, allowed in header-only libraries, see the using namespace section of
+   [class-patterns.md](references/class-patterns.md))
 6. **Namespace declarations** (for shared asset files)
 7. **Free constants** (`static constexpr` at file scope)
 8. **Enumerations** (`enum class` definitions)
 9. **Structs and type definitions**
-10. **Class declarations** with members in this order:
-    a. `static_assert` statements (compile-time validation)
-    b. Public nested enums
-    c. Public constructors
-    d. Public methods (virtual overrides first, then non-virtual)
-    e. Public destructor (`~ClassName() override = default`)
-    f. Private nested structs
-    g. Private constants (`static constexpr`)
-    h. Private member variables
-    i. Private methods
+10. **Class declarations** with members in this order: a. `static_assert` statements (compile-time validation) b. Public
+    nested enums c. Public constructors d. Public methods (virtual overrides first, then non-virtual) e. Public
+    destructor (`~ClassName() override = default`) f. Private nested structs g. Private constants (`static constexpr`)
+    h. Private member variables i. Private methods
 
 ### Visibility ordering
 
-Within a class, order by visibility: `public` first, then `private`. Always write access
-modifiers explicitly.
+Within a class, order by visibility: `public` first, then `private`. Always write access modifiers explicitly.
 
 ### Call-hierarchy ordering
 
-Within each visibility group, definitions should **loosely follow the order in which they are
-called** during the class's runtime. When there is no clear call hierarchy, group definitions
-**by purpose**. This matches the Python convention of ordering definitions by call sequence
-within each visibility group.
+Within each visibility group, definitions should **loosely follow the order in which they are called** during the
+class's runtime. When there is no clear call hierarchy, group definitions **by purpose**. This matches the Python
+convention of ordering definitions by call sequence within each visibility group.
 
-For embedded modules, this naturally follows from the lifecycle: `SetupModule()` helpers first,
-then `RunActiveCommand()` dispatch helpers, then individual command methods.
+For embedded modules, this naturally follows from the lifecycle: `SetupModule()` helpers first, then
+`RunActiveCommand()` dispatch helpers, then individual command methods.
 
 ### One class per file
 
-Each `.h` file should contain exactly one primary class. The file name must use snake_case and
-match the class name converted to snake_case (e.g., `transport_layer.h` contains
-`TransportLayer`). Shared asset namespaces with enums and structs may be in a single file (e.g.,
-`axtlmc_shared_assets.h`).
+Each `.h` file should contain exactly one primary class. The file name must use snake_case and match the class name
+converted to snake_case (e.g., `transport_layer.h` contains `TransportLayer`). Shared asset namespaces with enums and
+structs may be in a single file (e.g., `axtlmc_shared_assets.h`).
 
 ---
 
@@ -382,10 +367,9 @@ See [libraries-and-tools.md](references/libraries-and-tools.md) for `.clang-form
 
 ## Proactive behavior
 
-When reviewing or modifying C++ code, proactively check for style violations and fix them. When
-writing new code, apply all conventions from this skill and its references without being asked.
-If you notice existing code near your changes that violates conventions, mention it to the user
-but do not fix it unless asked.
+When reviewing or modifying C++ code, proactively check for style violations and fix them. When writing new code, apply
+all conventions from this skill and its references without being asked. If you notice existing code near your changes
+that violates conventions, mention it to the user but do not fix it unless asked.
 
 ---
 

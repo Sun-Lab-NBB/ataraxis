@@ -1,10 +1,10 @@
 ---
 name: pyproject-style
 description: >-
-  Applies pyproject.toml conventions when creating or modifying pyproject.toml files. Covers
-  section ordering, metadata fields, dependency specifications, tool configurations (ruff, mypy,
-  coverage, hatch), and classifier templates. Use when creating a new project, modifying an existing
-  pyproject.toml, adding dependencies, or when the user asks about pyproject.toml conventions.
+  Applies pyproject.toml conventions when creating or modifying pyproject.toml files. Covers section ordering, metadata
+  fields, dependency specifications, tool configurations (ruff, mypy, coverage, hatch), and classifier templates. Use
+  when creating a new project, modifying an existing pyproject.toml, adding dependencies, or when the user asks about
+  pyproject.toml conventions.
 user-invocable: false
 ---
 
@@ -12,8 +12,8 @@ user-invocable: false
 
 Applies conventions for pyproject.toml files.
 
-You MUST read this skill and load the relevant reference files before creating or modifying any
-pyproject.toml file. You MUST verify your changes against the checklist before submitting.
+You MUST read this skill and load the relevant reference files before creating or modifying any pyproject.toml file. You
+MUST verify your changes against the checklist before submitting.
 
 ---
 
@@ -66,20 +66,17 @@ Identify the project type to apply the correct configuration tier:
 
 ### Step 4: Apply conventions
 
-Write or modify the pyproject.toml following all conventions from this file and the loaded
-references.
+Write or modify the pyproject.toml following all conventions from this file and the loaded references.
 
 ### Step 5: Verify compliance
 
-Complete the verification checklist at the end of this file. Every item must pass before
-submitting work.
+Complete the verification checklist at the end of this file. Every item must pass before submitting work.
 
 ---
 
 ## Section ordering
 
-pyproject.toml files use the following section order. This order is mandatory for all
-projects.
+pyproject.toml files use the following section order. This order is mandatory for all projects.
 
 1. `[build-system]`
 2. `[project]`
@@ -97,31 +94,31 @@ projects.
 14. `[tool.coverage.html]`
 15. `[tool.coverage.report]`
 
-`[tool.ruff.format]` comes first, then the `[tool.ruff.lint.*]` sub-tables run `pycodestyle`,
-`pydocstyle`, `per-file-ignores`, `isort`, and then the optional `flake8-unused-arguments`.
+`[tool.ruff.format]` comes first, then the `[tool.ruff.lint.*]` sub-tables run `pycodestyle`, `pydocstyle`,
+`per-file-ignores`, `isort`, and then the optional `flake8-unused-arguments`.
 
 `[tool.coverage.run]` is omitted only by a project that needs none of its keys. See
 [tool-configurations.md](references/tool-configurations.md) for those keys.
 
-`[[tool.mypy.overrides]]` and `[tool.pytest.ini_options]` carry project-specific content, so this
-skill fixes their position and leaves their contents to the project. See
-[tool-configurations.md](references/tool-configurations.md) for the pytest keys.
+`[[tool.mypy.overrides]]` and `[tool.pytest.ini_options]` carry project-specific content, so this skill fixes their
+position and leaves their contents to the project. See [tool-configurations.md](references/tool-configurations.md) for
+the pytest keys.
 
-For C-extension projects using scikit-build-core, replace the hatch build targets with
-`[tool.scikit-build]` and `[tool.cibuildwheel]` sections at positions 6-7.
+For C-extension projects using scikit-build-core, replace the hatch build targets with `[tool.scikit-build]` and
+`[tool.cibuildwheel]` sections at positions 6-7.
 
 ---
 
 ## TOML formatting
 
-pyproject.toml adheres to the **120 character line limit**, matching the `line-length` it sets for
-the project's Python code, and comment prose wraps at 120. A single unbreakable value is exempt,
-such as a URL, a PEP 508 requirement string with markers, or an SPDX expression.
+pyproject.toml adheres to the **120 character line limit**, matching the `line-length` it sets for the project's Python
+code, and comment prose wraps at 120. A single unbreakable value is exempt, such as a URL, a PEP 508 requirement string
+with markers, or an SPDX expression.
 
 Break a comment line only where it would otherwise pass 120 characters, and fill each line to that limit before
-breaking. Comment prose wrapped at a narrower width reads as a rigid block and advertises a limit the file does not
-set. The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120
-is re-flowed. A line ending early because the sentence or the comment block ends is already correct.
+breaking. Comment prose wrapped at a narrower width reads as a rigid block and advertises a limit the file does not set.
+The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120 is
+re-flowed. A line ending early because the sentence or the comment block ends is already correct.
 
 ### Block comments
 
@@ -134,8 +131,8 @@ Use block comments above sections to describe their purpose:
 
 ### Inline comments
 
-Align inline comments vertically within a section. The comment restraint section below settles which
-values carry an inline comment:
+Align inline comments vertically within a section. The comment restraint section below settles which values carry an
+inline comment:
 
 ```toml
 case-sensitive = true
@@ -161,8 +158,7 @@ dependencies = [
 ]
 ```
 
-Separate category groups with a blank line. The comment line has no leading blank line before the
-first category.
+Separate category groups with a blank line. The comment line has no leading blank line before the first category.
 
 ### Ruff ignore comments
 
@@ -181,21 +177,18 @@ lint.ignore = [
 - Use multi-line format for arrays with more than two elements
 - Always use trailing commas in multi-line arrays
 - One element per line
-- Single-line format is acceptable for arrays of one or two elements that fit inside the 120
-  character line limit
+- Single-line format is acceptable for arrays of one or two elements that fit inside the 120 character line limit
 
 ### Comment restraint
 
-A TOML key states its own name and its own value, so a comment beside it is justified only by a
-question the key leaves open. The qualifying questions are a unit that the value does not carry, a
-rationale for a specific bound or version, and a coupling to another file that a reader would
-otherwise break. A decision that looks wrong until its reason is given also qualifies. A comment
-that restates the key is noise, and a file where every key carries one trains the reader to skip
-all of them.
+A TOML key states its own name and its own value, so a comment beside it is justified only by a question the key leaves
+open. The qualifying questions are a unit that the value does not carry, a rationale for a specific bound or version,
+and a coupling to another file that a reader would otherwise break. A decision that looks wrong until its reason is
+given also qualifies. A comment that restates the key is noise, and a file where every key carries one trains the reader
+to skip all of them.
 
-Two standing exceptions apply. Every entry in either ruff ignore corpus carries a reason comment,
-because the entry records a decision rather than a value. Every section keeps its one-line block
-comment naming its purpose.
+Two standing exceptions apply. Every entry in either ruff ignore corpus carries a reason comment, because the entry
+records a decision rather than a value. Every section keeps its one-line block comment naming its purpose.
 
 ```toml
 # Avoid - every comment restates the key it sits on
@@ -211,31 +204,29 @@ version = "3.0.0"
 requires-python = ">=3.12,<3.15"  # 3.15 is untested against the encoder backend
 ```
 
-Comments also describe the configuration as it currently stands, never the edit that produced it.
-Do not record that a bound was raised, that a dependency was added, or that an ignore was removed,
-because the commit message carries that history.
+Comments also describe the configuration as it currently stands, never the edit that produced it. Do not record that a
+bound was raised, that a dependency was added, or that an ignore was removed, because the commit message carries that
+history.
 
-A comment's claim must be true of the key it sits on as it currently reads, covering the value, the
-bound, and the effect the tool actually produces. A comment naming a version, a bound, a path, or a
-coupled file is rewritten or deleted in the same edit that moves that value. Comments must not
-reference closed issue numbers, removed keys or sections, superseded tool versions, or outdated
-TODOs. A ruff ignore whose reason comment cites an upstream issue is re-checked when that issue
-closes, because the ignore usually goes with it.
+A comment's claim must be true of the key it sits on as it currently reads, covering the value, the bound, and the
+effect the tool actually produces. A comment naming a version, a bound, a path, or a coupled file is rewritten or
+deleted in the same edit that moves that value. Comments must not reference closed issue numbers, removed keys or
+sections, superseded tool versions, or outdated TODOs. A ruff ignore whose reason comment cites an upstream issue is
+re-checked when that issue closes, because the ignore usually goes with it.
 
 ### Prose punctuation and positive description
 
-Comment prose in pyproject.toml follows the two project-wide rules for documentation. Prose uses
-only the full stop and the comma to separate clauses. Do not use a semicolon or an em-dash (`--`,
-`—`, or `–`) as a separator, and use a colon only where it is lexically appropriate. A single hyphen
-stays available as a list marker, in tables, and in compound words. State what the setting does and
-what is currently true. Do not frame it by what it is not or what it used to be, and keep a "not Y"
-contrast only when it is load-bearing because it corrects a counter-intuitive assumption, giving its
-reason. This rule governs prose only. Code stays exempt, so a `;` in a PEP 508 dependency marker or
-a `--flag` in a CLI reference is left as written.
+Comment prose in pyproject.toml follows the two project-wide rules for documentation. Prose uses only the full stop and
+the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`, or `–`) as a separator, and use a colon
+only where it is lexically appropriate. A single hyphen stays available as a list marker, in tables, and in compound
+words. State what the setting does and what is currently true. Do not frame it by what it is not or what it used to be,
+and keep a "not Y" contrast only when it is load-bearing because it corrects a counter-intuitive assumption, giving its
+reason. This rule governs prose only. Code stays exempt, so a `;` in a PEP 508 dependency marker or a `--flag` in a CLI
+reference is left as written.
 
-Sentences over 40 words are difficult to parse and must be broken at natural clause boundaries, in
-block comments, inline comments, and the `description` field alike. Every block comment, inline
-comment, and `description` field must be free of typos and grammatical errors.
+Sentences over 40 words are difficult to parse and must be broken at natural clause boundaries, in block comments,
+inline comments, and the `description` field alike. Every block comment, inline comment, and `description` field must be
+free of typos and grammatical errors.
 
 ---
 
@@ -271,8 +262,8 @@ Projects use the **major-version range** pattern for all dependencies:
 
 This convention applies to both runtime and development dependencies.
 
-For pre-release or unstable packages (major version 0), the default is `>=0,<1`. Raise the lower
-bound to a specific minor release when the project calls an API that first appeared in that release:
+For pre-release or unstable packages (major version 0), the default is `>=0,<1`. Raise the lower bound to a specific
+minor release when the project calls an API that first appeared in that release:
 
 ```toml
 "ruff>=0,<1"
@@ -292,8 +283,7 @@ Use environment markers for platform-conditional dependencies:
 
 ## Project layout
 
-All Python projects use the **src layout**. For complete directory trees, invoke
-`/project-layout`.
+All Python projects use the **src layout**. For complete directory trees, invoke `/project-layout`.
 
 The wheel configuration always points to the src directory:
 
@@ -302,9 +292,9 @@ The wheel configuration always points to the src directory:
 packages = ["src/package_name"]
 ```
 
-Additional directories (e.g., `notebooks`, `examples`) are included in the wheel when a user of the
-installed distribution needs their files, such as an examples directory the README points readers
-to. A directory that only serves development inside the repository stays out.
+Additional directories (e.g., `notebooks`, `examples`) are included in the wheel when a user of the installed
+distribution needs their files, such as an examples directory the README points readers to. A directory that only serves
+development inside the repository stays out.
 
 ---
 
@@ -324,17 +314,15 @@ to. A directory that only serves development inside the repository stays out.
 
 ## Proactive behavior
 
-When creating a new project, proactively offer to generate a pyproject.toml following
-these conventions. When modifying Python version support, dependencies, or tool configurations,
-proactively suggest updating the pyproject.toml to reflect the changes. After substantial
-dependency or configuration changes, proactively offer to run the verification checklist.
+When creating a new project, proactively offer to generate a pyproject.toml following these conventions. When modifying
+Python version support, dependencies, or tool configurations, proactively suggest updating the pyproject.toml to reflect
+the changes. After substantial dependency or configuration changes, proactively offer to run the verification checklist.
 
 ---
 
 ## Verification checklist
 
-**You MUST verify your edits against this checklist before submitting any changes to
-pyproject.toml files.**
+**You MUST verify your edits against this checklist before submitting any changes to pyproject.toml files.**
 
 ```text
 pyproject.toml Style Compliance:

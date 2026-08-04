@@ -1,7 +1,7 @@
 # Archetype directory trees
 
-Annotated directory trees for each project archetype. Each tree is verified against the
-canonical example repository listed in its section heading.
+Annotated directory trees for each project archetype. Each tree is verified against the canonical example repository
+listed in its section heading.
 
 ---
 
@@ -51,13 +51,12 @@ project-root/
 
 ### Notes
 
-- The `{abbr}` placeholder in `envs/` files is a short project abbreviation (e.g., `axa` for
-  ataraxis-automation, `axbu` for ataraxis-base-utilities).
-- The `tests/` directory mirrors the `src/package_name/` structure. Test files use the `_test.py`
-  suffix (e.g., `automation_test.py`).
-- `.pyi` stub files and the `py.typed` marker are generated artifacts whose presence is
-  release-phase-dependent, so a missing `.pyi` is not a layout violation. See `/python-style` for
-  the stub-file rule.
+- The `{abbr}` placeholder in `envs/` files is a short project abbreviation (e.g., `axa` for ataraxis-automation, `axbu`
+  for ataraxis-base-utilities).
+- The `tests/` directory mirrors the `src/package_name/` structure. Test files use the `_test.py` suffix (e.g.,
+  `automation_test.py`).
+- `.pyi` stub files and the `py.typed` marker are generated artifacts whose presence is release-phase-dependent, so a
+  missing `.pyi` is not a layout violation. See `/python-style` for the stub-file rule.
 - The `.pypirc` file may exist locally but is not committed to version control.
 - Build artifacts (`dist/`, `reports/`, `coverage.xml`) are gitignored.
 
@@ -121,8 +120,8 @@ project-root/
 
 ### Notes
 
-- The `src/` layout uses a flat namespace: `c_extensions/`, wrapper subpackages, and pure Python
-  subpackages are all direct children of `src/`.
+- The `src/` layout uses a flat namespace: `c_extensions/`, wrapper subpackages, and pure Python subpackages are all
+  direct children of `src/`.
 - C++ extension stubs (`module_ext.pyi`) live at the `src/` top level alongside `py.typed`.
 - The `CMakeLists.txt` at the project root drives the nanobind build via scikit-build-core.
 - Build artifacts (`build/`) contain per-Python-version subdirectories and are gitignored.
@@ -174,9 +173,8 @@ project-root/
 ### Notes
 
 - All library code is **header-only** (`.h` files only, no `.cpp` implementation files).
-- The `main.cpp` in `src/` is a development entry point used for testing during development. It
-  is excluded from the distributed library by the `export.exclude` rule that `/platformio-config`
-  owns.
+- The `main.cpp` in `src/` is a development entry point used for testing during development. It is excluded from the
+  distributed library by the `export.exclude` rule that `/platformio-config` owns.
 - The `test/` directory (not `tests/`) follows PlatformIO's native test convention.
 - The `examples/` directory contains runnable example sketches for library consumers.
 - No `envs/` directory, because PlatformIO manages its own toolchain environment.
@@ -222,11 +220,9 @@ project-root/
 
 ### Notes
 
-- Firmware projects have no `examples/`, `test/`, or `library.json`, because the firmware itself is
-  the final artifact.
+- Firmware projects have no `examples/`, `test/`, or `library.json`, because the firmware itself is the final artifact.
 - All custom modules are header-only `.h` files in `src/` alongside `main.cpp`.
-- The `main.cpp` is the actual firmware entry point (not a development stub like in library
-  projects).
+- The `main.cpp` is the actual firmware entry point (not a development stub like in library projects).
 - Uses `#define` / `#ifdef` conditional compilation for hardware variant selection.
 - No `envs/` directory, because PlatformIO manages its own toolchain environment.
 - No `pyproject.toml`, because this is a pure C++ project.
@@ -279,14 +275,14 @@ project-root/
 ### Notes
 
 - Unity projects use `Assets/` as the root for all content, not `src/`.
-- Each task or feature gets its own folder under `Assets/` containing all related assets
-  (scripts, prefabs, materials, etc.).
-- C# source files live in `Assets/TaskName/Scripts/` directories. Every `.cs` file has a
-  corresponding `.cs.meta` file managed by Unity (committed to version control).
-- The `ProjectSettings/` directory contains Unity engine configuration files. These are
-  `.asset` files managed by the Unity Editor.
-- Unity has its own build and test infrastructure, so a Unity project carries no `pyproject.toml`,
-  `tox.ini`, `envs/`, `docs/`, or `tests/`.
-- Formatting is managed by CSharpier (`.csharpierrc.yaml`) and EditorConfig (`.editorconfig`),
-  not by Python-based tools.
+- Each task or feature gets its own folder under `Assets/` containing all related assets (scripts, prefabs, materials,
+  etc.).
+- C# source files live in `Assets/TaskName/Scripts/` directories. Every `.cs` file has a corresponding `.cs.meta` file
+  managed by Unity (committed to version control).
+- The `ProjectSettings/` directory contains Unity engine configuration files. These are `.asset` files managed by the
+  Unity Editor.
+- Unity has its own build and test infrastructure, so a Unity project carries no `pyproject.toml`, `tox.ini`, `envs/`,
+  `docs/`, or `tests/`.
+- Formatting is managed by CSharpier (`.csharpierrc.yaml`) and EditorConfig (`.editorconfig`), not by Python-based
+  tools.
 - The `Library/`, `Logs/`, `Temp/`, and `UserSettings/` directories are gitignored.

@@ -1,10 +1,9 @@
 ---
 name: csharp-style
 description: >-
-  Applies C# coding conventions when writing, reviewing, or refactoring code. Covers .cs
-  files, XML documentation, naming, formatting, error handling, using directives, file ordering,
-  and Unity-specific patterns. Use when writing new C# code, modifying existing code, reviewing
-  pull requests, or when the user asks about C# coding standards.
+  Applies C# coding conventions when writing, reviewing, or refactoring code. Covers .cs files, XML documentation,
+  naming, formatting, error handling, using directives, file ordering, and Unity-specific patterns. Use when writing new
+  C# code, modifying existing code, reviewing pull requests, or when the user asks about C# coding standards.
 user-invocable: false
 ---
 
@@ -12,8 +11,8 @@ user-invocable: false
 
 Applies C# coding conventions.
 
-You MUST read this skill and load the relevant reference files before writing or modifying C#
-code. You MUST verify your changes against the checklist before submitting.
+You MUST read this skill and load the relevant reference files before writing or modifying C# code. You MUST verify your
+changes against the checklist before submitting.
 
 ---
 
@@ -64,24 +63,23 @@ Write or modify C# code following all conventions from this file and the loaded 
 
 ### Step 4: Verify compliance
 
-Complete the verification checklist at the end of this file. Every item must pass before
-submitting work. For anti-pattern examples, load
-[anti-patterns.md](references/anti-patterns.md).
+Complete the verification checklist at the end of this file. Every item must pass before submitting work. For
+anti-pattern examples, load [anti-patterns.md](references/anti-patterns.md).
 
 ---
 
 ## Cross-language consistency
 
-Projects span Python, C++, and C#. These conventions maximize visual and structural
-consistency across languages while respecting each language's idiomatic standards.
+Projects span Python, C++, and C#. These conventions maximize visual and structural consistency across languages while
+respecting each language's idiomatic standards.
 
 **Shared across all languages:**
 - 120 character line limit
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- A leading underscore marks a symbol private to the module or class that defines it (`_snake_case`
-  for any private Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
+- A leading underscore marks a symbol private to the module or class that defines it (`_snake_case` for any private
+  Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
 - Prose over bullet lists in documentation
@@ -113,14 +111,13 @@ consistency across languages while respecting each language's idiomatic standard
 - `private` marks a member owned by its declaring type, `internal` a member owned by its assembly
 - Any symbol consumed outside its declaring assembly or namespace is made `public` deliberately
 - No code reaches into another type's internals to work around a missing promotion
-- A member consumed only inside its declaring type stays `private` and one consumed only inside its
-  assembly stays `internal`, so a real consumer at that boundary earns each access modifier
-- An asset with no consumer is removed, which covers methods, properties, fields, types, constants,
-  and enum members
-- The compiler reports an unused `private` member and stays silent about an unused `internal` or
-  `public` one, so those are found by reading
-- Test assemblies are the sole exception and may access the internals of the code under test, so no
-  test counts as a consumer and a member exercised only by its own tests is removed with those tests
+- A member consumed only inside its declaring type stays `private` and one consumed only inside its assembly stays
+  `internal`, so a real consumer at that boundary earns each access modifier
+- An asset with no consumer is removed, which covers methods, properties, fields, types, constants, and enum members
+- The compiler reports an unused `private` member and stays silent about an unused `internal` or `public` one, so those
+  are found by reading
+- Test assemblies are the sole exception and may access the internals of the code under test, so no test counts as a
+  consumer and a member exercised only by its own tests is removed with those tests
 
 ---
 
@@ -157,9 +154,8 @@ Use **full words**, not abbreviations:
 
 ### Public fields vs properties
 
-In Unity projects, MonoBehaviour and ScriptableObject classes expose **public fields** using
-camelCase for Inspector serialization. These are effectively configuration parameters set via the
-Unity Editor:
+In Unity projects, MonoBehaviour and ScriptableObject classes expose **public fields** using camelCase for Inspector
+serialization. These are effectively configuration parameters set via the Unity Editor:
 
 ```csharp
 /// <summary>Determines whether the task requires a lick to start a trial.</summary>
@@ -201,8 +197,8 @@ private static readonly string DefaultConfigPath = Path.Combine(Application.data
 private readonly SerialPort _port;
 ```
 
-You MUST mark fields as `readonly` when they are only assigned in the constructor or initializer.
-For detailed immutability patterns (`readonly struct`, records, `in` parameters), see
+You MUST mark fields as `readonly` when they are only assigned in the constructor or initializer. For detailed
+immutability patterns (`readonly struct`, records, `in` parameters), see
 [class-patterns.md](references/class-patterns.md).
 
 ---
@@ -215,10 +211,9 @@ See [libraries-and-tools.md](references/libraries-and-tools.md) for named argume
 
 ## Error handling
 
-MonoBehaviour code reports failures through Unity's logging system. Editor tools, static utility
-classes, and pure C# libraries that do not inherit from MonoBehaviour raise standard C# exceptions
-instead. See [libraries-and-tools.md](references/libraries-and-tools.md) for worked examples of
-both.
+MonoBehaviour code reports failures through Unity's logging system. Editor tools, static utility classes, and pure C#
+libraries that do not inherit from MonoBehaviour raise standard C# exceptions instead. See
+[libraries-and-tools.md](references/libraries-and-tools.md) for worked examples of both.
 
 ### When to use each approach
 
@@ -233,11 +228,10 @@ both.
 
 ### Error message format
 
-Use a structured format: context ("Unable to..."), constraint ("must be..."), actual value
-("but [actual state]."). Use `Debug.LogError()` for failures that prevent continuation,
-`Debug.LogWarning()` for non-critical issues, and `Debug.Log()` for informational messages. For
-multi-line error messages, assign the message to a local variable before passing it. This matches
-the Python convention of assigning to a `message` variable before calling `console.error()`.
+Use a structured format: context ("Unable to..."), constraint ("must be..."), actual value ("but [actual state]."). Use
+`Debug.LogError()` for failures that prevent continuation, `Debug.LogWarning()` for non-critical issues, and
+`Debug.Log()` for informational messages. For multi-line error messages, assign the message to a local variable before
+passing it. This matches the Python convention of assigning to a `message` variable before calling `console.error()`.
 
 ### Null handling
 
@@ -251,19 +245,17 @@ the Python convention of assigning to a `message` variable before calling `conso
 
 ## Comments
 
-Heavy section separator blocks (`// ======` or `// ------`) are not used. Blank lines separate the
-logical groups instead, the same replacement `#region` blocks get. See
-[xml-docs-and-types.md](references/xml-docs-and-types.md) for inline comment conventions and what to
-avoid.
+Heavy section separator blocks (`// ======` or `// ------`) are not used. Blank lines separate the logical groups
+instead, the same replacement `#region` blocks get. See [xml-docs-and-types.md](references/xml-docs-and-types.md) for
+inline comment conventions and what to avoid.
 
 ### Wrap width
 
-Break an XML doc or comment line only where it would otherwise pass 120 characters, and fill each
-line to that limit before breaking. CSharpier reflows code and leaves comment prose as written, so
-prose wrapped narrower stays a rigid block that re-wraps badly at every other width. The test is
-mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120
-is re-flowed. A line ending early because the sentence or the paragraph ends, or because it holds a
-list item or a code span, is already correct.
+Break an XML doc or comment line only where it would otherwise pass 120 characters, and fill each line to that limit
+before breaking. CSharpier reflows code and leaves comment prose as written, so prose wrapped narrower stays a rigid
+block that re-wraps badly at every other width. The test is mechanical: a wrapped line that ends before column 100 while
+its next word would still fit under 120 is re-flowed. A line ending early because the sentence or the paragraph ends, or
+because it holds a list item or a code span, is already correct.
 
 ---
 
@@ -284,8 +276,7 @@ using Project.Config;
 
 ### `using static` directives
 
-Do NOT use `using static` directives. Always qualify static method calls with the type name
-for clarity:
+Do NOT use `using static` directives. Always qualify static method calls with the type name for clarity:
 
 ```csharp
 // Avoid - using static obscures where methods come from
@@ -298,9 +289,9 @@ float result = Mathf.Clamp(value, 0f, 1f);
 
 ### Global usings
 
-Do NOT use C# 10 global `using` directives or implicit usings. Every file must contain its
-own explicit `using` directives. This ensures each file is self-contained and matches the C++
-convention of explicit `#include` directives per file.
+Do NOT use C# 10 global `using` directives or implicit usings. Every file must contain its own explicit `using`
+directives. This ensures each file is self-contained and matches the C++ convention of explicit `#include` directives
+per file.
 
 ---
 
@@ -310,42 +301,34 @@ All definitions within a file follow this vertical ordering from top to bottom:
 
 1. **File-level XML documentation** (`/// <summary>` block describing the file)
 2. **Using directives**
-3. **Namespace declaration** (block-scoped is the project convention: `namespace Project.Config { ... }`,
-   with class members indented one level inside the block, which `assets/.editorconfig` enforces
-   through `csharp_style_namespace_declarations = block_scoped:suggestion`)
+3. **Namespace declaration** (block-scoped is the project convention: `namespace Project.Config { ... }`, with class
+   members indented one level inside the block, which `assets/.editorconfig` enforces through
+   `csharp_style_namespace_declarations = block_scoped:suggestion`)
 4. **Enumerations** (type definitions that other code depends on)
-5. **Class declaration** with members in this order:
-   a. Constants (`const` and `static readonly` fields)
-   b. Public fields (Unity Inspector-serialized)
-   c. Private fields (`_camelCase`)
-   d. Properties
-   e. Unity lifecycle methods (`Awake`, `Start`, `Update`, `OnDestroy`)
-   f. Public methods
-   g. Private methods
-   h. Nested classes
+5. **Class declaration** with members in this order: a. Constants (`const` and `static readonly` fields) b. Public
+   fields (Unity Inspector-serialized) c. Private fields (`_camelCase`) d. Properties e. Unity lifecycle methods
+   (`Awake`, `Start`, `Update`, `OnDestroy`) f. Public methods g. Private methods h. Nested classes
 
 ### Visibility ordering
 
-Within each member kind, order by visibility: `public` -> `internal` -> `protected` ->
-`private`. Always write access modifiers explicitly, so every member states its visibility in
-source rather than inheriting C#'s implicit `private` default. Unity lifecycle methods appear in
-their natural execution order regardless of visibility.
+Within each member kind, order by visibility: `public` -> `internal` -> `protected` -> `private`. Always write access
+modifiers explicitly, so every member states its visibility in source rather than inheriting C#'s implicit `private`
+default. Unity lifecycle methods appear in their natural execution order regardless of visibility.
 
 ### Call-hierarchy ordering
 
-Within each visibility group, definitions should **loosely follow the order in which they are
-called** during the class's runtime. When there is no clear call hierarchy, group definitions
-**by purpose**. This matches the Python convention of ordering definitions by call sequence
-within each visibility group.
+Within each visibility group, definitions should **loosely follow the order in which they are called** during the
+class's runtime. When there is no clear call hierarchy, group definitions **by purpose**. This matches the Python
+convention of ordering definitions by call sequence within each visibility group.
 
-For MonoBehaviour classes, this naturally follows from the lifecycle ordering: `Awake` calls
-initialization helpers, `Start` calls setup helpers, `Update` calls per-frame helpers.
+For MonoBehaviour classes, this naturally follows from the lifecycle ordering: `Awake` calls initialization helpers,
+`Start` calls setup helpers, `Update` calls per-frame helpers.
 
 ### One class per file
 
-Each `.cs` file should contain exactly one public type. The file name must match the class
-name (e.g., `OccupancyZone.cs` contains `class OccupancyZone`). Nested helper classes and
-message types may remain in the containing class's file.
+Each `.cs` file should contain exactly one public type. The file name must match the class name (e.g.,
+`OccupancyZone.cs` contains `class OccupancyZone`). Nested helper classes and message types may remain in the containing
+class's file.
 
 ---
 
@@ -363,8 +346,8 @@ See [libraries-and-tools.md](references/libraries-and-tools.md) for blank line c
 
 ## Formatting, tooling, and configuration files
 
-See [libraries-and-tools.md](references/libraries-and-tools.md) for line length, formatting, and brace
-rules, for CSharpier and EditorConfig tooling, and for configuration file references.
+See [libraries-and-tools.md](references/libraries-and-tools.md) for line length, formatting, and brace rules, for
+CSharpier and EditorConfig tooling, and for configuration file references.
 
 ---
 
@@ -385,10 +368,9 @@ rules, for CSharpier and EditorConfig tooling, and for configuration file refere
 
 ## Proactive behavior
 
-When reviewing or modifying C# code, proactively check for style violations and fix them. When
-writing new code, apply all conventions from this skill and its references without being asked.
-If you notice existing code near your changes that violates conventions, mention it to the user
-but do not fix it unless asked.
+When reviewing or modifying C# code, proactively check for style violations and fix them. When writing new code, apply
+all conventions from this skill and its references without being asked. If you notice existing code near your changes
+that violates conventions, mention it to the user but do not fix it unless asked.
 
 ---
 

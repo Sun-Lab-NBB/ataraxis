@@ -1,14 +1,14 @@
 # Verification protocol
 
-The two checks every candidate finding of `/audit-style` passes after the guards and before the
-report, together with the triage header the report opens with.
+The two checks every candidate finding of `/audit-style` passes after the guards and before the report, together with
+the triage header the report opens with.
 
-Both checks are external. Check 1 tests the finding against the checklist and the file it cites, and
-Check 2 tests it against a reader who never saw the sweep. Re-reading your own reasoning is no
-substitute for either, because that reasoning is the thing under test.
+Both checks are external. Check 1 tests the finding against the checklist and the file it cites, and Check 2 tests it
+against a reader who never saw the sweep. Re-reading your own reasoning is no substitute for either, because that
+reasoning is the thing under test.
 
-A finding produced by a Step 3 deterministic gate skips both checks. The tool that produced it already
-is the external check, and it cites a rule code rather than a checklist quote.
+A finding produced by a Step 3 deterministic gate skips both checks. The tool that produced it already is the external
+check, and it cites a rule code rather than a checklist quote.
 
 ---
 
@@ -29,23 +29,22 @@ Runs against EVERY surviving sweep finding, with no sampling.
 
 Each finding carries two citations, and both are checked.
 
-**The checklist point.** Find the quoted rule in the loaded checklist or reference file the finding
-names and confirm it appears there character for character. Confirm the quote is the WHOLE rule rather
-than a clause of it, because a rule truncated before its exemption reverses its meaning.
+**The checklist point.** Find the quoted rule in the loaded checklist or reference file the finding names and confirm it
+appears there character for character. Confirm the quote is the WHOLE rule rather than a clause of it, because a rule
+truncated before its exemption reverses its meaning.
 
-**The current state.** Open the cited `<path>` at the cited line range and confirm the Current state
-quote appears there character for character. For a collapsed finding carrying several line citations,
-check every line the finding lists.
+**The current state.** Open the cited `<path>` at the cited line range and confirm the Current state quote appears there
+character for character. For a collapsed finding carrying several line citations, check every line the finding lists.
 
-**The consumer set**, for a Pass 11 finding alone. Re-run the repository-wide search the finding names
-and confirm it returns what the finding says it returned. This citation is checked by RUNNING rather
-than by reading, because the claim is about the whole repository rather than about the cited line. A
-stale search is how a symbol that acquired a caller last week is reported as unused today.
+**The consumer set**, for a Pass 11 finding alone. Re-run the repository-wide search the finding names and confirm it
+returns what the finding says it returned. This citation is checked by RUNNING rather than by reading, because the claim
+is about the whole repository rather than about the cited line. A stale search is how a symbol that acquired a caller
+last week is reported as unused today.
 
-Delete the finding when either quote fails to appear at its cited location. Repairing the citation is
-FORBIDDEN here. A citation that drifted is evidence that the finding was assembled from recollection
-rather than from the checklist, which makes the rule application resting on it unreliable for the same
-reason. A deleted finding is free to be re-derived from scratch in a later audit.
+Delete the finding when either quote fails to appear at its cited location. Repairing the citation is FORBIDDEN here. A
+citation that drifted is evidence that the finding was assembled from recollection rather than from the checklist, which
+makes the rule application resting on it unreliable for the same reason. A deleted finding is free to be re-derived from
+scratch in a later audit.
 
 Record the count of findings checked and the count deleted.
 
@@ -53,14 +52,13 @@ Record the count of findings checked and the count deleted.
 
 ## Check 2: Adversarial refutation
 
-Runs against every BLOCKING and CONFLICT finding that survived Check 1. Those two severities are the
-ones that stop a release or accuse the checklists of disagreeing, so they carry the cost of being
-wrong. Running the check after Check 1 means a finding deleted for a bad citation never consumes a
-sub-agent.
+Runs against every BLOCKING and CONFLICT finding that survived Check 1. Those two severities are the ones that stop a
+release or accuse the checklists of disagreeing, so they carry the cost of being wrong. Running the check after Check 1
+means a finding deleted for a bad citation never consumes a sub-agent.
 
-Spawn one `general-purpose` sub-agent per finding. Give it the finding text, the cited file, the cited
-checklist, and nothing else from the sweep. A fresh context is what makes the check independent, so
-handing over the rule ledger or the reasoning that produced the finding defeats it.
+Spawn one `general-purpose` sub-agent per finding. Give it the finding text, the cited file, the cited checklist, and
+nothing else from the sweep. A fresh context is what makes the check independent, so handing over the rule ledger or the
+reasoning that produced the finding defeats it.
 
 Give the sub-agent this task:
 
@@ -79,16 +77,15 @@ Return CONFIRMED only after reading the full rule including its exemptions and c
 line breaks it. Answer REFUTED whenever you are uncertain.
 ```
 
-Discard every refuted finding. A refuted BLOCKING finding is discarded rather than demoted to
-STANDARD, because the refutation attacked whether the rule applies at all. Record the counts of
-findings put through this check, confirmed, and refuted.
+Discard every refuted finding. A refuted BLOCKING finding is discarded rather than demoted to STANDARD, because the
+refutation attacked whether the rule applies at all. Record the counts of findings put through this check, confirmed,
+and refuted.
 
 ---
 
 ## The triage header
 
-The report opens with this header, so a reader sees the shape of the report before reading any
-finding:
+The report opens with this header, so a reader sees the shape of the report before reading any finding:
 
 ```text
 Findings: <total> reported, <n> from tools and <n> from the sweep
@@ -107,17 +104,15 @@ Deleted by citation verification: <n> of <n> checked
 Refuted by adversarial verification: <n> of <n> checked
 ```
 
-These counts are the audit's own precision record, and the tool lines are what let a reader tell a
-clean result from an unrun gate. A run that discards nothing at any stage has either found an
-unusually compliant file set or skipped the stage, and stating the numbers is what lets a reader tell
-those apart.
+These counts are the audit's own precision record, and the tool lines are what let a reader tell a clean result from an
+unrun gate. A run that discards nothing at any stage has either found an unusually compliant file set or skipped the
+stage, and stating the numbers is what lets a reader tell those apart.
 
 ---
 
 ## The coverage ledger
 
-The ledger follows the triage header and records what was audited, so a thin pass is visible rather
-than silent:
+The ledger follows the triage header and records what was audited, so a thin pass is visible rather than silent:
 
 ```text
 | Binding        | Files in scope | Files audited | Files skipped |
@@ -129,57 +124,52 @@ than silent:
 
 Alongside the table, state each of the following:
 
-- Every skipped file by path, with its reason, which is the `no binding row` the binding table gives
-  it, the user's narrowing, a generated or vendored file Guard 5 removes, or an unreadable file.
+- Every skipped file by path, with its reason, which is the `no binding row` the binding table gives it, the user's
+  narrowing, a generated or vendored file Guard 5 removes, or an unreadable file.
 - The sub-agent and batch count the run used, recorded as `1 (main agent)` for a Small or Medium tier.
 - The deterministic gates that ran and the gates that failed to run, naming each tool.
 - The project-scope layout pass status, as `run`, `skipped-not-a-project-root`, or
   `skipped-no-created-or-deleted-files`.
-- The symbol usage pass status, as `run`, `run-partial` naming the tiers left unjudged under a
-  package-directory target, or `skipped-reference-table-incomplete`. State the count of declared
-  symbols and the count of reference sites the pass reconciled, because those two numbers are what
-  separate a reconciliation that ran from one that reported nothing because it saw nothing.
+- The symbol usage pass status, as `run`, `run-partial` naming the tiers left unjudged under a package-directory target,
+  or `skipped-reference-table-incomplete`. State the count of declared symbols and the count of reference sites the pass
+  reconciled, because those two numbers are what separate a reconciliation that ran from one that reported nothing
+  because it saw nothing.
 - The revision the run resolved against, whenever the scope was narrowed to a change set.
 
-A Large-tier audit that produced no findings still reports a non-zero audited count, which
-distinguishes compliant files from an unrun pass.
+A Large-tier audit that produced no findings still reports a non-zero audited count, which distinguishes compliant files
+from an unrun pass.
 
-Every file in scope is either audited or recorded as skipped by path. Sum the `Files audited` and
-`Files skipped` columns for each binding and compare the total against `Files in scope`. Any residue
-names files the sweep never read and never recorded, which is a coverage gap rather than a permitted
-skip. Skipping is permitted only for a file the user's narrowing removed from scope, a file matching
-no binding row, a generated or vendored file Guard 5 removes, or a file that cannot be read. A skip
-with no stated reason fails this check.
+Every file in scope is either audited or recorded as skipped by path. Sum the `Files audited` and `Files skipped`
+columns for each binding and compare the total against `Files in scope`. Any residue names files the sweep never read
+and never recorded, which is a coverage gap rather than a permitted skip. Skipping is permitted only for a file the
+user's narrowing removed from scope, a file matching no binding row, a generated or vendored file Guard 5 removes, or a
+file that cannot be read. A skip with no stated reason fails this check.
 
 ---
 
 ## Confidence placement in the report
 
-HIGH and MEDIUM confidence findings occupy the body of the report, grouped file, then severity, with
-the severities ordered BLOCKING, INCONSISTENCY, CONFLICT, STANDARD.
+HIGH and MEDIUM confidence findings occupy the body of the report, grouped file, then severity, with the severities
+ordered BLOCKING, INCONSISTENCY, CONFLICT, STANDARD.
 
-LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered by the
-same severity sequence, rather than interleaved into the file groups. Every finding there still
-carries its verbatim checklist quote and still passed every guard and both checks above. The appendix
-exists so the body of the report reads at one confidence level, and so a reader who wants only the
-settled findings knows where to stop.
+LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered by the same severity
+sequence, rather than interleaved into the file groups. Every finding there still carries its verbatim checklist quote
+and still passed every guard and both checks above. The appendix exists so the body of the report reads at one
+confidence level, and so a reader who wants only the settled findings knows where to stop.
 
 ---
 
 ## Report prose
 
-The report's own prose obeys the documentation-quality rules this audit enforces on everyone else.
-Keep every sentence in a `Required state`, `Suggested fix`, `Approval`, or `Consumer set` field under
-40 words. Separate clauses with full stops and commas rather than with semicolons or em-dashes, and
-state what the fix does rather than what the code fails to do. Verbatim quotes, tool rule codes, and
-cost arithmetic are exempt, because they are copied rather than written.
+The report's own prose obeys the documentation-quality rules this audit enforces on everyone else. Keep every sentence
+in a `Required state`, `Suggested fix`, `Approval`, or `Consumer set` field under 40 words. Separate clauses with full
+stops and commas rather than with semicolons or em-dashes, and state what the fix does rather than what the code fails
+to do. Verbatim quotes, tool rule codes, and cost arithmetic are exempt, because they are copied rather than written.
 
-Fill each authored line to 120 characters before breaking it, under the wrap width rule
-`/python-style` defines, so a line ending before column 100 while its next word would still fit is
-re-flowed. A line ending early because the sentence ends, or because it holds a table row, a list item,
-or a code span, is already correct.
+Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
+line ending before column 100 while its next word would still fit is re-flowed. A line ending early because the sentence
+ends, or because it holds a table row, a list item, or a code span, is already correct.
 
-Before presenting, split the report's authored fields on sentence boundaries, excluding every verbatim
-quote and every arithmetic or complexity expression, and count the words in each sentence. Any
-sentence over 40 words, and any semicolon or em-dash joining two independent clauses, is rewritten
-before the report is handed over.
+Before presenting, split the report's authored fields on sentence boundaries, excluding every verbatim quote and every
+arithmetic or complexity expression, and count the words in each sentence. Any sentence over 40 words, and any semicolon
+or em-dash joining two independent clauses, is rewritten before the report is handed over.

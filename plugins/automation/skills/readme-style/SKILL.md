@@ -1,10 +1,9 @@
 ---
 name: readme-style
 description: >-
-  Applies README conventions when creating or updating README.md files. Covers section
-  ordering, writing style, standard section templates, badges, MCP server documentation, CLI
-  documentation, and codebase cross-referencing. Use when writing a new README, updating an
-  existing README, or when the user asks about README conventions.
+  Applies README conventions when creating or updating README.md files. Covers section ordering, writing style, standard
+  section templates, badges, MCP server documentation, CLI documentation, and codebase cross-referencing. Use when
+  writing a new README, updating an existing README, or when the user asks about README conventions.
 user-invocable: false
 ---
 
@@ -12,9 +11,8 @@ user-invocable: false
 
 Applies conventions for README.md files.
 
-You MUST read this entire skill and load the section templates reference before creating or
-modifying any README file. You MUST verify your changes against the verification checklist before
-submitting.
+You MUST read this entire skill and load the section templates reference before creating or modifying any README file.
+You MUST verify your changes against the verification checklist before submitting.
 
 ---
 
@@ -45,16 +43,14 @@ Read this entire file before making any changes.
 
 ### Step 2: Load section templates
 
-Load [section-templates.md](references/section-templates.md). This file contains the exact
-templates for every README section (badges, dependencies, installation, developers, MCP server,
-standard ending sections, etc.). You MUST use these templates when writing new sections or
-verifying existing ones.
+Load [section-templates.md](references/section-templates.md). This file contains the exact templates for every README
+section (badges, dependencies, installation, developers, MCP server, standard ending sections, etc.). You MUST use these
+templates when writing new sections or verifying existing ones.
 
 ### Step 3: Cross-reference the codebase
 
-Before writing or updating technical content, verify all claims against the actual codebase. See
-the [codebase cross-referencing](#codebase-cross-referencing) section for the verification
-process.
+Before writing or updating technical content, verify all claims against the actual codebase. See the [codebase
+cross-referencing](#codebase-cross-referencing) section for the verification process.
 
 ### Step 4: Apply conventions
 
@@ -62,8 +58,7 @@ Write or modify the README following all conventions from this file and the load
 
 ### Step 5: Verify compliance
 
-Complete the verification checklist at the end of this file. Every item must pass before
-submitting work.
+Complete the verification checklist at the end of this file. Every item must pass before submitting work.
 
 ---
 
@@ -71,16 +66,16 @@ submitting work.
 
 Two section orders exist. Select between them mechanically before writing anything:
 
-- **Library README**: The repository ships an installable artifact of its own, such as a PyPI
-  package, a PlatformIO registry library, or Unity package sources. Use the library order.
-- **Umbrella README**: The repository ships no installable artifact and instead indexes sibling
-  libraries or distributes plugins through a marketplace. Use the umbrella order.
+- **Library README**: The repository ships an installable artifact of its own, such as a PyPI package, a PlatformIO
+  registry library, or Unity package sources. Use the library order.
+- **Umbrella README**: The repository ships no installable artifact and instead indexes sibling libraries or distributes
+  plugins through a marketplace. Use the umbrella order.
 
-A repository that ships an installable artifact and also indexes siblings is a library, so it takes
-the library order and covers the siblings inside its own sections.
+A repository that ships an installable artifact and also indexes siblings is a library, so it takes the library order
+and covers the siblings inside its own sections.
 
-Sections marked as optional may be omitted based on project type. For the exact template of each
-section, see [section-templates.md](references/section-templates.md).
+Sections marked as optional may be omitted based on project type. For the exact template of each section, see
+[section-templates.md](references/section-templates.md).
 
 ### Library README order
 
@@ -104,45 +99,42 @@ section, see [section-templates.md](references/section-templates.md).
 
 ### Umbrella README order
 
-An umbrella repository indexes other repositories, so the sections a library README spends on its
-own dependencies, installation, API, and versioning have no subject here. The badge row carries the
-license badge alone, because no published package exists to report a version, a Python version, a
-wheel, or a release status for. The table of contents and the license bullet that closes Features
-belong to the library order alone. Every other convention in this skill applies unchanged, including
-the `___` horizontal rules, the heading hierarchy, and the writing style rules.
+An umbrella repository indexes other repositories, so the sections a library README spends on its own dependencies,
+installation, API, and versioning have no subject here. The badge row carries the license badge alone, because no
+published package exists to report a version, a Python version, a wheel, or a release status for. The table of contents
+and the license bullet that closes Features belong to the library order alone. Every other convention in this skill
+applies unchanged, including the `___` horizontal rules, the heading hierarchy, and the writing style rules.
 
 1. **Title**: Repository name as H1 heading in its display casing (`# Ataraxis`)
-2. **Tagline**: Bold one-line statement of what the framework is for, in place of the bare
-   one-line description
+2. **Tagline**: Bold one-line statement of what the framework is for, in place of the bare one-line description
 3. **Badges**: The license badge alone
-4. **Framework description**: Two or three paragraphs stating what the framework provides and the
-   principle that organizes it, written without a `## Detailed Description` heading
+4. **Framework description**: Two or three paragraphs stating what the framework provides and the principle that
+   organizes it, written without a `## Detailed Description` heading
 5. **Attribution**: Author line and copyright line
 6. **Horizontal rule**: `___` (triple underscore) to separate header from content
 7. **Features**: Bulleted capability list grouped under H3 headings
 8. **Architecture** *(optional)*: Diagram of how the indexed components relate at runtime
-9. **Libraries**: Every indexed repository, grouped under H3 category headings. Each entry is a bold
-   link to the repository, its language in parentheses, and one or two sentences of description
+9. **Libraries**: Every indexed repository, grouped under H3 category headings. Each entry is a bold link to the
+   repository, its language in parentheses, and one or two sentences of description
 10. **Getting Started**: Install commands for the indexed artifacts, one block per distribution channel
-11. **Claude Code Plugins** *(optional)*: Marketplace installation steps and one table per distributed
-    plugin listing what that plugin provides
+11. **Claude Code Plugins** *(optional)*: Marketplace installation steps and one table per distributed plugin listing
+    what that plugin provides
 12. **Example Workflows** *(optional)*: Fenced transcripts showing an agent driving the framework
-13. **Adoption Roadmap** *(optional)*: Numbered steps a new adopter follows, ending with a pointer to
-    any platform built on the framework
+13. **Adoption Roadmap** *(optional)*: Numbered steps a new adopter follows, ending with a pointer to any platform built
+    on the framework
 14. **Citation** *(optional)*: BibTeX entry for the framework
 15. **License**: License covering every indexed repository
-16. **Acknowledgments**: Credits to the projects the framework builds on, ending with a contact
-    address
+16. **Acknowledgments**: Credits to the projects the framework builds on, ending with a contact address
 
-Versioning and Authors carry no umbrella content, because the indexed repositories tag their own
-releases and the attribution block in the header already names the authors.
+Versioning and Authors carry no umbrella content, because the indexed repositories tag their own releases and the
+attribution block in the header already names the authors.
 
 ---
 
 ## Writing style
 
-**Voice**: Use third person throughout. Refer to the project as "this library," "the library," or
-by its name. Avoid first person ("I," "we") and second person ("you") where possible.
+**Voice**: Use third person throughout. Refer to the project as "this library," "the library," or by its name. Avoid
+first person ("I," "we") and second person ("you") where possible.
 
 ```markdown
 <!-- Good -->
@@ -154,8 +146,7 @@ We provide tools for acquiring and saving video data.
 You can use this library on Windows, Linux, and macOS.
 ```
 
-**Tense**: Use present tense as the default. Avoid "will" unless omitting it makes the sentence
-awkward or unclear.
+**Tense**: Use present tense as the default. Avoid "will" unless omitting it makes the sentence awkward or unclear.
 
 ```markdown
 <!-- Good - present tense -->
@@ -169,66 +160,62 @@ These dependencies will be automatically resolved when the library is installed.
 The method will return a tuple of timestamps.
 ```
 
-**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be broken
-into smaller sentences at natural clause boundaries.
+**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be broken into smaller sentences
+at natural clause boundaries.
 
-**Wrap width**: Break a README line only where it would otherwise pass 120 characters, and fill each line to that
-limit before breaking. Prose wrapped at a narrower width reads as a rigid block and re-wraps badly at any other
-viewport. The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit
-under 120 is re-flowed. A line ending early because the sentence or the paragraph ends, or because it holds a table
-row, a badge, a heading, or a code span, is already correct.
+**Wrap width**: Break a README line only where it would otherwise pass 120 characters, and fill each line to that limit
+before breaking. Prose wrapped at a narrower width reads as a rigid block and re-wraps badly at any other viewport. The
+test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120 is
+re-flowed. A line ending early because the sentence or the paragraph ends, or because it holds a table row, a badge, a
+heading, or a code span, is already correct.
 
-**Typo-free and grammatical**: Every section of the README must be free of typos and grammatical
-errors, with the `Acknowledgments` spelling the one named exception the rule cannot settle on its
-own, because both spellings are correct English.
+**Typo-free and grammatical**: Every section of the README must be free of typos and grammatical errors, with the
+`Acknowledgments` spelling the one named exception the rule cannot settle on its own, because both spellings are correct
+English.
 
-**Notes and warnings**: Use `***Note,***` for important information. Use `***Warning!***` or
-`***Critical!***` for dangerous operations or essential requirements. Do not use GitHub-specific
-alert syntax (`> [!NOTE]`) as it does not render on PyPI.
+**Notes and warnings**: Use `***Note,***` for important information. Use `***Warning!***` or `***Critical!***` for
+dangerous operations or essential requirements. Do not use GitHub-specific alert syntax (`> [!NOTE]`) as it does not
+render on PyPI.
 
 ### Prose punctuation and positive description
 
-Prose uses only the full stop and the comma to separate clauses. Do not use a semicolon or an
-em-dash (`--`, `—`, or `–`) as a separator, and use a colon only where it is lexically appropriate.
-A single hyphen stays available as a list marker, in tables, and in compound words. State what the
-library does and what is currently true. Do not frame it by what it is not or what it used to be,
-and keep a "not Y" contrast only when it is load-bearing because it corrects a counter-intuitive
-assumption, giving its reason.
+Prose uses only the full stop and the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`, or
+`–`) as a separator, and use a colon only where it is lexically appropriate. A single hyphen stays available as a list
+marker, in tables, and in compound words. State what the library does and what is currently true. Do not frame it by
+what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing because it corrects a
+counter-intuitive assumption, giving its reason.
 
 ### Content restraint
 
-A README earns a reader's attention section by section, so every sentence must carry information
-the reader is unable to obtain faster somewhere else. The three sources that outrank the README are
-the code itself, the hosted API documentation, and the one-line description at the top of the file.
+A README earns a reader's attention section by section, so every sentence must carry information the reader is unable to
+obtain faster somewhere else. The three sources that outrank the README are the code itself, the hosted API
+documentation, and the one-line description at the top of the file.
 
-**The cover test**: Before keeping a sentence, cover it and try to reconstruct it from the project
-name, the one-line description, and the section heading it sits under. A sentence you are able to
-reconstruct carries no information, so delete it. Apply the test to one sentence at a time rather
-than to the section as a whole.
+**The cover test**: Before keeping a sentence, cover it and try to reconstruct it from the project name, the one-line
+description, and the section heading it sits under. A sentence you are able to reconstruct carries no information, so
+delete it. Apply the test to one sentence at a time rather than to the section as a whole.
 
-**No API reproduction**: The README shows a reader what the library is for and how to start using
-it. It does not reproduce the API surface. Do not list every parameter of a function, every field
-of a configuration class, or every method of a public class, because the hosted documentation
-generates all of it from the docstrings and stays correct as the code changes. Link to the API
-documentation instead and keep the README's usage material to the smallest path that gets a reader
-to a working first result.
+**No API reproduction**: The README shows a reader what the library is for and how to start using it. It does not
+reproduce the API surface. Do not list every parameter of a function, every field of a configuration class, or every
+method of a public class, because the hosted documentation generates all of it from the docstrings and stays correct as
+the code changes. Link to the API documentation instead and keep the README's usage material to the smallest path that
+gets a reader to a working first result.
 
-**No marketing prose**: State what the library does. Do not describe it as powerful, flexible,
-seamless, robust, comprehensive, or easy to use, and do not explain why its problem matters.
+**No marketing prose**: State what the library does. Do not describe it as powerful, flexible, seamless, robust,
+comprehensive, or easy to use, and do not explain why its problem matters.
 
-**No section preamble**: A section starts with its content. Sentences that announce the section,
-such as "This section describes the installation process", restate the heading directly above them.
+**No section preamble**: A section starts with its content. Sentences that announce the section, such as "This section
+describes the installation process", restate the heading directly above them.
 
-**No change narration**: The README describes the library as it currently stands, never the edit
-that produced it. Version history and migration notes belong to the release notes, so do not
-accumulate them here.
+**No change narration**: The README describes the library as it currently stands, never the edit that produced it.
+Version history and migration notes belong to the release notes, so do not accumulate them here.
 
-**No ratchet**: Updating a README section is not a reason to lengthen it. When a change leaves the
-documented behavior intact, leave the section as it stands. When behavior changes, rewrite the
-affected sentences and delete the ones the change made redundant.
+**No ratchet**: Updating a README section is not a reason to lengthen it. When a change leaves the documented behavior
+intact, leave the section as it stands. When behavior changes, rewrite the affected sentences and delete the ones the
+change made redundant.
 
-**Length proportionality**: Section length must be proportional to how hard the subject is for a
-reader to get right, which is independent of how much code implements it.
+**Length proportionality**: Section length must be proportional to how hard the subject is for a reader to get right,
+which is independent of how much code implements it.
 
 **Worked reduction:**
 
@@ -254,8 +241,8 @@ for the full interface.
 
 ## Horizontal rules
 
-Always use triple underscore (`___`) for horizontal rules between major sections. Do not use
-triple dash (`---`) or triple asterisk (`***`).
+Always use triple underscore (`___`) for horizontal rules between major sections. Do not use triple dash (`---`) or
+triple asterisk (`***`).
 
 ```markdown
 ___
@@ -267,8 +254,8 @@ ___
 
 ## Heading hierarchy
 
-Use a single H1 (`#`) for the project title. All sections use H2 (`##`). Subsections use H3
-(`###`). Never skip heading levels (do not jump from H2 to H4).
+Use a single H1 (`#`) for the project title. All sections use H2 (`##`). Subsections use H3 (`###`). Never skip heading
+levels (do not jump from H2 to H4).
 
 ---
 
@@ -283,8 +270,8 @@ Use a single H1 (`#`) for the project title. All sections use H2 (`##`). Subsect
 
 ## PyPI compatibility
 
-README content must render correctly on both GitHub and PyPI. Avoid GitHub-specific Markdown
-features that do not render on PyPI:
+README content must render correctly on both GitHub and PyPI. Avoid GitHub-specific Markdown features that do not render
+on PyPI:
 
 - Do not use GitHub alert syntax (`> [!NOTE]`, `> [!WARNING]`)
 - Do not use `<details>`/`<summary>` collapsible sections
@@ -297,8 +284,8 @@ Use `***Note,***` and `***Warning!***` for callouts instead.
 
 ## Codebase cross-referencing
 
-When writing or updating README content that describes how the library works, you MUST
-cross-reference against the current state of the codebase to ensure accuracy.
+When writing or updating README content that describes how the library works, you MUST cross-reference against the
+current state of the codebase to ensure accuracy.
 
 **Sections requiring verification:**
 - Architecture descriptions
@@ -337,16 +324,15 @@ cross-reference against the current state of the codebase to ensure accuracy.
 
 ## Proactive behavior
 
-When creating a new project, proactively offer to generate a README following these
-conventions. When modifying code that affects documented behavior (API changes, new features,
-removed functionality), proactively suggest updating the README to reflect the changes.
+When creating a new project, proactively offer to generate a README following these conventions. When modifying code
+that affects documented behavior (API changes, new features, removed functionality), proactively suggest updating the
+README to reflect the changes.
 
 ---
 
 ## Verification checklist
 
-**You MUST verify your edits against this checklist before submitting any changes to README
-files.**
+**You MUST verify your edits against this checklist before submitting any changes to README files.**
 
 ```text
 README Style Compliance:

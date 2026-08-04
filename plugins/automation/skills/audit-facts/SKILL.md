@@ -1,31 +1,31 @@
 ---
 name: audit-facts
 description: >-
-  Performs a thorough fact-check audit of documentation against its authoritative source code,
-  covering standalone documentation files and the docstrings and comments embedded in source code.
-  Verifies every concrete claim and surfaces drift, contradictions, and substantive omissions with
-  verbatim source citations. Use when auditing a README, CLAUDE.md, SKILL.md, Sphinx page, Python
-  docstring, Doxygen block, or XML doc comment for factual accuracy, or when the user invokes /audit-facts.
+  Performs a thorough fact-check audit of documentation against its authoritative source code, covering standalone
+  documentation files and the docstrings and comments embedded in source code. Verifies every concrete claim and
+  surfaces drift, contradictions, and substantive omissions with verbatim source citations. Use when auditing a README,
+  CLAUDE.md, SKILL.md, Sphinx page, Python docstring, Doxygen block, or XML doc comment for factual accuracy, or when
+  the user invokes /audit-facts.
 user-invocable: true
 ---
 
 # Documentation fact audit
 
-Audits documentation against the authoritative source code, reporting only factual mismatches and
-substantive omissions with verbatim source citations.
+Audits documentation against the authoritative source code, reporting only factual mismatches and substantive omissions
+with verbatim source citations.
 
-You MUST read this entire skill, and load each reference file at the step that names it, before acting
-on that step. The verification checklist at the end is mandatory before submitting findings.
+You MUST read this entire skill, and load each reference file at the step that names it, before acting on that step. The
+verification checklist at the end is mandatory before submitting findings.
 
 ---
 
 ## Scope
 
 **Covers:**
-- Verifying claims in metadata documentation against source code (API names, signatures, file
-  paths, behaviors, configuration values, workflow steps, cross-references, version pins)
-- Verifying claims in in-source documentation against the implementation each block documents
-  (parameters, return values, raised exceptions, attributes, units, ranges, invariants, defaults)
+- Verifying claims in metadata documentation against source code (API names, signatures, file paths, behaviors,
+  configuration values, workflow steps, cross-references, version pins)
+- Verifying claims in in-source documentation against the implementation each block documents (parameters, return
+  values, raised exceptions, attributes, units, ranges, invariants, defaults)
 - Detecting drift between either documentation class and the current code state
 - Identifying substantive omissions in documentation that partially covers a source area
 - Verifying cross-file and cross-symbol references for accuracy
@@ -33,14 +33,11 @@ on that step. The verification checklist at the end is mandatory before submitti
 
 **Does not cover:**
 - Style, formatting, section ordering, or convention compliance (see `/audit-style`)
-- Documentation quality such as density, length proportionality, typos, third-person imperative mood,
-  separator punctuation, type-signature restating, and narrate-the-code comments (see
-  `/audit-style`)
-- A callable, class, module, or file that carries no documentation at all, which is a style
-  finding (see `/audit-style`)
-- A documentation and code mismatch where the documentation states the intended behavior and the
-  code is the side to fix, together with every defect that involves no documentation at all
-  (see `/audit-correctness`)
+- Documentation quality such as density, length proportionality, typos, third-person imperative mood, separator
+  punctuation, type-signature restating, and narrate-the-code comments (see `/audit-style`)
+- A callable, class, module, or file that carries no documentation at all, which is a style finding (see `/audit-style`)
+- A documentation and code mismatch where the documentation states the intended behavior and the code is the side to
+  fix, together with every defect that involves no documentation at all (see `/audit-correctness`)
 - Cost, speed, memory use, and dtype predictability (see `/audit-performance`)
 - Code modifications or fact corrections (this skill produces findings only)
 - Codebase exploration (see `/explore-codebase`)
@@ -49,21 +46,20 @@ on that step. The verification checklist at the end is mandatory before submitti
 
 ## Documentation classes
 
-Every audited artifact belongs to exactly one of two documentation classes. These are the
-canonical names used throughout this skill.
+Every audited artifact belongs to exactly one of two documentation classes. These are the canonical names used
+throughout this skill.
 
-**Metadata documentation** is a standalone file whose entire content is prose about the project.
-Its authoritative source lives in other files.
+**Metadata documentation** is a standalone file whose entire content is prose about the project. Its authoritative
+source lives in other files.
 
-**In-source documentation** is prose embedded inside a source file. It covers Python module,
-class, function, and property docstrings and `#` comments, C++ Doxygen blocks (`@brief`,
-`@param`, `@returns`, `@note`, `@warning`, `@tparam`) and `//` comments, and C# XML doc comments
-(`<summary>`, `<param>`, `<returns>`, `<remarks>`, `<exception>`) and `//` comments. Its
-authoritative source is the implementation the block sits on, together with the symbols that
+**In-source documentation** is prose embedded inside a source file. It covers Python module, class, function, and
+property docstrings and `#` comments, C++ Doxygen blocks (`@brief`, `@param`, `@returns`, `@note`, `@warning`,
+`@tparam`) and `//` comments, and C# XML doc comments (`<summary>`, `<param>`, `<returns>`, `<remarks>`, `<exception>`)
+and `//` comments. Its authoritative source is the implementation the block sits on, together with the symbols that
 implementation calls.
 
-Both classes drift, and both are in scope. A repository-wide audit that inspects only metadata
-documentation has covered a fraction of the project's factual surface.
+Both classes drift, and both are in scope. A repository-wide audit that inspects only metadata documentation has covered
+a fraction of the project's factual surface.
 
 ---
 
@@ -98,19 +94,17 @@ Emit a plan before any verification work fires. The plan must list:
 - Tier classification (small, medium, or large)
 - Expected finding categories
 
-Pause for user confirmation or a "proceed" signal. This catches misidentified targets before
-tokens burn on the wrong scope. A user who wants a narrower run says so here, and the narrowing
-is recorded in the Step 9 coverage ledger.
+Pause for user confirmation or a "proceed" signal. This catches misidentified targets before tokens burn on the wrong
+scope. A user who wants a narrower run says so here, and the narrowing is recorded in the Step 9 coverage ledger.
 
 ### Step 1: Resolve target and bind documentation classes
 
-Resolve the target into the set of files in scope. A target that names a single file binds that
-file to its own class and stops there.
+Resolve the target into the set of files in scope. A target that names a single file binds that file to its own class
+and stops there.
 
-When the target is a directory or a repository root, **both documentation classes are in scope**.
-You MUST enumerate the in-source documentation files and carry them through every subsequent
-step. Reducing a repository target to its metadata documentation is a scope error, and it is the
-most frequent failure of this skill.
+When the target is a directory or a repository root, **both documentation classes are in scope**. You MUST enumerate the
+in-source documentation files and carry them through every subsequent step. Reducing a repository target to its metadata
+documentation is a scope error, and it is the most frequent failure of this skill.
 
 Enumerate with the project's version control index, which reports the files that actually ship:
 
@@ -122,15 +116,14 @@ git ls-files '*.md' '*.rst' '*.toml' '*.ini' '*.json' '*.yml' '*.yaml'
 git ls-files '*.py' '*.pyi' '*.h' '*.hpp' '*.cpp' '*.cs'
 ```
 
-For a target outside version control, run the equivalent `find` over the same patterns. Add
-untracked files reported by `git status --porcelain` when the audit covers work in progress.
+For a target outside version control, run the equivalent `find` over the same patterns. Add untracked files reported by
+`git status --porcelain` when the audit covers work in progress.
 
-Whole-repository coverage is the default and stays the default. Narrow to a change set ONLY when the
-user asks for that in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a
-branch, `git diff --name-only <commit>` for one commit, or `git status --porcelain` for the working
-tree. A narrowed run still reads every surviving file in full, because a claim is verified against a
-whole implementation rather than against a hunk. Record the narrowing and the revision it resolved
-against in the Step 9 coverage ledger, so the report states what it did not cover.
+Whole-repository coverage is the default and stays the default. Narrow to a change set ONLY when the user asks for that
+in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a branch, `git diff --name-only <commit>`
+for one commit, or `git status --porcelain` for the working tree. A narrowed run still reads every surviving file in
+full, because a claim is verified against a whole implementation rather than against a hunk. Record the narrowing and
+the revision it resolved against in the Step 9 coverage ledger, so the report states what it did not cover.
 
 Bind every enumerated file to its class and its authoritative source:
 
@@ -146,13 +139,12 @@ Bind every enumerated file to its class and its authoritative source:
 | `*.h`, `*.hpp`, `*.cpp`                                       | In-source | The documented file, class, method, and the symbols they call            |
 | `*.cs`                                                        | In-source | The documented file, class, member, and the symbols they call            |
 
-A file matching no row is out of scope. Record it in the coverage ledger as UNBOUND. State whether
-`tests/` is audited or read as authority, bind every test path to the tests row rather than to its
-language row, and give it its own coverage-ledger row.
+A file matching no row is out of scope. Record it in the coverage ledger as UNBOUND. State whether `tests/` is audited
+or read as authority, bind every test path to the tests row rather than to its language row, and give it its own
+coverage-ledger row.
 
-For files that reference external libraries, include the installed package location in the
-authoritative source list for that file. For ataraxis dependencies, invoke
-`/explore-dependencies` to obtain a current API snapshot before proceeding.
+For files that reference external libraries, include the installed package location in the authoritative source list for
+that file. For ataraxis dependencies, invoke `/explore-dependencies` to obtain a current API snapshot before proceeding.
 
 Classify the audit tier from the union of both classes:
 
@@ -162,39 +154,39 @@ Classify the audit tier from the union of both classes:
 | Medium | 2 to 9 files                       | Main agent, file-by-file                                |
 | Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
-A repository-root target is always Large. Group Large-tier work under three rules, which exist so a
-sub-agent loads one authority rather than the union of every authority in the repository.
+A repository-root target is always Large. Group Large-tier work under three rules, which exist so a sub-agent loads one
+authority rather than the union of every authority in the repository.
 
-1. **One metadata file, one sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`, `tox.ini`, and
-   `platformio.ini` each get a dedicated sub-agent, because each resolves against a different
-   authoritative source. A skill is one unit, its `SKILL.md` and `references/*.md` together, because
-   the binding table gives them one source. The `docs/` package is one sub-agent covering every page.
-2. **In-source work batches by package.** One sub-agent per package or per source directory, holding
-   roughly eight files, and never mixing languages inside a batch.
-3. **Forty sub-agents cap the run, and twelve run at once.** Every sub-agent re-receives the whole
-   instruction payload, so the total bounds what the fan-out costs and the in-flight limit paces it.
-   Units beyond forty merge by shared authoritative source rather than dropping files.
+1. **One metadata file, one sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`, `tox.ini`, and `platformio.ini`
+   each get a dedicated sub-agent, because each resolves against a different authoritative source. A skill is one unit,
+   its `SKILL.md` and `references/*.md` together, because the binding table gives them one source. The `docs/` package
+   is one sub-agent covering every page.
+2. **In-source work batches by package.** One sub-agent per package or per source directory, holding roughly eight
+   files, and never mixing languages inside a batch.
+3. **Forty sub-agents cap the run, and twelve run at once.** Every sub-agent re-receives the whole instruction payload,
+   so the total bounds what the fan-out costs and the in-flight limit paces it. Units beyond forty merge by shared
+   authoritative source rather than dropping files.
 
 Record the sub-agent count in the Step 9 coverage ledger.
 
-Only the per-file claim verification fans out. Every other step runs on the main agent, because the
-omission, reference, and contradiction passes each need the whole claim ledger in one view, and the
-guards, the verification, and the report each sit on a trust boundary.
+Only the per-file claim verification fans out. Every other step runs on the main agent, because the omission, reference,
+and contradiction passes each need the whole claim ledger in one view, and the guards, the verification, and the report
+each sit on a trust boundary.
 
-Do NOT use the `Explore` agent type for verification work. Explore returns summaries rather
-than verbatim citations and breaks the "verbatim quote" discipline.
+Do NOT use the `Explore` agent type for verification work. Explore returns summaries rather than verbatim citations and
+breaks the "verbatim quote" discipline.
 
 ### Step 2: Extract verifiable claims
 
-Run Pass 1 from [detection-passes.md](references/detection-passes.md), which builds the claim ledger
-every later step consumes and tags each claim with the kind that decides which pass verifies it.
+Run Pass 1 from [detection-passes.md](references/detection-passes.md), which builds the claim ledger every later step
+consumes and tags each claim with the kind that decides which pass verifies it.
 
 Walk each target file top to bottom and extract every verifiable claim.
 
-In metadata documentation, a claim is any verifiable assertion. That covers API names and signatures,
-file paths, directory layouts, canonical filenames, behaviors, configuration values, and defaults. It
-also covers workflow step orderings, cross-references, version pins, external-library API references,
-numerical facts, existence assertions, and date or version markers.
+In metadata documentation, a claim is any verifiable assertion. That covers API names and signatures, file paths,
+directory layouts, canonical filenames, behaviors, configuration values, and defaults. It also covers workflow step
+orderings, cross-references, version pins, external-library API references, numerical facts, existence assertions, and
+date or version markers.
 
 In in-source documentation, a claim is any assertion the implementation can confirm:
 
@@ -211,33 +203,31 @@ Pass 1 states what is NOT a claim, and Guard 5 removes anything that reaches the
 
 ### Step 3: Verify each claim
 
-Run passes 2 through 6 from [detection-passes.md](references/detection-passes.md) in order, over ONE
-walk of the claim ledger.
+Run passes 2 through 6 from [detection-passes.md](references/detection-passes.md) in order, over ONE walk of the claim
+ledger.
 
-For each claim, locate the authoritative source and compare. You MUST open the source file and
-verify directly. Do NOT verify from memory or training data.
+For each claim, locate the authoritative source and compare. You MUST open the source file and verify directly. Do NOT
+verify from memory or training data.
 
-For metadata claims, read the module, tool, or configuration file the claim names. For
-external-library claims, read the installed library under `.venv`, conda env, or
-`site-packages`. For ataraxis dependencies, use the API snapshot from `/explore-dependencies`.
+For metadata claims, read the module, tool, or configuration file the claim names. For external-library claims, read the
+installed library under `.venv`, conda env, or `site-packages`. For ataraxis dependencies, use the API snapshot from
+`/explore-dependencies`.
 
-For in-source claims, the implementation is the authority. Passes 3 through 6 define the mechanical
-comparisons, and Guards 2 and 10 define what stops a candidate.
+For in-source claims, the implementation is the authority. Passes 3 through 6 define the mechanical comparisons, and
+Guards 2 and 10 define what stops a candidate.
 
-Run only the READ-ONLY form of any tool this audit consults, such as `ruff check --no-fix` and
-`mypy .`, because bare `tox` and `tox -e lint` are FORBIDDEN here and reformat the code under audit.
+Run only the READ-ONLY form of any tool this audit consults, such as `ruff check --no-fix` and `mypy .`, because bare
+`tox` and `tox -e lint` are FORBIDDEN here and reformat the code under audit.
 
-For Large-tier audits, spawn the sub-agents the Step 1 grouping rules define. Each sub-agent receives
-its own files, the documentation class, the authoritative source scope for those files alone, and the
-verdict categorization rules. Sub-agents return findings in the output format defined below. The main
-agent synthesizes after all sub-agents complete.
+For Large-tier audits, spawn the sub-agents the Step 1 grouping rules define. Each sub-agent receives its own files, the
+documentation class, the authoritative source scope for those files alone, and the verdict categorization rules.
+Sub-agents return findings in the output format defined below. The main agent synthesizes after all sub-agents complete.
 
-Cite each source as `<path>:<line>` or `<path>:<line>-<line>`. For an in-source finding, the file
-location and the source location commonly sit in the same file a few lines apart, and both are
-still required.
+Cite each source as `<path>:<line>` or `<path>:<line>-<line>`. For an in-source finding, the file location and the
+source location commonly sit in the same file a few lines apart, and both are still required.
 
-Categorize every claim with one of these seven verdicts. This step assigns the first five, and the
-omission and contradiction passes in Steps 4 and 6 assign the last two:
+Categorize every claim with one of these seven verdicts. This step assigns the first five, and the omission and
+contradiction passes in Steps 4 and 6 assign the last two:
 
 | Verdict       | Meaning                                                                    |
 |---------------|----------------------------------------------------------------------------|
@@ -259,38 +249,36 @@ Also assign a confidence tier to every finding:
 
 For UNVERIFIABLE findings, state what you searched for and where you looked.
 
-List ALL non-matching claims in each pass, walking a block that yields one WRONG claim to the end of
-its ledger rows rather than stopping at the first.
+List ALL non-matching claims in each pass, walking a block that yields one WRONG claim to the end of its ledger rows
+rather than stopping at the first.
 
 ### Step 4: Omission pass
 
 Run Pass 7 from [detection-passes.md](references/detection-passes.md).
 
-Within the per-file source scope from Step 1 only, walk the source code and check whether the
-documentation mentions every relevant public API, behavior, and constraint.
+Within the per-file source scope from Step 1 only, walk the source code and check whether the documentation mentions
+every relevant public API, behavior, and constraint.
 
-An omission is substantive when the documentation already partially covers a surface but misses
-pieces of it. In metadata documentation, examples include documenting 3 of 5 public functions in
-a module the file walks through, describing a workflow but skipping a required step, or listing
-registries but missing one. In in-source documentation, examples include an `Args:` section that
-documents 3 of 5 parameters and a `Raises:` section that omits an exception the body raises. They also
-include an `Attributes:` section missing an attribute the class assigns, and a Doxygen block carrying
-`@param` tags for some parameters of a method.
+An omission is substantive when the documentation already partially covers a surface but misses pieces of it. In
+metadata documentation, examples include documenting 3 of 5 public functions in a module the file walks through,
+describing a workflow but skipping a required step, or listing registries but missing one. In in-source documentation,
+examples include an `Args:` section that documents 3 of 5 parameters and a `Raises:` section that omits an exception the
+body raises. They also include an `Attributes:` section missing an attribute the class assigns, and a Doxygen block
+carrying `@param` tags for some parameters of a method.
 
-Do NOT flag documentation for lacking an entire section, format, or convention, and do NOT flag a
-callable, class, module, or file that carries no documentation at all. Both are style concerns
-and belong to `/audit-style`.
+Do NOT flag documentation for lacking an entire section, format, or convention, and do NOT flag a callable, class,
+module, or file that carries no documentation at all. Both are style concerns and belong to `/audit-style`.
 
 ### Step 5: Reference pass
 
 Run Pass 8 from [detection-passes.md](references/detection-passes.md).
 
-For every "see X" or "documented in Y" reference in metadata documentation, verify that X exists
-and contains what the file claims it contains.
+For every "see X" or "documented in Y" reference in metadata documentation, verify that X exists and contains what the
+file claims it contains.
 
-For in-source documentation, apply the same check to symbol references: Sphinx cross-reference
-specifiers in Python docstrings, `@see` and `@ref` tags in Doxygen blocks, `<see cref="...">`
-elements in XML doc comments, and any module, file, or symbol a comment names.
+For in-source documentation, apply the same check to symbol references: Sphinx cross-reference specifiers in Python
+docstrings, `@see` and `@ref` tags in Doxygen blocks, `<see cref="...">` elements in XML doc comments, and any module,
+file, or symbol a comment names.
 
 Flag only broken or wrong references.
 
@@ -298,37 +286,33 @@ Flag only broken or wrong references.
 
 Run Pass 9 from [detection-passes.md](references/detection-passes.md).
 
-Identify cases where the documentation makes incompatible claims about the same thing. This
-includes a metadata file contradicting itself, and a docstring contradicting a comment or another
-docstring inside the same module about the same symbol.
+Identify cases where the documentation makes incompatible claims about the same thing. This includes a metadata file
+contradicting itself, and a docstring contradicting a comment or another docstring inside the same module about the same
+symbol.
 
 ### Step 7: Apply the false-positive guards
 
-Walk every candidate through every guard in
-[false-positive-guards.md](references/false-positive-guards.md), in order. The authoritative-source
-guard runs first and removes the most candidates. Discard everything a guard rejects, and record the
-count of discarded candidates for the report's triage header.
+Walk every candidate through every guard in [false-positive-guards.md](references/false-positive-guards.md), in order.
+The authoritative-source guard runs first and removes the most candidates. Discard everything a guard rejects, and
+record the count of discarded candidates for the report's triage header.
 
 ### Step 8: Verify the surviving findings
 
 Run the two checks in [verification-protocol.md](references/verification-protocol.md), in order:
 
-1. **Citation verification**, against every surviving finding with no sampling. Confirms the Claim
-   quote appears at the cited documentation line and the Source reality quote appears at the cited
-   source line.
-2. **Adversarial refutation**, against every WRONG and CONTRADICTION finding. A fresh
-   `general-purpose` sub-agent per finding, instructed to refute it and to answer REFUTED under
-   uncertainty.
+1. **Citation verification**, against every surviving finding with no sampling. Confirms the Claim quote appears at the
+   cited documentation line and the Source reality quote appears at the cited source line.
+2. **Adversarial refutation**, against every WRONG and CONTRADICTION finding. A fresh `general-purpose` sub-agent per
+   finding, instructed to refute it and to answer REFUTED under uncertainty.
 
-Both checks are external, testing the finding against the files and against a reader who never saw the
-verification pass. They catch the failure mode this audit produces most often, which is confidently
-misquoting source. Record every count the protocol names, because the Step 9 ledger and the report's
-triage header carry them.
+Both checks are external, testing the finding against the files and against a reader who never saw the verification
+pass. They catch the failure mode this audit produces most often, which is confidently misquoting source. Record every
+count the protocol names, because the Step 9 ledger and the report's triage header carry them.
 
 ### Step 9: Assemble the coverage ledger
 
-Build the ledger that opens the report. It records what was audited, so a thin in-source pass is
-visible rather than silent:
+Build the ledger that opens the report. It records what was audited, so a thin in-source pass is visible rather than
+silent:
 
 ```text
 | Documentation class | Files in scope | Files audited | Files skipped |
@@ -338,41 +322,38 @@ visible rather than silent:
 | Tests               | 9              | 9             | 0             |
 ```
 
-List every skipped and UNBOUND file by path with its reason, and state the sub-agent count. Skipping
-is allowed only when the user narrowed the scope in Step 0 or Step 1, when a file is generated, or
-when a file is unreadable. A tests row bound as authority rather than audited is recorded in the
-skipped list with the reason `authority, not audited`. A run narrowed to a change set names the
-revision it resolved against here.
-A Large-tier audit that produced no in-source findings still reports a non-zero audited count in the
-in-source row, which distinguishes clean documentation from an unrun pass.
+List every skipped and UNBOUND file by path with its reason, and state the sub-agent count. Skipping is allowed only
+when the user narrowed the scope in Step 0 or Step 1, when a file is generated, or when a file is unreadable. A tests
+row bound as authority rather than audited is recorded in the skipped list with the reason `authority, not audited`. A
+run narrowed to a change set names the revision it resolved against here. A Large-tier audit that produced no in-source
+findings still reports a non-zero audited count in the in-source row, which distinguishes clean documentation from an
+unrun pass.
 
 ### Step 10: Produce the findings report
 
 Use the output format below.
 
-Skip EXACT and SEMANTIC findings entirely. Report every surviving finding at every confidence tier by
-default, which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when
-the user explicitly asks for it via `--min-confidence medium` or equivalent invocation.
+Skip EXACT and SEMANTIC findings entirely. Report every surviving finding at every confidence tier by default, which
+covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user explicitly asks for it via
+`--min-confidence medium` or equivalent invocation.
 
-The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that
-the report was filtered. LOW means the source and claim mapping is inferred rather than literal, and
-it never excuses a finding from the citation rules in the Discipline section. LOW findings sit in the
-trailing `Appendix: LOW confidence` section the protocol defines rather than interleaved into the file
-groups, so the body of the report reads at one confidence level.
+The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that the report was
+filtered. LOW means the source and claim mapping is inferred rather than literal, and it never excuses a finding from
+the citation rules in the Discipline section. LOW findings sit in the trailing `Appendix: LOW confidence` section the
+protocol defines rather than interleaved into the file groups, so the body of the report reads at one confidence level.
 
 ---
 
 ## Output format
 
-Open the report with the triage header from
-[verification-protocol.md](references/verification-protocol.md), then the Step 9 coverage ledger. The
-header carries the finding counts by verdict and confidence together with every discard count the
-guards and the Step 8 checks produced. Then report only WRONG, DRIFT, CONTRADICTION, OMISSION, and
+Open the report with the triage header from [verification-protocol.md](references/verification-protocol.md), then the
+Step 9 coverage ledger. The header carries the finding counts by verdict and confidence together with every discard
+count the guards and the Step 8 checks produced. Then report only WRONG, DRIFT, CONTRADICTION, OMISSION, and
 UNVERIFIABLE findings, in that order.
 
-When the audit spans multiple files, group the HIGH and MEDIUM confidence findings hierarchically:
-documentation class -> file -> finding verdict -> findings. Collect LOW confidence findings into the
-trailing `Appendix: LOW confidence` section, ordered by the same verdict sequence.
+When the audit spans multiple files, group the HIGH and MEDIUM confidence findings hierarchically: documentation class
+-> file -> finding verdict -> findings. Collect LOW confidence findings into the trailing `Appendix: LOW confidence`
+section, ordered by the same verdict sequence.
 
 Each finding uses this structure:
 
@@ -388,8 +369,7 @@ Suggested fix: <concrete textual edit>
 Approval: <REQUIRED when the edit changes a documented public contract, naming what breaks>
 ```
 
-For UNVERIFIABLE findings, replace the source reality with a description of what was searched
-and where.
+For UNVERIFIABLE findings, replace the source reality with a description of what was searched and where.
 
 ---
 
@@ -401,11 +381,10 @@ You MUST adhere to the following discipline during every audit, and you MUST app
 - Never paraphrase source and present it as a verbatim quote. Use the Read tool and copy.
 - Never expand scope to restructure, restyle, or refactor. This skill produces findings only.
 - Do not flag subjective preferences (tone, ordering, terminology).
-- Hold the report's own prose to the rules this family enforces, keeping every authored sentence under
-  40 words and separating clauses with full stops and commas rather than semicolons or em-dashes.
-- Fill each authored line to 120 characters before breaking it, under the wrap width rule
-  `/python-style` defines, so a line ending before column 100 while its next word would still fit is
-  re-flowed.
+- Hold the report's own prose to the rules this family enforces, keeping every authored sentence under 40 words and
+  separating clauses with full stops and commas rather than semicolons or em-dashes.
+- Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
+  line ending before column 100 while its next word would still fit is re-flowed.
 
 ---
 
@@ -430,17 +409,16 @@ You MUST adhere to the following discipline during every audit, and you MUST app
 
 ## Proactive behavior
 
-Invoke this skill when the user asks to fact-check, verify, or audit documentation against the
-source code. A request that names a directory or a repository covers both documentation classes
-by default, and the Step 0 plan is where the user narrows that scope.
+Invoke this skill when the user asks to fact-check, verify, or audit documentation against the source code. A request
+that names a directory or a repository covers both documentation classes by default, and the Step 0 plan is where the
+user narrows that scope.
 
-Fix this audit's findings FIRST, before those of `/audit-correctness`, `/audit-performance`, and
-`/audit-style`, when auditing the same file end to end. Factual corrections may rewrite prose that
-style would otherwise restyle redundantly, and settling which side of a documentation mismatch is
-authoritative comes before auditing the code. That is a FIX order, and `/audit-project` decides the RUN order.
+Fix this audit's findings FIRST, before those of `/audit-correctness`, `/audit-performance`, and `/audit-style`, when
+auditing the same file end to end. Factual corrections may rewrite prose that style would otherwise restyle redundantly,
+and settling which side of a documentation mismatch is authoritative comes before auditing the code. That is a FIX
+order, and `/audit-project` decides the RUN order.
 
-Do NOT make code or documentation changes during the audit. Present findings and wait for user
-direction.
+Do NOT make code or documentation changes during the audit. Present findings and wait for user direction.
 
 ---
 

@@ -6,8 +6,8 @@ Detailed conventions for Python docstrings and type annotations in projects.
 
 ## Docstrings
 
-Use **Google-style docstrings** with sections in this order:
-**Summary -> Extended Description -> Notes -> Args -> Returns -> Raises**
+Use **Google-style docstrings** with sections in this order: **Summary -> Extended Description -> Notes -> Args ->
+Returns -> Raises**
 
 ```python
 def function_name(param1: int, param2: str = "default") -> bool:
@@ -35,8 +35,8 @@ def function_name(param1: int, param2: str = "default") -> bool:
     """
 ```
 
-**Section order**: Summary line first, then extended description (if needed), then Notes, Args, Returns, and Raises.
-Do not include Examples sections or in-code examples in docstrings.
+**Section order**: Summary line first, then extended description (if needed), then Notes, Args, Returns, and Raises. Do
+not include Examples sections or in-code examples in docstrings.
 
 ### Rules
 
@@ -50,106 +50,92 @@ Do not include Examples sections or in-code examples in docstrings.
 
 ### Documentation quality
 
-Beyond structural rules, every comment and docstring must meet quality criteria that govern
-information density, readability, and accuracy.
+Beyond structural rules, every comment and docstring must meet quality criteria that govern information density,
+readability, and accuracy.
 
-**Necessary minimalism**: Documentation exists to convey information the reader cannot infer
-from the code itself. Each docstring and comment must be as short as possible while still
-conveying every necessary fact. Do not pad with restatements, motivational prose, or
-implementation trivia.
+**Necessary minimalism**: Documentation exists to convey information the reader cannot infer from the code itself. Each
+docstring and comment must be as short as possible while still conveying every necessary fact. Do not pad with
+restatements, motivational prose, or implementation trivia.
 
-The default for every member is the summary line by itself, followed by the Args, Returns, and
-Raises sections the signature requires. An extended description, a Notes section, or a second
-paragraph is an exception the code has to earn. It is earned when the member carries a specific
-property the reader is unable to derive. Such a property is a non-obvious algorithm, an invariant
-the signature does not express, a unit or coordinate convention, a performance characteristic that
-constrains call sites, or a failure mode. Name that property to yourself before writing the extra
+The default for every member is the summary line by itself, followed by the Args, Returns, and Raises sections the
+signature requires. An extended description, a Notes section, or a second paragraph is an exception the code has to
+earn. It is earned when the member carries a specific property the reader is unable to derive. Such a property is a
+non-obvious algorithm, an invariant the signature does not express, a unit or coordinate convention, a performance
+characteristic that constrains call sites, or a failure mode. Name that property to yourself before writing the extra
 prose. When no such property can be named, the summary line was already complete.
 
-**The cover test**: Before keeping a documentation sentence, cover it and try to reconstruct it
-from the member name, the signature, and the first few lines of the body. A sentence you are able
-to reconstruct carries no information, so delete it. Apply the test to one sentence at a time
-rather than to the block as a whole, because a compliant summary line frequently sits above three
-sentences that each fail.
+**The cover test**: Before keeping a documentation sentence, cover it and try to reconstruct it from the member name,
+the signature, and the first few lines of the body. A sentence you are able to reconstruct carries no information, so
+delete it. Apply the test to one sentence at a time rather than to the block as a whole, because a compliant summary
+line frequently sits above three sentences that each fail.
 
-**Behavioral scope**: A docstring describes what the function does, and it stops there. Leave out
-how the function is deployed in the project, which pipeline stage calls it, which feature depends
-on it, and why it was introduced. That context belongs to the module docstring, the README, or the
-API documentation, and it goes stale the moment the call sites change. A function that resolves a
-path documents the path it resolves, leaving the command that later consumes it undocumented here.
+**Behavioral scope**: A docstring describes what the function does, and it stops there. Leave out how the function is
+deployed in the project, which pipeline stage calls it, which feature depends on it, and why it was introduced. That
+context belongs to the module docstring, the README, or the API documentation, and it goes stale the moment the call
+sites change. A function that resolves a path documents the path it resolves, leaving the command that later consumes it
+undocumented here.
 
-One exception applies. A docstring may state that an input arrives in a specific format produced
-by a named peer function. That statement is warranted only when the expectation is genuinely
-counter-intuitive, contradicts the usual convention, or is exceptional enough that the reader is
-lost without it. State the constraint and its reason in one sentence. An input that behaves the way a reader
-already expects needs no such note.
+One exception applies. A docstring may state that an input arrives in a specific format produced by a named peer
+function. That statement is warranted only when the expectation is genuinely counter-intuitive, contradicts the usual
+convention, or is exceptional enough that the reader is lost without it. State the constraint and its reason in one
+sentence. An input that behaves the way a reader already expects needs no such note.
 
-**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
-broken into smaller sentences at natural clause boundaries. Long sentences in docstrings,
-comments, and inline annotations are a strong signal of over-explanation.
+**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be broken into smaller sentences
+at natural clause boundaries. Long sentences in docstrings, comments, and inline annotations are a strong signal of
+over-explanation.
 
-**Typo-free and grammatical**: Every comment, docstring, and inline annotation must be free of
-typos and grammatical errors.
+**Typo-free and grammatical**: Every comment, docstring, and inline annotation must be free of typos and grammatical
+errors.
 
-**Length proportionality**: Docstring length must be proportional to how hard the code is to
-understand, which is independent of how many lines it occupies. A long function that carries out
-one straightforward task needs a short docstring, because its size alone gives the reader nothing
-extra to learn. A short function warrants a longer description when its behavior is
-counter-intuitive or hard to derive, such as one built on dense bit manipulation, an unusual
-algorithm, or a non-obvious invariant. Judge the documentation against the difficulty of the idea
-and keep it to what the reader is unable to work out from the code.
+**Length proportionality**: Docstring length must be proportional to how hard the code is to understand, which is
+independent of how many lines it occupies. A long function that carries out one straightforward task needs a short
+docstring, because its size alone gives the reader nothing extra to learn. A short function warrants a longer
+description when its behavior is counter-intuitive or hard to derive, such as one built on dense bit manipulation, an
+unusual algorithm, or a non-obvious invariant. Judge the documentation against the difficulty of the idea and keep it to
+what the reader is unable to work out from the code.
 
-**No type-signature restating**: Docstrings must not restate information already conveyed by
-the type signature or the parameter names. Replace "Takes an integer count and returns a
-boolean indicating success" with "Returns True when the operation succeeds." The signature
-already conveys the types.
+**No type-signature restating**: Docstrings must not restate information already conveyed by the type signature or the
+parameter names. Replace "Takes an integer count and returns a boolean indicating success" with "Returns True when the
+operation succeeds." The signature already conveys the types.
 
-**No narrate-the-code comments**: Inline comments must explain non-obvious context, intent, or
-constraints instead of narrating what the code already says. Replace `# increment counter` above
-`counter += 1` with either no comment, or a comment that explains why the increment matters at
-that point.
+**No narrate-the-code comments**: Inline comments must explain non-obvious context, intent, or constraints instead of
+narrating what the code already says. Replace `# increment counter` above `counter += 1` with either no comment, or a
+comment that explains why the increment matters at that point.
 
-**No change narration**: Documentation describes the code as it currently stands, never the edit
-that produced it. Do not record that a behavior was added, that a case is now handled, that a
-parameter was renamed, or that a defect was corrected. The commit message and the pull request
-body carry that history and are the only place it belongs. When an edit changes behavior, rewrite
-the affected sentence to state the new behavior and leave the change itself unrecorded.
+**No change narration**: Documentation describes the code as it currently stands, never the edit that produced it. Do
+not record that a behavior was added, that a case is now handled, that a parameter was renamed, or that a defect was
+corrected. The commit message and the pull request body carry that history and are the only place it belongs. When an
+edit changes behavior, rewrite the affected sentence to state the new behavior and leave the change itself unrecorded.
 
-**No documentation ratchet**: Editing a member is not a reason to lengthen its documentation. When
-a change leaves the documented behavior intact, leave the docstring exactly as it stands. When a
-change alters the behavior, rewrite the affected sentences and delete the ones the change made
-redundant, so the block ends no longer than it started unless the new behavior is genuinely harder
-to derive than the old.
+**No documentation ratchet**: Editing a member is not a reason to lengthen its documentation. When a change leaves the
+documented behavior intact, leave the docstring exactly as it stands. When a change alters the behavior, rewrite the
+affected sentences and delete the ones the change made redundant, so the block ends no longer than it started unless the
+new behavior is genuinely harder to derive than the old.
 
-**No stale references**: Comments must not reference closed issue numbers, removed code,
-deprecated versions, or outdated TODOs. When the code referenced by a comment is removed, the
-comment must be removed or rewritten.
+**No stale references**: Comments must not reference closed issue numbers, removed code, deprecated versions, or
+outdated TODOs. When the code referenced by a comment is removed, the comment must be removed or rewritten.
 
-**Implementation accuracy**: Docstring claims must accurately describe the function's
-observable behavior, signature, parameter semantics, and return value. A docstring that says
-"returns the absolute path" for a function that returns a relative path is a defect, even when
-the code itself is correct.
+**Implementation accuracy**: Docstring claims must accurately describe the function's observable behavior, signature,
+parameter semantics, and return value. A docstring that says "returns the absolute path" for a function that returns a
+relative path is a defect, even when the code itself is correct.
 
-**Separator punctuation**: Within docstring and comment prose, only the full stop and the comma
-separate clauses. Do not use a semicolon, and do not use an em-dash as a separator whether it is
-typed `--`, `—`, or `–`. A colon is allowed where it is lexically appropriate, such as a docstring
-section header or introducing an explanation or list. A single hyphen in a compound word, a list
-marker, or a numeric range is not an em-dash and is fine. This rule governs prose only. Code stays
-exempt, so a `;` in a PEP 508 dependency marker, a `--flag` in a CLI reference, or a `--` argument
+**Separator punctuation**: Within docstring and comment prose, only the full stop and the comma separate clauses. Do not
+use a semicolon, and do not use an em-dash as a separator whether it is typed `--`, `—`, or `–`. A colon is allowed
+where it is lexically appropriate, such as a docstring section header or introducing an explanation or list. A single
+hyphen in a compound word, a list marker, or a numeric range is not an em-dash and is fine. This rule governs prose
+only. Code stays exempt, so a `;` in a PEP 508 dependency marker, a `--flag` in a CLI reference, or a `--` argument
 separator is left as written.
 
-**Positive description**: State what the code does and what is currently true. Do not define
-behavior by contrast with what it does not do ("does X, not Y", "works by X rather than Y"), and
-do not frame it against former behavior ("previously", "used to", "no longer"). The one exception
-is a contrast that is load-bearing because it corrects a counter-intuitive but likely assumption,
-and it must carry its reason. For example, "Iterates over columns rather than rows, because the
-columnar store keeps each column contiguous in memory." Without that reason, drop the contrast and
+**Positive description**: State what the code does and what is currently true. Do not define behavior by contrast with
+what it does not do ("does X, not Y", "works by X rather than Y"), and do not frame it against former behavior
+("previously", "used to", "no longer"). The one exception is a contrast that is load-bearing because it corrects a
+counter-intuitive but likely assumption, and it must carry its reason. For example, "Iterates over columns rather than
+rows, because the columnar store keeps each column contiguous in memory." Without that reason, drop the contrast and
 keep only the positive statement.
 
 ### Worked reductions
 
-The rules above name the defects. These pairs show the size of the correction that follows from
-them.
+The rules above name the defects. These pairs show the size of the correction that follows from them.
 
 **A self-evident function padded with call-site context and restated types:**
 
@@ -186,9 +172,9 @@ def resolve_session_directory(root: Path, session_name: str) -> Path:
     return root / session_name
 ```
 
-The reduction keeps the one fact the signature omits, which is that the directory is not created.
-It drops the pipeline stage that calls the function, the stage that consumes its output, and the
-Args entries that name types the annotations already carry.
+The reduction keeps the one fact the signature omits, which is that the directory is not created. It drops the pipeline
+stage that calls the function, the stage that consumes its output, and the Args entries that name types the annotations
+already carry.
 
 **A property split into a summary and an extended description:**
 
@@ -312,9 +298,9 @@ class SessionConfig:
 
 ### Property docstrings
 
-Property docstrings should ideally be a single sentence, even if it spans multiple lines. Do not
-split a property summary into a one-line summary plus an extended description paragraph. Keep it as
-one continuous sentence that wraps naturally at the line-length limit.
+Property docstrings should ideally be a single sentence, even if it spans multiple lines. Do not split a property
+summary into a one-line summary plus an extended description paragraph. Keep it as one continuous sentence that wraps
+naturally at the line-length limit.
 
 ```python
 @property
@@ -338,12 +324,11 @@ Follow the same third-person imperative mood pattern as other docstrings:
 """Provides assets for processing and analyzing neural imaging data."""
 ```
 
-The module docstring description is a lean, cohesive chunk of at most 5 sentences. It states what
-the module provides and, where relevant, why it lives where it does. Detailed material, such as
-methodology, caveats, interpretation guidance, and rationale, belongs in the docstrings of the
-functions, classes, enums, and constants the module defines. Keep the module docstring itself to
-that lean description. A multi-paragraph module docstring or a module-level `Notes:` section is a
-violation, so relocate each detail to the member it concerns.
+The module docstring description is a lean, cohesive chunk of at most 5 sentences. It states what the module provides
+and, where relevant, why it lives where it does. Detailed material, such as methodology, caveats, interpretation
+guidance, and rationale, belongs in the docstrings of the functions, classes, enums, and constants the module defines.
+Keep the module docstring itself to that lean description. A multi-paragraph module docstring or a module-level `Notes:`
+section is a violation, so relocate each detail to the member it concerns.
 
 ### CLI command docstrings
 
@@ -362,12 +347,11 @@ def process_data(input_path: Path, output_path: Path) -> None:
 
 ### MCP server tool docstrings
 
-MCP tools serve dual purposes: documenting for developers and providing instructions to AI agents.
-MCP tool docstrings MUST include a `Returns` section describing the response structure so that
-developers reviewing the code can understand the tool's output contract at a glance. As with all
-Returns sections, describe the semantic content without restating the return type, because the type
-annotation already conveys it. For tools returning structured responses, name the keys in prose and
-describe what each conveys.
+MCP tools serve dual purposes: documenting for developers and providing instructions to AI agents. MCP tool docstrings
+MUST include a `Returns` section describing the response structure so that developers reviewing the code can understand
+the tool's output contract at a glance. As with all Returns sections, describe the semantic content without restating
+the return type, because the type annotation already conveys it. For tools returning structured responses, name the keys
+in prose and describe what each conveys.
 
 ```python
 @mcp.tool()
@@ -395,11 +379,10 @@ def start_video_session(
 
 ### Sphinx cross-reference specifiers
 
-Sphinx specifiers (`:class:`, `:func:`, `:meth:`, `:data:`, `:attr:`) are **allowed only inside
-MCP tool docstrings**, where AI agents consume them as structured cross-references. Every other
-form of documentation uses plain prose, which covers module docstrings, class docstrings, non-MCP
-function and method docstrings, constant and attribute docstrings, and inline comments. Refer to
-classes, functions, and methods by name in double backticks without a specifier prefix.
+Sphinx specifiers (`:class:`, `:func:`, `:meth:`, `:data:`, `:attr:`) are **allowed only inside MCP tool docstrings**,
+where AI agents consume them as structured cross-references. Every other form of documentation uses plain prose, which
+covers module docstrings, class docstrings, non-MCP function and method docstrings, constant and attribute docstrings,
+and inline comments. Refer to classes, functions, and methods by name in double backticks without a specifier prefix.
 
 ```python
 # Good — MCP tool docstring (specifiers allowed)
@@ -459,8 +442,8 @@ limit = (1.0 / 2.046392675) * self._grid_sampling * factor
 - Don't add docstrings/comments to code you didn't write or modify
 - Don't add type annotations as comments (use actual type hints)
 - Don't use heavy section separator blocks (e.g., `# ======` or `# ------`)
-- Don't use IDE-specific suppression comments (e.g., PyCharm `# noinspection ...`). Remove any you encounter. Only
-  ruff (`# noqa: CODE`) and mypy (`# type: ignore[code]`) suppressions are authoritative and must be preserved
+- Don't use IDE-specific suppression comments (e.g., PyCharm `# noinspection ...`). Remove any you encounter. Only ruff
+  (`# noqa: CODE`) and mypy (`# type: ignore[code]`) suppressions are authoritative and must be preserved
 
 ---
 
@@ -491,10 +474,9 @@ def process(data: NDArray[np.float32]) -> NDArray[np.float32]:
 - Always specify dtype explicitly: `NDArray[np.float32]`, `NDArray[np.uint16]`, `NDArray[np.bool_]`
 - Never use unparameterized `NDArray`
 - Use `TYPE_CHECKING` block for `NDArray` to avoid runtime import overhead
-- Add `from __future__ import annotations` at the top of the file so that all annotations are
-  evaluated lazily as strings. This is preferred over bare `TYPE_CHECKING` guards because it
-  avoids `NameError` at runtime when an annotation references a name that is only available
-  during type checking
+- Add `from __future__ import annotations` at the top of the file so that all annotations are evaluated lazily as
+  strings. This is preferred over bare `TYPE_CHECKING` guards because it avoids `NameError` at runtime when an
+  annotation references a name that is only available during type checking
 
 ### Class attributes
 

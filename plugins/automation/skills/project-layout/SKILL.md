@@ -1,11 +1,11 @@
 ---
 name: project-layout
 description: >-
-  Applies project directory structure conventions when creating new projects, adding directories,
-  or verifying project layout. Covers the five archetypes (Python-only, Python+C++ extension, C++
-  PlatformIO library, C++ PlatformIO firmware, C# Unity), common root files, environment, test, and
-  documentation directories. Use when creating a new project, adding top-level directories,
-  restructuring a project, or when the user asks about project directory conventions.
+  Applies project directory structure conventions when creating new projects, adding directories, or verifying project
+  layout. Covers the five archetypes (Python-only, Python+C++ extension, C++ PlatformIO library, C++ PlatformIO
+  firmware, C# Unity), common root files, environment, test, and documentation directories. Use when creating a new
+  project, adding top-level directories, restructuring a project, or when the user asks about project directory
+  conventions.
 user-invocable: false
 ---
 
@@ -13,8 +13,8 @@ user-invocable: false
 
 Applies conventions for project directory structure across all five project archetypes.
 
-You MUST read this skill before creating, restructuring, or verifying any project's
-directory layout. You MUST verify your changes against the checklist before submitting.
+You MUST read this skill before creating, restructuring, or verifying any project's directory layout. You MUST verify
+your changes against the checklist before submitting.
 
 ---
 
@@ -44,8 +44,8 @@ You MUST follow these steps when this skill is invoked.
 
 ### Step 1: Identify the project archetype
 
-Classify the repository mechanically before any tree comparison, as one of the five archetypes or as
-an umbrella repository. Determine which archetype applies using this table:
+Classify the repository mechanically before any tree comparison, as one of the five archetypes or as an umbrella
+repository. Determine which archetype applies using this table:
 
 | Archetype               | Key indicators                                                       |
 |-------------------------|----------------------------------------------------------------------|
@@ -55,29 +55,26 @@ an umbrella repository. Determine which archetype applies using this table:
 | C++ PlatformIO firmware | `platformio.ini` + `src/main.cpp`, no `library.json`                 |
 | C# Unity                | `Assets/` + `ProjectSettings/` + `*.slnx`                            |
 
-A repository that carries none of these indicators, ships no installable artifact of its own, and
-instead indexes sibling libraries or distributes plugins through a marketplace is an umbrella
-repository. Umbrella repositories carry NO archetype tree, so this skill prescribes no directory
-layout for one and a layout audit records the tree as unresolvable rather than reporting the
-archetype paths it lacks. Its `README.md` still follows the umbrella order in `/readme-style`.
+A repository that carries none of these indicators, ships no installable artifact of its own, and instead indexes
+sibling libraries or distributes plugins through a marketplace is an umbrella repository. Umbrella repositories carry NO
+archetype tree, so this skill prescribes no directory layout for one and a layout audit records the tree as unresolvable
+rather than reporting the archetype paths it lacks. Its `README.md` still follows the umbrella order in `/readme-style`.
 
 ### Step 2: Load the reference tree
 
-Read [archetype-trees.md](references/archetype-trees.md) and locate the section matching the
-identified archetype. The reference tree is the authoritative source for directory structure.
+Read [archetype-trees.md](references/archetype-trees.md) and locate the section matching the identified archetype. The
+reference tree is the authoritative source for directory structure.
 
 ### Step 3: Apply conventions
 
-Create or verify the project structure against the reference tree and the rules below. When
-creating a new project, generate all required directories and files. When verifying, report any
-deviations from the expected structure. Every tracked top-level path is one the archetype tree
-sanctions, so a path the tree does not list is removed or its presence justified, with gitignored
-build artifacts out of scope.
+Create or verify the project structure against the reference tree and the rules below. When creating a new project,
+generate all required directories and files. When verifying, report any deviations from the expected structure. Every
+tracked top-level path is one the archetype tree sanctions, so a path the tree does not list is removed or its presence
+justified, with gitignored build artifacts out of scope.
 
 ### Step 4: Verify compliance
 
-Complete the verification checklist at the end of this file. Every item must pass before
-submitting work.
+Complete the verification checklist at the end of this file. Every item must pass before submitting work.
 
 ---
 
@@ -95,16 +92,16 @@ These files appear at the root of all (or most) projects:
 | `.netlify-site` | Projects with docs | Netlify site identifier used by the `deploy` task             |
 | `.codegraph/`   | Optional           | CodeGraph index, present when the repository has been indexed |
 
-The `.netlify-site` file stores the identifier of the Netlify site that serves the project's API
-documentation. The identifier is not a secret and differs for each project, so the file is tracked
-by version control. See `/tox-config` for where the `deploy` and `upload` API tokens live.
+The `.netlify-site` file stores the identifier of the Netlify site that serves the project's API documentation. The
+identifier is not a secret and differs for each project, so the file is tracked by version control. See `/tox-config`
+for where the `deploy` and `upload` API tokens live.
 
-The file and the `deploy` tox environment are one unit, because that environment reads the identifier
-from it. A project carries both or neither, and a project that builds documentation without hosting
-it keeps its `docs` environment and drops both. See `/tox-config` for the environment.
+The file and the `deploy` tox environment are one unit, because that environment reads the identifier from it. A project
+carries both or neither, and a project that builds documentation without hosting it keeps its `docs` environment and
+drops both. See `/tox-config` for the environment.
 
-The `.codegraph/` directory holds a generated code index. It is present only in repositories that
-have been indexed, and its contents are ignored by version control.
+The `.codegraph/` directory holds a generated code index. It is present only in repositories that have been indexed, and
+its contents are ignored by version control.
 
 ### Python-specific root files
 
@@ -139,8 +136,8 @@ have been indexed, and its contents are ignored by version control.
 
 ## Environment directories
 
-Python projects (Python-only and Python+C++ extension) include an `envs/` directory with
-OS-specific conda/mamba environment files:
+Python projects (Python-only and Python+C++ extension) include an `envs/` directory with OS-specific conda/mamba
+environment files:
 
 ```text
 envs/
@@ -149,13 +146,13 @@ envs/
 └── {abbr}_dev_win.yml            # Windows conda environment specification
 ```
 
-The `{abbr}` placeholder is a short project abbreviation (e.g., `axa` for ataraxis-automation,
-`axbu` for ataraxis-base-utilities). Each platform has one `.yml` file, which is the human-readable
-conda environment specification used by `mamba env create`. The `export` tox task writes these
-files, and the `import` task recreates the environment from them.
+The `{abbr}` placeholder is a short project abbreviation (e.g., `axa` for ataraxis-automation, `axbu` for
+ataraxis-base-utilities). Each platform has one `.yml` file, which is the human-readable conda environment specification
+used by `mamba env create`. The `export` tox task writes these files, and the `import` task recreates the environment
+from them.
 
-`envs/` holds one `.yml` file per platform and nothing else, because the `export` task produces the
-`.yml` file alone, so remove any `_spec.txt` file found there.
+`envs/` holds one `.yml` file per platform and nothing else, because the `export` task produces the `.yml` file alone,
+so remove any `_spec.txt` file found there.
 
 PlatformIO and Unity projects do NOT have `envs/` directories.
 
@@ -195,8 +192,8 @@ test/
 
 ## Documentation directory
 
-All Python and C++ projects include a `docs/` directory for Sphinx documentation. For the
-complete internal structure, Sphinx configuration, and RST templates, invoke `/api-docs`.
+All Python and C++ projects include a `docs/` directory for Sphinx documentation. For the complete internal structure,
+Sphinx configuration, and RST templates, invoke `/api-docs`.
 
 C# Unity projects do NOT have a `docs/` directory.
 
@@ -204,8 +201,8 @@ C# Unity projects do NOT have a `docs/` directory.
 
 ## `.github/` directory
 
-Every project published to GitHub as a standalone repository includes a `.github/` directory that
-holds the shared issue template corpus. All five archetypes use the same corpus:
+Every project published to GitHub as a standalone repository includes a `.github/` directory that holds the shared issue
+template corpus. All five archetypes use the same corpus:
 
 ```text
 .github/
@@ -215,40 +212,36 @@ holds the shared issue template corpus. All five archetypes use the same corpus:
     └── feature_request.yml       # Structured feature request form
 ```
 
-The corpus uses GitHub issue forms, which validate required fields at submission time and apply
-the `bug` and `enhancement` labels that GitHub creates in every repository. Copy all three files
-from [assets/github/](assets/github/) when creating or updating a repository.
+The corpus uses GitHub issue forms, which validate required fields at submission time and apply the `bug` and
+`enhancement` labels that GitHub creates in every repository. Copy all three files from [assets/github/](assets/github/)
+when creating or updating a repository.
 
 ### Corpus substitution rules
 
-`bug_report.yml` and `feature_request.yml` are identical in every repository. Copy both files
-verbatim, which keeps the corpus consistent as it spreads across repositories. The bug report form
-asks for the environment as free text, so one form serves Python, PlatformIO, and Unity projects
-alike.
+`bug_report.yml` and `feature_request.yml` are identical in every repository. Copy both files verbatim, which keeps the
+corpus consistent as it spreads across repositories. The bug report form asks for the environment as free text, so one
+form serves Python, PlatformIO, and Unity projects alike.
 
-The example values inside the form placeholders are illustrative. They show the shape of a useful
-answer rather than the state of any one project, so the version, environment, and reproduction
-examples stay as the asset spells them.
+The example values inside the form placeholders are illustrative. They show the shape of a useful answer rather than the
+state of any one project, so the version, environment, and reproduction examples stay as the asset spells them.
 
-`config.yml` carries a single substitution. Replace the `{project}` placeholder in the API
-documentation link with the repository name, which produces the Netlify address that serves the
-project's API documentation:
+`config.yml` carries a single substitution. Replace the `{project}` placeholder in the API documentation link with the
+repository name, which produces the Netlify address that serves the project's API documentation:
 
 ```yaml
 url: https://{project}-api-docs.netlify.app/    # https://ataraxis-automation-api-docs.netlify.app/
 ```
 
-Projects that build API documentation keep both contact links. Projects that ship without API
-documentation keep the AI development assets link alone, which avoids publishing an address that
-resolves to nothing.
+Projects that build API documentation keep both contact links. Projects that ship without API documentation keep the AI
+development assets link alone, which avoids publishing an address that resolves to nothing.
 
-The `blank_issues_enabled: false` setting routes every reported issue through one of the two forms.
-The contact links carry the traffic that suits neither form, sending usage questions to the API
-documentation and skill defects to the ataraxis repository that hosts the plugin marketplace.
+The `blank_issues_enabled: false` setting routes every reported issue through one of the two forms. The contact links
+carry the traffic that suits neither form, sending usage questions to the API documentation and skill defects to the
+ataraxis repository that hosts the plugin marketplace.
 
-`config.yml` carries only its two sanctioned edits, the `{project}` substitution and the removal of
-the API documentation contact link, with `blank_issues_enabled: false` and the remaining contact link
-left as the asset spells them.
+`config.yml` carries only its two sanctioned edits, the `{project}` substitution and the removal of the API
+documentation contact link, with `blank_issues_enabled: false` and the remaining contact link left as the asset spells
+them.
 
 ---
 
@@ -278,9 +271,8 @@ src/
 └── py.typed
 ```
 
-`.pyi` stub files and the `py.typed` marker are generated artifacts whose presence is
-release-phase-dependent, so a missing `.pyi` is not a layout violation. See `/python-style` for the
-stub-file rule.
+`.pyi` stub files and the `py.typed` marker are generated artifacts whose presence is release-phase-dependent, so a
+missing `.pyi` is not a layout violation. See `/python-style` for the stub-file rule.
 
 ### PlatformIO library (header-only `src/`)
 

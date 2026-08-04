@@ -1,23 +1,22 @@
 ---
 name: platformio-config
 description: >-
-  Applies platformio.ini and library.json conventions when creating or modifying PlatformIO C++
-  project and library configuration files. Covers per-board environments, build flags, pinned
-  lib_deps, library.json metadata, the lib_deps<->dependencies mirroring rule, the main.cpp export
-  exclusion, and library.json as the single source of the C++ library version. Use when creating or
-  modifying these files, adding a board or dependency, or when asked about PlatformIO conventions.
+  Applies platformio.ini and library.json conventions when creating or modifying PlatformIO C++ project and library
+  configuration files. Covers per-board environments, build flags, pinned lib_deps, library.json metadata, the
+  lib_deps<->dependencies mirroring rule, the main.cpp export exclusion, and library.json as the single source of the
+  C++ library version. Use when creating or modifying these files, adding a board or dependency, or when asked about
+  PlatformIO conventions.
 user-invocable: false
 ---
 
 # PlatformIO configuration style guide
 
-Applies conventions for the PlatformIO configuration files a C++ microcontroller project ships:
-`platformio.ini` (local build, test, and upload configuration) and, for a library, `library.json`
-(the published PlatformIO registry manifest). This is the C++ PlatformIO analogue of
-`/pyproject-style` and `/tox-config`.
+Applies conventions for the PlatformIO configuration files a C++ microcontroller project ships: `platformio.ini` (local
+build, test, and upload configuration) and, for a library, `library.json` (the published PlatformIO registry manifest).
+This is the C++ PlatformIO analogue of `/pyproject-style` and `/tox-config`.
 
-You MUST read this skill and load the reference templates before creating or modifying either file.
-You MUST verify your changes against the checklist before submitting.
+You MUST read this skill and load the reference templates before creating or modifying either file. You MUST verify your
+changes against the checklist before submitting.
 
 ---
 
@@ -48,13 +47,13 @@ Read this entire file. The conventions below apply to ALL ataraxis PlatformIO li
 
 ### Step 2: Load the reference templates
 
-Load [config-templates.md](references/config-templates.md) for the full annotated `platformio.ini`
-and `library.json` examples when creating either file from scratch or adding a board/dependency.
+Load [config-templates.md](references/config-templates.md) for the full annotated `platformio.ini` and `library.json`
+examples when creating either file from scratch or adding a board/dependency.
 
 ### Step 3: Apply conventions
 
-Write or modify the file following all conventions from this file and the loaded template. When
-adding or changing a dependency, apply the mirroring rule (below) to BOTH files in the same change.
+Write or modify the file following all conventions from this file and the loaded template. When adding or changing a
+dependency, apply the mirroring rule (below) to BOTH files in the same change.
 
 ### Step 4: Verify compliance
 
@@ -64,14 +63,13 @@ Complete the verification checklist at the end of this file. Every item must pas
 
 ## platformio.ini conventions
 
-`platformio.ini` declares one build environment per supported board. It governs local builds, unit
-tests, and uploads. It carries no version field, because the library version lives only in
-`library.json`.
+`platformio.ini` declares one build environment per supported board. It governs local builds, unit tests, and uploads.
+It carries no version field, because the library version lives only in `library.json`.
 
 ### Environment sections
 
-Declare one `[env:<board>]` section per supported board, named for the board (`teensy41`, `due`,
-`mega`). Each section uses this field set:
+Declare one `[env:<board>]` section per supported board, named for the board (`teensy41`, `due`, `mega`). Each section
+uses this field set:
 
 | Field             | Convention                                                                       |
 |-------------------|----------------------------------------------------------------------------------|
@@ -85,14 +83,13 @@ Declare one `[env:<board>]` section per supported board, named for the board (`t
 | `build_flags`     | `-std=c++17` (the project C++ standard)                                          |
 | `lib_deps`        | Pinned third-party and ataraxis dependencies (see below)                         |
 
-Every `[env:<board>]` section sets `platform`, `board`, `framework`, `monitor_speed`,
-`test_framework`, and `build_flags`. `upload_protocol`, `build_unflags`, and `lib_deps` appear only
-on the boards that need them, so a board with no dependencies omits `lib_deps` entirely.
-`build_unflags = -std=gnu++11` is required only where the board's default toolchain would otherwise
-override `build_flags` (the AVR `mega` and SAM `due` cores). Teensy needs no unflag. Sections appear
-in the order of the board table below (`teensy41`, `due`, `mega`), and the keys inside a section
-follow the field-table order above. `build_unflags` comes before `build_flags`, because the unflag is
-what lets the flag take effect.
+Every `[env:<board>]` section sets `platform`, `board`, `framework`, `monitor_speed`, `test_framework`, and
+`build_flags`. `upload_protocol`, `build_unflags`, and `lib_deps` appear only on the boards that need them, so a board
+with no dependencies omits `lib_deps` entirely. `build_unflags = -std=gnu++11` is required only where the board's
+default toolchain would otherwise override `build_flags` (the AVR `mega` and SAM `due` cores). Teensy needs no unflag.
+Sections appear in the order of the board table below (`teensy41`, `due`, `mega`), and the keys inside a section follow
+the field-table order above. `build_unflags` comes before `build_flags`, because the unflag is what lets the flag take
+effect.
 
 ### Board / platform mapping
 
@@ -104,19 +101,18 @@ what lets the flag take effect.
 
 ### lib_deps pinning
 
-List each dependency as `registry_owner/name@^MAJOR.MINOR.PATCH`. The registry owner is the
-lowercase PlatformIO registry account, NOT the GitHub org, so ataraxis libraries are published under
-`inkaros` (e.g. `inkaros/ataraxis-transport-layer-mc@^3.0.1`). Third-party deps use their own owners
-(`arminjo/digitalWriteFast@^1.3.1`, `pfeerick/elapsedMillis@^1.0.6`). Use the caret (`^`) range so
-patch/minor updates are accepted. List a dependency only under the boards that need it.
+List each dependency as `registry_owner/name@^MAJOR.MINOR.PATCH`. The registry owner is the lowercase PlatformIO
+registry account, NOT the GitHub org, so ataraxis libraries are published under `inkaros` (e.g.
+`inkaros/ataraxis-transport-layer-mc@^3.0.1`). Third-party deps use their own owners (`arminjo/digitalWriteFast@^1.3.1`,
+`pfeerick/elapsedMillis@^1.0.6`). Use the caret (`^`) range so patch/minor updates are accepted. List a dependency only
+under the boards that need it.
 
 ---
 
 ## library.json conventions
 
-`library.json` is the PlatformIO registry manifest, the file consumers receive when they add the
-library via `lib_deps`. Pin `$schema` to the official PlatformIO schema URL and order fields as in
-the template.
+`library.json` is the PlatformIO registry manifest, the file consumers receive when they add the library via `lib_deps`.
+Pin `$schema` to the official PlatformIO schema URL and order fields as in the template.
 
 | Field          | Convention                                                                                                   |
 |----------------|--------------------------------------------------------------------------------------------------------------|
@@ -136,73 +132,68 @@ the template.
 | `export`       | `include` (`./examples/*`, `./src/*`) and `exclude` (`./src/main.cpp`)                                       |
 | `build`        | `{ "flags": "-std=c++17" }`, mirroring `platformio.ini` `build_flags`                                        |
 
-`$schema`, `name`, `version`, `description`, `repository`, `authors`, `license`, `frameworks`,
-`platforms`, `headers`, `export`, and `build` are required in every manifest. `keywords` is included
-for registry discovery, `homepage` when hosted API documentation exists, and `dependencies` exactly
-when some `[env]` section carries `lib_deps`. The `description` opens with a bare third-person
-imperative verb and repeats the README one-line description and the GitHub repository description
-verbatim, with no library-name prefix and no "This library..." opener.
+`$schema`, `name`, `version`, `description`, `repository`, `authors`, `license`, `frameworks`, `platforms`, `headers`,
+`export`, and `build` are required in every manifest. `keywords` is included for registry discovery, `homepage` when
+hosted API documentation exists, and `dependencies` exactly when some `[env]` section carries `lib_deps`. The
+`description` opens with a bare third-person imperative verb and repeats the README one-line description and the GitHub
+repository description verbatim, with no library-name prefix and no "This library..." opener.
 
 ### headers
 
-`headers` lists only the PUBLIC headers a consumer includes (e.g. `["kernel.h", "communication.h",
-"module.h", "axmc_shared_assets.h"]`), not every file under `src/`. Use a bare string when the
-library exposes a single header (`"transport_layer.h"`).
+`headers` lists only the PUBLIC headers a consumer includes (e.g. `["kernel.h", "communication.h", "module.h",
+"axmc_shared_assets.h"]`), not every file under `src/`. Use a bare string when the library exposes a single header
+(`"transport_layer.h"`).
 
 ### export and the main.cpp exclusion
 
-`export.include` ships `./examples/*` and `./src/*`, and `export.exclude` MUST list `./src/main.cpp`.
-`src/main.cpp` is the local build/test harness (see `microcontroller:firmware-module`) and must never
-be shipped to consumers, even though it lives under `src/`.
+`export.include` ships `./examples/*` and `./src/*`, and `export.exclude` MUST list `./src/main.cpp`. `src/main.cpp` is
+the local build/test harness (see `microcontroller:firmware-module`) and must never be shipped to consumers, even though
+it lives under `src/`.
 
 ### Comment restraint
 
-A `platformio.ini` key states its own name and value, so a comment beside it is justified only by a
-question the key leaves open. Such a question is the reason a dependency is pinned to an exact
-version, the hardware constraint behind a build flag, or a coupling to `library.json` that a reader
-would otherwise break. Do not comment a key by restating it. The `description` field stays at the
-single sentence its row above prescribes, matching the README and repository description rather than
-expanding on them. Comments describe the configuration as it currently stands, never the edit that
-produced it. A comment's claim must be true of the key and value it sits beside and of the effect
-the tool actually produces, so a value change rewrites or deletes its comment in the same edit.
-Comments must not carry stale references to closed issues, removed keys, sections, environments,
-boards, or dependencies, superseded tool versions, or outdated TODOs, and a comment whose referent
-is removed is removed or rewritten with it. Align inline comments vertically within a section, so a
-run of commented settings shares one comment column.
+A `platformio.ini` key states its own name and value, so a comment beside it is justified only by a question the key
+leaves open. Such a question is the reason a dependency is pinned to an exact version, the hardware constraint behind a
+build flag, or a coupling to `library.json` that a reader would otherwise break. Do not comment a key by restating it.
+The `description` field stays at the single sentence its row above prescribes, matching the README and repository
+description rather than expanding on them. Comments describe the configuration as it currently stands, never the edit
+that produced it. A comment's claim must be true of the key and value it sits beside and of the effect the tool actually
+produces, so a value change rewrites or deletes its comment in the same edit. Comments must not carry stale references
+to closed issues, removed keys, sections, environments, boards, or dependencies, superseded tool versions, or outdated
+TODOs, and a comment whose referent is removed is removed or rewritten with it. Align inline comments vertically within
+a section, so a run of commented settings shares one comment column.
 
 ### Line width
 
-Every line in `platformio.ini` and `library.json` stays within the 120 character limit the project
-sets for its Python code, and a single unbreakable value such as a URL, a requirement string, or the
-`$schema` URL is exempt.
+Every line in `platformio.ini` and `library.json` stays within the 120 character limit the project sets for its Python
+code, and a single unbreakable value such as a URL, a requirement string, or the `$schema` URL is exempt.
 
 Break a comment line only where it would otherwise pass 120 characters, and fill each line to that limit before
-breaking. Comment prose wrapped at a narrower width reads as a rigid block and advertises a limit the file does not
-set. The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120
-is re-flowed. A line ending early because the sentence or the comment block ends is already correct.
+breaking. Comment prose wrapped at a narrower width reads as a rigid block and advertises a limit the file does not set.
+The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120 is
+re-flowed. A line ending early because the sentence or the comment block ends is already correct.
 
 ### Prose punctuation and positive description
 
-The `description` field and any configuration comments follow the project prose rules. Prose uses
-only the full stop and the comma to separate clauses. Do not use a semicolon or an em-dash (`--`,
-`—`, or `–`) as a separator, and use a colon only where it is lexically appropriate. A single hyphen
-stays available as a list marker, in tables, and in compound words. State what the subject does and
-what is currently true. Do not frame it by what it is not or what it used to be, and keep a
-"not Y" contrast only when it is load-bearing because it corrects a counter-intuitive assumption,
-giving its reason. Sentences over 40 words must be broken into smaller sentences at natural clause
-boundaries, because a long sentence in a comment or a `description` field signals over-explanation.
-Every comment body and `description` field is free of typos and grammatical errors.
+The `description` field and any configuration comments follow the project prose rules. Prose uses only the full stop and
+the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`, or `–`) as a separator, and use a colon
+only where it is lexically appropriate. A single hyphen stays available as a list marker, in tables, and in compound
+words. State what the subject does and what is currently true. Do not frame it by what it is not or what it used to be,
+and keep a "not Y" contrast only when it is load-bearing because it corrects a counter-intuitive assumption, giving its
+reason. Sentences over 40 words must be broken into smaller sentences at natural clause boundaries, because a long
+sentence in a comment or a `description` field signals over-explanation. Every comment body and `description` field is
+free of typos and grammatical errors.
 
 ---
 
 ## The lib_deps <-> dependencies mirroring rule
 
-`platformio.ini` `lib_deps` (used for local builds/tests) and `library.json` `dependencies` (shipped
-to consumers) MUST describe the same dependency set with the same owner, name, and version. Whenever
-you add, remove, or re-pin a dependency, update BOTH files in the same change.
+`platformio.ini` `lib_deps` (used for local builds/tests) and `library.json` `dependencies` (shipped to consumers) MUST
+describe the same dependency set with the same owner, name, and version. Whenever you add, remove, or re-pin a
+dependency, update BOTH files in the same change.
 
-Scope each `library.json` dependency to the boards that need it with a `platforms` array that matches
-which `[env]` sections list it in `lib_deps`:
+Scope each `library.json` dependency to the boards that need it with a `platforms` array that matches which `[env]`
+sections list it in `lib_deps`:
 
 - A dependency in every board's `lib_deps` -> `"platforms": ["atmelsam", "atmelavr", "teensy"]`.
 - A dependency only in the `due`/`mega` `lib_deps` -> `"platforms": ["atmelsam", "atmelavr"]`.
@@ -215,16 +206,16 @@ which `[env]` sections list it in `lib_deps`:
 
 ## Versioning
 
-`library.json` `version` is the SINGLE source of truth for the C++ library version. Releases are cut
-from it, and there is no Python-style single-sourcing helper. `platformio.ini` carries no version
-field. When releasing, bump `library.json` `version` (see `/release`).
+`library.json` `version` is the SINGLE source of truth for the C++ library version. Releases are cut from it, and there
+is no Python-style single-sourcing helper. `platformio.ini` carries no version field. When releasing, bump
+`library.json` `version` (see `/release`).
 
 ---
 
 ## pio command reference
 
-These are the PlatformIO development-automation commands (agent-runnable, the C++ analogue of
-`tox` envs). The PR gate for a PlatformIO library is `tox` (docs) plus `pio check` and `pio test`.
+These are the PlatformIO development-automation commands (agent-runnable, the C++ analogue of `tox` envs). The PR gate
+for a PlatformIO library is `tox` (docs) plus `pio check` and `pio test`.
 
 | Command                | Purpose                                                       |
 |------------------------|---------------------------------------------------------------|
@@ -262,8 +253,8 @@ You should proactively offer to invoke this skill when:
 
 ## Verification checklist
 
-**You MUST verify your edits against this checklist before submitting any changes to platformio.ini
-or library.json files.**
+**You MUST verify your edits against this checklist before submitting any changes to platformio.ini or library.json
+files.**
 
 ```text
 PlatformIO Configuration Compliance:

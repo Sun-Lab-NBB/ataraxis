@@ -1,9 +1,8 @@
 # Environment templates
 
-Complete tox.ini environment templates for each project archetype. All templates use
-`dependency_groups = dev`, which tox 4.22+ supports natively. Projects that declare their dev tools
-under `[project.optional-dependencies]` read them with `extras = dev` instead, as described in the
-dependency installation patterns of [the skill](../SKILL.md).
+Complete tox.ini environment templates for each project archetype. All templates use `dependency_groups = dev`, which
+tox 4.22+ supports natively. Projects that declare their dev tools under `[project.optional-dependencies]` read them
+with `extras = dev` instead, as described in the dependency installation patterns of [the skill](../SKILL.md).
 
 ---
 
@@ -13,9 +12,9 @@ Projects use three tools together.
 
 ### mamba (environment lifecycle)
 
-Mamba creates and manages persistent conda environments that serve as the development workspace.
-Each project has one named environment per OS (e.g., `axbu_dev_lin`, `axbu_dev_osx`,
-`axbu_dev_win`). Mamba commands are issued through `automation-cli` and handle:
+Mamba creates and manages persistent conda environments that serve as the development workspace. Each project has one
+named environment per OS (e.g., `axbu_dev_lin`, `axbu_dev_osx`, `axbu_dev_win`). Mamba commands are issued through
+`automation-cli` and handle:
 - Creating bare environments with Python + uv + tox + tox-uv
 - Removing, exporting, and importing environments
 - The `--use-uv` flag is passed to mamba for uv-accelerated operations
@@ -23,28 +22,27 @@ Each project has one named environment per OS (e.g., `axbu_dev_lin`, `axbu_dev_o
 ### uv (package installation)
 
 uv replaces pip for all package installation operations. It is used in two contexts:
-- **Inside mamba environments**: `automation-cli` calls `uv pip install` to install all project
-  dependencies (runtime + dev) from `pyproject.toml` into the mamba environment.
-- **Inside tox environments**: The `tox-uv` plugin makes tox use uv as its backend for creating
-  isolated test environments, replacing pip with uv for speed.
+- **Inside mamba environments**: `automation-cli` calls `uv pip install` to install all project dependencies (runtime +
+  dev) from `pyproject.toml` into the mamba environment.
+- **Inside tox environments**: The `tox-uv` plugin makes tox use uv as its backend for creating isolated test
+  environments, replacing pip with uv for speed.
 
 ### tox (task orchestration)
 
-Tox orchestrates the development pipeline. Each tox environment is an **isolated virtual
-environment** separate from the mamba environment. Running `tox` (no arguments) executes the
-full `envlist` pipeline. Running `tox -e <name>` executes a single environment.
+Tox orchestrates the development pipeline. Each tox environment is an **isolated virtual environment** separate from the
+mamba environment. Running `tox` (no arguments) executes the full `envlist` pipeline. Running `tox -e <name>` executes a
+single environment.
 
-**Critical distinction:** Tox environments (lint, test, docs, etc.) are ephemeral and isolated,
-while the mamba environment is persistent. The `automation-cli` commands bridge the two worlds, so
-tox environments like `create`, `install`, and `export` call `automation-cli` to manipulate the
-persistent mamba environment.
+**Critical distinction:** Tox environments (lint, test, docs, etc.) are ephemeral and isolated, while the mamba
+environment is persistent. The `automation-cli` commands bridge the two worlds, so tox environments like `create`,
+`install`, and `export` call `automation-cli` to manipulate the persistent mamba environment.
 
 ---
 
 ## Full Python pipeline
 
-Canonical template for Python-only and Python + C++ extension projects. The ataraxis-automation
-project itself is the root source of truth for this pipeline.
+Canonical template for Python-only and Python + C++ extension projects. The ataraxis-automation project itself is the
+root source of truth for this pipeline.
 
 ### `[tox]` section
 
@@ -70,8 +68,8 @@ envlist =
 
 ### `[testenv]` base section (optional)
 
-Use this section when any environment needs prerelease packages. When present, it applies to all
-environments that do not override `setenv`.
+Use this section when any environment needs prerelease packages. When present, it applies to all environments that do
+not override `setenv`.
 
 ```ini
 # Allows installing prerelease packages.
@@ -80,10 +78,9 @@ setenv =
     UV_PRERELEASE = allow
 ```
 
-tox does not merge `setenv`. An env that defines its own `setenv` block, as test and coverage both do
-for `COVERAGE_FILE`, fully replaces the inherited base `setenv` rather than extending it. So a project
-that needs prereleases during testing re-declares `UV_PRERELEASE = allow` inside the test env `setenv`
-alongside `COVERAGE_FILE`.
+tox does not merge `setenv`. An env that defines its own `setenv` block, as test and coverage both do for
+`COVERAGE_FILE`, fully replaces the inherited base `setenv` rather than extending it. So a project that needs
+prereleases during testing re-declares `UV_PRERELEASE = allow` inside the test env `setenv` alongside `COVERAGE_FILE`.
 
 ### lint environment
 
@@ -107,41 +104,38 @@ commands =
 
 **Parameterization:**
 - `basepython`: Set to the earliest Python version in the supported range.
-- `dependency_groups`: Always `dev`. Installs the project's dev dependency group (tox, uv,
-  tox-uv, and type stubs).
-- `ruff check` paths: `./src ./tests` for a project that has a `tests/` directory, which is every
-  archetype except Reduced Python. A project without a test directory passes `./src` alone. Ruff
-  reports `E902 No such file or directory` and exits non-zero when a path on its command line does
-  not exist, so a blanket `./tests` breaks the lint task of a project that has no tests.
-- `ruff format` takes no path and formats the whole tree from the project root, which is what keeps
-  test files formatted in every archetype including the ones whose `ruff check` is scoped to `./src`.
-  Adding a path here narrows formatting to that path, so leave the command bare.
+- `dependency_groups`: Always `dev`. Installs the project's dev dependency group (tox, uv, tox-uv, and type stubs).
+- `ruff check` paths: `./src ./tests` for a project that has a `tests/` directory, which is every archetype except
+  Reduced Python. A project without a test directory passes `./src` alone. Ruff reports `E902 No such file or directory`
+  and exits non-zero when a path on its command line does not exist, so a blanket `./tests` breaks the lint task of a
+  project that has no tests.
+- `ruff format` takes no path and formats the whole tree from the project root, which is what keeps test files formatted
+  in every archetype including the ones whose `ruff check` is scoped to `./src`. Adding a path here narrows formatting
+  to that path, so leave the command bare.
 
-**Linting scope.** Passing `./tests` to `ruff check` is what activates the `tests/**/*.py`
-per-file-ignores key. A lint task that checks `./src` alone leaves the key inert, so the test
-directory goes unlinted while the project's configuration claims otherwise. See `/pyproject-style`
-for that key and the shared test corpus it carries.
+**Linting scope.** Passing `./tests` to `ruff check` is what activates the `tests/**/*.py` per-file-ignores key. A lint
+task that checks `./src` alone leaves the key inert, so the test directory goes unlinted while the project's
+configuration claims otherwise. See `/pyproject-style` for that key and the shared test corpus it carries.
 
-`mypy` stays on `./src` in every archetype, because the test directory is already a member of the
-`[tool.mypy]` exclude list. See `/pyproject-style` for that list.
+`mypy` stays on `./src` in every archetype, because the test directory is already a member of the `[tool.mypy]` exclude
+list. See `/pyproject-style` for that list.
 
-**Self-hosting exception (ataraxis-automation only):** Since ataraxis-automation IS the automation
-provider, its lint environment does not need `deps = ataraxis-automation==X.Y.Z`. It uses
-`dependency_groups = dev` (or `extras = dev` in legacy form) to get its own dev dependencies.
+**Self-hosting exception (ataraxis-automation only):** Since ataraxis-automation IS the automation provider, its lint
+environment does not need `deps = ataraxis-automation==X.Y.Z`. It uses `dependency_groups = dev` (or `extras = dev` in
+legacy form) to get its own dev dependencies.
 
 #### mypy parallelism (large projects only)
 
-`mypy ./src` runs single-threaded, which is correct for every ataraxis library and application
-project, since their binary and SQLite incremental caches (on by default since mypy 2.0) already make
-re-runs effectively free. You MUST NOT add parallelism to a project's lint command by default.
+`mypy ./src` runs single-threaded, which is correct for every ataraxis library and application project, since their
+binary and SQLite incremental caches (on by default since mypy 2.0) already make re-runs effectively free. You MUST NOT
+add parallelism to a project's lint command by default.
 
-mypy 2.x adds experimental parallel type checking through `-n N` or `--num-workers N`, the
-`num_workers` config-file key, and the `MYPY_NUM_WORKERS` environment override. Add it only to a
-project whose cold `mypy ./src` takes more than a few seconds, and only after `time mypy ./src` with
-and without `-n` on a cleared `.mypy_cache` shows a measured win. Set `N` to the CI runner's physical
-core count. Parallel mode implicitly enables `--native-parser`, may produce minor semantic
-differences from serial mode, and slows warm incremental runs through worker-startup overhead, so it
-pays off on fresh CI checkouts alone.
+mypy 2.x adds experimental parallel type checking through `-n N` or `--num-workers N`, the `num_workers` config-file
+key, and the `MYPY_NUM_WORKERS` environment override. Add it only to a project whose cold `mypy ./src` takes more than a
+few seconds, and only after `time mypy ./src` with and without `-n` on a cleared `.mypy_cache` shows a measured win. Set
+`N` to the CI runner's physical core count. Parallel mode implicitly enables `--native-parser`, may produce minor
+semantic differences from serial mode, and slows warm incremental runs through worker-startup overhead, so it pays off
+on fresh CI checkouts alone.
 
 ### stubs environment
 
@@ -162,10 +156,9 @@ commands =
 **Parameterization:**
 - `{package_name}`: The underscore-separated Python package name (e.g., `ataraxis_base_utilities`)
 
-This pass stays on `./src` in every archetype. It sorts the imports of the `.pyi` files that
-`automation-cli process-stubs` writes into the source tree, and stub generation writes nothing under
-`./tests`. The lint environment already sorts the test directory's imports as part of its full
-check.
+This pass stays on `./src` in every archetype. It sorts the imports of the `.pyi` files that `automation-cli
+process-stubs` writes into the source tree, and stub generation writes nothing under `./tests`. The lint environment
+already sorts the test directory's imports as part of its full check.
 
 ### test environment
 
@@ -187,14 +180,12 @@ commands =
 ```
 
 **Parameterization:**
-- Python version matrix `{py312, py313, py314}`: Must match the `requires-python` range in
-  `pyproject.toml`. Core libraries (`ataraxis-*`) test 3 versions, and applications may
-  test fewer.
+- Python version matrix `{py312, py313, py314}`: Must match the `requires-python` range in `pyproject.toml`. Core
+  libraries (`ataraxis-*`) test 3 versions, and applications may test fewer.
 - `{package_name}` in `--cov`: The underscore-separated package name.
 - `package = wheel`: Forces the project to be built as a wheel before testing.
-- `--import-mode=importlib`: Matches the `addopts` declaration in `pyproject.toml`, so a bare
-  `pytest` invocation resolves test modules the same way this task does. See `/pyproject-style` for
-  that declaration.
+- `--import-mode=importlib`: Matches the `addopts` declaration in `pyproject.toml`, so a bare `pytest` invocation
+  resolves test modules the same way this task does. See `/pyproject-style` for that declaration.
 
 ### coverage environment
 
@@ -225,20 +216,18 @@ commands =
 - `deps = ataraxis-automation=={version}`: Pin to the exact current release version.
 - `depends`: Must list the same Python version matrix as the test environment.
 
-**Coverage gate:** The `xml` and `html` commands pass `--fail-under=0` so both artifacts are always
-written, and the trailing `coverage report` command applies the gate. See `/pyproject-style` for the
-`fail_under` setting, the `omit` list that keeps interface modules out of the measured corpus, and the
-`# pragma: no cover` marker for individual unreachable statements.
+**Coverage gate:** The `xml` and `html` commands pass `--fail-under=0` so both artifacts are always written, and the
+trailing `coverage report` command applies the gate. See `/pyproject-style` for the `fail_under` setting, the `omit`
+list that keeps interface modules out of the measured corpus, and the `# pragma: no cover` marker for individual
+unreachable statements.
 
-**Data file retention:** `coverage combine --keep` writes the combined record while retaining the
-per-version data files. Each reporting command that follows performs its own implicit combine, so
-`xml`, `html`, and `report` all carry `--keep-combined` to hand the same set of data files to the
-command after them. See `/pyproject-style` for the `[tool.coverage.paths]` mapping that merges those
-files into one record per source file. The flag requires coverage 7.15 or newer, which every project
-receives through the pinned ataraxis-automation dependency of this environment.
+**Data file retention:** `coverage combine --keep` writes the combined record while retaining the per-version data
+files. Each reporting command that follows performs its own implicit combine, so `xml`, `html`, and `report` all carry
+`--keep-combined` to hand the same set of data files to the command after them. See `/pyproject-style` for the
+`[tool.coverage.paths]` mapping that merges those files into one record per source file. The flag requires coverage 7.15
+or newer, which every project receives through the pinned ataraxis-automation dependency of this environment.
 
-**Self-hosting exception:** ataraxis-automation omits `skip_install` and `deps` since it provides
-these tools itself.
+**Self-hosting exception:** ataraxis-automation omits `skip_install` and `deps` since it provides these tools itself.
 
 ### docs environment
 
@@ -271,8 +260,8 @@ commands =
 ```
 
 **Parameterization:**
-- Add `allowlist_externals = doxygen` and the `doxygen Doxyfile` command only for projects that
-  have a `Doxyfile` at the project root.
+- Add `allowlist_externals = doxygen` and the `doxygen Doxyfile` command only for projects that have a `Doxyfile` at the
+  project root.
 - `depends = uninstall`: Ensures a clean environment state before building.
 
 ### build environment
@@ -320,8 +309,8 @@ commands =
     automation-cli upload-project
 ```
 
-The PyPI API token is stored in a `.pypirc` file inside a host-wide shared application directory
-resolved with `platformdirs`, so every project managed on the host reuses the same token.
+The PyPI API token is stored in a `.pypirc` file inside a host-wide shared application directory resolved with
+`platformdirs`, so every project managed on the host reuses the same token.
 
 ### deploy environment
 
@@ -340,19 +329,18 @@ commands =
     automation-cli deploy-docs
 ```
 
-The Netlify API token is stored in a `.netlifyrc` file inside the same shared application directory
-as the PyPI token. The site identifier differs for each project and is not a secret, so it lives in
-a `.netlify-site` file at the project root that is tracked by version control. The deployment
-uploads `docs/build/html` as a ZIP archive, and Netlify replaces the whole site with its contents.
+The Netlify API token is stored in a `.netlifyrc` file inside the same shared application directory as the PyPI token.
+The site identifier differs for each project and is not a secret, so it lives in a `.netlify-site` file at the project
+root that is tracked by version control. The deployment uploads `docs/build/html` as a ZIP archive, and Netlify replaces
+the whole site with its contents.
 
-The `deploy` environment and the `.netlify-site` file are one unit. The environment reads the
-identifier from that file, so a project carries both or neither. A `deploy` environment without the
-file fails at the point it resolves the site, and a `.netlify-site` file without the environment names
-a site nothing publishes to. A project that builds documentation without hosting it keeps `docs` and
-drops both. See `/project-layout` for the file.
+The `deploy` environment and the `.netlify-site` file are one unit. The environment reads the identifier from that file,
+so a project carries both or neither. A `deploy` environment without the file fails at the point it resolves the site,
+and a `.netlify-site` file without the environment names a site nothing publishes to. A project that builds
+documentation without hosting it keeps `docs` and drops both. See `/project-layout` for the file.
 
-Both `upload` and `deploy` are defined in the tox.ini but stay out of `envlist`, since they are
-invoked manually as part of a release.
+Both `upload` and `deploy` are defined in the tox.ini but stay out of `envlist`, since they are invoked manually as part
+of a release.
 
 ### install environment
 
@@ -376,8 +364,8 @@ commands =
 **Parameterization:**
 - `depends`: Must list the complete pipeline that should pass before final installation.
 - `{env_abbr}_dev`: The project's environment abbreviation (e.g., `axbu_dev`).
-- `{posargs:}`: Allows passing additional flags at invocation time (e.g., `--prerelease` to
-  enable prerelease package installation).
+- `{posargs:}`: Allows passing additional flags at invocation time (e.g., `--prerelease` to enable prerelease package
+  installation).
 
 ### uninstall environment
 
@@ -406,8 +394,8 @@ commands =
 
 **Parameterization:**
 - `--python-version`: Set to the latest Python version in the supported range.
-- `{posargs:}`: Allows passing additional flags at invocation time (e.g., `--prerelease` to
-  enable prerelease package installation).
+- `{posargs:}`: Allows passing additional flags at invocation time (e.g., `--prerelease` to enable prerelease package
+  installation).
 
 ### remove environment
 
@@ -463,8 +451,8 @@ commands =
 
 ## C++ docs-only pipeline
 
-Template for pure C++ PlatformIO projects (libraries and firmware). These projects have only a
-`docs` environment because they are not Python packages.
+Template for pure C++ PlatformIO projects (libraries and firmware). These projects have only a `docs` environment
+because they are not Python packages.
 
 ```ini
 # This file provides configurations for tox-based project development and management automation tasks.
@@ -498,34 +486,30 @@ commands =
 
 ## Reduced Python pipeline
 
-Some Python application projects omit test and coverage environments from their envlist,
-typically because the project is an application that integrates with hardware or external systems
-and cannot be meaningfully unit-tested in isolation.
+Some Python application projects omit test and coverage environments from their envlist, typically because the project
+is an application that integrates with hardware or external systems and cannot be meaningfully unit-tested in isolation.
 
 The tox.ini structure is identical to the full pipeline except:
 - `envlist` omits `{pyXXX}-test` and `coverage`.
-- The test and coverage environment definitions may be omitted entirely or left as unused
-  definitions for future use.
+- The test and coverage environment definitions may be omitted entirely or left as unused definitions for future use.
 - The `install` environment's `depends` list omits test and coverage dependencies.
-- The `lint` environment runs `ruff check --fix ./src`, without `./tests`. A project on this
-  pipeline has no `tests/` directory, and ruff reports `E902 No such file or directory` and exits
-  non-zero on a path that does not exist. The lint block comment drops its sentence about the test
-  directory to match, and `pyproject.toml` carries no shared test corpus (see `/pyproject-style`).
+- The `lint` environment runs `ruff check --fix ./src`, without `./tests`. A project on this pipeline has no `tests/`
+  directory, and ruff reports `E902 No such file or directory` and exits non-zero on a path that does not exist. The
+  lint block comment drops its sentence about the test directory to match, and `pyproject.toml` carries no shared test
+  corpus (see `/pyproject-style`).
 
-A project that later gains a test directory moves to the full pipeline, which means restoring the
-test and coverage environments, adding `./tests` to the lint command, and adding the shared test
-corpus to `pyproject.toml`. The three changes travel together, since the corpus does nothing until
-`ruff check` reaches the directory it covers.
+A project that later gains a test directory moves to the full pipeline, which means restoring the test and coverage
+environments, adding `./tests` to the lint command, and adding the shared test corpus to `pyproject.toml`. The three
+changes travel together, since the corpus does nothing until `ruff check` reaches the directory it covers.
 
 ---
 
 ## Description field restraint
 
-A `description` field states what the environment does when it runs. It is one sentence, two when the
-environment reads its configuration from another file. It opens with a bare third-person imperative
-verb, does not restate the environment name, does not list the commands the environment already
-declares below it, and does not explain why the task matters. See [the skill](../SKILL.md) for the
-full comment and description conventions.
+A `description` field states what the environment does when it runs. It is one sentence, two when the environment reads
+its configuration from another file. It opens with a bare third-person imperative verb, does not restate the environment
+name, does not list the commands the environment already declares below it, and does not explain why the task matters.
+See [the skill](../SKILL.md) for the full comment and description conventions.
 
 ```ini
 # Avoid - restates the name, then narrates the commands
@@ -546,9 +530,8 @@ description =
 
 ## Command reference
 
-These are the development-automation commands. Agents normally drive them via `tox -e <env>`. The
-underlying `automation-cli` commands are documented for diagnostics and for answering user
-questions.
+These are the development-automation commands. Agents normally drive them via `tox -e <env>`. The underlying
+`automation-cli` commands are documented for diagnostics and for answering user questions.
 
 ### tox environments
 
@@ -570,10 +553,10 @@ questions.
 | `export`                     | Exports the mamba environment to `envs/` as a `.yml` file                |
 | `import`                     | Creates or updates the mamba environment from the stored `.yml` file     |
 
-`tox -e lint` purges `.pyi` stubs (via `automation-cli purge-stubs`) so they do not interfere with
-mypy, and `tox -e stubs` regenerates them afterward. `ruff check` covers `./src` and `./tests`,
-which activates the `tests/**/*.py` per-file ignores, while `mypy` stays on `./src`, which its
-exclude list already matches. Reduced Python projects have no test directory and pass `./src` alone.
+`tox -e lint` purges `.pyi` stubs (via `automation-cli purge-stubs`) so they do not interfere with mypy, and `tox -e
+stubs` regenerates them afterward. `ruff check` covers `./src` and `./tests`, which activates the `tests/**/*.py`
+per-file ignores, while `mypy` stays on `./src`, which its exclude list already matches. Reduced Python projects have no
+test directory and pass `./src` alone.
 
 ### automation-cli commands
 

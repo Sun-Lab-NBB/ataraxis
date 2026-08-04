@@ -1,10 +1,10 @@
 ---
 name: release
 description: >-
-  Drafts style-compliant release notes by summarizing the pull requests merged since the previous release. Infers
-  and recommends the release type (major, minor, or patch) for the user to confirm, then produces a numbered list
-  of the most impactful changes. Includes a sibling-library compatibility statement for cross-dependent library
-  sets only. Use when preparing a release, drafting release notes, or when the user invokes /release.
+  Drafts style-compliant release notes by summarizing the pull requests merged since the previous release. Infers and
+  recommends the release type (major, minor, or patch) for the user to confirm, then produces a numbered list of the
+  most impactful changes. Includes a sibling-library compatibility statement for cross-dependent library sets only. Use
+  when preparing a release, drafting release notes, or when the user invokes /release.
 user-invocable: true
 ---
 
@@ -37,20 +37,19 @@ You MUST follow these steps exactly when this skill is invoked.
 
 Run the following git commands using the Bash tool:
 
-1. Identify the previous release tag with `git tag --sort=-v:refname` (most recent first) or
-   `git describe --tags --abbrev=0`.
-2. List the pull requests merged since that tag with `git log <previous-tag>..HEAD --merges --format='%h %s%n%b'`.
-   The `Merge pull request #N from ...` subject line names only the number and source branch, while the pull request
-   title and description live in the commit body, so you MUST read the body (not `--oneline`) to draft the notes.
+1. Identify the previous release tag with `git tag --sort=-v:refname` (most recent first) or `git describe --tags
+   --abbrev=0`.
+2. List the pull requests merged since that tag with `git log <previous-tag>..HEAD --merges --format='%h %s%n%b'`. The
+   `Merge pull request #N from ...` subject line names only the number and source branch, while the pull request title
+   and description live in the commit body, so you MUST read the body (not `--oneline`) to draft the notes.
 3. Review the aggregate change scope with `git diff <previous-tag>..HEAD --stat`.
 
-If `--merges` returns few or no results relative to the `git diff --stat` scope, the repository likely uses
-squash- or rebase-merged pull requests or direct commits to the default branch, which produce no merge commit.
-Enumerate from `git log <previous-tag>..HEAD --oneline --no-merges` instead and reconcile both so no merged work
-is silently dropped.
+If `--merges` returns few or no results relative to the `git diff --stat` scope, the repository likely uses squash- or
+rebase-merged pull requests or direct commits to the default branch, which produce no merge commit. Enumerate from `git
+log <previous-tag>..HEAD --oneline --no-merges` instead and reconcile both so no merged work is silently dropped.
 
-If the repository has no prior release tag, summarize the full history (`git log --merges --format='%h %s%n%b'`)
-and note that this is the first release.
+If the repository has no prior release tag, summarize the full history (`git log --merges --format='%h %s%n%b'`) and
+note that this is the first release.
 
 ### Step 2: Determine the dependency model
 
@@ -66,8 +65,8 @@ Determine whether the project is an independent library or part of a unified, cr
 Infer the release type from the change set and recommend it to the user. You MUST ask the user to confirm the type
 before finalizing the notes. The user decides the type, so never decide it unilaterally.
 
-For C++ PlatformIO libraries the release version is single-sourced from `library.json` rather than pyproject.toml,
-which is where Python projects hold it. See `/platformio-config`.
+For C++ PlatformIO libraries the release version is single-sourced from `library.json` rather than pyproject.toml, which
+is where Python projects hold it. See `/platformio-config`.
 
 | Type  | Use case                                                                                 |
 |-------|------------------------------------------------------------------------------------------|
@@ -77,14 +76,14 @@ which is where Python projects hold it. See `/platformio-config`.
 
 ### Step 4: Resolve the compatibility statement (cross-dependent sets only)
 
-For cross-dependent releases, the compatibility statement names the sibling-library versions this release is designed
-to work with. You cannot reliably infer these, so ask the user to confirm the compatible sibling-library versions
-and include them verbatim. For independent libraries, skip this step entirely.
+For cross-dependent releases, the compatibility statement names the sibling-library versions this release is designed to
+work with. You cannot reliably infer these, so ask the user to confirm the compatible sibling-library versions and
+include them verbatim. For independent libraries, skip this step entirely.
 
 ### Step 5: Draft the release notes
 
-Produce the release notes following the format below. Present the draft to the user. The user creates the tag and
-GitHub release manually.
+Produce the release notes following the format below. Present the draft to the user. The user creates the tag and GitHub
+release manually.
 
 ---
 
@@ -112,17 +111,17 @@ GitHub release manually.
 - Each item occupies one line, under the line-break rule `/commit` defines. GitHub soft-wraps the release body, so a
   hand-wrapped item renders as a rigid block.
 - Condense many pull requests into a few impactful themes. Do NOT list every pull request.
-- Do NOT include a `## What's Changed` section or a `**Full Changelog**` line. GitHub generates these automatically
-  when the release is published.
+- Do NOT include a `## What's Changed` section or a `**Full Changelog**` line. GitHub generates these automatically when
+  the release is published.
 
 ### Prose punctuation and positive description
 
 Prose uses only the full stop and the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`, or
 `–`) as a separator, and use a colon only where it is lexically appropriate. A single hyphen stays available as a list
 marker, in tables, and in compound words. A `--` naming a CLI flag or an argument separator, like any token inside a
-code span, is not a clause separator and is left as written. State what the subject does and what is currently true.
-Do not frame it by what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing
-because it corrects a counter-intuitive assumption, giving its reason.
+code span, is not a clause separator and is left as written. State what the subject does and what is currently true. Do
+not frame it by what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing because
+it corrects a counter-intuitive assumption, giving its reason.
 
 ### Examples
 
@@ -161,11 +160,11 @@ themselves, and `/commit` carries the forbidden-content list that applies here v
 **What and why, not how**: Each item states *what* the release changed and *why*, not *how*, and is specific and
 descriptive rather than vague like "Updated various modules".
 
-**Sentence length**: Every sentence in a release note item stays under 40 words, broken at a natural clause boundary
-or split into two numbered items when it runs longer.
+**Sentence length**: Every sentence in a release note item stays under 40 words, broken at a natural clause boundary or
+split into two numbered items when it runs longer.
 
-**Typo-free and grammatical**: The release notes must be free of typos and grammatical errors, with every symbol
-name, file name, and version string verified against the diff or tag output rather than recalled from memory.
+**Typo-free and grammatical**: The release notes must be free of typos and grammatical errors, with every symbol name,
+file name, and version string verified against the diff or tag output rather than recalled from memory.
 
 ---
 
@@ -183,8 +182,8 @@ name, file name, and version string verified against the diff or tag output rath
 
 ## Proactive behavior
 
-When the user signals that a release is imminent (a version bump, "preparing a release", or similar), proactively
-offer to draft release notes. For example: "Would you like me to draft release notes for this version?"
+When the user signals that a release is imminent (a version bump, "preparing a release", or similar), proactively offer
+to draft release notes. For example: "Would you like me to draft release notes for this version?"
 
 Do NOT create tags or GitHub releases. Present the drafted notes for the user to use manually.
 

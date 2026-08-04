@@ -1,7 +1,6 @@
 # Anti-patterns
 
-Common C++ style violations and their corrections. Use this reference when
-reviewing code before submission.
+Common C++ style violations and their corrections. Use this reference when reviewing code before submission.
 
 ---
 
@@ -52,8 +51,7 @@ reviewing code before submission.
 
 ## Documentation quality violations
 
-Each Rule label below names a documentation-quality rule defined in
-[doxygen-and-types.md](doxygen-and-types.md).
+Each Rule label below names a documentation-quality rule defined in [doxygen-and-types.md](doxygen-and-types.md).
 
 | Wrong                                     | Correct                                 | Rule                         |
 |-------------------------------------------|-----------------------------------------|------------------------------|
