@@ -80,8 +80,9 @@ Complete the verification checklist at the end of this file. Every item must pas
 
 ## Every file occupies a slot in the tree
 
-A file added to the repository MUST occupy a slot the archetype tree defines. That test decides the question, rather
-than whether the user named the file.
+A file added to the repository MUST occupy a slot its layout defines. That test decides the question, rather than
+whether the user named the file. A project repository is judged against its archetype tree. An umbrella repository
+carries no archetype tree, so it is judged against the plugin and marketplace layout `/skill-design` owns.
 
 Adding a file to a defined slot is ordinary work and needs no permission. A module under `src/{package_name}/`, a test
 module under `tests/`, a documentation page under `docs/source/`, a skill file under a skill's own directory, and an
@@ -96,6 +97,8 @@ has to delete afterwards is worse than no file at all.
 Work that genuinely needs a file on disk goes OUTSIDE the repository, in the session scratch directory. When a file
 fits no slot and the task still seems to need it tracked, stop and ask, because the answer decides whether the file
 exists rather than where it goes.
+
+---
 
 ## Common root files
 

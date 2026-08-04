@@ -76,7 +76,9 @@ Using the branch information from Step 1:
 
 ### Step 5: Stage all changes
 
-Before staging anything, run `git status --porcelain` and read every line marked `??`. An untracked file is the one
+Before staging anything, run `git status --porcelain -uall` and read every line marked `??`. The `-uall` flag matters,
+because the default output collapses an untracked directory into a single entry and never names the files inside it. An
+untracked file is the one
 way a working artifact enters the repository, and `git add -A` admits it silently.
 
 For each untracked file, ask whether it occupies a slot the archetype tree defines, which is the test

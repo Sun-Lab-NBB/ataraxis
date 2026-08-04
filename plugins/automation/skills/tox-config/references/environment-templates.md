@@ -514,7 +514,8 @@ changes travel together, since the corpus does nothing until `ruff check` reache
 ## Description field restraint
 
 A `description` field states what the environment does when it runs. It is one sentence, two when the environment reads
-its configuration from another file. It opens with a bare third-person imperative verb, does not restate the environment
+its configuration from another file or produces one output the commands block does not reveal, and three when it
+produces more than one such output. It opens with a bare third-person imperative verb, does not restate the environment
 name, does not list the commands the environment already declares below it, and does not explain why the task matters.
 See [the skill](../SKILL.md) for the full comment and description conventions.
 

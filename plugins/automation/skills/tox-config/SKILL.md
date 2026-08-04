@@ -289,8 +289,9 @@ Use block comments above the `[tox]` section and before environments that need e
 
 Every environment MUST have a `description` field, and that field opens with a bare third-person imperative verb naming
 what the environment does when it runs ("Runs...", "Combines...", "Builds..."). It is one sentence, two when
-the environment reads its configuration from another file, and three when it produces more than one output the
-commands block does not reveal, such as a report written outside the directory the description names. Do not prefix it
+the environment reads its configuration from another file or produces one output the commands block does not reveal,
+and three when it produces more than one such output, as a coverage task producing both a merged test report and a
+coverage report does. Do not prefix it
 with the environment name or a "This environment..." opener, do not restate the commands the environment already
 declares below it, and do not explain why the task matters. See
 [environment-templates.md](references/environment-templates.md) for a compliant and a non-compliant description side by
@@ -459,7 +460,7 @@ Environment Management:
 Formatting:
 - [ ] Every environment has a description field
 - [ ] Every description opens with a bare third-person imperative verb and states what the environment does in one or
-      two sentences (no name restatement, no "This environment..." opener, no command narration)
+      three sentences (no name restatement, no "This environment..." opener, no command narration)
 - [ ] Every inline comment answers a question its setting leaves open
 - [ ] Inline comments aligned vertically within their section
 - [ ] Comments and descriptions record current configuration only, never the edit that produced it

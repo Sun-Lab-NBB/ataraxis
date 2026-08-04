@@ -85,7 +85,7 @@ Sections marked as optional may be omitted based on project type. For the exact 
 4. **Horizontal rule**: `___` (triple underscore) to separate header from content
 5. **Detailed description**: Expanded explanation of the library's purpose (`## Detailed Description`)
 6. **Features** *(optional)*: Bulleted list of key features, ending with license type
-7. **Table of contents**: Links to all major sections using lowercase Markdown anchors
+7. **Table of contents**: Links to every H2 section that follows it, using lowercase Markdown anchors
 8. **Dependencies**: External requirements and automatic installation notes
 9. **Installation**: Source and pip installation instructions with standard templates
 10. **Usage**: Detailed usage instructions with subsections

@@ -361,10 +361,10 @@ command-name = "package_name.module:function"
 
 The abbreviation prefix keeps the command clear of the unrelated executables already on a user's PATH.
 
-That reason binds a command a human invokes. A command invoked only by automation, from inside the isolated environment
-that declares it, collides with nothing a user types and carries no prefix. `automation-cli` is the standing case: every
-sibling project's tox.ini calls it and nothing else does, so it stays unprefixed while every user-facing entry point
-follows the rule.
+That reason binds a command installed onto a user's general-purpose PATH. A command installed only into the isolated
+project environment that declares it reaches no such PATH, so it collides with nothing and carries no prefix.
+`automation-cli` is the standing case, since it is installed into each project's own development environment rather
+than onto the host, while every entry point that does reach a user's PATH follows the rule.
 
 ### Examples from projects
 

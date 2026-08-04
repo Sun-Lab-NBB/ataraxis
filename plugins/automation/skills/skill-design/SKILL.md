@@ -440,6 +440,8 @@ Skill File Compliance, reader-judged:
 - [ ] Every rule names the procedure that decides compliance and the default it departs from
 - [ ] Checklist groups tool-enforced items separately and names the command that settles them
 - [ ] Each rule defaults to one sentence, with examples and tables earned by the judgment they govern
+- [ ] Each retained sentence survives the cover test (unable to be reconstructed from the skill name, the section
+      heading, and the rule it sits under)
 - [ ] No rule stated twice inside one file (the same rule in SKILL.md and in a reference is permitted)
 - [ ] Sentences in skill prose, reference files, and CLAUDE.md stay under 40 words
 - [ ] Prose fills each line to 120 characters, with no line ending before column 100 while its next word would still fit
