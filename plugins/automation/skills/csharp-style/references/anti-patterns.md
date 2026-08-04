@@ -156,6 +156,7 @@ public class Task : MonoBehaviour { }
 | `<remarks>` on a self-evident method       | Single-line `<summary>` alone             | Summary line is the default  |
 | `// Now also skips disabled zones`         | State current behavior only               | No change narration          |
 | XML doc grown on every edit                | Rewrite in place, delete what is moot     | No documentation ratchet     |
+| Comment prose wrapped short of column 120  | Fill each line before breaking it         | Wrap width                   |
 
 ---
 

@@ -109,7 +109,8 @@ GitHub release manually.
 - `**Major Changes:**` introduces a numbered list (`1.`, `2.`, …) of the most impactful changes, ordered from most to
   least impactful.
 - Each item is a complete, descriptive sentence in past tense (see the verb set in `/commit`) ending with a period.
-  Items may span multiple lines.
+- Each item occupies one line, under the line-break rule `/commit` defines. GitHub soft-wraps the release body, so a
+  hand-wrapped item renders as a rigid block.
 - Condense many pull requests into a few impactful themes. Do NOT list every pull request.
 - Do NOT include a `## What's Changed` section or a `**Full Changelog**` line. GitHub generates these automatically
   when the release is published.
@@ -201,6 +202,7 @@ Release Notes Compliance:
 - [ ] Sibling-library versions confirmed by the user (cross-dependent sets only)
 - [ ] `**Major Changes:**` numbered list ordered from most to least impactful
 - [ ] Each item is past tense and ends with a period
+- [ ] Each item occupies one line, with no hand-wrapped continuation
 - [ ] Each item describes *what* changed and *why*, not *how*, and is specific rather than vague (not "Updated
       various modules")
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code

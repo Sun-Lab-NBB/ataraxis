@@ -247,6 +247,11 @@ version from `library.json` (not `pyproject.toml`), and map tests to the Platfor
 Present findings using the following structure. Include all sections for medium and large projects.
 For small projects, omit sections that do not apply.
 
+Fill each prose line the summary writes to 120 characters before breaking it, under the wrap width
+rule `/python-style` defines, so a line ending before column 100 while its next word would still fit
+is re-flowed. A line ending early because the sentence ends, or because it holds a table row or a list
+item, is already correct.
+
 ### Required sections
 
 1. **Project purpose**: 1-2 sentence summary
@@ -322,6 +327,7 @@ Walk every one against the summary you are about to present.
 - [ ] Design patterns and cross-cutting concerns documented
 - [ ] Areas of concern noted (technical debt, complexity, missing coverage)
 - [ ] Output uses structured format (headings, tables, lists)
+- [ ] Summary prose fills each line to 120 characters, with no line ending before column 100 while its next word fits
 - [ ] No code modifications were made during exploration
 - [ ] Archetype resolved from /project-layout's indicator table, with that archetype's entry points,
       manifest, and public API source used by every phase

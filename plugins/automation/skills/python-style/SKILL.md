@@ -75,7 +75,7 @@ Projects span Python, C++, and C#. These conventions maximize visual and structu
 consistency across languages while respecting each language's idiomatic standards.
 
 **Shared across all languages:**
-- 120 character line limit
+- 120 character line limit, with wrapped prose filled to that limit rather than broken at a narrower width
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
@@ -345,6 +345,14 @@ exception, and early-return conventions.
 
 ## Blank lines, line length, and formatting
 
+### Wrap width
+
+Break a comment or docstring line only where it would otherwise pass 120 characters, and fill each line to that
+limit before breaking. Prose wrapped at a narrower width reads as a rigid block, re-wraps badly at any other
+viewport, and advertises a limit the project does not set. The test is mechanical: a wrapped line that ends before
+column 100 while its next word would still fit under 120 is re-flowed. A line ending early because the sentence or
+the paragraph ends, or because it holds a table row, a list item, or a code span, is already correct.
+
 See [class-patterns.md](references/class-patterns.md) for blank-line placement, the 120 character
 limit, string formatting, trailing commas, and pathlib usage.
 
@@ -483,7 +491,7 @@ hand-checking them. They stay listed for reviews performed without the linter.
 - [ ] Functions and methods use snake_case (both public and private, the private ones underscore-prefixed)
 - [ ] Double quotes used for all strings (enforced by ruff)
 - [ ] F-strings used exclusively (no % formatting or .format())
-- [ ] Lines under 120 characters
+- [ ] Lines under 120 characters, with wrapped prose filled to that limit rather than broken at a narrower width
 - [ ] 4-space indentation, no tabs
 - [ ] All imports at top of file (no deferred or inline imports)
 - [ ] Import sorting delegated to ruff (do not manually reorder)

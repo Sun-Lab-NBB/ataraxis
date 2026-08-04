@@ -1,7 +1,8 @@
 # RST and build file templates
 
 Complete templates for all documentation source files and build wrappers. Replace all
-`<PLACEHOLDER>` values with project-specific information before use.
+`<PLACEHOLDER>` values with project-specific information before use. Every template's prose is
+filled to the 120 character limit, under the wrap-width rule the skill file defines.
 
 ---
 

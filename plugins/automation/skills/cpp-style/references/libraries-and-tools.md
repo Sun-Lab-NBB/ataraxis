@@ -316,9 +316,8 @@ void setup()
     // Starts the serial connection.
     Serial.begin(kSerialBaudRate);
 
-    // Waits ~2 seconds for the Unity test runner to establish the connection with the board Serial
-    // interface. For teensy, this is less important, since it uses a USB interface which does not
-    // reset the board on connection.
+    // Waits ~2 seconds for the Unity test runner to establish the connection with the board Serial interface. For
+    // teensy, this is less important, since it uses a USB interface which does not reset the board on connection.
     delay(2000);
 
     // Runs the required tests.
@@ -614,9 +613,8 @@ local variable before passing it:
 
 ```cpp
 // Good - message variable for multi-line errors
-std::string message =
-    "Unable to start timer with precision '" + precision + "'. "
-    "Use 'ns', 'us', 'ms', or 's'.";
+std::string message = "Unable to start the timer with the requested precision '" + precision +
+                      "'. Use one of the supported precision options: 'ns', 'us', 'ms', or 's'.";
 throw std::invalid_argument(message);
 
 // Acceptable - short single-line messages passed directly

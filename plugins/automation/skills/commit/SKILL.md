@@ -121,6 +121,12 @@ Stop there. Pushing is the supervising user's decision.
 
 The message is a record of *what changed in the code*, not *how or by whom the changes were produced*.
 
+**The header names the change, not its origin.** Cover the header and ask what it tells a reader about the code.
+A header naming the activity that produced the change, such as an audit, a review, a ticket, or a user request,
+describes the process and is rewritten to name the change instead. A reader running `git log` a year later has no
+access to that activity, so naming it spends the one line they do read. When the change set is a group of unrelated
+fixes, name the areas they touch, as in `Fixed various bugs in environment, credential, and upload handling.`
+
 ---
 
 ## Style rules
@@ -148,6 +154,20 @@ Added MCP server module for agentic library interaction.
 -- Added 'axvs mcp' CLI command to start the MCP server.
 -- Added frame display support to MCP video sessions.
 -- Fixed various documentation and code style inconsistencies.
+```
+
+### Line breaks
+
+Each bullet occupies exactly one line, however long that line runs. Git, GitHub, and terminal pagers soft-wrap the
+text themselves, so a hand-wrapped bullet renders as a rigid block that reflows badly at every other width. The test
+is mechanical: in the message source, no line after the header begins with whitespace. Bullets carry no character
+cap, and one running past roughly 30 words is usually two changes that split into two bullets.
+
+```text
+Updated the environment export to write through a temporary file.
+
+-- Replaced the shell pipeline with a captured mamba call, so a failed export leaves the committed file intact.
+-- Added a dependency check to the export, so a contentless specification cannot overwrite the stored pins.
 ```
 
 ### Verb tense
@@ -229,6 +249,7 @@ Refactored skill architecture to support user-invocable skills.
 | `Add new feature`                 | `Added new feature.`                      | Present tense, no period   |
 | `This commit fixes the login bug` | `Fixed login validation error.`           | Unnecessary preamble       |
 | `Fixed bug (Co-Authored-By: ...)` | `Fixed login validation error.`           | Authorship in message      |
+| `Fixed the audit findings`        | `Fixed various environment bugs.`         | Names activity, not change |
 
 ---
 
@@ -274,6 +295,8 @@ Commit Message Compliance:
 - [ ] Bullets state what the change now does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Multi-line format used for bundled changes (if applicable)
 - [ ] Multi-line bullets prefixed with `-- ` and each ends with a period
+- [ ] Every bullet occupies one line, so no line after the header begins with whitespace
+- [ ] Header names the change rather than the activity that produced it (no audit, review, or ticket)
 - [ ] Contains NO authorship details, co-author tags, or attribution
 - [ ] Contains NO references to tools or AI unless explicitly requested by the user
 - [ ] Contains ONLY information about the changes themselves

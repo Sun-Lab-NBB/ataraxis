@@ -58,6 +58,7 @@ Each Rule label below names a documentation-quality rule defined in
 | Wrong                                     | Correct                                 | Rule                         |
 |-------------------------------------------|-----------------------------------------|------------------------------|
 | Sentences over 40 words in prose          | Split into shorter sentences            | Sentence length cap          |
+| Comment lines wrapped short of 120 chars  | Fill each line to the 120 char limit    | Wrap width                   |
 | Block length driven by method length      | Match length to conceptual difficulty   | Length proportionality       |
 | Block explains where it is called         | Describe what the method does           | Behavioral scope             |
 | `@param` restates parameter type          | Describe semantics, not types           | No type-signature restating  |

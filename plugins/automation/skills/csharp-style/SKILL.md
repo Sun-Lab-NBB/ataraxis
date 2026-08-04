@@ -256,6 +256,15 @@ logical groups instead, the same replacement `#region` blocks get. See
 [xml-docs-and-types.md](references/xml-docs-and-types.md) for inline comment conventions and what to
 avoid.
 
+### Wrap width
+
+Break an XML doc or comment line only where it would otherwise pass 120 characters, and fill each
+line to that limit before breaking. CSharpier reflows code and leaves comment prose as written, so
+prose wrapped narrower stays a rigid block that re-wraps badly at every other width. The test is
+mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120
+is re-flowed. A line ending early because the sentence or the paragraph ends, or because it holds a
+list item or a code span, is already correct.
+
 ---
 
 ## Using directives
@@ -397,6 +406,8 @@ against the code you wrote.
 - [ ] Boolean members documented with "Determines whether..."
 - [ ] File-level XML summary comment present
 - [ ] Sentences in comments and XML docs stay under 40 words
+- [ ] Comment and XML doc lines fill to 120 characters before wrapping (no wrapped line ends before column 100 while
+      its next word still fits)
 - [ ] Every member defaults to the summary line alone, with a remarks block earned by a nameable non-obvious property
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
 - [ ] Documentation records current behavior only, never the edit that produced it

@@ -34,6 +34,10 @@ public class OccupancyZone : MonoBehaviour
 - **Single-line format**: Use single-line `<summary>` for most members
 - **Multi-line format**: Use multi-line `<summary>` only when the description exceeds 120
   characters
+- **Wrap width**: Fill each `///` line to 120 characters before breaking it, because prose wrapped
+  narrower stays a rigid block that CSharpier never reflows. A wrapped line ending before column 100
+  while its next word would still fit under 120 is re-flowed, and a line ending because its sentence
+  or its paragraph ends is already correct
 
 ```csharp
 // Single-line (preferred for most members)
@@ -158,9 +162,9 @@ them.
 // Avoid
 /// <summary>Resets the occupancy timer.</summary>
 /// <remarks>
-/// This method resets the occupancy timer back to zero. It is called by the Task component when a
-/// new trial begins, and the timer it clears is later read by the reward controller to decide
-/// whether the animal has met the occupancy requirement. The method takes no parameters.
+/// This method resets the occupancy timer back to zero. It is called by the Task component when a new trial begins, and
+/// the timer it clears is later read by the reward controller to decide whether the animal has met the occupancy
+/// requirement. The method takes no parameters.
 /// </remarks>
 public void ResetTimer()
 
@@ -242,9 +246,8 @@ Use `<remarks>` for extended descriptions, implementation notes, or important co
 /// Provides the Task class that manages an infinite corridor VR task.
 /// </summary>
 /// <remarks>
-/// The task creates a looping corridor by instantiating corridor segments and managing
-/// probabilistic transitions between them. Each corridor combination is a child GameObject
-/// containing the segment prefabs positioned end-to-end.
+/// The task creates a looping corridor by instantiating corridor segments and managing probabilistic transitions
+/// between them. Each corridor combination is a child GameObject containing the segment prefabs positioned end-to-end.
 /// </remarks>
 public class Task : MonoBehaviour
 ```
@@ -354,10 +357,9 @@ Use flowing prose in `<remarks>` blocks rather than bullet lists, the same narra
 ```csharp
 // Good - prose explains the relationship between concepts
 /// <remarks>
-/// The corridor is constructed by instantiating segment prefabs end-to-end. Each segment's
-/// length is measured from its mesh bounds and compared against the configured length. When
-/// the animal reaches the end of the corridor, the first segment is recycled to the back,
-/// creating the illusion of an infinite track.
+/// The corridor is constructed by instantiating segment prefabs end-to-end. Each segment's length is measured from its
+/// mesh bounds and compared against the configured length. When the animal reaches the end of the corridor, the first
+/// segment is recycled to the back, creating the illusion of an infinite track.
 /// </remarks>
 
 // Avoid - bullet lists fragment the explanation
@@ -387,8 +389,8 @@ their languages:
 // Good - describe behavior in <summary> or <remarks>, no examples
 /// <summary>Samples an index from a probability distribution.</summary>
 /// <remarks>
-/// The probabilities array must sum to 1.0. The method uses inverse transform sampling
-/// to select an index weighted by the given distribution.
+/// The probabilities array must sum to 1.0. The method uses inverse transform sampling to select an index weighted by
+/// the given distribution.
 /// </remarks>
 ```
 
@@ -401,11 +403,10 @@ purpose:
 
 ```csharp
 /// <summary>
-/// Provides the OccupancyZone class that tracks whether an animal has occupied a zone for a
-/// required duration.
+/// Provides the OccupancyZone class that tracks whether an animal has occupied a zone for a required duration.
 ///
-/// Used for trial types that require occupancy-based stimulus disarming. The occupancy mode
-/// specifies how a stimulus is triggered, not what stimulus is delivered.
+/// Used for trial types that require occupancy-based stimulus disarming. The occupancy mode specifies how a stimulus is
+/// triggered, not what stimulus is delivered.
 /// </summary>
 using System.Diagnostics;
 using UnityEngine;

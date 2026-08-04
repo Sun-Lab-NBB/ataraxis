@@ -119,6 +119,11 @@ under 40 words. Separate clauses with full stops and commas rather than semicolo
 state what the fix does rather than what the code fails to do. Verbatim quotes and cost arithmetic are
 exempt, because they are copied rather than written.
 
+Fill each authored line to 120 characters before breaking it, under the wrap width rule
+`/python-style` defines, so a line ending before column 100 while its next word would still fit is
+re-flowed. A line ending early because the sentence ends, or because it holds a table row, a list item,
+or a code span, is already correct.
+
 Before presenting, split the report's authored fields on sentence boundaries, excluding every verbatim
 quote and every arithmetic or complexity expression, and count the words in each sentence. Any
 sentence over 40 words, and any semicolon or em-dash joining two independent clauses, is rewritten

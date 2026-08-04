@@ -292,6 +292,9 @@ You MUST adhere to the following discipline during every run.
   it, and WAIT. See the approval section in [change-mode.md](references/change-mode.md).
 - Record every audit that did not run under its own reason, DECLINED or EMPTY or a routing row, and
   every capped loop with what remained.
+- Fill each line the plan, the gate verdict, and the merged header write to 120 characters before
+  breaking it, under the wrap width rule `/python-style` defines, so a line ending before column 100
+  while its next word would still fit is re-flowed.
 
 ---
 
@@ -364,5 +367,7 @@ Project Audit Orchestration Compliance:
 - [ ] In change mode, each re-run covered the original change set plus the files the fixes touched
 - [ ] Loop capped at 3 rounds, with anything remaining stated in the report
 - [ ] No finding resolved by weakening a test, a contract, a docstring, or a coverage setting
+- [ ] Plan, gate verdict, and merged header prose fill each line to 120 characters, with no line ending before
+      column 100 while its next word fits
 - [ ] No file modifications made during any audit round
 ```

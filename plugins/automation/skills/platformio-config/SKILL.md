@@ -176,6 +176,11 @@ Every line in `platformio.ini` and `library.json` stays within the 120 character
 sets for its Python code, and a single unbreakable value such as a URL, a requirement string, or the
 `$schema` URL is exempt.
 
+Break a comment line only where it would otherwise pass 120 characters, and fill each line to that limit before
+breaking. Comment prose wrapped at a narrower width reads as a rigid block and advertises a limit the file does not
+set. The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120
+is re-flowed. A line ending early because the sentence or the comment block ends is already correct.
+
 ### Prose punctuation and positive description
 
 The `description` field and any configuration comments follow the project prose rules. Prose uses
@@ -293,6 +298,8 @@ are the only tool-settled rows.)
 - [ ] Sentences in comments and description fields stay under 40 words
 - [ ] Comments and description fields free of typos and grammar errors
 - [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings, $schema) exempt
+- [ ] Comments and descriptions fill each line to 120 before breaking, with no line ending before column 100 while
+      its next word would still fit
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)
 - [ ] Prose states what the configuration does, not what it is not or used to be (contrast only when load-bearing)

@@ -141,9 +141,7 @@ files and additionally waives the whole corpus for any `tests` directory nested 
 placed there is linted as test code. Rewrite the prefixed form to the anchored one wherever it appears.
 
 `D` and `ANN` are family prefixes rather than individual codes. Test files trip a wide and shifting set of members of
-both families, so the prefixes keep the list stable as tests are added. `SLF001` belongs in the shared test corpus
-because tests are the sole sanctioned exception to the rule that private members stay inside the module that defines
-them.
+both families, so the prefixes keep the list stable as tests are added.
 
 These entries take effect only when the lint task passes the test directory to `ruff check`. A lint task that checks
 `./src` alone leaves the whole key inert. See `/tox-config` for the lint task definition.
@@ -224,9 +222,9 @@ project-specific section only by a project whose library code needs it.
 
 `SLF001` carries opposite status in the two corpora, so read the requirement for the one being judged. It stays out of
 the shared block of the universal `lint.ignore` corpus, where it enforces the rule that private members stay inside the
-module that defines them. It is a required member of the shared test corpus, where tests are the sanctioned exception
-to that rule. A project that lists `SLF001` in the shared test corpus and omits it from the shared block of the
-universal `lint.ignore` corpus is compliant with both rules at once.
+module that defines them. It is a required member of the shared test corpus, where tests are the sole sanctioned
+exception to that rule. A project that lists `SLF001` in the shared test corpus and omits it from the shared block
+of the universal `lint.ignore` corpus is compliant with both rules at once.
 
 ### Ruff unused arguments
 

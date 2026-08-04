@@ -496,6 +496,7 @@ Microcontroller Interface:
 - [ ] ModuleInterface subclasses implement all three abstract methods
 - [ ] Module type/id codes match firmware configuration (verify via /microcontroller:firmware-module)
 - [ ] Command codes, event codes, and parameter layout match firmware counterpart
+- [ ] Comments and docstrings fill to 120 characters before wrapping, under the wrap-width rule /python-style defines
 - [ ] stop() called on all MicroControllerInterface instances during shutdown
 - [ ] assemble_log_archives() called after DataLogger.stop()
 ```

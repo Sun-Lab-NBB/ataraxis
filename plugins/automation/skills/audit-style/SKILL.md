@@ -305,9 +305,7 @@ scope that is neither audited nor recorded as skipped is a coverage gap rather t
 
 ### Step 10: Produce the findings report
 
-Use the output format below. Open with the triage header from
-[verification-protocol.md](references/verification-protocol.md), which carries the finding counts by
-severity and confidence, the tools Step 3 ran, and every discard count.
+Use the output format below.
 
 Skip compliant items entirely. Report every surviving finding at every confidence tier by default,
 which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user
@@ -318,7 +316,8 @@ the report was filtered. LOW means the checklist and source mapping is inferred 
 and it never excuses a finding from the verbatim checklist quote the Discipline section requires. Hold
 the report's own prose to the rules this audit enforces, keeping every sentence in an authored field
 under 40 words and separating its clauses with full stops and commas rather than semicolons or
-em-dashes.
+em-dashes. Fill each authored line to 120 characters before breaking, under the wrap width rule
+`/python-style` defines, so a line ending before column 100 while its next word fits is re-flowed.
 
 ---
 
@@ -326,8 +325,10 @@ em-dashes.
 
 Open the report with the triage header from
 [verification-protocol.md](references/verification-protocol.md), then the Step 9 coverage ledger. The
-same protocol defines the grouping, which is file, then severity, with the severities ordered BLOCKING,
-INCONSISTENCY, CONFLICT, STANDARD, and the trailing `Appendix: LOW confidence` section.
+header carries the finding counts by severity and confidence, the tools Step 3 ran, and every discard
+count. The same protocol defines the grouping, which is file, then severity, with the severities
+ordered BLOCKING, INCONSISTENCY, CONFLICT, STANDARD, and the trailing `Appendix: LOW confidence`
+section.
 
 Step 4 layout findings belong to no file, so they sit in a leading `Project layout` group ahead of the
 per-file groups, headed by the archetype the sweep resolved and the indicators that resolved it.
@@ -493,5 +494,6 @@ Style Compliance Audit Output:
 - [ ] Every fix that removes a symbol, an export entry, or a public name carries Approval: REQUIRED
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full
       stops and commas as clause separators
+- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word fits
 - [ ] No file modifications made during the audit
 ```

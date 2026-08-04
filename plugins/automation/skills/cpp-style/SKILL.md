@@ -78,7 +78,7 @@ Projects span Python, C++, and C#. These conventions maximize visual and structu
 consistency across languages while respecting each language's idiomatic standards.
 
 **Shared across all languages:**
-- 120 character line limit
+- 120 character line limit, with wrapped prose filled to that limit rather than broken at a narrower width
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
@@ -352,7 +352,8 @@ See [class-patterns.md](references/class-patterns.md) for blank-line placement r
 
 ## Line length and formatting
 
-See [class-patterns.md](references/class-patterns.md) for line length, brace style, and statement formatting.
+See [class-patterns.md](references/class-patterns.md) for line length, brace style, and statement formatting, and
+[doxygen-and-types.md](references/doxygen-and-types.md) for the wrap width rule that governs comment and Doxygen prose.
 
 ---
 
@@ -403,6 +404,7 @@ against the code you wrote.
 - [ ] File-level Doxygen comment with @file and @brief present
 - [ ] Doxygen tag order: @brief -> @details -> @warning/@note -> @tparam -> @param -> @returns
 - [ ] Sentences in comments and Doxygen blocks stay under 40 words
+- [ ] Comment and Doxygen prose filled to the 120 character limit rather than broken at a narrower width
 - [ ] Every member defaults to the @brief line alone, with longer blocks earned by a nameable non-obvious property
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
 - [ ] Documentation records current behavior only, never the edit that produced it

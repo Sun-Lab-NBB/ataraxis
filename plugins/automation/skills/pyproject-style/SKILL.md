@@ -118,6 +118,11 @@ pyproject.toml adheres to the **120 character line limit**, matching the `line-l
 the project's Python code, and comment prose wraps at 120. A single unbreakable value is exempt,
 such as a URL, a PEP 508 requirement string with markers, or an SPDX expression.
 
+Break a comment line only where it would otherwise pass 120 characters, and fill each line to that limit before
+breaking. Comment prose wrapped at a narrower width reads as a rigid block and advertises a limit the file does not
+set. The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120
+is re-flowed. A line ending early because the sentence or the comment block ends is already correct.
+
 ### Block comments
 
 Use block comments above sections to describe their purpose:
@@ -426,6 +431,8 @@ Formatting:
 - [ ] Block comments above section headers
 - [ ] Inline comments aligned within sections
 - [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings, $schema) exempt
+- [ ] Comments and descriptions fill each line to 120 before breaking, with no line ending before column 100 while
+      its next word would still fit
 - [ ] Multi-line arrays with trailing commas
 - [ ] One element per line in multi-line arrays
 - [ ] Category comments in dependency and classifier arrays

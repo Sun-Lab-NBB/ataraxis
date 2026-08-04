@@ -15,6 +15,7 @@ because that reasoning is the thing under test.
 - Check 2: Adversarial refutation
 - The triage header
 - Confidence placement in the report
+- The report's own prose
 
 ---
 
@@ -102,3 +103,13 @@ severe first, rather than interleaved into the file groups. Every finding there 
 evidence and still passed every guard and both checks above. The appendix exists so the body of the
 report reads at one confidence level, and so a reader who wants only the settled findings knows where
 to stop.
+
+---
+
+## The report's own prose
+
+Fill each authored line to 120 characters before breaking it, under the wrap width rule
+`/python-style` defines, so a line ending before column 100 while its next word would still fit is
+re-flowed. A line ending early because the sentence ends, or because it holds a table row, a list item,
+or a code span, is already correct. Verbatim quotes, triggers, and line-numbered interleavings are
+exempt, because they are copied rather than written.

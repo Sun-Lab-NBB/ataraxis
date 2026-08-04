@@ -1,7 +1,8 @@
 # Section templates
 
 Exact templates for every README section. Load this reference when creating or updating README
-files.
+files. Every template's prose is filled to the 120 character limit, under the wrap-width rule the
+skill file defines.
 
 ---
 
@@ -106,11 +107,10 @@ ___
 
 ## Detailed Description
 
-This library provides the shared automation pipeline for all Python projects. It abstracts
-project environment manipulation and facilitates development tasks such as linting, typing,
-testing, documentation, and building through a unified CLI interface. This library is part of the
-[Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework for AI-assisted scientific hardware
-control.
+This library provides the shared automation pipeline for all Python projects. It abstracts project environment
+manipulation and facilitates development tasks such as linting, typing, testing, documentation, and building through
+a unified CLI interface. This library is part of the [Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework
+for AI-assisted scientific hardware control.
 ```
 
 ---
@@ -166,9 +166,8 @@ For Python libraries where all dependencies are automatically installed:
 ```markdown
 ## Dependencies
 
-For users, all library dependencies are installed automatically by all supported installation
-methods. For developers, see the [Developers](#developers) section for information on installing
-additional development dependencies.
+For users, all library dependencies are installed automatically by all supported installation methods. For developers,
+see the [Developers](#developers) section for information on installing additional development dependencies.
 ```
 
 For libraries with external (non-pip) dependencies, list them before the standard text:
@@ -176,12 +175,12 @@ For libraries with external (non-pip) dependencies, list them before the standar
 ```markdown
 ## Dependencies
 
-This library requires [FFmpeg](https://ffmpeg.org/) to be installed on the system for video
-encoding and decoding functionality.
+This library requires [FFmpeg](https://ffmpeg.org/) to be installed on the system for video encoding and decoding
+functionality.
 
-For users, all other library dependencies are installed automatically by all supported
-installation methods. For developers, see the [Developers](#developers) section for information
-on installing additional development dependencies.
+For users, all other library dependencies are installed automatically by all supported installation methods. For
+developers, see the [Developers](#developers) section for information on installing additional development
+dependencies.
 ```
 
 ---
@@ -200,14 +199,13 @@ such as Python usage examples.
 
 ### Source
 
-***Note,*** installation from source is ***highly discouraged*** for anyone who is not an active
-project developer.
+***Note,*** installation from source is ***highly discouraged*** for anyone who is not an active project developer.
 
-1. Download this repository to the local machine using the preferred method, such as git-cloning.
-   Use one of the [stable releases](https://github.com/Sun-Lab-NBB/PROJECT-NAME/tags) that
-   include precompiled binary and source code distribution (sdist) wheels.
-2. If the downloaded distribution is stored as a compressed archive, unpack it using the
-   appropriate decompression tool.
+1. Download this repository to the local machine using the preferred method, such as git-cloning. Use one of the
+   [stable releases](https://github.com/Sun-Lab-NBB/PROJECT-NAME/tags) that include precompiled binary and source code
+   distribution (sdist) wheels.
+2. If the downloaded distribution is stored as a compressed archive, unpack it using the appropriate decompression
+   tool.
 3. `cd` to the root directory of the prepared project distribution.
 4. Run `pip install .` to install the project and its dependencies.
 ```
@@ -219,8 +217,8 @@ Replace `PROJECT-NAME` with the actual repository name.
 ````markdown
 ### pip
 
-Use the following command to install the library and all of its dependencies via
-[pip](https://pip.pypa.io/en/stable/): `pip install PACKAGE-NAME`
+Use the following command to install the library and all of its dependencies via [pip](https://pip.pypa.io/en/stable/):
+`pip install PACKAGE-NAME`
 ````
 
 Replace `PACKAGE-NAME` with the actual PyPI package name.
@@ -237,22 +235,19 @@ and adds the relevant `#include` directives. The Platformio subsection declares 
 
 ### Source
 
-***Note,*** installation from source is ***highly discouraged*** for anyone who is not an active
-project developer.
+***Note,*** installation from source is ***highly discouraged*** for anyone who is not an active project developer.
 
-1. Download this repository to the local machine using the preferred method, such as git-cloning.
-   Use one of the [stable releases](https://github.com/Sun-Lab-NBB/PROJECT-NAME/tags).
-2. Unpack the downloaded tarball and move all 'src' contents into the appropriate destination
-   ('include,' 'src,' or 'libs') directory of the project that needs to use this library.
-3. Add the project's `#include` directives at the top of the main.cpp file and each consuming
-   header file.
+1. Download this repository to the local machine using the preferred method, such as git-cloning. Use one of the
+   [stable releases](https://github.com/Sun-Lab-NBB/PROJECT-NAME/tags).
+2. Unpack the downloaded tarball and move all 'src' contents into the appropriate destination ('include,' 'src,' or
+   'libs') directory of the project that needs to use this library.
+3. Add the project's `#include` directives at the top of the main.cpp file and each consuming header file.
 
 ### Platformio
 
-1. Navigate to the project's platformio.ini file and add the following line to the target
-   environment specification: `lib_deps = inkaros/PACKAGE-NAME@^MAJOR.0.0`.
-2. Add the project's `#include` directives at the top of the main.cpp file and each consuming
-   header file.
+1. Navigate to the project's platformio.ini file and add the following line to the target environment specification:
+   `lib_deps = inkaros/PACKAGE-NAME@^MAJOR.0.0`.
+2. Add the project's `#include` directives at the top of the main.cpp file and each consuming header file.
 ```
 
 Replace `PROJECT-NAME` with the repository name, `PACKAGE-NAME` with the PlatformIO registry
@@ -326,9 +321,9 @@ COMMAND mcp
 #### Client Registration
 
 MCP server registration and Claude Code skill assets for this library are distributed through the
-[ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) marketplace as part of the **PLUGIN-NAME**
-plugin. Install the plugin from the marketplace to automatically register the MCP server with
-compatible clients and make all associated skills available.
+[ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) marketplace as part of the **PLUGIN-NAME** plugin. Install the
+plugin from the marketplace to automatically register the MCP server with compatible clients and make all associated
+skills available.
 ````
 
 Always use a table for the Available Tools section (not a bullet list). Replace `COMMAND` with
@@ -342,8 +337,8 @@ distributes the assets for this library.
 ```markdown
 ## API Documentation
 
-See the [API documentation](https://PACKAGE-NAME-api-docs.netlify.app/) for the detailed
-description of the methods and classes exposed by components of this library.
+See the [API documentation](https://PACKAGE-NAME-api-docs.netlify.app/) for the detailed description of the methods and
+classes exposed by components of this library.
 ```
 
 Replace the URL with the actual documentation URL. Documentation links follow the pattern
@@ -376,33 +371,30 @@ and requirements of the project, whose environment set `/tox-config` owns.
 ````markdown
 ## Developers
 
-This section provides installation, dependency, and build-system instructions for the developers
-that want to modify the source code of this library.
+This section provides installation, dependency, and build-system instructions for the developers that want to modify
+the source code of this library.
 
 ### Installing the Project
 
-***Note,*** this installation method requires **mamba version 2.3.2 or above**. Currently, all
-automation pipelines require that mamba is installed through the
-[miniforge3](https://github.com/conda-forge/miniforge) installer.
+***Note,*** this installation method requires **mamba version 2.3.2 or above**. Currently, all automation pipelines
+require that mamba is installed through the [miniforge3](https://github.com/conda-forge/miniforge) installer.
 
 1. Download this repository to the local machine using the preferred method, such as git-cloning.
-2. If the downloaded distribution is stored as a compressed archive, unpack it using the
-   appropriate decompression tool.
+2. If the downloaded distribution is stored as a compressed archive, unpack it using the appropriate decompression
+   tool.
 3. `cd` to the root directory of the prepared project distribution.
 4. Install the core development dependencies into the ***base*** mamba environment via the
    `mamba install tox uv tox-uv` command.
-5. Use the `tox -e create` command to create the project-specific development environment followed
-   by `tox -e install` command to install the project into that environment as a library.
+5. Use the `tox -e create` command to create the project-specific development environment followed by `tox -e install`
+   command to install the project into that environment as a library.
 
 ### Additional Dependencies
 
-In addition to installing the project and all user dependencies, install the following
-dependencies:
+In addition to installing the project and all user dependencies, install the following dependencies:
 
-1. [Python](https://www.python.org/downloads/) distributions, one for each version supported by
-   the developed project. Currently, this library supports the three latest stable versions. It is
-   recommended to use a tool like [pyenv](https://github.com/pyenv/pyenv) to install and manage
-   the required versions.
+1. [Python](https://www.python.org/downloads/) distributions, one for each version supported by the developed project.
+   Currently, this library supports the three latest stable versions. It is recommended to use a tool like
+   [pyenv](https://github.com/pyenv/pyenv) to install and manage the required versions.
 
 ### Development Automation
 
@@ -428,24 +420,22 @@ This project uses `tox` for development automation. The following tox environmen
 
 Run any environment using `tox -e ENVIRONMENT`. For example, `tox -e lint`.
 
-***Note,*** all pull requests for this project have to successfully complete the `tox` task before
-being merged. To expedite the task's runtime, use the `tox --parallel` command to run some tasks
-in parallel.
+***Note,*** all pull requests for this project have to successfully complete the `tox` task before being merged. To
+expedite the task's runtime, use the `tox --parallel` command to run some tasks in parallel.
 
 ### AI-Assisted Development
 
 Claude Code skills and other AI development assets for this project are distributed through the
-[ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) marketplace as part of the **automation**
-plugin. Install the plugin from the marketplace to make all associated skills and development
-tools available to compatible AI coding agents.
+[ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) marketplace as part of the **automation** plugin. Install the
+plugin from the marketplace to make all associated skills and development tools available to compatible AI coding
+agents.
 
 ### Automation Troubleshooting
 
-Many packages used in `tox` automation pipelines (uv, mypy, ruff) and `tox` itself may experience
-runtime failures. In most cases, this is related to their caching behavior. If an unintelligible
-error is encountered with any of the automation components, deleting the corresponding cache
-directories (`.tox`, `.ruff_cache`, `.mypy_cache`, etc.) manually or via a CLI command typically
-resolves the issue.
+Many packages used in `tox` automation pipelines (uv, mypy, ruff) and `tox` itself may experience runtime failures. In
+most cases, this is related to their caching behavior. If an unintelligible error is encountered with any of the
+automation components, deleting the corresponding cache directories (`.tox`, `.ruff_cache`, `.mypy_cache`, etc.)
+manually or via a CLI command typically resolves the issue.
 ````
 
 ### C++ / PlatformIO variant
@@ -475,8 +465,7 @@ header attribution block already names the authors.
 ## Versioning
 
 This project uses [semantic versioning](https://semver.org/). See the
-[tags on this repository](https://github.com/Sun-Lab-NBB/PROJECT-NAME/tags) for the available
-project releases.
+[tags on this repository](https://github.com/Sun-Lab-NBB/PROJECT-NAME/tags) for the available project releases.
 ```
 
 ### Authors
@@ -494,8 +483,7 @@ List all contributors. Include GitHub profile links where available.
 ```markdown
 ## License
 
-This project is licensed under the Apache 2.0 License: see the [LICENSE](LICENSE) file for
-details.
+This project is licensed under the Apache 2.0 License: see the [LICENSE](LICENSE) file for details.
 ```
 
 ### Acknowledgments
@@ -506,15 +494,13 @@ For Python libraries:
 ## Acknowledgments
 
 - All individuals who contributed to the development of this library, directly or indirectly.
-- The creators of all other dependencies and projects listed in the
-  [pyproject.toml](pyproject.toml) file.
+- The creators of all other dependencies and projects listed in the [pyproject.toml](pyproject.toml) file.
 ```
 
 For C++ / PlatformIO libraries, replace `pyproject.toml` with `platformio.ini`:
 
 ```markdown
-- The creators of all other dependencies and projects listed in the
-  [platformio.ini](platformio.ini) file.
+- The creators of all other dependencies and projects listed in the [platformio.ini](platformio.ini) file.
 ```
 
 Additional project-specific acknowledgments may be added between the two standard bullets. A library

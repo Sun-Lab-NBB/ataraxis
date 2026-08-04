@@ -348,9 +348,7 @@ in-source row, which distinguishes clean documentation from an unrun pass.
 
 ### Step 10: Produce the findings report
 
-Use the output format below. Open with the triage header from
-[verification-protocol.md](references/verification-protocol.md), which carries the finding counts by
-verdict and confidence together with every discard count the guards and the Step 8 checks produced.
+Use the output format below.
 
 Skip EXACT and SEMANTIC findings entirely. Report every surviving finding at every confidence tier by
 default, which covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when
@@ -367,8 +365,10 @@ groups, so the body of the report reads at one confidence level.
 ## Output format
 
 Open the report with the triage header from
-[verification-protocol.md](references/verification-protocol.md), then the Step 9 coverage ledger. Then
-report only WRONG, DRIFT, CONTRADICTION, OMISSION, and UNVERIFIABLE findings, in that order.
+[verification-protocol.md](references/verification-protocol.md), then the Step 9 coverage ledger. The
+header carries the finding counts by verdict and confidence together with every discard count the
+guards and the Step 8 checks produced. Then report only WRONG, DRIFT, CONTRADICTION, OMISSION, and
+UNVERIFIABLE findings, in that order.
 
 When the audit spans multiple files, group the HIGH and MEDIUM confidence findings hierarchically:
 documentation class -> file -> finding verdict -> findings. Collect LOW confidence findings into the
@@ -403,6 +403,9 @@ You MUST adhere to the following discipline during every audit, and you MUST app
 - Do not flag subjective preferences (tone, ordering, terminology).
 - Hold the report's own prose to the rules this family enforces, keeping every authored sentence under
   40 words and separating clauses with full stops and commas rather than semicolons or em-dashes.
+- Fill each authored line to 120 characters before breaking it, under the wrap width rule
+  `/python-style` defines, so a line ending before column 100 while its next word would still fit is
+  re-flowed.
 
 ---
 
@@ -490,4 +493,5 @@ Documentation Fact Audit Compliance:
 - [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops
       and commas as clause separators
+- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word fits
 ```

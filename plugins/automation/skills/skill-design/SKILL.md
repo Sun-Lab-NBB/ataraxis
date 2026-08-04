@@ -288,8 +288,11 @@ When a skill's workflow naturally leads to another skill, document this as a fin
 All skill and reference Markdown files must adhere to the **120 character line limit**. This
 matches the Python code formatting standard.
 
-- Wrap prose text at 120 characters
-- Break long sentences at natural boundaries (after punctuation, between clauses)
+- Break a prose line only where it would otherwise pass 120 characters, and fill each line to that limit before
+  breaking. Prose wrapped at a narrower width reads as a rigid block and re-wraps badly at any other viewport. The test
+  is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120 is re-flowed.
+  A line ending early because the sentence or the paragraph ends, or because it holds a table row, a list item, or a
+  code span, is already correct.
 - Code blocks may exceed 120 characters only when necessary for readability
 - Tables may exceed 120 characters when proper column alignment aids clarity
 
@@ -343,6 +346,9 @@ files, and CLAUDE.md alike. Cover each sentence and delete it when you are able 
 from the skill name, the section heading, and the rule it sits under. A section starts with its
 rule, so an opening sentence that announces the section or restates the frontmatter description is
 deleted. Every skill file, reference file, and CLAUDE.md is free of typos and grammatical errors.
+A rule appears once per file, because a file loads as a unit and a second copy inside it earns
+nothing. The same rule in both SKILL.md and a reference file is permitted, because SKILL.md loads on
+every invocation while a reference loads only when the agent opens it.
 See [progressive-disclosure.md](references/progressive-disclosure.md) for the full rule set.
 
 ### Prose punctuation and positive description
@@ -446,9 +452,10 @@ Skill File Compliance, reader-judged:
 - [ ] Every rule names the procedure that decides compliance and the default it departs from
 - [ ] Checklist groups tool-enforced items separately and names the command that settles them
 - [ ] Each rule defaults to one sentence, with examples and tables earned by the judgment they govern
-- [ ] Each retained sentence survives the cover test (unable to be reconstructed from the skill name, the section
-      heading, and the rule it sits under)
+- [ ] No rule stated twice inside one file (the same rule in SKILL.md and in a reference is permitted)
 - [ ] Sentences in skill prose, reference files, and CLAUDE.md stay under 40 words
+- [ ] Prose fills each line to 120 before breaking, with no line ending before column 100 while its next word would
+      still fit
 - [ ] No section preamble restating the heading or the frontmatter description above it
 - [ ] No rule restated from a skill that owns it (reference the owning skill instead)
 - [ ] Rules duplicated across skills by necessity keep aligned wording
@@ -483,6 +490,8 @@ CLAUDE.md Compliance, reader-judged:
 - [ ] No personality instructions or generic advice
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Sentences in skill prose, reference files, and CLAUDE.md stay under 40 words
+- [ ] Prose fills each line to 120 before breaking, with no line ending before column 100 while its next word would
+      still fit
 - [ ] No section preamble restating the heading or the frontmatter description above it
 - [ ] Edits leave CLAUDE.md no longer than it started unless a genuinely new instruction was added
 - [ ] Skill prose, reference files, and CLAUDE.md free of typos and grammar errors

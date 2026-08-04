@@ -309,5 +309,6 @@ Camera Interface:
 - [ ] Encoding configuration selected using use-case guidance table
 - [ ] MCP test results translated to code parameters (if applicable)
 - [ ] Tested acquisition with /camera-setup interactive session before integration
+- [ ] Comments and docstrings fill to 120 characters before wrapping, under the wrap-width rule /python-style defines
 - [ ] stop() called explicitly on all VideoSystem instances during shutdown
 ```

@@ -18,8 +18,8 @@ Base classes provide pure virtual methods and shared utilities:
 /**
  * @brief Provides the base class for all hardware module implementations.
  *
- * Derived classes must implement SetCustomParameters(), RunActiveCommand(), and SetupModule()
- * to define their specific hardware interaction logic.
+ * Derived classes must implement SetCustomParameters(), RunActiveCommand(), and SetupModule() to define their
+ * specific hardware interaction logic.
  */
 class Module
 {

@@ -319,9 +319,7 @@ narrowed to a change set names the revision it resolved against here.
 
 ### Step 9: Produce the findings report
 
-Use the output format below. Open with the triage header from
-[verification-protocol.md](references/verification-protocol.md), which carries the finding counts by
-severity and confidence together with every discard count the guards and the Step 7 checks produced.
+Use the output format below.
 
 Report every surviving finding at every confidence tier by default, which covers LOW alongside HIGH
 and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user explicitly asks for it via
@@ -368,7 +366,9 @@ file before classifying any candidate.
 ## Output format
 
 Open the report with the triage header from
-[verification-protocol.md](references/verification-protocol.md), then the Step 8 coverage ledger.
+[verification-protocol.md](references/verification-protocol.md), then the Step 8 coverage ledger. The
+header carries the finding counts by severity and confidence together with every discard count the
+guards and the Step 7 checks produced.
 Group HIGH and MEDIUM confidence findings hierarchically: file, then category, then severity, ordered
 most severe first. Collect LOW confidence findings into the trailing `Appendix: LOW confidence`
 section, ordered most severe first.
@@ -494,5 +494,6 @@ Code Correctness Audit Compliance:
 - [ ] Findings ordered most severe first
 - [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops and commas as clause separators
+- [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word fits
 - [ ] No file modifications made during the audit
 ```

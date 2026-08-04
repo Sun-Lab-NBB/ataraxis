@@ -484,5 +484,6 @@ Firmware Module:
 - [ ] Instantiation order: Communication -> Module(s) -> Kernel
 - [ ] module_type and module_id match PC-side ModuleInterface values (verify via /communication:microcontroller-interface)
 - [ ] Command codes, event codes, and parameter struct layout match PC-side counterpart
+- [ ] Doxygen and inline comments fill to 120 characters before wrapping, under the wrap-width rule /cpp-style defines
 - [ ] Firmware compiles without warnings
 ```

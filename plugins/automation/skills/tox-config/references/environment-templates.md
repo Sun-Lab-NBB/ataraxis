@@ -49,11 +49,9 @@ project itself is the root source of truth for this pipeline.
 ### `[tox]` section
 
 ```ini
-# This file provides configurations for tox-based project development and management automation
-# tasks.
+# This file provides configurations for tox-based project development and management automation tasks.
 
-# Base tox configurations. Note, the 'envlist' runs in the listed order whenever 'tox' is used
-# without an -e specifier.
+# Base tox configurations. Note, the 'envlist' runs in the listed order whenever 'tox' is used without an -e specifier.
 [tox]
 requires =
     tox>=4,<5
@@ -96,8 +94,8 @@ alongside `COVERAGE_FILE`.
 # exclusion list.
 [testenv:lint]
 description =
-    Runs static code formatting, style, and typing checkers. Follows the configuration defined
-    in the pyproject.toml file.
+    Runs static code formatting, style, and typing checkers. Follows the configuration defined in the pyproject.toml
+    file.
 dependency_groups = dev
 basepython = py312
 commands =
@@ -175,14 +173,13 @@ check.
 [testenv:{py312, py313, py314}-test]
 package = wheel
 description =
-    Runs unit and integration tests for each of the python versions listed in the task name and
-    aggregates test coverage data. Uses 'loadgroup' balancing and all logical cores to optimize
-    task runtime speed.
+    Runs unit and integration tests for each of the python versions listed in the task name and aggregates test
+    coverage data. Uses 'loadgroup' balancing and all logical cores to optimize task runtime speed.
 dependency_groups = dev
 setenv =
     COVERAGE_FILE = reports{/}.coverage.{envname}
-    # Re-declare here only if the project needs prereleases during testing. This setenv block
-    # fully replaces the base [testenv] setenv (tox does not merge).
+    # Re-declare here only if the project needs prereleases during testing. This setenv block fully replaces the base
+    # [testenv] setenv (tox does not merge).
     # UV_PRERELEASE = allow
 commands =
     pytest --import-mode=importlib --cov={package_name} --cov-config=pyproject.toml \
@@ -202,19 +199,17 @@ commands =
 ### coverage environment
 
 ```ini
-# Note: the 'xml' and 'html' commands run with '--fail-under=0' so that both reports are always
-# written to the 'reports' directory. The trailing 'report' command applies the 100% coverage gate
-# configured in the pyproject.toml file and prints the statements that remain uncovered. Every
-# reporting command also combines any data files it finds, so all of them run with
-# '--keep-combined' to preserve the per-version data files consumed by the 'combine' command.
-# Without the flag, the first reporting command deletes those files and the task only succeeds
-# once per test run.
+# Note: the 'xml' and 'html' commands run with '--fail-under=0' so that both reports are always written to the 'reports'
+# directory. The trailing 'report' command applies the 100% coverage gate configured in the pyproject.toml file and
+# prints the statements that remain uncovered. Every reporting command also combines any data files it finds, so all of
+# them run with '--keep-combined' to preserve the per-version data files consumed by the 'combine' command. Without the
+# flag, the first reporting command deletes those files and the task only succeeds once per test run.
 [testenv:coverage]
 skip_install = true
 description =
-    Combines test-coverage data from multiple test runs (for different python versions) into a
-    single html file and verifies that the combined data covers 100% of the measured statements.
-    The file can be viewed by loading the 'reports/coverage_html/index.html'.
+    Combines test-coverage data from multiple test runs (for different python versions) into a single html file and
+    verifies that the combined data covers 100% of the measured statements. The file can be viewed by loading the
+    'reports/coverage_html/index.html'.
 deps = ataraxis-automation=={version}
 setenv = COVERAGE_FILE = reports/.coverage
 depends = {py312, py313, py314}-test
@@ -252,8 +247,8 @@ these tools itself.
 ```ini
 [testenv:docs]
 description =
-    Builds the API documentation from source code docstrings using Sphinx. The result can be
-    viewed by loading 'docs/build/html/index.html'.
+    Builds the API documentation from source code docstrings using Sphinx. The result can be viewed by loading
+    'docs/build/html/index.html'.
 deps = ataraxis-automation=={version}
 depends = uninstall
 commands =
@@ -265,8 +260,8 @@ commands =
 ```ini
 [testenv:docs]
 description =
-    Builds the API documentation from source code docstrings using Doxygen, Breathe and Sphinx.
-    The result can be viewed by loading 'docs/build/html/index.html'.
+    Builds the API documentation from source code docstrings using Doxygen, Breathe and Sphinx. The result can be
+    viewed by loading 'docs/build/html/index.html'.
 deps = ataraxis-automation=={version}
 depends = uninstall
 allowlist_externals = doxygen
@@ -313,8 +308,8 @@ commands =
 ### upload environment
 
 ```ini
-# Note: use 'tox -e upload -- --replace-token' command to replace the token stored in the shared
-# .pypirc file before uploading the project.
+# Note: use 'tox -e upload -- --replace-token' command to replace the token stored in the shared .pypirc file before
+# uploading the project.
 [testenv:upload]
 skip_install = true
 description =
@@ -331,14 +326,14 @@ resolved with `platformdirs`, so every project managed on the host reuses the sa
 ### deploy environment
 
 ```ini
-# Note: use 'tox -e deploy -- --replace-token' command to replace the token stored in the shared
-# .netlifyrc file, and 'tox -e deploy -- --replace-site' to replace the site identifier stored in
-# the project's .netlify-site file, before deploying the documentation.
+# Note: use 'tox -e deploy -- --replace-token' command to replace the token stored in the shared .netlifyrc file, and
+# 'tox -e deploy -- --replace-site' to replace the site identifier stored in the project's .netlify-site file, before
+# deploying the documentation.
 [testenv:deploy]
 skip_install = true
 description =
-    Uploads the API documentation built by the 'docs' task to the project's Netlify site. Build the
-    documentation with 'tox -e docs' before calling this task.
+    Uploads the API documentation built by the 'docs' task to the project's Netlify site. Build the documentation with
+    'tox -e docs' before calling this task.
 deps = ataraxis-automation=={version}
 commands =
     automation-cli acquire-netlify-token {posargs:}
@@ -403,8 +398,8 @@ commands =
 skip_install = true
 deps = ataraxis-automation=={version}
 description =
-    Creates the project's development mamba environment using the requested python version and
-    installs runtime and development project dependencies extracted from the pyproject.toml file.
+    Creates the project's development mamba environment using the requested python version and installs runtime and
+    development project dependencies extracted from the pyproject.toml file.
 commands =
     automation-cli create-environment --environment-name {env_abbr}_dev --python-version 3.14 {posargs:}
 ```
@@ -433,8 +428,7 @@ commands =
 skip_install = true
 deps = ataraxis-automation=={version}
 description =
-    Provisions the project's development mamba environment by removing and (re)creating the
-    environment.
+    Provisions the project's development mamba environment by removing and (re)creating the environment.
 commands =
     automation-cli provision-environment --environment-name {env_abbr}_dev --python-version 3.14 {posargs:}
 ```
@@ -447,8 +441,7 @@ skip_install = true
 deps = ataraxis-automation=={version}
 depends = uninstall
 description =
-    Exports the project's development mamba environment to the 'envs' project directory as a
-    .yml file.
+    Exports the project's development mamba environment to the 'envs' project directory as a .yml file.
 commands =
     automation-cli export-environment --environment-name {env_abbr}_dev
 ```
@@ -460,8 +453,8 @@ commands =
 skip_install = true
 deps = ataraxis-automation=={version}
 description =
-    Creates or updates the project's development mamba environment using the .yml file stored in
-    the 'envs' project directory.
+    Creates or updates the project's development mamba environment using the .yml file stored in the 'envs' project
+    directory.
 commands =
     automation-cli import-environment --environment-name {env_abbr}_dev
 ```
@@ -474,8 +467,7 @@ Template for pure C++ PlatformIO projects (libraries and firmware). These projec
 `docs` environment because they are not Python packages.
 
 ```ini
-# This file provides configurations for tox-based project development and management automation
-# tasks.
+# This file provides configurations for tox-based project development and management automation tasks.
 
 # Base tox configurations.
 [tox]
@@ -487,8 +479,8 @@ envlist = docs
 [testenv:docs]
 skip_install = true
 description =
-    Builds the API documentation from source code docstrings using Doxygen, Breathe and Sphinx.
-    The result can be viewed by loading 'docs/build/html/index.html'.
+    Builds the API documentation from source code docstrings using Doxygen, Breathe and Sphinx. The result can be
+    viewed by loading 'docs/build/html/index.html'.
 deps = ataraxis-automation=={version}
 allowlist_externals = doxygen
 commands =
@@ -539,15 +531,15 @@ full comment and description conventions.
 # Avoid - restates the name, then narrates the commands
 [testenv:lint]
 description =
-    The lint environment. This environment runs the linters. It first runs ruff to check formatting
-    and style, then runs mypy to check types, and it is an important part of keeping the codebase
-    consistent and maintainable for all contributors.
+    The lint environment. This environment runs the linters. It first runs ruff to check formatting and style, then
+    runs mypy to check types, and it is an important part of keeping the codebase consistent and maintainable for all
+    contributors.
 
 # Good
 [testenv:lint]
 description =
-    Runs static code formatting, style, and typing checkers. Follows the configuration defined
-    in the pyproject.toml file.
+    Runs static code formatting, style, and typing checkers. Follows the configuration defined in the pyproject.toml
+    file.
 ```
 
 ---

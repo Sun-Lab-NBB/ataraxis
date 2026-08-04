@@ -219,6 +219,14 @@ dependencies directly to downstream project pyproject.toml files.
 Read [rst-templates.md](references/rst-templates.md) for the welcome.rst title, paragraph, and
 link-target rules.
 
+### Wrap width
+
+Break a hand-written RST line only where it would otherwise pass 120 characters, and fill each line to that limit
+before breaking. Prose wrapped at a narrower width reads as a rigid block and re-wraps badly at any other viewport.
+The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120 is
+re-flowed. A line ending early because the sentence or the paragraph ends, or because it holds a title underline, a
+directive, an option field, or a link target, is already correct.
+
 ### Prose punctuation and positive description
 
 Documentation prose in `welcome.rst`, `index.rst`, and other RST source follows the framework prose
@@ -362,6 +370,8 @@ every one against the files you wrote.
       syntax exempt)
 - [ ] Prose states what the component does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Sentences in hand-written RST prose stay under 40 words
+- [ ] Hand-written RST lines under 120 characters, with wrapped prose filled to that limit rather than broken at a
+      narrower width
 - [ ] Hand-written RST prose free of typos and grammar errors
 - [ ] No hand-written RST describing a class, function, parameter, or return value
 - [ ] Poor API prose corrected in the source docstring rather than worked around in RST

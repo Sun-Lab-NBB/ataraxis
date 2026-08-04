@@ -74,6 +74,8 @@ The summary is a concise bulleted list of the most impactful changes the branch 
 - One bullet per theme.
 - Prefix each bullet with `-- `.
 - Each bullet starts with a past tense verb (see the verb set in `/commit`) and ends with a period.
+- Each bullet occupies one line, under the line-break rule `/commit` defines. GitHub soft-wraps the body, so a
+  hand-wrapped bullet renders as a rigid block.
 - Order bullets from most to least impactful.
 - Summarize, and do NOT reproduce every commit. Bundle minor changes into a single bullet
   (e.g., `-- Fixed various documentation and code style inconsistencies.`).
@@ -142,6 +144,7 @@ Do NOT create or open the pull request. Present the drafted summary for the user
 ```text
 Pull Request Compliance:
 - [ ] Summary bullets prefixed with `-- `, each ending with a period
+- [ ] Each bullet occupies one line, with no hand-wrapped continuation
 - [ ] Each bullet starts with a past tense verb
 - [ ] Bullets ordered from most to least impactful
 - [ ] Drafted a title as well when the active branch carries more than one commit

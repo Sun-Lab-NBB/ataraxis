@@ -15,11 +15,10 @@ Use `/** ... */` blocks for multi-line documentation and `///` for single-line m
 
 ```cpp
 /**
- * @brief Wraps an Encoder class instance and provides access to its pulse counter to monitor the
- * direction and magnitude of the rotation measured by the managed quadrature encoder.
+ * @brief Wraps an Encoder class instance and provides access to its pulse counter to monitor the direction and
+ * magnitude of the rotation measured by the managed quadrature encoder.
  *
- * @warning Both Pin A and Pin B must be hardware interrupt pins to achieve the maximum encoder
- * state readout resolution.
+ * @warning Both Pin A and Pin B must be hardware interrupt pins to achieve the maximum encoder readout resolution.
  *
  * @tparam kPinA the digital interrupt pin connected to the 'A' channel of the quadrature encoder.
  * @tparam kPinB the digital interrupt pin connected to the 'B' channel of the quadrature encoder.
@@ -82,6 +81,13 @@ a reader already expects needs no such note.
 **Sentence length**: Sentences over 40 words are difficult for humans to parse and must be
 broken into smaller sentences at natural clause boundaries. Long sentences in `@brief`,
 `@details`, and inline comments are a strong signal of over-explanation.
+
+**Wrap width**: Break a comment or Doxygen line only where it would otherwise pass 120 characters, and fill each line
+to that limit before breaking, counting the leading `///` or ` * ` prefix toward the column. Prose wrapped at a
+narrower width reads as a rigid block, re-wraps badly at any other viewport, and advertises a limit the project does
+not set. The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under
+120 is re-flowed. A line ending early because the sentence or the paragraph ends, or because it starts a new Doxygen
+tag, is already correct.
 
 **Typo-free and grammatical**: Every comment, Doxygen block, and inline annotation must be free
 of typos and grammatical errors.
@@ -152,9 +158,9 @@ them. The "Avoid" block is a realistic over-documentation pattern rather than an
 /**
  * @brief Resets the overflow tracker.
  *
- * This method resets the overflow tracker to zero. It is called by RunActiveCommand() at the end
- * of every reporting cycle, and the value it clears is later read by the PC-side interface when it
- * reconstructs the traveled distance. The method takes no parameters and returns nothing.
+ * This method resets the overflow tracker to zero. It is called by RunActiveCommand() at the end of every reporting
+ * cycle, and the value it clears is later read by the PC-side interface when it reconstructs the traveled distance.
+ * The method takes no parameters and returns nothing.
  */
 void ResetOverflow();
 
@@ -193,8 +199,8 @@ Omit tags that do not apply. Never reorder tags within a documentation block.
 /**
  * @brief Sends the specified data to the connected PC via the serial port.
  *
- * Packages the data into a valid transport layer packet by prepending the preamble, encoding
- * the payload using COBS, and appending the CRC checksum.
+ * Packages the data into a valid transport layer packet by prepending the preamble, encoding the payload using COBS,
+ * and appending the CRC checksum.
  *
  * @warning This method is NOT thread-safe. Do not call from interrupt handlers.
  *
@@ -217,12 +223,11 @@ Every `.h`, `.hpp`, and `.cpp` file must begin with a file-level Doxygen comment
 /**
  * @file
  *
- * @brief Provides the EncoderModule class that monitors and records the data produced by a
- * quadrature encoder.
+ * @brief Provides the EncoderModule class that monitors and records the data produced by a quadrature encoder.
  *
- * @warning This file is written in a way that is @b NOT compatible with any other library or
- * class that uses AttachInterrupt(). Disable the 'ENCODER_USE_INTERRUPTS' macro defined at the
- * top of the file to make this file compatible with other interrupt libraries.
+ * @warning This file is written in a way that is @b NOT compatible with any other library or class that uses
+ * AttachInterrupt(). Disable the 'ENCODER_USE_INTERRUPTS' macro defined at the top of the file to make this file
+ * compatible with other interrupt libraries.
  */
 ```
 
@@ -246,13 +251,11 @@ classes and `@warning` / `@note` tags for important usage constraints:
 
 ```cpp
 /**
- * @brief Controls the electromagnetic brake by sending digital or analog Pulse-Width-Modulated
- * (PWM) currents through the brake.
+ * @brief Controls the electromagnetic brake by sending digital or analog Pulse-Width-Modulated (PWM) currents through
+ * the brake.
  *
- * @tparam kPin the analog pin connected to the logic terminal of the managed brake's FET-gated
- * power relay.
- * @tparam kNormallyEngaged determines whether the brake is engaged (active) or disengaged
- * (inactive) when unpowered.
+ * @tparam kPin the analog pin connected to the logic terminal of the managed brake's FET-gated power relay.
+ * @tparam kNormallyEngaged determines whether the brake is engaged (active) or disengaged (inactive) when unpowered.
  * @tparam kStartEngaged determines the initial state of the brake during class initialization.
  */
 template <const uint8_t kPin, const bool kNormallyEngaged, const bool kStartEngaged = true>
@@ -285,8 +288,7 @@ For methods with parameters that need documentation, use `/** ... */` blocks:
  * @brief Reads the specified number of bytes from the reception buffer into the provided object.
  *
  * @tparam ReadObject the type of the object to overwrite with the received data.
- * @param object the reference to the object whose memory will be overwritten with the received
- * bytes.
+ * @param object the reference to the object whose memory will be overwritten with the received bytes.
  * @returns true if the requested number of bytes was successfully read, false otherwise.
  */
 template <typename ReadObject>
@@ -317,8 +319,8 @@ static constexpr uint16_t get_transmission_buffer_size()
 uint8_t get_runtime_status() const
 
 // Avoid - multi-sentence accessor docs (move details to the class @brief instead)
-/// Returns the runtime status of the most recently called method. The status is updated
-/// after each call to SendData or ReceiveData, and tracks whether the operation succeeded.
+/// Returns the runtime status of the most recently called method. The status is updated after each call to SendData
+/// or ReceiveData, and tracks whether the operation succeeded.
 [[nodiscard]]
 uint8_t get_runtime_status() const
 ```
@@ -372,10 +374,9 @@ Use flowing prose in documentation descriptions rather than bullet lists:
 /**
  * @brief Packages the contents of the transmission buffer and sends them to the connected PC.
  *
- * The method prepends the preamble byte to mark the start of a new packet, encodes the payload
- * using COBS to eliminate delimiter bytes, appends the CRC checksum for error detection, and
- * transmits the complete packet through the serial port. The transmission buffer is reset after
- * each successful send operation.
+ * The method prepends the preamble byte to mark the start of a new packet, encodes the payload using COBS to
+ * eliminate delimiter bytes, appends the CRC checksum for error detection, and transmits the complete packet through
+ * the serial port. The transmission buffer is reset after each successful send operation.
  */
 
 // Avoid - bullet lists fragment the explanation
@@ -496,8 +497,8 @@ Exception: `#define` is required for Arduino library configuration macros (e.g.,
 - Use comments to explain non-obvious logic or provide hardware-specific context
 
 ```cpp
-// Resets the overflow tracker. The overflow accumulates insignificant motion between reporting
-// cycles to filter sensor noise while preserving real displacement.
+// Resets the overflow tracker. The overflow accumulates insignificant motion between reporting cycles to filter
+// sensor noise while preserving real displacement.
 _overflow = 0;
 ```
 

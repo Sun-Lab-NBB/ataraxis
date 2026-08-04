@@ -172,6 +172,12 @@ The method will return a tuple of timestamps.
 **Sentence length**: Sentences over 40 words are difficult for humans to parse and must be broken
 into smaller sentences at natural clause boundaries.
 
+**Wrap width**: Break a README line only where it would otherwise pass 120 characters, and fill each line to that
+limit before breaking. Prose wrapped at a narrower width reads as a rigid block and re-wraps badly at any other
+viewport. The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit
+under 120 is re-flowed. A line ending early because the sentence or the paragraph ends, or because it holds a table
+row, a badge, a heading, or a code span, is already correct.
+
 **Typo-free and grammatical**: Every section of the README must be free of typos and grammatical
 errors, with the `Acknowledgments` spelling the one named exception the rule cannot settle on its
 own, because both spellings are correct English.
@@ -230,18 +236,18 @@ reader to get right, which is independent of how much code implements it.
 <!-- Avoid -->
 ## Detailed Description
 
-This section provides a detailed description of the library. This powerful and flexible library
-provides a comprehensive and easy-to-use solution for acquiring video data. Video acquisition is an
-important part of any behavioral experiment, and getting it right is difficult. The library exposes
-a VideoSystem class, which accepts a camera index, a frame rate, a resolution tuple, an output
-directory, and a codec name, and which provides the start(), stop(), and snapshot() methods.
+This section provides a detailed description of the library. This powerful and flexible library provides a
+comprehensive and easy-to-use solution for acquiring video data. Video acquisition is an important part of any
+behavioral experiment, and getting it right is difficult. The library exposes a VideoSystem class, which accepts a
+camera index, a frame rate, a resolution tuple, an output directory, and a codec name, and which provides the
+start(), stop(), and snapshot() methods.
 
 <!-- Good -->
 ## Detailed Description
 
-This library acquires, encodes, and saves video data from multiple cameras with hardware-accurate
-frame timestamps. It exposes the VideoSystem class as its entry point. See the
-[API documentation](https://example.readthedocs.io/) for the full interface.
+This library acquires, encodes, and saves video data from multiple cameras with hardware-accurate frame timestamps.
+It exposes the VideoSystem class as its entry point. See the [API documentation](https://example.readthedocs.io/)
+for the full interface.
 ```
 
 ---
@@ -379,6 +385,8 @@ Style:
 - [ ] No GitHub-specific features (alerts, details/summary, picture, task lists)
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)
+- [ ] README lines under 120 characters, with wrapped prose filled to that limit rather than broken at a narrower
+      width
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] README prose free of typos and grammar errors
 

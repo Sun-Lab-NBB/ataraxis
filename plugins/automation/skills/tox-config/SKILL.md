@@ -119,7 +119,8 @@ envlist =
   sequentially, with `uninstall` first to ensure a clean state and `install` last after all checks
   pass.
 - Environment management environments (`create`, `remove`, `provision`, `import`) are defined
-  in the file but NOT included in `envlist` because they are invoked manually.
+  in the file but NOT included in `envlist` because they are invoked manually, while `install`,
+  `uninstall`, and `export` are pipeline members and do appear in it.
 - Section headers are written without a space after the colon, as `[testenv:lint]`, which tox
   resolves identically to the spaced form, so rewrite the spaced form when editing a file that
   carries it.
@@ -269,8 +270,6 @@ the project's own installed tools instead.
   invocation time (e.g., `--prerelease` to enable prerelease package installation).
 - `export` has `depends = uninstall`.
 - `install` has `depends` listing the full pipeline (lint, stubs, test, coverage, docs, export).
-- These environments are defined in the file but NOT included in `envlist` (except `install`,
-  `uninstall`, and `export`).
 
 ---
 
@@ -304,14 +303,15 @@ carries.
 
 Every environment MUST have a `description` field, and that field opens with a bare third-person
 imperative verb naming what the environment does when it runs ("Runs...", "Combines...", "Builds..."),
-with no environment-name prefix and no "This environment..." opener. Use multi-line format for
-descriptions longer than 120 characters:
+with no environment-name prefix and no "This environment..." opener. A description whose
+`description = <text>` line would pass 120 characters moves to the indented form below, where each line fills to 120
+before it breaks:
 
 ```ini
 [testenv:lint]
 description =
-    Runs static code formatting, style, and typing checkers. Follows the configuration defined
-    in the pyproject.toml file.
+    Runs static code formatting, style, and typing checkers. Follows the configuration defined in the pyproject.toml
+    file.
 ```
 
 ### Inline comments
@@ -345,6 +345,11 @@ Sentences over 40 words are difficult to parse and MUST be broken into smaller s
 clause boundaries. Every comment and `description` field must be free of typos and grammatical errors.
 Every line stays under the **120 character limit**, matching the `line-length` the project sets for
 its Python code, with a single unbreakable value such as a URL or a requirement string exempt.
+
+Break a comment or `description` line only where it would otherwise pass 120 characters, and fill each line to that
+limit before breaking. Prose wrapped at a narrower width reads as a rigid block and advertises a limit the file does
+not set. The test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under
+120 is re-flowed. A line ending early because the sentence or the comment block ends is already correct.
 
 ### Prose punctuation and positive description
 
@@ -480,6 +485,8 @@ Formatting:
 - [ ] Sentences in comments and description fields stay under 40 words
 - [ ] Comments and description fields free of typos and grammar errors
 - [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings) exempt
+- [ ] Comments and descriptions fill each line to 120 before breaking, with no line ending before column 100 while
+      its next word would still fit
 - [ ] Block comments above [tox] section
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)
