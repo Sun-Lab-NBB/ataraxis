@@ -79,6 +79,12 @@ traced to the expression that bounds it.
 | PER_ELEMENT      | Once per array element or per innermost loop iteration                       |
 | PER_FRAME        | A Unity `Update`, `FixedUpdate`, `LateUpdate`, or coroutine, and its callees |
 
+A **public API entry point** is a symbol the distribution's top-level `__init__.py` exports through `__all__`, or the
+equivalent published surface in C++ and C#. Its callers live in repositories this audit cannot read, so no multiplicity
+is traceable for it and none is assumed. Mark it PUBLIC_API and judge it on **per-call cost**, which is the work one
+call performs and how that work scales with the input it receives. A library exists to be called, so asking whether a
+call can be made cheaper is always in scope, and how often a downstream project calls it never becomes evidence.
+
 **Evidence class** records whether inspection settles the payoff.
 
 | Evidence class      | Meaning                                                                 |
@@ -373,7 +379,9 @@ list and a count, written as `` `processor.py:88, 141, 203` · 3 occurrences ``.
 You MUST adhere to the following discipline during every audit.
 
 - Establish heat from an actual call site with a `<path>:<line>`. A function whose call sites resolve nowhere in the
-  package is UNKNOWN and stays out of the report.
+  package and which the top-level `__init__.py` does not export is UNKNOWN and stays out of the report.
+- Trace every public API entry point on per-call cost, and never substitute a guess about downstream call frequency for
+  the multiplicity such an entry point does not have.
 - Anchor every finding to a verbatim source quote and to explicit cost arithmetic.
 - Cite the authority for a rule by skill name and reference file name, together with a verbatim quote of the rule.
 - Report a construct that `/audit-style` also sees only with its runtime consequence established and cited.

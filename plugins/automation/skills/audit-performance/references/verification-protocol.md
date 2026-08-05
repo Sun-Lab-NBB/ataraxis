@@ -32,6 +32,10 @@ character for character.
 the loop header or the call site the finding attributes the heat to, and that its bound expression is the one the
 finding quotes. A multiplicity whose source line holds something else is an unproven heat claim wearing a citation.
 
+A PUBLIC_API finding cites the `__all__` entry that exports the symbol in place of a call site, so confirm that entry
+appears in the distribution's top-level `__init__.py` and that the finding rests on per-call cost. A PUBLIC_API finding
+that asserts a downstream call frequency fails this check, since Guard 2 leaves that assertion disqualifying.
+
 Delete the finding when either check fails. Repairing the citation is FORBIDDEN here. A citation that drifted is
 evidence that the finding was assembled from recollection rather than from the file, which makes the cost arithmetic
 resting on it unreliable for the same reason. A deleted finding is free to be re-derived from scratch in a later audit.
@@ -53,13 +57,16 @@ Give the sub-agent this task:
 
 ```text
 Refute this audit finding by reading the cited source. Return REFUTED when any of these holds:
-- The cited call sites do not establish the claimed multiplicity, or resolve only inside tests
+- The cited call sites do not establish the claimed multiplicity, or resolve only inside tests, unless the finding is
+  marked PUBLIC_API, which rests on the per-call cost of an exported symbol rather than on a call site
+- The finding is marked PUBLIC_API and its cost arithmetic depends on how often a downstream project calls the symbol
 - The loop bound is a literal, an enum length, or a configuration value in the low tens
 - The cost arithmetic does not follow from the shapes, dtypes, and trip counts in the source
 - The construct already carries the form the finding proposes, or a guarded equivalent of it
 - The proposed fix would change the result the current code produces
 Return CONFIRMED only after tracing the multiplicity to a call site yourself and re-deriving the cost
-arithmetic. Answer REFUTED whenever you are uncertain.
+arithmetic. For a PUBLIC_API finding, trace the export instead and re-derive the cost of a single call.
+Answer REFUTED whenever you are uncertain.
 ```
 
 Discard every refuted finding. Record the counts of findings put through this check, confirmed, and refuted.

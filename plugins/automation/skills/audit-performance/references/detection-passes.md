@@ -53,6 +53,11 @@ message-dispatch hops that establish whether a function runs per frame or per re
 function whose call sites resolve nowhere inside the package is marked UNKNOWN. A function whose only call sites live in
 `tests/` is COLD.
 
+Read the distribution's top-level `__init__.py` `__all__` before assigning either mark, and mark every symbol it exports
+PUBLIC_API instead. Such a symbol is reachable from repositories this audit cannot read, so record its per-call cost in
+the multiplicity table in place of a frequency: the work one call performs, and the input dimension that work scales
+with. Carry that row forward like any other, since the later passes consume it to size a saving one call receives.
+
 Treat these regions as COLD by default: module-level code, constructors, `SetupModule()`, calibration routines, CLI
 entry points, MCP tool wrappers, viewer and GUI code, Unity editor scripts, and `tests/`.
 
