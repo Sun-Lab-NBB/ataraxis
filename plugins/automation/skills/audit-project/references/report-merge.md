@@ -171,8 +171,9 @@ audit resolved that narrowing against.
 
 ## Report ordering
 
-Group by AUDIT, then preserve each audit's own output format unchanged inside its section, including its internal
-ordering and its trailing `Appendix: LOW confidence` section.
+Group by AUDIT, then preserve each audit's own internal ordering inside its section, including its trailing
+`Appendix: LOW confidence` section. Every finding keeps the shared shape its own audit defines, and the four audits use
+distinct ID letters, so identifiers stay unique across the merged report.
 
 Order the audit sections by the FIX order rather than the run order, because the report exists to be acted on:
 
@@ -181,12 +182,9 @@ Order the audit sections by the FIX order rather than the run order, because the
 3. `/audit-performance`
 4. `/audit-style`
 
-In change mode, place a `Blocking findings` section ahead of all four, listing every blocking finding by file with a
-pointer to its full entry below. That section is what the fix pass works from, and grouping it by file rather than by
-audit means each file is opened once.
+In change mode, place a `Blocking findings` section ahead of all four, listing every blocking finding by file with its
+identifier, which points at its full entry below. That section is what the fix pass works from, and grouping it by file
+rather than by audit means each file is opened once.
 
-Every finding that survived a collision rule carries one extra line:
-
-```text
-Adjudicated: <audit that yielded> yielded under <collision rule name>
-```
+A finding that survived a collision rule closes its Wrong bullet by naming the audit that yielded and the rule that
+decided it, written as `Adjudicated: <audit that yielded> yielded under <collision rule name>`.

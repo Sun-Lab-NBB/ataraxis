@@ -25,7 +25,7 @@ Runs against EVERY surviving finding, with no sampling.
 
 For each finding, confirm two things by opening the files it names.
 
-**The quote.** Open the cited `<path>` at the cited line range and confirm the Current state quote appears there
+**The quote.** Open the cited `<path>` at the cited line range and confirm the quoted current state appears there
 character for character.
 
 **The multiplicity source.** Open the `source: <path>:<line>` the Multiplicity line names and confirm that line holds
@@ -107,10 +107,10 @@ wants only the settled findings knows where to stop.
 
 ## The report's own prose
 
-Hold the report's own prose to the documentation-quality rules this family enforces. Keep every sentence in a `Suggested
-fix`, `Required state`, `Result`, `Cost`, `Trigger`, or `Approval` field under 40 words. Separate clauses with full
-stops and commas rather than semicolons or em-dashes, and state what the fix does rather than what the code fails to do.
-Verbatim quotes and cost arithmetic are exempt, because they are copied rather than written.
+Hold the report's own prose to the documentation-quality rules this family enforces. Keep every sentence in a Wrong,
+Fix, Impact, or Choice bullet under 40 words. Separate clauses with full stops and commas rather than semicolons or
+em-dashes, and state what the fix does rather than what the code fails to do. Verbatim quotes and cost arithmetic are
+exempt, because they are copied rather than written.
 
 Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
 line ending before column 100 while its next word would still fit is re-flowed. A line ending early because the sentence

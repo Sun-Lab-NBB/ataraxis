@@ -256,12 +256,16 @@ the decision passes to the user.
 Open with the merged triage header from [report-merge.md](references/report-merge.md), then the combined coverage
 ledger, then the findings. Both layouts are given there verbatim, and this skill emits them unchanged.
 
-Group the findings by AUDIT, then follow each audit's own output format unchanged inside its section, including its
-ordering and its trailing LOW confidence appendix. A reader who wants one audit's report finds it whole rather than
-interleaved with three others.
+Group the findings by AUDIT, then follow each audit's own ordering inside its section, including its trailing LOW
+confidence appendix. A reader who wants one audit's report finds it whole rather than interleaved with three others.
 
-Findings that survived adjudication against another audit carry an `Adjudicated:` line naming the audit that yielded and
-the rule that decided it.
+Every finding keeps the shared shape its own audit defines, which is a stable ID, a rank, a location line, and the
+Wrong, Fix, and Impact bullets, with a Choice bullet where the audit cannot settle the question. The four audits use
+distinct ID letters, `C` for correctness, `P` for performance, `S` for style, and `F` for facts, so identifiers stay
+unique across the merged report and a reader answers with one identifier rather than with a file and a line.
+
+A finding that survived adjudication against another audit names the audit that yielded and the rule that decided it at
+the end of its Wrong bullet.
 
 ---
 

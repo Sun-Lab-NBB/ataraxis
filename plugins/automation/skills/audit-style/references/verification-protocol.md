@@ -70,7 +70,7 @@ of these holds:
 - The construct is a different kind than the finding assumed, so a different rule governs it
 - The construct sits in a generated block, a vendored tree, or a test file the configuration relaxes
 - For a CONFLICT, the two cited rules can both be satisfied at once
-- For a symbol usage finding, a consumer exists that the stated Consumer set missed. Search the
+- For a symbol usage finding, a consumer exists that the stated consumer evidence missed. Search the
   repository yourself rather than trusting the finding's search, and treat a runtime registration, an
   interface the symbol implements, and an entry in the top-level `__all__` as consumers
 Return CONFIRMED only after reading the full rule including its exemptions and confirming the cited
@@ -161,9 +161,9 @@ confidence level, and so a reader who wants only the settled findings knows wher
 ## Report prose
 
 The report's own prose obeys the documentation-quality rules this audit enforces on everyone else. Keep every sentence
-in a `Required state`, `Suggested fix`, `Approval`, or `Consumer set` field under 40 words. Separate clauses with full
-stops and commas rather than with semicolons or em-dashes, and state what the fix does rather than what the code fails
-to do. Verbatim quotes, tool rule codes, and cost arithmetic are exempt, because they are copied rather than written.
+in a Wrong, Fix, Impact, or Choice bullet under 40 words. Separate clauses with full stops and commas rather than with
+semicolons or em-dashes, and state what the fix does rather than what the code fails to do. Verbatim quotes, tool rule
+codes, and cost arithmetic are exempt, because they are copied rather than written.
 
 Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
 line ending before column 100 while its next word would still fit is re-flowed. A line ending early because the sentence

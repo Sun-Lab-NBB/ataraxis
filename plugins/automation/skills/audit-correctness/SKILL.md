@@ -355,26 +355,38 @@ count the guards and the Step 7 checks produced. Group HIGH and MEDIUM confidenc
 category, then severity, ordered most severe first. Collect LOW confidence findings into the trailing `Appendix: LOW
 confidence` section, ordered most severe first.
 
-Each finding uses this structure:
+Every finding uses the shape below, shared by all four audits in this family so one reading habit serves them all.
 
 ```text
-[Category]: <category name from the catalog>
-[Severity]: <CRITICAL | HIGH | MEDIUM | LOW>
-[Confidence]: <HIGH | MEDIUM | LOW>
-Location: <path>:<line>-<line>
-Coverage tier: <T0 | T1 | T2 | T3 | COVERED> or N/A
-Contract: "<verbatim quote of the promise>" [NAME | SIG | ANN | DOC | ENF] <path>:<line>
-Implementation: "<verbatim quote of the code that breaks it>"
-Trigger: <executable expression, numbered call sequence, or line-numbered interleaving>
-Result: <concrete wrong value, exception, corruption, or hang>
-Suggested fix: <concrete code change, described rather than applied>
-Approval: <REQUIRED when the fix breaks the public API or alters public behavior, naming what breaks>
+### <ID> · <CRITICAL | HIGH | MEDIUM | LOW> · <one-line statement of the defect>
+
+`<path>:<line>` · <category from the catalog> · <HIGH | MEDIUM | LOW> confidence · <T0 | T1 | T2 | T3 | COVERED>
+
+- **Wrong:** <the defect, carrying every quote and citation the evidence floor requires>
+- **Fix:** <the concrete change, described rather than applied>
+- **Impact:** <what the change alters for callers and downstream, or "None" when nothing observable changes>
+- **Choice:** <the options, one clause each, closing with a recommendation>
 ```
 
-When one root cause repeats across several sites, collapse to a single finding with a count and representative line
-citations. For a rung 5 AMBIGUOUS finding, add a `Resolution: AMBIGUOUS` line and state both candidate fixes side by
-side. For a finding with no documented contract, set the Contract line to the implied promise and tag its source NAME or
-SIG.
+**ID** is a short stable handle, `C1`, `C2`, and so on, numbered in report order, so a reader answers with the
+identifier rather than by restating the finding.
+
+**Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the contract quoted verbatim
+with its own `<path>:<line>` and source tag, the implementing statements quoted verbatim with their own location, the
+trigger written as an executable expression, a numbered call sequence, or a line-numbered interleaving, and the concrete
+result that trigger produces. A table, a ledger, or an interleaving sits directly beneath the bullet.
+
+**Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
+behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
+
+**Choice** appears only where the audit cannot settle the question, covering a rung 5 AMBIGUOUS ownership result, and a
+defect whose fix has two defensible shapes with different consequences for callers. Each option gets one clause, and the
+bullet closes with a recommendation.
+
+When one root cause repeats across several sites, collapse it to a single finding whose location line carries the site
+list and a count, written as `` `module.py:47, 89, 112` · 3 occurrences ``. A rung 5 AMBIGUOUS finding states both
+candidate fixes as the two options of its Choice bullet and cross-references `/audit-facts`, so the same mismatch is
+filed once. A finding with no documented contract quotes the implied promise and tags its source NAME or SIG.
 
 ---
 
@@ -475,7 +487,11 @@ Code Correctness Audit Compliance:
 - [ ] No documentation-side findings appear (those belong to /audit-facts)
 - [ ] No missing test reported as a defect, and no coverage percentage reported as a defect
 - [ ] Findings ordered most severe first
-- [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
+- [ ] Fix bullets are concrete code changes, described rather than applied
+- [ ] Every finding uses the shared shape, carrying a stable ID, a rank, a location line, and the Wrong, Fix, and
+      Impact bullets
+- [ ] Every Impact bullet names what the fix alters for callers and downstream, or states None
+- [ ] A Choice bullet appears only where the audit cannot settle the question, and it closes with a recommendation
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops and commas as clause separators
 - [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would
       still fit

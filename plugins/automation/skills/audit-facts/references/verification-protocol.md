@@ -24,10 +24,10 @@ Runs against EVERY surviving finding, with no sampling.
 
 Each finding carries two citations, and both are checked.
 
-**The claim.** Open the documentation file at `Location in file` and confirm the Claim quote appears there character for
+**The claim.** Open the documentation file at the cited line and confirm the quoted claim appears there character for
 character.
 
-**The source reality.** Open the source file at `Location in source` and confirm the Source reality quote appears there
+**The source reality.** Open the source file at its cited line and confirm the quoted source reality appears there
 character for character. Where the finding gives a factual summary rather than a quote, confirm the cited line supports
 that summary by reading it.
 

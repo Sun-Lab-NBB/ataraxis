@@ -331,38 +331,40 @@ the guards and the Step 7 checks produced. Report STATIC findings first, ordered
 section from Step 6. Group HIGH and MEDIUM confidence findings hierarchically: file, then category, then impact. Collect
 LOW confidence findings into the trailing `Appendix: LOW confidence` section, ordered by impact.
 
-Each finding uses this structure:
+Every finding uses the shape below, shared by all four audits in this family so one reading habit serves them all.
 
 ```text
-[Category]: <category name from the catalog>
-[Impact]: <HIGH | MEDIUM | LOW>
-[Evidence]: <STATIC | MEASUREMENT-PENDING>
-[Confidence]: <HIGH | MEDIUM | LOW>
-Location: <path>:<line>-<line>
-Multiplicity: <class> (bound: <expression>, source: <path>:<line>)
-Current state: "<verbatim quote from the file>"
-Cost: <explicit arithmetic or complexity class, stated for current and proposed>
-Suggested fix: <concrete code change, described rather than applied>
-Approval: <REQUIRED when the fix breaks the public API or alters public behavior, naming what breaks>
+### <ID> · <HIGH | MEDIUM | LOW> · <one-line statement of the defect>
+
+`<path>:<line>` · <category from the catalog> · <HIGH | MEDIUM | LOW> confidence · <STATIC | MEASUREMENT-PENDING>
+
+- **Wrong:** <the defect, carrying every quote and citation the evidence floor requires>
+- **Fix:** <the concrete change, described rather than applied>
+- **Impact:** <what the change alters for callers and downstream, or "None" when nothing observable changes>
+- **Choice:** <the options, one clause each, closing with a recommendation>
 ```
 
-When the same category is triggered multiple times within a file by one root cause, collapse to a single finding with a
-count and representative line citations:
+**ID** is a short stable handle, `P1`, `P2`, and so on, numbered in report order, so a reader answers with the
+identifier rather than by restating the finding.
 
-```text
-[Category]: HOT_LOOP_ALLOCATION
-[Impact]: MEDIUM
-[Evidence]: STATIC
-[Confidence]: HIGH
-Location: processor.py:88, 141, 203 (3 occurrences)
-Multiplicity: PER_RECORD (bound: len(records), source: processor.py:84)
-Current state: "buffer = np.empty(shape=(window,), dtype=np.float32)"
-Cost: 3 allocations x 4 KB x 50000 records, 600 MB churned, versus one hoisted buffer
-Suggested fix: Hoist each buffer above its loop and pass it through the `out=` parameter.
-```
+**Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the execution multiplicity
+with its bounding expression and the `<path>:<line>` that sets it, the current state quoted verbatim, and the cost
+arithmetic given for the current and the proposed form. A table, a ledger, or an interleaving sits directly beneath the
+bullet.
 
-For a MEASUREMENT-PENDING finding, replace the Cost line with the benchmark that would settle it, stating what to vary,
-what to measure, and on what input.
+**Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
+behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
+
+**Choice** appears only where the audit cannot settle the question, covering a payoff only measurement settles, and a
+proposal that trades one resource for another, such as wall time against resident memory. Each option gets one clause,
+and the bullet closes with a recommendation.
+
+A MEASUREMENT-PENDING finding replaces the cost arithmetic with the benchmark that would settle it, stating what to
+vary, what to measure, and on what input. Once a benchmark runs, the finding carries the measured table beneath its
+Wrong bullet and its tag becomes STATIC.
+
+When one root cause repeats across several sites, collapse it to a single finding whose location line carries the site
+list and a count, written as `` `processor.py:88, 141, 203` · 3 occurrences ``.
 
 ---
 
@@ -468,7 +470,11 @@ Performance Optimization Audit Compliance:
       /audit-facts)
 - [ ] No proposal violates a documented project convention without that conflict being stated
 - [ ] Findings ordered by impact, STATIC section before MEASUREMENT-PENDING section
-- [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
+- [ ] Fix bullets are concrete code changes, described rather than applied
+- [ ] Every finding uses the shared shape, carrying a stable ID, a rank, a location line, and the Wrong, Fix, and
+      Impact bullets
+- [ ] Every Impact bullet names what the fix alters for callers and downstream, or states None
+- [ ] A Choice bullet appears only where the audit cannot settle the question, and it closes with a recommendation
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops
       and commas as clause separators
 - [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would
