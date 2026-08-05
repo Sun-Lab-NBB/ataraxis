@@ -68,6 +68,26 @@ C++ libraries are **header-only**. All code resides in `.h` files with no separa
 simplifies distribution via PlatformIO's library dependency system and enables full template specialization at compile
 time.
 
+### Distribution boundary
+
+An asset with no consumer is removed rather than kept, and a published library measures that consumption against its
+distribution boundary rather than against this repository. `library.json` fixes the boundary as `export.include` minus
+`export.exclude`, so an auditor reads both fields before calling any symbol dead, and `/platformio-config` owns those
+two fields.
+
+Every public declaration in an exported header reaches consumers this repository cannot see, so it is consumed. Three
+shapes recur. A published class keeps its whole public API, including the accessors that only the test suite calls
+inside this repository. A mock or a fake the library exports for downstream projects to test against is kept, and
+`stream_mock.h` is the worked case. A member carrying an `@warning` or `@note` that names it a testing or debugging aid
+is kept, because that block is the recorded rationale that marks the member as consumed.
+
+Removal governs everything the boundary leaves behind. A private member of an exported header stays under removal,
+because no downstream consumer is able to name it. A path `export.exclude` drops stays under removal, `main.cpp` being
+the standing case. A firmware project carries no `library.json` and publishes no API, so every symbol in it stays under
+removal, and a symbol only its own tests exercise is removed together with those tests. The compiler reports an unused
+static function and an unused local, and it reports nothing about an unused exported declaration, so that case is found
+by reading.
+
 ### main.cpp conventions
 
 The `main.cpp` entry point follows a standard structure:

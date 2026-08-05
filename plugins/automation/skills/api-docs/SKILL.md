@@ -356,7 +356,8 @@ every one against the files you wrote.
 - [ ] templates_path = ['_templates'] and exclude_patterns = [] present (Python/hybrid), both fields absent (C++-only)
 - [ ] html_theme set to 'furo'
 - [ ] welcome.rst follows template with correct project name and description
-- [ ] welcome.rst includes the attribution and GitHub repository links
+- [ ] welcome.rst includes the attribution and GitHub repository links, plus a named link to the component the library
+      is built to interoperate with where one exists, and no context beyond those
 - [ ] api.rst uses automodule with :members:, :undoc-members:, :show-inheritance: (Python)
 - [ ] api.rst uses click directive with :prog: and :nested: full (Click CLIs)
 - [ ] api.rst uses doxygenfile with :project: (C++ files)

@@ -286,6 +286,16 @@ levels (do not jump from H2 to H4).
 
 ---
 
+## Badge URLs
+
+A badge URL is written in full or through a URL shortener, and both forms are correct. Most badge targets are static
+shields identical across every repository, so a shortener resolves to the same image and keeps a very long URL out of
+the README source. A per-package badge, such as a PyPI or a PlatformIO Registry badge, carries a shortener minted for
+its own repository. The permission covers badge URLs alone, so a prose link keeps the link text rule above, where the
+text must name the page or document the link opens.
+
+---
+
 ## PyPI compatibility
 
 README content must render correctly on both GitHub and PyPI. Avoid GitHub-specific Markdown features that do not render
@@ -362,6 +372,7 @@ Structure:
 - [ ] Title H1 uses the package name lowercase-hyphenated (library) or the display casing (umbrella)
 - [ ] Line after the title is the bare canonical description (library) or the bold tagline (umbrella)
 - [ ] Correct badge set for project type, umbrella READMEs carrying the license badge alone
+- [ ] Badge URLs accepted in either form, full or shortened, with a shortened badge URL never reported as a finding
 - [ ] Blank line between description and badges
 - [ ] Horizontal rule uses `___` (not `---`) after badges
 - [ ] Detailed Description heading present (library) or unheaded framework description present (umbrella)
