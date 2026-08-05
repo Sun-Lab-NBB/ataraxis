@@ -79,11 +79,13 @@ traced to the expression that bounds it.
 | PER_ELEMENT      | Once per array element or per innermost loop iteration                       |
 | PER_FRAME        | A Unity `Update`, `FixedUpdate`, `LateUpdate`, or coroutine, and its callees |
 
-A **public API entry point** is a symbol the distribution's top-level `__init__.py` exports through `__all__`, or the
-equivalent published surface in C++ and C#. Its callers live in repositories this audit cannot read, so no multiplicity
-is traceable for it and none is assumed. Mark it PUBLIC_API and judge it on **per-call cost**, which is the work one
-call performs and how that work scales with the input it receives. A library exists to be called, so asking whether a
-call can be made cheaper is always in scope, and how often a downstream project calls it never becomes evidence.
+A **public API entry point** is a symbol the distribution's top-level `__init__.py` exports through `__all__`. In C++
+it is every public declaration in an exported header, a boundary `/cpp-style` resolves through `library.json` in its
+distribution boundary section, and in C# it is every public type the package ships. Its callers live in repositories
+this audit cannot read, so no multiplicity is traceable for it and none is assumed. Mark it PUBLIC_API and judge it
+on **per-call cost**, which is the work one call performs and how that work scales with the input it receives. A
+library exists to be called, so asking whether a call can be made cheaper is always in scope, and how often a
+downstream project calls it never becomes evidence.
 
 **Evidence class** records whether inspection settles the payoff.
 
@@ -158,8 +160,8 @@ Bind each file to the style skill that supplies its citable authority:
 | `*.cs`                  | `/csharp-style` |
 
 Record the prerequisites that apply to the languages in scope, before any verdict. A C++-only or C#-only target records
-only the last two, and a project carrying no `pyproject.toml` records the Python rows as N/A rather than treating their
-absence as a finding:
+only the last three, and a project carrying no `pyproject.toml` records the Python rows as N/A rather than treating
+their absence as a finding:
 
 1. Python only. The NumPy version pin from `pyproject.toml`. NumPy 2.0 and above applies NEP 50, and earlier versions
    apply value-based casting for scalars. A dtype verdict that omits its regime is unfalsifiable.
@@ -172,6 +174,8 @@ absence as a finding:
    structs, and on-disk schemas it declares. These pin the widths Pass 2 traces.
 6. Every language. Whether a `.codegraph/` directory exists. When it does, prefer `codegraph explore` over grep for
    call-site discovery, because it follows the dynamic-dispatch hops that establish multiplicity.
+7. Every language. The published surface the distribution ships, read as the evidence model above defines it for the
+   language in scope. It fixes the PUBLIC_API set the sweep marks and the per-call cost judgement each one receives.
 
 Classify the audit tier:
 
@@ -439,6 +443,8 @@ You MUST verify the audit output against this checklist before presenting it to 
 Performance Optimization Audit Compliance:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Step 1 prerequisites recorded for every language in scope, with the rows for absent languages marked N/A
+- [ ] Published surface recorded, with every symbol it exports marked PUBLIC_API and traced on per-call cost rather
+      than dropped for carrying no in-repo call site
 - [ ] For Python in scope, the NumPy version pin recorded together with its promotion regime
 - [ ] Pass 2 dispatched to DTYPE TRACE for Python files and WIDTH TRACE for C++ and C# files
 - [ ] Scalar widths traced alongside array widths, including constants, reduction results, and extracted elements
@@ -452,7 +458,8 @@ Performance Optimization Audit Compliance:
 - [ ] Hot-path census completed on the main agent before any fan-out
 - [ ] Every loop bound traced to the expression and line that sets it
 - [ ] Sweep passes 2 through 9 run in order, with pass 9 restricted to C++ and C# files
-- [ ] Every finding is PER_CHUNK or hotter, a categorical prohibition, or a size-gated PEAK_MEMORY_FOOTPRINT
+- [ ] Every finding is PER_CHUNK or hotter, a categorical prohibition, a public API entry point judged on per-call
+      cost, or a size-gated PEAK_MEMORY_FOOTPRINT
 - [ ] Every finding assigned a category, an impact, an evidence class, and a confidence tier
 - [ ] Every finding cites a file location <path>:<line> and quotes the source verbatim
 - [ ] Every finding resting on a style rule quotes that rule verbatim and names its skill and reference file
