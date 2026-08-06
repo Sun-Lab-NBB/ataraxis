@@ -1,7 +1,7 @@
 # Module base class API reference
 
 Complete API reference for the `Module` base class and supporting classes in ataraxis-micro-controller.
-All signatures are sourced from the library's header files at version 3.0.1.
+All signatures are sourced from the library's header files at version 4.0.0.
 
 ---
 
@@ -75,6 +75,12 @@ Called during each Kernel runtime cycle when the module has an active command. S
 command code from `get_active_command()` into a call to the command-specific handler method. Returns
 `true` if the command was recognized, `false` otherwise. Does NOT indicate command success.
 
+Returning `false` makes the Kernel call `SendCommandActivationError()`, which reports event code 3,
+and then `DiscardActiveCommand()`, which clears the active command and its stage without a
+`kCommandCompleted` message. A one-off command is therefore dropped after a single error report. A
+recurrent command stays queued and reactivates on its next repetition, reporting event code 3 again
+until the PC dequeues or replaces it.
+
 ### Virtual destructor
 
 ```cpp
@@ -84,6 +90,49 @@ virtual ~Module() = default;
 Module subclasses should declare an overriding destructor (`~MyModule() override = default;`) to ensure
 proper cleanup through base class pointers. The Kernel manages modules via `Module*` arrays, so the
 virtual destructor is load-bearing.
+
+---
+
+## Kernel-facing public methods
+
+The Kernel drives each module through these public methods. Command handlers must not call them, because a handler
+manages its own lifecycle through the protected utilities below, and subclasses must not override or shadow them.
+
+```cpp
+void QueueCommand(const uint8_t command, const bool noblock, const uint32_t cycle_delay);
+void QueueCommand(const uint8_t command, const bool noblock);
+void ResetCommandQueue();
+bool ResolveActiveCommand();
+void ResetExecutionParameters();
+[[nodiscard]] uint8_t get_module_id() const;
+[[nodiscard]] uint8_t get_module_type() const;
+[[nodiscard]] uint16_t get_module_type_id() const;
+void SendCommandActivationError() const;
+void SendCommandRejection(const uint8_t command) const;
+void DiscardActiveCommand();
+```
+
+| Method                       | The Kernel calls it when                                                                      |
+|------------------------------|-----------------------------------------------------------------------------------------------|
+| `QueueCommand` (recurrent)   | A RepeatedModuleCommand (protocol 1) arrives. `cycle_delay` is the delay between repetitions. |
+| `QueueCommand` (one-off)     | A OneOffModuleCommand (protocol 2) arrives. Queues the command as non-recurrent.              |
+| `ResetCommandQueue`          | A DequeueModuleCommand (protocol 3) arrives. A running command still finishes gracefully.     |
+| `ResolveActiveCommand`       | Once per runtime cycle, before `RunActiveCommand()`. `false` skips the module for that cycle. |
+| `ResetExecutionParameters`   | Inside `Kernel::Setup()`, on every module, before the `SetupModule()` pass.                   |
+| `get_module_id`              | Resolving the target of a module-addressed message and building error payloads.               |
+| `get_module_type`            | Resolving the target of a module-addressed message and building error payloads.               |
+| `get_module_type_id`         | The `kIdentifyModules` kernel command (code 4). Returns `module_type << 8 \| module_id`.      |
+| `SendCommandActivationError` | `RunActiveCommand()` returned `false`. Reports event code 3 against the active command.       |
+| `SendCommandRejection`       | A module command message carries command code 0. Reports event code 3 against that code.      |
+| `DiscardActiveCommand`       | Immediately after `SendCommandActivationError()`. Sends no completion message.                |
+
+`ResolveActiveCommand()` applies the command priority chain: finish the active command, then activate a newly queued
+command, then repeat a recurrent command whose delay has elapsed. The recurrent comparison is inclusive
+(`recurrent_timer >= recurrent_delay`), so the largest representable delay still repeats.
+
+Both `QueueCommand()` overloads and `ResetCommandQueue()` first report the retirement of a recurrent command that is
+idle between repetitions, sending `kCommandCompleted` attributed to that command's own code. `CompleteCommand()` cannot
+cover that case, because none of the retired command's stages are running at the moment it is replaced or dequeued.
 
 ---
 
@@ -140,22 +189,36 @@ Delays execution for the specified microseconds, measured relative to the last s
   returns `true`.
 - **Non-blocking mode** (`noblock=true`): returns `true` if the duration has elapsed, `false`
   otherwise. The module returns control to the Kernel, allowing other modules to execute.
+- **Duration clamp**: `delay_duration` is clamped to `UINT32_MAX - 1` microseconds, roughly 71.6
+  minutes. The 32-bit stage timer has to exceed the duration for the blocking wait to end, so an
+  unclamped `UINT32_MAX` would hang the controller until it is power-cycled. Build a stage delay
+  longer than that bound out of several stages.
 
 ### Pin reading
 
 ```cpp
-[[nodiscard]] static uint16_t AnalogRead(const uint8_t pin, const uint16_t pool_size = 0);
+template <const uint8_t kPin>
+[[nodiscard]] static uint16_t AnalogRead(const uint16_t pool_size = 0);
 ```
 
-Reads the analog pin value. If `pool_size >= 2`, reads and averages that many samples using
+Reads the analog pin named by the `kPin` template argument, so the call form is
+`AnalogRead<kSensorPin>(pool_size)`. If `pool_size >= 2`, reads and averages that many samples using
 half-up rounding. Returns the raw or averaged readout.
 
 ```cpp
-[[nodiscard]] static bool DigitalRead(const uint8_t pin, const uint16_t pool_size = 0);
+template <const uint8_t kPin>
+[[nodiscard]] static bool DigitalRead(const uint16_t pool_size = 0);
 ```
 
-Reads the digital pin value using `digitalReadFast`. If `pool_size >= 2`, reads and averages that
-many samples. Returns `true` (HIGH) or `false` (LOW).
+Reads the digital pin named by the `kPin` template argument through `digitalReadFast`, so the call
+form is `DigitalRead<kSensorPin>(pool_size)`. If `pool_size >= 2`, reads and averages that many
+samples. Returns `true` (HIGH) or `false` (LOW).
+
+`kPin` is a template parameter on both helpers, so every pin passed to them has to be a compile-time
+constant, either a class template parameter or a `static constexpr uint8_t` member. A pin held in a
+runtime parameter struct cannot be read through them. For `DigitalRead`, the compile-time constant
+also resolves the register-level read path that AVR and Teensy boards expose, and Arduino Due exposes
+no such path and reads through `digitalRead`. `AnalogRead` delegates to `analogRead()` on every board.
 
 ### Data transmission
 
@@ -166,12 +229,13 @@ void SendData(const uint8_t event_code, const ObjectType& object);
 
 Sends a ModuleData message (protocol 6) with event code and typed data object. The prototype code
 for the wire protocol is resolved automatically at compile time from ObjectType. Supports all 11
-scalar types and C-style arrays at type-specific element counts up to the 248-byte payload cap.
-`uint8_t` arrays have the densest count support and can be used as a generic bytes buffer. On
-failure, automatically attempts to send an error message and turns on the built-in LED.
+scalar types and C-style arrays at type-specific element counts, up to a platform-dependent payload
+cap that peaks at 248 bytes. `uint8_t` arrays have the densest count support and can be used as a
+generic bytes buffer. On failure, automatically attempts to send an error message and turns on the
+built-in LED.
 
 The following table lists all supported data types and element counts. An element count of 1 is a
-scalar; counts greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`). Unsupported
+scalar, and counts greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`). Unsupported
 (type, count) combinations trigger a compile-time `static_assert` error.
 
 | C++ Type   | Size    | Numpy Equivalent | Supported Element Counts                                                         |
@@ -188,6 +252,13 @@ scalar; counts greater than 1 require a C-style array declaration (e.g., `uint16
 | `int64_t`  | 8 bytes | `np.int64`       | 1-15, 16, 20, 24, 31                                                             |
 | `double`   | 8 bytes | `np.float64`     | 1-15, 16, 20, 24, 31                                                             |
 
+The counts above are the prototype codes the wire protocol defines. The number of bytes a board can
+actually transmit is capped separately by its serial buffer, because the data object has to satisfy
+`sizeof(ObjectType) <= kMaximumPayloadSize - sizeof(ModuleData)`. That yields 248 bytes on Teensy,
+244 bytes on Arduino Due, and 52 bytes on Arduino Mega, so counts such as `uint8_t[248]` or
+`uint16_t[124]` compile only on Teensy. The `SendDataMessage` static assertion rejects an oversized
+object at compile time for the board being built.
+
 ```cpp
 void SendData(const uint8_t event_code) const;
 ```
@@ -203,8 +274,10 @@ bool ExtractParameters(ObjectType& storage_object);
 ```
 
 Unpacks the received ModuleParameters message payload into the specified storage object. Internally
-delegates to `Communication::ExtractModuleParameters()`, which `static_assert`s the struct size is 1-250
-bytes (compile-time error otherwise). Returns `true` on success, `false` on one of three conditions:
+delegates to `Communication::ExtractModuleParameters()`, which `static_assert`s that the struct is at least one byte
+and still fits into the payload alongside the 3-byte ModuleParameters header and the protocol code. That upper bound is
+250 bytes on Teensy, 246 bytes on Arduino Due, and 54 bytes on Arduino Mega, so a struct that builds for one board can
+fail to build for another. Returns `true` on success, `false` on one of three conditions:
 `kExtractionForbidden` (message is not a ModuleParameters message), `kParameterMismatch` (received byte
 count does not equal `sizeof(struct)`), or `kParsingError` (payload parsing failed).
 
@@ -214,12 +287,20 @@ count does not equal `sizeof(struct)`), or `kParsingError` (payload parsing fail
 
 System-reserved event codes used by Module base class methods:
 
-| Code | Constant                | Description                                                         |
-|------|-------------------------|---------------------------------------------------------------------|
-| 0    | `kStandby`              | Default initialization value.                                       |
-| 1    | `kTransmissionError`    | SendData failed to transmit to PC.                                  |
-| 2    | `kCommandCompleted`     | Active command finished. Sent automatically by `CompleteCommand()`. |
-| 3    | `kCommandNotRecognized` | RunActiveCommand returned false. Sent by Kernel.                    |
+| Code | Constant                | Description                        |
+|------|-------------------------|------------------------------------|
+| 0    | `kStandby`              | Default initialization value.      |
+| 1    | `kTransmissionError`    | SendData failed to transmit to PC. |
+| 2    | `kCommandCompleted`     | A command finished.                |
+| 3    | `kCommandNotRecognized` | A command could not be executed.   |
+
+Code 2 has two emitters. `CompleteCommand()` sends it for the command that just ran, under the conditions listed for
+that method, and `QueueCommand()` or `ResetCommandQueue()` sends it for a recurrent command retired while idle between
+repetitions, attributed to that command's own code. `DiscardActiveCommand()` sends nothing.
+
+Code 3 also has two emitters, both invoked by the Kernel. `SendCommandActivationError()` sends it against the active
+command when `RunActiveCommand()` returns `false`, and `SendCommandRejection()` sends it against the rejected code when
+the PC addresses the module with command code 0, leaving the active command undisturbed.
 
 ---
 
@@ -242,7 +323,26 @@ Kernel(
 | `module_array`       | `Module*[]`      | Array of Module pointers. Must contain >= 1 element.          |
 | `keepalive_interval` | `uint32_t`       | Milliseconds between expected keepalive messages. 0=disabled. |
 
-The Kernel internally doubles the keepalive interval to tolerate brief communication lapses.
+The Kernel internally doubles the keepalive interval to tolerate brief communication lapses, saturating at the largest
+representable millisecond value rather than wrapping, so an interval above `UINT32_MAX / 2` yields the maximum timeout.
+Keepalive tracking stays inert until the PC sends its first keepalive kernel command (code 5), which arms tracking when
+the configured interval is non-zero and resets the timer. A controller the PC has not yet contacted therefore never
+times out. Every `Setup()` run disarms tracking again, so the PC has to re-arm the watchdog after a requested reset or
+after a keepalive-triggered emergency reset.
+
+### kKernelCommands
+
+The codes the PC sends in a KernelCommand message (protocol 4). Firmware authors do not implement these, and the Kernel
+handles all of them internally.
+
+| Code | Constant              | Description                                                      |
+|------|-----------------------|------------------------------------------------------------------|
+| 0    | `kStandby`            | Class initialization value.                                      |
+| 1    | `kReceiveData`        | Receives PC-sent data. Not externally addressable.               |
+| 2    | `kResetController`    | Reruns `Setup()`, resetting all managed modules and hardware.    |
+| 3    | `kIdentifyController` | Sends the controller ID to the PC.                               |
+| 4    | `kIdentifyModules`    | Sends each managed module's combined type and ID code to the PC. |
+| 5    | `kKeepAlive`          | Arms the keepalive watchdog and restarts its timer.              |
 
 ### Kernel lifecycle
 
@@ -253,19 +353,19 @@ The Kernel internally doubles the keepalive interval to tolerate brief communica
 
 ### kKernelStatusCodes
 
-| Code | Constant                  | Description                                            |
-|------|---------------------------|--------------------------------------------------------|
-| 0    | `kStandby`                | Not used, reserves 0.                                  |
-| 1    | `kSetupComplete`          | Setup succeeded.                                       |
-| 2    | `kModuleSetupError`       | A module's SetupModule() failed.                       |
-| 3    | `kReceptionError`         | Error receiving a PC message.                          |
-| 4    | `kTransmissionError`      | Error sending data to PC.                              |
-| 5    | `kInvalidMessageProtocol` | Unknown protocol code received.                        |
-| 6    | `kModuleParametersSet`    | Parameters applied to module.                          |
-| 7    | `kModuleParametersError`  | Failed to apply parameters.                            |
-| 8    | `kCommandNotRecognized`   | Unknown kernel command code.                           |
-| 9    | `kTargetModuleNotFound`   | No module with requested type+id.                      |
-| 10   | `kKeepAliveTimeout`       | Keepalive message not received in time.                |
+| Code | Constant                  | Description                             |
+|------|---------------------------|-----------------------------------------|
+| 0    | `kStandby`                | Not used, reserves 0.                   |
+| 1    | `kSetupComplete`          | Setup succeeded.                        |
+| 2    | `kModuleSetupError`       | A module's SetupModule() failed.        |
+| 3    | `kReceptionError`         | Error receiving a PC message.           |
+| 4    | `kTransmissionError`      | Error sending data to PC.               |
+| 5    | `kInvalidMessageProtocol` | Unknown protocol code received.         |
+| 6    | `kModuleParametersSet`    | Parameters applied to module.           |
+| 7    | `kModuleParametersError`  | Failed to apply parameters.             |
+| 8    | `kCommandNotRecognized`   | Unknown kernel command code.            |
+| 9    | `kTargetModuleNotFound`   | No module with requested type+id.       |
+| 10   | `kKeepAliveTimeout`       | Keepalive message not received in time. |
 
 ---
 
@@ -275,12 +375,13 @@ The Kernel internally doubles the keepalive interval to tolerate brief communica
 explicit Communication(Stream& communication_port);
 ```
 
-| Parameter            | Type      | Description                                               |
-|----------------------|-----------|-----------------------------------------------------------|
-| `communication_port` | `Stream&` | Arduino Stream (Serial, USB Serial, etc.).                |
+| Parameter            | Type      | Description                                |
+|----------------------|-----------|--------------------------------------------|
+| `communication_port` | `Stream&` | Arduino Stream (Serial, USB Serial, etc.). |
 
-Creates a TransportLayer instance with CRC16 (polynomial 0x1021, init 0xFFFF, final XOR 0x0000).
-Reserves up to ~1 kB of RAM (~700 bytes on lower-end boards).
+Creates a TransportLayer instance with a non-reflected CRC16 (polynomial 0x1021, init 0xFFFF, final
+XOR 0x0000). The PC interface has to use the same CRC parameters. Reserves up to ~1 kB of RAM
+(~700 bytes on lower-end boards).
 
 ---
 
@@ -351,14 +452,16 @@ For repeated sensor readings:
 ```cpp
 void ReadSensor()
 {
-    const uint16_t value = AnalogRead(kSensorPin, parameters.pool_size);
+    const uint16_t value = AnalogRead<kSensorPin>(parameters.pool_size);
     SendData(static_cast<uint8_t>(kStates::kValueRead), value);
     CompleteCommand();
 }
 ```
 
-`AnalogRead(pin, pool_size)` reads and averages `pool_size` samples. Set `pool_size` to 0 or 1
-to disable averaging. `DigitalRead(pin, pool_size)` works the same way for digital pins.
+`AnalogRead<kPin>(pool_size)` reads and averages `pool_size` samples. Set `pool_size` to 0 or 1
+to disable averaging. `DigitalRead<kPin>(pool_size)` works the same way for digital pins. The pin is
+a template argument, so it has to be a compile-time constant, normally the module class's own pin
+template parameter.
 
 ---
 
@@ -389,7 +492,7 @@ the value crosses a meaningful threshold or when the state changes:
 ```cpp
 void CheckSensor()
 {
-    const uint16_t value = AnalogRead(kPin, parameters.pool_size);
+    const uint16_t value = AnalogRead<kPin>(parameters.pool_size);
     const bool above_threshold = value >= parameters.signal_threshold;
 
     if (above_threshold)
@@ -469,6 +572,6 @@ pio project config
 pio device monitor --baud 115200
 ```
 
-After uploading, the controller runs the deterministic `RuntimeCycle()` loop and is ready for the
-PC-side `MicroControllerInterface` to connect (see `/microcontroller-interface`). Re-upload whenever
-the firmware module, its command/event codes, or its parameter struct change.
+After uploading, the controller runs the deterministic `RuntimeCycle()` loop and is ready for the PC-side
+`MicroControllerInterface` to connect (see `/communication:microcontroller-interface`). Re-upload whenever the firmware
+module, its command/event codes, or its parameter struct change.

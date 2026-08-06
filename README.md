@@ -146,8 +146,8 @@ C++ microcontroller libraries are available via PlatformIO:
 
 ```ini
 lib_deps =
-    inkaros/ataraxis-micro-controller@^3.0.1
-    inkaros/ataraxis-transport-layer-mc@^3.0.1
+    inkaros/ataraxis-micro-controller@^4.0.0
+    inkaros/ataraxis-transport-layer-mc@^4.0.0
 ```
 
 ___
