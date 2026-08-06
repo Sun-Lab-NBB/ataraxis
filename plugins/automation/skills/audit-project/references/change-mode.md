@@ -143,7 +143,7 @@ A BLOCKED verdict starts a round. Each round has three parts, and the middle par
    pass per file.
 2. **Fix, outside the audit.** The audits produce findings only and modify nothing. Fixes are ordinary implementation
    work performed between rounds, in the audits' declared fix order, which is facts, then correctness, then performance,
-   then style. A fix carrying `Approval: REQUIRED` STOPS here for the user, under the section below.
+   then style. A fix whose Impact names a break STOPS here for the user, under the section below.
 3. **Re-audit.** Run the audits again over the UNION of the original change set and every file the fixes touched. A fix
    frequently edits a file the original change did not, and that file is now part of the work.
 

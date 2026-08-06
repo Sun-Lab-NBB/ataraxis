@@ -36,6 +36,18 @@ Napoleon, and optionally Breathe/Doxygen for C++ code.
 
 ---
 
+## Mirrored identity content requires explicit approval
+
+The first paragraph of `docs/source/welcome.rst` restates the project description, which is also stated in
+`pyproject.toml`, in the top-level `__init__.py` docstring, and in the README. You MUST obtain explicit user approval
+before changing it, because the edit obligates the same change in every other location. `/pyproject-style` owns the
+wording and lists every location that would need the same edit.
+
+Every other file under `docs/` follows the normal rules in this skill, so an api.rst directive, a conf.py setting, or a
+correction to page prose needs no approval.
+
+---
+
 ## Documentation architecture
 
 ### Documentation archetypes
@@ -323,6 +335,7 @@ API Documentation Compliance:
 
 Settled by `tox -e docs`. A build surfaces each of these as an error or a warning, so run the
 command rather than hand-checking them. They stay listed for reviews performed without a build.
+- [ ] Explicit user approval obtained before changing the welcome.rst first paragraph
 - [ ] conf.py uses correct extension ordering
 - [ ] Breathe configuration present and correct (C++/hybrid)
 - [ ] index.rst includes welcome.rst and has toctree with api
@@ -343,7 +356,8 @@ every one against the files you wrote.
 - [ ] templates_path = ['_templates'] and exclude_patterns = [] present (Python/hybrid), both fields absent (C++-only)
 - [ ] html_theme set to 'furo'
 - [ ] welcome.rst follows template with correct project name and description
-- [ ] welcome.rst includes the attribution and GitHub repository links
+- [ ] welcome.rst includes the attribution and GitHub repository links, plus a named link to the component the library
+      is built to interoperate with where one exists, and no context beyond those
 - [ ] api.rst uses automodule with :members:, :undoc-members:, :show-inheritance: (Python)
 - [ ] api.rst uses click directive with :prog: and :nested: full (Click CLIs)
 - [ ] api.rst uses doxygenfile with :project: (C++ files)

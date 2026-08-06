@@ -163,6 +163,11 @@ auto-discovers it. If the new skill introduces a new plugin, add that plugin to 
 `.claude-plugin/marketplace.json` `plugins` array. Adding or materially changing a plugin's skills should bump `version`
 in that plugin's `.claude-plugin/plugin.json`.
 
+Bump that `version` EXACTLY ONCE per branch, relative to `main`. Read the branch's version and the `main` version before
+editing, with `git show main:plugins/{plugin}/.claude-plugin/plugin.json`, and leave the version untouched wherever the
+branch already carries a bump. A branch that revises ten skills across twenty commits ships one bump rather than twenty,
+because the version names the release the branch produces rather than the edits inside it.
+
 ---
 
 ## SKILL.md conventions
@@ -454,7 +459,8 @@ Skill File Compliance, reader-judged:
 - [ ] Skill prose, reference files, and CLAUDE.md free of typos and grammar errors
 - [ ] No auxiliary documentation files (README.md, CHANGELOG.md, etc.)
 - [ ] New plugin registered in `.claude-plugin/marketplace.json`, and `version` bumped in the owning plugin's
-      `.claude-plugin/plugin.json` for material skill changes
+      `.claude-plugin/plugin.json` for material skill changes, exactly once per branch relative to main and
+      left untouched where the branch already carries a bump
 ```
 
 ### Project instructions (CLAUDE.md)

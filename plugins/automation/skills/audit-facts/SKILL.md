@@ -301,7 +301,7 @@ record the count of discarded candidates for the report's triage header.
 Run the two checks in [verification-protocol.md](references/verification-protocol.md), in order:
 
 1. **Citation verification**, against every surviving finding with no sampling. Confirms the Claim quote appears at the
-   cited documentation line and the Source reality quote appears at the cited source line.
+   cited documentation line and the quoted source reality appears at the cited source line.
 2. **Adversarial refutation**, against every WRONG and CONTRADICTION finding. A fresh `general-purpose` sub-agent per
    finding, instructed to refute it and to answer REFUTED under uncertainty.
 
@@ -355,21 +355,35 @@ When the audit spans multiple files, group the HIGH and MEDIUM confidence findin
 -> file -> finding verdict -> findings. Collect LOW confidence findings into the trailing `Appendix: LOW confidence`
 section, ordered by the same verdict sequence.
 
-Each finding uses this structure:
+Every finding uses the shape below, shared by all four audits in this family so one reading habit serves them all.
 
 ```text
-[Verdict]: <WRONG | DRIFT | CONTRADICTION | OMISSION | UNVERIFIABLE>
-[Class]: <METADATA | IN-SOURCE>
-[Confidence]: <HIGH | MEDIUM | LOW>
-Location in file: <path>:<line>-<line>
-Location in source: <path>:<line> or N/A
-Claim: "<verbatim quote from the documentation>"
-Source reality: "<verbatim quote or factual summary with citation>"
-Suggested fix: <concrete textual edit>
-Approval: <REQUIRED when the edit changes a documented public contract, naming what breaks>
+### <ID> · <WRONG | DRIFT | CONTRADICTION | OMISSION | UNVERIFIABLE> · <one-line statement of the defect>
+
+`<path>:<line>` · <METADATA | IN-SOURCE> · <HIGH | MEDIUM | LOW> confidence · <source `<path>:<line>`, or N/A>
+
+- **Wrong:** <the defect, carrying every quote and citation the evidence floor requires>
+- **Fix:** <the concrete change, described rather than applied>
+- **Impact:** <what the change alters for callers and downstream, or "None" when nothing observable changes>
+- **Choice:** <the options, one clause each, closing with a recommendation>
 ```
 
-For UNVERIFIABLE findings, replace the source reality with a description of what was searched and where.
+**ID** is a short stable handle, `F1`, `F2`, and so on, numbered in report order, so a reader answers with the
+identifier rather than by restating the finding.
+
+**Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the claim quoted verbatim
+from the documentation with its own `<path>:<line>`, and the source reality quoted verbatim or summarized with the
+citation that establishes it. A table, a ledger, or an interleaving sits directly beneath the bullet.
+
+**Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
+behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
+
+**Choice** appears only where the audit cannot settle the question, covering a claim the source neither confirms nor
+denies, where the owner decides between correcting the prose and removing it. Each option gets one clause, and the
+bullet closes with a recommendation.
+
+An UNVERIFIABLE finding replaces the source reality with a description of what was searched and where, so a reader can
+extend the search rather than repeat it.
 
 ---
 
@@ -381,6 +395,9 @@ You MUST adhere to the following discipline during every audit, and you MUST app
 - Never paraphrase source and present it as a verbatim quote. Use the Read tool and copy.
 - Never expand scope to restructure, restyle, or refactor. This skill produces findings only.
 - Do not flag subjective preferences (tone, ordering, terminology).
+- Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
+  clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
+  code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
 - Hold the report's own prose to the rules this family enforces, keeping every authored sentence under 40 words and
   separating clauses with full stops and commas rather than semicolons or em-dashes.
 - Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
@@ -468,7 +485,11 @@ Documentation Fact Audit Compliance:
 - [ ] No wholly undocumented callable, class, module, or file reported as an omission
 - [ ] No file modifications made during the audit
 - [ ] Findings ordered: WRONG -> DRIFT -> CONTRADICTION -> OMISSION -> UNVERIFIABLE
-- [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict
+- [ ] Fix bullets are concrete textual edits, described rather than applied
+- [ ] Every finding uses the shared shape, carrying a stable ID, a rank, a location line, and the Wrong, Fix, and
+      Impact bullets
+- [ ] Every Impact bullet names what the fix alters for callers and downstream, or states None
+- [ ] A Choice bullet appears only where the audit cannot settle the question, and it closes with a recommendation
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops
       and commas as clause separators
 - [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would

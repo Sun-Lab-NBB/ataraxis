@@ -241,12 +241,20 @@ when creating or updating a repository.
 
 ### Corpus substitution rules
 
-`bug_report.yml` and `feature_request.yml` are identical in every repository. Copy both files verbatim, which keeps the
-corpus consistent as it spreads across repositories. The bug report form asks for the environment as free text, so one
-form serves Python, PlatformIO, and Unity projects alike.
+`feature_request.yml` is identical in every repository, so copy it verbatim. `bug_report.yml` carries a single
+substitution, because the environment a maintainer needs to reproduce a bug differs by archetype. Replace the
+`{environment_example}` placeholder in the environment field with the lines matching the project's archetype:
 
-The example values inside the form placeholders are illustrative. They show the shape of a useful answer rather than the
-state of any one project, so the version, environment, and reproduction examples stay as the asset spells them.
+| Archetype                           | Lines that replace `{environment_example}`                            |
+|-------------------------------------|-----------------------------------------------------------------------|
+| Python-only                         | `OS: Ubuntu 24.04`, `Python: 3.13`                                    |
+| Python + C++ extension              | `OS: Ubuntu 24.04`, `Python: 3.13`, `CPU: AMD Ryzen 9 5900X`          |
+| C++ PlatformIO library and firmware | `OS: Ubuntu 24.04`, `PlatformIO: 6.1.15`, `Board: Teensy 4.1`         |
+| C# Unity                            | `OS: Windows 11`, `Unity: 2022.3.4f1`, `Platform: Windows Standalone` |
+
+Each comma-separated entry becomes its own line of the YAML block scalar, indented to match the asset. The example
+values are illustrative. They show the shape of a useful answer rather than the state of any one project, so the
+version and reproduction examples stay as the asset spells them.
 
 `config.yml` carries a single substitution. Replace the `{project}` placeholder in the API documentation link with the
 repository name, which produces the Netlify address that serves the project's API documentation:
@@ -401,7 +409,8 @@ names and this skill's ownership boundary.
 - [ ] Reference tree loaded from archetype-trees.md
 - [ ] .netlify-site and the deploy tox environment are both present or both absent
 - [ ] No hand-authored or stale .pyi stubs committed mid-development (stubs are generated at release time via tox -e stubs)
-- [ ] bug_report.yml and feature_request.yml copied verbatim from assets/github/
+- [ ] feature_request.yml copied verbatim from assets/github/
+- [ ] bug_report.yml {environment_example} placeholder replaced with the archetype's environment lines
 - [ ] config.yml {project} placeholder replaced with the repository name
 - [ ] config.yml otherwise unchanged from assets/github/, keeping blank_issues_enabled: false and the
       retained contact link destinations

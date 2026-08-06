@@ -36,6 +36,22 @@ MUST verify your changes against the checklist before submitting.
 
 ---
 
+## Mirrored identity content requires explicit approval
+
+The `name`, `description`, and `authors` fields state the project's identity, and each one is duplicated outside this
+file. The description alone appears in the four canonical locations
+[project-metadata.md](references/project-metadata.md) enumerates, and again in the repository description on GitHub and
+on the package page on PyPI. Changing one copy obligates changing every copy, so you MUST obtain explicit user
+approval, given for the specific edit in front of you, before altering any of them.
+
+The test is whether the content is duplicated outside the file you are editing. When it is, stop, quote the current
+text alongside the proposed replacement, name every location that would need the same edit, and wait for an answer. A
+blanket instruction to fix findings, apply a documentation change, or implement a plan does NOT authorize these edits,
+and neither does the edit being provably correct. Every other field in this file follows the normal rules, as does the
+`version` bump `/release` performs under its own confirmation.
+
+---
+
 ## Workflow
 
 You MUST follow these steps when this skill is invoked.
@@ -328,6 +344,8 @@ the changes. After substantial dependency or configuration changes, proactively 
 pyproject.toml Style Compliance:
 
 Settled by tox -e build followed by twine check dist/*:
+- [ ] Explicit user approval obtained before changing name, description, or authors, with every location carrying
+      a copy named for the user
 - [ ] No duplicate sections or keys
 - [ ] license uses SPDX expression string (PEP 639)
 - [ ] Classifiers match official PyPI classifier list exactly

@@ -264,8 +264,8 @@ count of discarded candidates for the report's triage header.
 
 Run the two checks in [verification-protocol.md](references/verification-protocol.md), in order:
 
-1. **Citation verification**, against every surviving finding with no sampling. Confirms the Checklist point quote
-   appears in the loaded checklist and the Current state quote appears at the cited line.
+1. **Citation verification**, against every surviving finding with no sampling. Confirms the quoted checklist
+   point appears in the loaded checklist and the quoted current state appears at the cited line.
 2. **Adversarial refutation**, against every BLOCKING and CONFLICT finding. A fresh `general-purpose` sub-agent per
    finding, instructed to refute it and to answer REFUTED under uncertainty.
 
@@ -311,34 +311,42 @@ BLOCKING, INCONSISTENCY, CONFLICT, STANDARD, and the trailing `Appendix: LOW con
 Step 4 layout findings belong to no file, so they sit in a leading `Project layout` group ahead of the per-file groups,
 headed by the archetype the sweep resolved and the indicators that resolved it.
 
-Each finding uses this structure:
+Every finding uses the shape below, shared by all four audits in this family so one reading habit serves them all.
 
 ```text
-[Severity]: <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT>
-[Confidence]: <HIGH | MEDIUM | LOW>
-Skill: <skill name, or the tool name for a Step 3 diagnostic>
-Checklist point: "<verbatim quote from the skill's checklist or reference file, or the tool's rule code>"
-Location: <path>:<line>-<line>
-Current state: "<verbatim quote from the file>"
-Required state: <concrete example or the checklist's "should be" form>
-Suggested fix: <concrete textual edit>
-Approval: <REQUIRED when the fix breaks the public API or alters public behavior, naming what breaks>
+### <ID> · <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT> · <one-line statement of the defect>
+
+`<path>:<line>` · <owning skill or tool> · <HIGH | MEDIUM | LOW> confidence · <checklist point or rule code>
+
+- **Wrong:** <the defect, carrying every quote and citation the evidence floor requires>
+- **Fix:** <the concrete change, described rather than applied>
+- **Impact:** <what the change alters for callers and downstream, or "None" when nothing observable changes>
+- **Choice:** <the options, one clause each, closing with a recommendation>
 ```
 
-The Approval trigger covers REMOVAL alongside renaming and re-signaturing. Deleting a symbol, dropping an `__all__`
-entry, and demoting a public name to an underscore each break a caller exactly as a rename does, and a Pass 11 fix is a
-removal in three of its five forms.
+**ID** is a short stable handle, `S1`, `S2`, and so on, numbered in report order, so a reader answers with the
+identifier rather than by restating the finding.
 
-When the same checklist point is violated multiple times within a file, collapse to a single finding with a count and
-representative line citations, written as `Location: module.py:47, 89, 112, 134 (4 occurrences)`.
+**Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the checklist point quoted
+verbatim from the skill or reference file that states it, the current state quoted verbatim at its `<path>:<line>`, and
+the required state as a concrete example or the checklist's own wording. A table, a ledger, or an interleaving sits
+directly beneath the bullet.
 
-A Step 4 layout finding uses its own shape, defined under Pass 10 in
-[detection-passes.md](references/detection-passes.md), because `Location: <path>:<line>` cannot cite a file that does
-not exist.
+**Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
+behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
 
-A Pass 11 symbol usage finding uses the shape above with one added `Consumer set` field, defined under Pass 11 in
-[detection-passes.md](references/detection-passes.md). `Current state` stays a verbatim quote of the declaration or of
-the `__all__` block, and the added field carries the consumer evidence together with the search that established it.
+**Choice** appears only where the audit cannot settle the question, covering a CONFLICT between two skills, which only
+the owner resolves. Each option gets one clause, and the bullet closes with a recommendation.
+
+Impact covers REMOVAL alongside renaming and re-signaturing. Deleting a symbol, dropping an `__all__` entry, and
+demoting a public name to an underscore each break a caller exactly as a rename does, so each names that break.
+
+When the same checklist point is violated several times within one file, collapse it to a single finding whose location
+line carries the site list and a count, written as `` `module.py:47, 89, 112, 134` · 4 occurrences ``.
+
+A Step 4 layout finding cites no line, because `<path>:<line>` cannot point at a file that does not exist. Its location
+line carries the archetype slot instead, as Pass 10 in [detection-passes.md](references/detection-passes.md) defines. A
+Pass 11 symbol usage finding adds the consumer evidence and the search that established it to its Wrong bullet.
 
 ---
 
@@ -348,12 +356,16 @@ You MUST adhere to the following discipline during every audit.
 
 - Anchor every finding to a verbatim checklist quote. No checklist quote, no finding.
 - Never invent conventions. If a behavior is not in a loaded checklist, it is not a style violation.
+- Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
+  clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
+  code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
 - Never flag factual errors, missing content, or source-code mismatches. Those belong to `/audit-facts`.
 - Never flag a defect, an edge case, or a runtime cost. Those belong to `/audit-correctness` and `/audit-performance`.
 - Never restructure, restyle, or refactor. This skill produces findings only.
 - Never flag subjective preferences (tone, ordering, terminology) unless the loaded checklist explicitly requires the
   convention.
-- If a file contains an auto-generated block or a documented exception, note the exception and skip its enclosing range.
+- If a file carries an auto-generated block, or an exemption a loaded skill writes down, note the exemption with its
+  verbatim clause and skip its enclosing range.
 
 ---
 
@@ -431,7 +443,7 @@ Style Audit Compliance:
 - [ ] Every symbol's declared tier compared against the widest boundary its consumers actually cross
 - [ ] Each package export list compared against the set of packages importing from it, in both directions
 - [ ] Every Pass 11 candidate confirmed by a repository-wide search, with the search result quoted
-- [ ] Every Pass 11 finding carries a Consumer set field, with Current state left a verbatim quote
+- [ ] Every Pass 11 finding carries its consumer evidence and the search that established it
 - [ ] Citation verification re-ran each Pass 11 search rather than accepting the recorded result
 - [ ] Guard 15 applied, so curated public API, runtime registrations, interface conformance, and generated
       declarations produced no usage finding, and test references counted as no consumer
@@ -460,10 +472,16 @@ Style Audit Compliance:
 - [ ] No compliant items appear in the report
 - [ ] No factual errors, missing content, or source mismatches appear (those belong to /audit-facts)
 - [ ] No findings invented outside the loaded checklists
+- [ ] No exemption applied without a verbatim clause from a loaded skill quoted beside it
+- [ ] No finding spared for shared corpus, house convention, sibling-repository text, or age
 - [ ] Findings ordered: BLOCKING -> INCONSISTENCY -> CONFLICT -> STANDARD
 - [ ] Cross-skill conflicts surfaced rather than silently resolved
-- [ ] Suggested fixes are concrete textual edits, each carrying an Approval verdict
-- [ ] Every fix that removes a symbol, an export entry, or a public name carries Approval: REQUIRED
+- [ ] Fix bullets are concrete textual edits, described rather than applied
+- [ ] Every fix that removes a symbol, an export entry, or a public name names that break in its Impact
+- [ ] Every finding uses the shared shape, carrying a stable ID, a rank, a location line, and the Wrong, Fix, and
+      Impact bullets
+- [ ] Every Impact bullet names what the fix alters for callers and downstream, or states None
+- [ ] A Choice bullet appears only where the audit cannot settle the question, and it closes with a recommendation
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full
       stops and commas as clause separators
 - [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would

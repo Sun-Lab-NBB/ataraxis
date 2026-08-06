@@ -35,6 +35,17 @@ The canonical description locations vary by archetype:
 
 ## Badges
 
+### Badge URL form
+
+A badge URL is written in full or through a URL shortener, and both forms are correct. Most badge targets are static
+shields identical across every repository, such as the C++, Arduino, uv, Ruff, and license badges. A shortener resolves
+to the same image for those badges and keeps a very long URL out of the README source, so a template spells such a
+badge in the shortened form directly.
+
+A per-package badge, such as a PyPI badge or the PlatformIO Registry badge, encodes the package name, so its shortener
+is minted per repository and is copied from the repository that owns it. This permission covers badge URLs alone. A
+prose link stays under the accessibility rule in the skill file, where the link text must name the page it opens.
+
 ### Python libraries
 
 Python libraries use the following 8 badges in this exact order. A blank line must separate the one-line description
@@ -61,6 +72,10 @@ Replace `PACKAGE-NAME` with the actual PyPI package name (e.g., `ataraxis-time`)
 ![Arduino](https://img.shields.io/badge/Arduino-blue?logo=Arduino&logoColor=white&labelColor=grey)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 ```
+
+Replace `ORG` with the registry organization and `PACKAGE` with the registry package name, or substitute the shortened
+image and target links minted for that package. The registry badge is the per-package badge of this set, while the C++,
+Arduino, and license badges are static and are copied as written.
 
 ### Umbrella / marketplace repositories
 

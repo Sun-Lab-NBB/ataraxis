@@ -41,6 +41,11 @@ firmware, a missing `final` on a leaf class or leaf override, and LINQ inside a 
 materialization that runs once per process still exhausts the machine when the file is large, so judge it against Guard
 15 instead.
 
+A public API entry point is exempt from this gate, because it carries no traceable multiplicity to gate on. Judge it on
+per-call cost as the skill's evidence model defines it, so a constant-factor saving every call receives is reportable
+whatever the frequency. A parser that runs in pure Python where a C implementation of the same parser is installed
+qualifies, and so does a per-call rebuild of a structure the entry point could compute once.
+
 A `prange` race and `os.cpu_count()` arithmetic without a None guard stay off that list, because the payload of each is
 a wrong value or a crash rather than a cost. `/audit-correctness` owns the race as CONCURRENCY_DEFECT, and
 `/audit-style` owns the worker arithmetic through the `/python-style` anti-pattern that prescribes
@@ -58,8 +63,15 @@ loop bounded by a literal, an enum length, or a configuration value in the low t
 Hotness comes from an actual call site with a `<path>:<line>`, found through `codegraph explore` or grep. Phrases such
 as "probably called in a loop", "likely a hot path", and "could be performance-critical" disqualify the finding.
 
-A function whose call sites resolve nowhere inside the package is UNKNOWN and stays out of the report, because an unused
-or externally called helper is no evidence of heat. A function whose only call sites live in `tests/` is COLD.
+A function whose call sites resolve nowhere inside the package and which the distribution's top-level `__init__.py`
+does not export is UNKNOWN and stays out of the report, because an unused helper is no evidence of heat. A function
+whose only call sites live in `tests/` is COLD unless that same export makes it a public API entry point.
+
+An exported symbol is a public API entry point, so Guard 1 exempts it from the cold-path gate and it is analyzed rather
+than discarded. The exemption licenses analysis of the entry point's own body and of the work that body performs per
+call. It licenses no claim about the caller, so "called in a loop downstream", "every session parses thousands of
+these", and any other downstream-frequency assertion stays disqualifying, and a finding that leans on one is rejected
+here exactly as a finding leaning on an internal hot-path guess is.
 
 ---
 

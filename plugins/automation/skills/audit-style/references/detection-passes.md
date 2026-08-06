@@ -316,24 +316,18 @@ Work in four parts:
 4. Apply the presence and absence items of `/project-layout`'s checklist, which cover the `envs/` contents, the
    `.github/ISSUE_TEMPLATE/` contents, and the pairing of `.netlify-site` with the `deploy` tox environment.
 
-Report each finding in the shape below, which replaces the skill's ordinary finding shape because a `Location:
-<path>:<line>` citation cannot point at a file that does not exist:
+Report each finding in the skill's shared shape with one substitution, because a `<path>:<line>` citation cannot point
+at a file that does not exist. The location line carries the repository-relative path and its state instead:
 
 ```text
-[Severity]: <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT>
-[Confidence]: <HIGH | MEDIUM | LOW>
-Skill: /project-layout
-Checklist point: "<verbatim archetype tree line, or verbatim layout checklist item>"
-Expected path: <repository-relative path the archetype tree requires, for an absent path>
-Offending path: <repository-relative path the tree does not sanction, for a stray path>
-Current state: <ABSENT | PRESENT>
-Required state: <PRESENT, or ABSENT for a stray or forbidden path>
-Suggested fix: <concrete creation, removal, or relocation>
-Approval: <REQUIRED when the fix deletes or relocates a tracked path, naming what breaks>
+### <ID> · <BLOCKING | STANDARD | INCONSISTENCY | CONFLICT> · <one-line statement of the layout defect>
+
+`<repository-relative path>` · /project-layout · <HIGH | MEDIUM | LOW> confidence · <ABSENT | UNSANCTIONED>
 ```
 
-An absent-path finding carries `Expected path` alone and quotes the archetype tree line that requires the path. A
-stray-path finding carries `Offending path` alone and quotes the checklist item or the tree section that excludes it.
+The Wrong bullet quotes the archetype tree line that requires the path for an absent-path finding, and quotes the
+checklist item or the tree section that excludes it for an unsanctioned one. The Fix bullet names the concrete creation,
+removal, or relocation, and the Impact bullet names what a deleted or relocated tracked path breaks.
 
 ---
 
@@ -372,23 +366,20 @@ or `cross-package`. Discount every row the guards exclude before resolving, whic
 | Listed in the package `__init__.py`   | package-local | UNWARRANTED_EXPORT | Remove both entries                   |
 | Any                                   | none          | UNUSED_ASSET       | Remove the asset                      |
 
-Report each finding in the skill's ordinary shape, carrying one added field directly below `Current state`:
+Report each finding in the skill's shared shape, and close its Wrong bullet with the consumer evidence, which is every
+referencing path and line, or NONE, together with the search that established it.
 
-```text
-Consumer set: <every referencing path and line, or NONE, with the search that established it>
-```
-
-`Location` and `Current state` cite the DECLARATION site and quote its line verbatim, because that is what the fix
-edits. MISSING_EXPORT and UNWARRANTED_EXPORT instead cite the `__init__.py` and quote its `__all__` block. Keeping
-`Current state` verbatim is what lets Check 1 verify these findings unchanged, and `Consumer set` carries the one claim
+The location line and the verbatim quote cite the DECLARATION site, because that is what the fix edits.
+MISSING_EXPORT and UNWARRANTED_EXPORT instead cite the `__init__.py` and quote its `__all__` block. Keeping
+The verbatim quote is what lets Check 1 verify these findings unchanged, and the consumer evidence carries the one claim
 no reading of a single file can settle.
 
 Every one of the five is a claim about ABSENCE, which is the shape of claim a partial reading gets wrong most often, so
-`Consumer set` names the search that established it rather than asserting it. Confirm each candidate with a
+The consumer evidence names the search that established it rather than asserting it. Confirm each candidate with a
 repository-wide search for the symbol's name across `src/`, `tests/`, and the configuration files carrying runtime
 registrations, then quote what the search returned. Where the repository holds a `.codegraph/` index, `codegraph
 explore` answers the same question directly and is the cheaper confirmation. A candidate whose search never ran, and a
-finding that cannot name its consumer set, are both deleted rather than reported at low confidence.
+finding that cannot name its consumers, are both deleted rather than reported at low confidence.
 
 Rate UNDER_EXPOSED, MISSING_EXPORT, and a deep import reaching past a missing export as BLOCKING, because each names a
 rule the checklists state with MUST. Rate OVER_EXPOSED, UNWARRANTED_EXPORT, and UNUSED_ASSET as STANDARD.

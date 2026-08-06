@@ -66,14 +66,16 @@ GitHub repository for installation instructions and library usage examples:
   other canonical description locations for the project archetype (e.g., `pyproject.toml`, `__init__.py`, `README.md`,
   or `library.json`). No language prefix ("A Python library that...") and no project name prefix ("project-name is...").
 - For Ataraxis projects, the second paragraph MUST include the standard Ataraxis attribution sentence with links to the
-  Ataraxis repository and the Sun (NeuroAI) lab. For a non-Ataraxis project, omit this paragraph by default, and replace
-  it with other project-relevant context only where the description above it is unreadable without that context.
-- Additional project-relevant context after the attribution (e.g., companion libraries, related hardware) is omitted by
-  default, and added only where the project description above it is unreadable without it.
+  Ataraxis repository and the Sun (NeuroAI) lab. For a non-Ataraxis project, the paragraph carries the interoperation
+  context below alone, and the page omits the paragraph where the project has no such component.
+- The second paragraph also names, and links to, the component the project is built to interoperate with, such as the
+  companion library implementing the other end of its protocol or the hardware it drives. The test is whether the named
+  component sits on the other side of an interface this project implements, and a component that passes that test
+  belongs on the page. Context that fails it, such as an adjacent project, a funding source, or a comparison with
+  another library, is omitted.
 - The third paragraph is the standard disclaimer that the site carries API documentation only, with a link to the
   project GitHub repository.
-- The footer declares an explicit RST link target for every inline link the page uses, which are the Ataraxis
-  repository, the project repository, and the attribution link.
+- The footer declares an explicit RST link target for every inline link the page uses.
 - The GitHub URL uses the `Sun-Lab-NBB` organization.
 
 ### Placeholders

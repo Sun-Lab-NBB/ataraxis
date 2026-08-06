@@ -33,6 +33,19 @@ You MUST verify your changes against the verification checklist before submittin
 
 ---
 
+## Mirrored identity content requires explicit approval
+
+Three parts of a README duplicate content that lives elsewhere. The H1 title carries the project name, the one-line
+description immediately after it carries the description, and the Authors section carries the author list. Each of the
+three is also stated in `pyproject.toml`, in the documentation, and on the repository and package pages, so you MUST
+obtain explicit user approval before changing any of them. `/pyproject-style` owns the wording and lists every location
+that would need the same edit.
+
+Every other part of the README follows the normal rules in this skill, so a usage example, a section you are adding, or
+a technical correction inside Detailed Description needs no approval.
+
+---
+
 ## Workflow
 
 You MUST follow these steps when this skill is invoked.
@@ -195,11 +208,16 @@ documentation, and the one-line description at the top of the file.
 description, and the section heading it sits under. A sentence you are able to reconstruct carries no information, so
 delete it. Apply the test to one sentence at a time rather than to the section as a whole.
 
-**No API reproduction**: The README shows a reader what the library is for and how to start using it. It does not
-reproduce the API surface. Do not list every parameter of a function, every field of a configuration class, or every
-method of a public class, because the hosted documentation generates all of it from the docstrings and stays correct as
-the code changes. Link to the API documentation instead and keep the README's usage material to the smallest path that
-gets a reader to a working first result.
+**No API reproduction**: The README shows a reader what the library is for and how to use it. What it leaves to the
+hosted documentation is the generated reference, meaning a table or list that enumerates a function's parameters, a
+configuration class's fields, or a class's method signatures. That material is generated from the docstrings and stays
+correct as the code changes, so restating it here only creates a second copy that drifts.
+
+A worked usage example is a different thing, and it belongs in the README. A runnable snippet per public feature earns
+its place, because it shows a reader how the pieces fit together, which a generated signature never does. Judge a Usage
+subsection on whether its example teaches something the reference cannot, rather than on how many public members the
+section happens to cover. A Usage section that runs long because the library exposes many features is doing its job, so
+do not propose deleting or collapsing worked examples on length alone.
 
 **No marketing prose**: State what the library does. Do not describe it as powerful, flexible, seamless, robust,
 comprehensive, or easy to use, and do not explain why its problem matters.
@@ -265,6 +283,16 @@ levels (do not jump from H2 to H4).
 - Avoid filenames as alt text (e.g., do not use `![screenshot1.png](...)`)
 - Every link's text must name the page or document it opens. Text such as "click here" fails that test
 - Indicate file types for downloads: `[User Guide (PDF)](url)`
+
+---
+
+## Badge URLs
+
+A badge URL is written in full or through a URL shortener, and both forms are correct. Most badge targets are static
+shields identical across every repository, so a shortener resolves to the same image and keeps a very long URL out of
+the README source. A per-package badge, such as a PyPI or a PlatformIO Registry badge, carries a shortener minted for
+its own repository. The permission covers badge URLs alone, so a prose link keeps the link text rule above, where the
+text must name the page or document the link opens.
 
 ---
 
@@ -338,11 +366,13 @@ README to reflect the changes.
 README Style Compliance:
 
 Structure:
+- [ ] Explicit user approval obtained before changing the title, the one-line description, or the Authors section
 - [ ] Archetype selected mechanically: library (ships an installable artifact) or umbrella (indexes siblings)
 - [ ] Section order matches the selected archetype's list, with only its optional sections omitted
 - [ ] Title H1 uses the package name lowercase-hyphenated (library) or the display casing (umbrella)
 - [ ] Line after the title is the bare canonical description (library) or the bold tagline (umbrella)
 - [ ] Correct badge set for project type, umbrella READMEs carrying the license badge alone
+- [ ] Badge URLs accepted in either form, full or shortened, with a shortened badge URL never reported as a finding
 - [ ] Blank line between description and badges
 - [ ] Horizontal rule uses `___` (not `---`) after badges
 - [ ] Detailed Description heading present (library) or unheaded framework description present (umbrella)
@@ -380,14 +410,15 @@ Style:
 Quality:
 - [ ] Sentences in README prose stay under 40 words
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, description, and heading)
-- [ ] API surface is linked rather than reproduced (no per-parameter or per-method listings)
+- [ ] Generated reference material is linked rather than reproduced (no per-parameter or per-method
+      signature listings; worked usage examples are not reference material and are never flagged here)
 - [ ] No marketing adjectives (powerful, flexible, seamless, robust, comprehensive, easy to use)
 - [ ] No section preamble restating the heading above it
 - [ ] README records the library as it currently stands, never the edit that produced it
 - [ ] No version history or migration notes (those belong to the release notes)
 - [ ] Updates leave sections no longer than they started unless behavior genuinely changed
 - [ ] Section length proportional to how hard the subject is for a reader to get right, not to how much code
-      implements it
+      implements it (a Usage section carrying one worked example per public feature is exempt)
 - [ ] All images have alt text that names what the image shows
 - [ ] Link text names the page or document the link opens (no "click here")
 - [ ] Download links indicate the file type, as in `[User Guide (PDF)](url)`

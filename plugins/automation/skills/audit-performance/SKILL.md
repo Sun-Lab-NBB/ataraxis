@@ -79,6 +79,14 @@ traced to the expression that bounds it.
 | PER_ELEMENT      | Once per array element or per innermost loop iteration                       |
 | PER_FRAME        | A Unity `Update`, `FixedUpdate`, `LateUpdate`, or coroutine, and its callees |
 
+A **public API entry point** is a symbol the distribution's top-level `__init__.py` exports through `__all__`. In C++
+it is every public declaration in an exported header, a boundary `/cpp-style` resolves through `library.json` in its
+distribution boundary section, and in C# it is every public type the package ships. Its callers live in repositories
+this audit cannot read, so no multiplicity is traceable for it and none is assumed. Mark it PUBLIC_API and judge it
+on **per-call cost**, which is the work one call performs and how that work scales with the input it receives. A
+library exists to be called, so asking whether a call can be made cheaper is always in scope, and how often a
+downstream project calls it never becomes evidence.
+
 **Evidence class** records whether inspection settles the payoff.
 
 | Evidence class      | Meaning                                                                 |
@@ -152,8 +160,8 @@ Bind each file to the style skill that supplies its citable authority:
 | `*.cs`                  | `/csharp-style` |
 
 Record the prerequisites that apply to the languages in scope, before any verdict. A C++-only or C#-only target records
-only the last two, and a project carrying no `pyproject.toml` records the Python rows as N/A rather than treating their
-absence as a finding:
+only the last three, and a project carrying no `pyproject.toml` records the Python rows as N/A rather than treating
+their absence as a finding:
 
 1. Python only. The NumPy version pin from `pyproject.toml`. NumPy 2.0 and above applies NEP 50, and earlier versions
    apply value-based casting for scalars. A dtype verdict that omits its regime is unfalsifiable.
@@ -166,6 +174,8 @@ absence as a finding:
    structs, and on-disk schemas it declares. These pin the widths Pass 2 traces.
 6. Every language. Whether a `.codegraph/` directory exists. When it does, prefer `codegraph explore` over grep for
    call-site discovery, because it follows the dynamic-dispatch hops that establish multiplicity.
+7. Every language. The published surface the distribution ships, read as the evidence model above defines it for the
+   language in scope. It fixes the PUBLIC_API set the sweep marks and the per-call cost judgement each one receives.
 
 Classify the audit tier:
 
@@ -331,38 +341,40 @@ the guards and the Step 7 checks produced. Report STATIC findings first, ordered
 section from Step 6. Group HIGH and MEDIUM confidence findings hierarchically: file, then category, then impact. Collect
 LOW confidence findings into the trailing `Appendix: LOW confidence` section, ordered by impact.
 
-Each finding uses this structure:
+Every finding uses the shape below, shared by all four audits in this family so one reading habit serves them all.
 
 ```text
-[Category]: <category name from the catalog>
-[Impact]: <HIGH | MEDIUM | LOW>
-[Evidence]: <STATIC | MEASUREMENT-PENDING>
-[Confidence]: <HIGH | MEDIUM | LOW>
-Location: <path>:<line>-<line>
-Multiplicity: <class> (bound: <expression>, source: <path>:<line>)
-Current state: "<verbatim quote from the file>"
-Cost: <explicit arithmetic or complexity class, stated for current and proposed>
-Suggested fix: <concrete code change, described rather than applied>
-Approval: <REQUIRED when the fix breaks the public API or alters public behavior, naming what breaks>
+### <ID> · <HIGH | MEDIUM | LOW> · <one-line statement of the defect>
+
+`<path>:<line>` · <category from the catalog> · <HIGH | MEDIUM | LOW> confidence · <STATIC | MEASUREMENT-PENDING>
+
+- **Wrong:** <the defect, carrying every quote and citation the evidence floor requires>
+- **Fix:** <the concrete change, described rather than applied>
+- **Impact:** <what the change alters for callers and downstream, or "None" when nothing observable changes>
+- **Choice:** <the options, one clause each, closing with a recommendation>
 ```
 
-When the same category is triggered multiple times within a file by one root cause, collapse to a single finding with a
-count and representative line citations:
+**ID** is a short stable handle, `P1`, `P2`, and so on, numbered in report order, so a reader answers with the
+identifier rather than by restating the finding.
 
-```text
-[Category]: HOT_LOOP_ALLOCATION
-[Impact]: MEDIUM
-[Evidence]: STATIC
-[Confidence]: HIGH
-Location: processor.py:88, 141, 203 (3 occurrences)
-Multiplicity: PER_RECORD (bound: len(records), source: processor.py:84)
-Current state: "buffer = np.empty(shape=(window,), dtype=np.float32)"
-Cost: 3 allocations x 4 KB x 50000 records, 600 MB churned, versus one hoisted buffer
-Suggested fix: Hoist each buffer above its loop and pass it through the `out=` parameter.
-```
+**Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the execution multiplicity
+with its bounding expression and the `<path>:<line>` that sets it, the current state quoted verbatim, and the cost
+arithmetic given for the current and the proposed form. A table, a ledger, or an interleaving sits directly beneath the
+bullet.
 
-For a MEASUREMENT-PENDING finding, replace the Cost line with the benchmark that would settle it, stating what to vary,
-what to measure, and on what input.
+**Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
+behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
+
+**Choice** appears only where the audit cannot settle the question, covering a payoff only measurement settles, and a
+proposal that trades one resource for another, such as wall time against resident memory. Each option gets one clause,
+and the bullet closes with a recommendation.
+
+A MEASUREMENT-PENDING finding replaces the cost arithmetic with the benchmark that would settle it, stating what to
+vary, what to measure, and on what input. Once a benchmark runs, the finding carries the measured table beneath its
+Wrong bullet and its tag becomes STATIC.
+
+When one root cause repeats across several sites, collapse it to a single finding whose location line carries the site
+list and a count, written as `` `processor.py:88, 141, 203` · 3 occurrences ``.
 
 ---
 
@@ -371,7 +383,9 @@ what to measure, and on what input.
 You MUST adhere to the following discipline during every audit.
 
 - Establish heat from an actual call site with a `<path>:<line>`. A function whose call sites resolve nowhere in the
-  package is UNKNOWN and stays out of the report.
+  package and which the top-level `__init__.py` does not export is UNKNOWN and stays out of the report.
+- Trace every public API entry point on per-call cost, and never substitute a guess about downstream call frequency for
+  the multiplicity such an entry point does not have.
 - Anchor every finding to a verbatim source quote and to explicit cost arithmetic.
 - Cite the authority for a rule by skill name and reference file name, together with a verbatim quote of the rule.
 - Report a construct that `/audit-style` also sees only with its runtime consequence established and cited.
@@ -382,6 +396,9 @@ You MUST adhere to the following discipline during every audit.
   under 40 words and separating its clauses with full stops and commas.
 - Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
   line ending before column 100 while its next word would still fit is re-flowed.
+- Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
+  clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
+  code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
 - Never restructure, refactor, or optimize. This skill produces findings only.
 - Treat `console.enable()` and `console.disable()` calls as correct at every library tier.
 
@@ -426,6 +443,8 @@ You MUST verify the audit output against this checklist before presenting it to 
 Performance Optimization Audit Compliance:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Step 1 prerequisites recorded for every language in scope, with the rows for absent languages marked N/A
+- [ ] Published surface recorded, with every symbol it exports marked PUBLIC_API and traced on per-call cost rather
+      than dropped for carrying no in-repo call site
 - [ ] For Python in scope, the NumPy version pin recorded together with its promotion regime
 - [ ] Pass 2 dispatched to DTYPE TRACE for Python files and WIDTH TRACE for C++ and C# files
 - [ ] Scalar widths traced alongside array widths, including constants, reduction results, and extracted elements
@@ -439,7 +458,8 @@ Performance Optimization Audit Compliance:
 - [ ] Hot-path census completed on the main agent before any fan-out
 - [ ] Every loop bound traced to the expression and line that sets it
 - [ ] Sweep passes 2 through 9 run in order, with pass 9 restricted to C++ and C# files
-- [ ] Every finding is PER_CHUNK or hotter, a categorical prohibition, or a size-gated PEAK_MEMORY_FOOTPRINT
+- [ ] Every finding is PER_CHUNK or hotter, a categorical prohibition, a public API entry point judged on per-call
+      cost, or a size-gated PEAK_MEMORY_FOOTPRINT
 - [ ] Every finding assigned a category, an impact, an evidence class, and a confidence tier
 - [ ] Every finding cites a file location <path>:<line> and quotes the source verbatim
 - [ ] Every finding resting on a style rule quotes that rule verbatim and names its skill and reference file
@@ -465,7 +485,11 @@ Performance Optimization Audit Compliance:
       /audit-facts)
 - [ ] No proposal violates a documented project convention without that conflict being stated
 - [ ] Findings ordered by impact, STATIC section before MEASUREMENT-PENDING section
-- [ ] Suggested fixes are concrete code changes, each carrying an Approval verdict
+- [ ] Fix bullets are concrete code changes, described rather than applied
+- [ ] Every finding uses the shared shape, carrying a stable ID, a rank, a location line, and the Wrong, Fix, and
+      Impact bullets
+- [ ] Every Impact bullet names what the fix alters for callers and downstream, or states None
+- [ ] A Choice bullet appears only where the audit cannot settle the question, and it closes with a recommendation
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops
       and commas as clause separators
 - [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would

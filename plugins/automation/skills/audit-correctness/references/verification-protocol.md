@@ -24,8 +24,8 @@ under test.
 Runs against EVERY surviving finding, with no sampling.
 
 For each finding, open the cited `<path>` at the cited line range and confirm that every quoted string appears there
-character for character. The strings to check are the Contract quote, the Implementation quote, and every line number
-named inside the Trigger and inside the Result.
+character for character. The strings to check are the quoted contract, the quoted implementation, and every line number
+the Wrong bullet names.
 
 Delete the finding when a quote does not appear at the cited location, and when the cited line holds different code.
 Repairing the citation is FORBIDDEN here. A citation that drifted is evidence that the finding was assembled from

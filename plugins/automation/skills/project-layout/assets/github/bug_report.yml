@@ -16,12 +16,10 @@ body:
     attributes:
       label: Environment
       description: >-
-        The host operating system and the versions of the language runtime and tools used to run the project. Include
-        the hardware model when the bug involves a physical device.
+        The host operating system and the versions of the language runtime, tools, and hardware used to run the
+        project.
       placeholder: |-
-        OS: Ubuntu 24.04
-        Python: 3.13
-        Hardware: Teensy 4.1
+        {environment_example}
     validations:
       required: true
 

@@ -68,6 +68,26 @@ C++ libraries are **header-only**. All code resides in `.h` files with no separa
 simplifies distribution via PlatformIO's library dependency system and enables full template specialization at compile
 time.
 
+### Distribution boundary
+
+An asset with no consumer is removed rather than kept, and a published library measures that consumption against its
+distribution boundary rather than against this repository. `library.json` fixes the boundary as `export.include` minus
+`export.exclude`, so an auditor reads both fields before calling any symbol dead, and `/platformio-config` owns those
+two fields.
+
+Every public declaration in an exported header reaches consumers this repository cannot see, so it is consumed. Three
+shapes recur. A published class keeps its whole public API, including the accessors that only the test suite calls
+inside this repository. A mock or a fake the library exports for downstream projects to test against is kept, and
+`stream_mock.h` is the worked case. A member carrying an `@warning` or `@note` that names it a testing or debugging aid
+is kept, because that block is the recorded rationale that marks the member as consumed.
+
+Removal governs everything the boundary leaves behind. A private member of an exported header stays under removal,
+because no downstream consumer is able to name it. A path `export.exclude` drops stays under removal, `main.cpp` being
+the standing case. A firmware project carries no `library.json` and publishes no API, so every symbol in it stays under
+removal, and a symbol only its own tests exercise is removed together with those tests. The compiler reports an unused
+static function and an unused local, and it reports nothing about an unused exported declaration, so that case is found
+by reading.
+
 ### main.cpp conventions
 
 The `main.cpp` entry point follows a standard structure:
@@ -165,6 +185,38 @@ clang-format --dry-run --Werror src/*.h src/*.cpp
 
 C++ projects use clang-tidy with `WarningsAsErrors: '*'`, treating all enabled warnings as build-breaking errors. The
 canonical configuration is stored in `assets/.clang-tidy` and is shared across both embedded and extension archetypes.
+
+### Every check is named explicitly
+
+The `Checks` list opens with `-*` and then names every enabled check in full. It carries NO globs, so the enabled set is
+identical on every clang-tidy version. This matters because clang-tidy is host-provided rather than pinned by the
+project environments, so two contributors routinely run different releases. A glob adopts each check a new release adds,
+and `WarningsAsErrors: '*'` turns that adoption into a build failure across every project sharing this file.
+
+Naming each check also makes the list auditable. A name clang-tidy has dropped is visible as a dead entry, which a glob
+hides. Verify the list against the installed toolchain with `clang-tidy --checks='*' --list-checks` when a new release
+lands, and remove the entries it no longer ships.
+
+Adopting a new check is therefore a deliberate edit, which adds its name to the list in its family's alphabetical
+position rather than widening a pattern.
+
+### A check that contradicts this skill is disabled, never suppressed
+
+Where an enabled check forbids a construct this skill PRESCRIBES, the check is removed from the `Checks` list and the
+reason is recorded in the configuration file header. Do NOT suppress such a check with per-site `// NOLINT` comments,
+because the construct is correct everywhere the skill calls for it, so a suppression would have to be repeated at every
+occurrence and would read as an exception to a rule the project actually follows.
+
+Two checks are absent for this reason, and both concern the file-scope `using namespace` directive that the "Using
+namespace directives" section of [class-patterns.md](class-patterns.md) prescribes for project-internal shared asset
+namespaces, and that the nanobind pattern above prescribes for the literals and chrono namespaces:
+
+| Check                             | What it forbids                                            |
+|-----------------------------------|------------------------------------------------------------|
+| `google-build-using-namespace`    | Any file-scope `using namespace` directive                 |
+| `google-global-names-in-headers`  | The same directive specifically inside a header file       |
+
+The second one binds the header-only PlatformIO libraries, where every such directive lives in a `.h` file.
 
 ### Suppressing warnings
 

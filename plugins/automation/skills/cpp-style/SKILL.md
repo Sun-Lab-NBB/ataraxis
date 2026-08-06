@@ -115,11 +115,12 @@ respecting each language's idiomatic standards.
   into an internal header, and tests are the sole exception to both rules
 - Both rules bind downward as well. A symbol referenced only inside its defining translation unit or header keeps the
   underscore, and a symbol every consumer of which lives inside the owning component stays out of that component's
-  public header. A test is not a consumer for either rule
+  public header. A test is not a consumer for either rule, and a downstream project is
 - An asset with no consumer is removed rather than kept, which covers functions, methods, classes, constants, enum
-  members, and whole headers. The compiler reports an unused static function and an unused local, and it reports nothing
-  about an unused exported declaration, so that case is found by reading. A symbol exercised only by its own tests is
-  removed together with those tests
+  members, and whole headers, and a symbol only its own tests exercise is removed together with those tests
+- A published library ships headers to consumers this repository cannot see, so every public declaration in an exported
+  header is consumed. `library.json` fixes that boundary as `export.include` minus `export.exclude`. See the
+  distribution boundary section of [libraries-and-tools.md](references/libraries-and-tools.md) for the shapes it spares
 
 ### Project archetypes
 
@@ -416,10 +417,11 @@ against the code you wrote.
 - [ ] Private members use _snake_case prefix
 - [ ] Symbols used outside their defining translation unit or header are public, and cross-component ones
       use the public header
-- [ ] Symbols used only inside their defining translation unit or header keep the underscore, and symbols with
-      no consumer outside the owning component stay out of its public header (tests are not consumers)
-- [ ] Every asset has a consumer, so functions, methods, classes, constants, enum members, and whole headers
-      that nothing outside the test suite references are removed rather than kept
+- [ ] Symbols used only inside their defining translation unit or header keep the underscore, and symbols with no
+      consumer outside the owning component stay out of its public header (tests are not consumers, downstream code is)
+- [ ] Every asset has a consumer, so functions, methods, classes, constants, enum members, and whole headers only tests
+      reference are removed with those tests, sparing public declarations in headers library.json export.include minus
+      export.exclude ships, an exported mock or fake, and any member an @warning or @note marks a test or debug aid
 - [ ] Local variables and parameters use snake_case
 - [ ] Constants use kPascalCase prefix (static constexpr)
 - [ ] Enum types and values use kPascalCase prefix
@@ -450,6 +452,10 @@ against the code you wrote.
 - [ ] Linting warnings resolved (not suppressed) unless resolution adds unnecessary complexity
 - [ ] NOLINT comments for legitimate clang-tidy false positives only
 - [ ] No IDE inspection directives (CLion/ReSharper // noinspection etc.); only clang-tidy // NOLINT suppressions kept
+- [ ] .clang-tidy Checks list names every check explicitly, carrying no globs and no entry the installed
+      clang-tidy no longer ships
+- [ ] A check contradicting a construct this skill prescribes is removed from the Checks list with its reason
+      recorded in the file header, rather than suppressed per-site with NOLINT
 
 Tooling-enforced items. Run clang-format -i src/*.h src/*.cpp and clang-tidy src/*.h src/*.cpp -- -I include/
 to resolve or report each of these rather than hand-checking them. They stay listed for reviews performed

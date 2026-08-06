@@ -44,10 +44,10 @@ These settings are identical across all projects:
 ```toml
 # Ruff Configuration.
 [tool.ruff]
-line-length = 120         # Deviates from the commonly used '80' standard.
+line-length = 120
 indent-width = 4
 target-version = "py312"  # Targets the lowest supported version of python
-src = ["src"]             # The name of the root source code directory
+src = ["src"]
 
 # Excludes 'service' .py files, such as the sphinx configuration file, from linting.
 extend-exclude = ["conf.py"]
@@ -262,10 +262,8 @@ warn_return_any = true
 no_implicit_reexport = true
 strict_equality = true
 
-# Extra checks (equivalent to --extra-checks)
 extra_checks = true
 
-# Pretty output (equivalent to --pretty)
 pretty = true
 
 exclude = [
@@ -351,7 +349,7 @@ omit = [
     "*/package_name/cli.py",
 ]
 
-# This is used by the 'test' tox tasks to aggregate coverage data produced during pytest runtimes.
+# Used by the 'coverage' tox task to merge the coverage data files the '{py}-test' tasks produce.
 [tool.coverage.paths]
 
 # Maps coverage measured in site-packages to source files in src. The second pattern matches the POSIX virtual
