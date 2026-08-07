@@ -20,6 +20,7 @@ Guides implementation of custom hardware Module subclasses in the ataraxis-micro
 **Covers:**
 - Module base class inheritance and constructor pattern
 - Three required virtual methods: SetupModule, SetCustomParameters, RunActiveCommand
+- SetupModule design requirements: unfailable body, compile-time validation, and the idle-state guarantee
 - Command handler patterns: immediate, multi-stage with non-blocking delay, sensor polling
 - Runtime parameter structures with `PACKED_STRUCT` macro
 - Event code conventions (system 0-50, user 51-250)
@@ -233,11 +234,12 @@ contiguously with no padding. Always verify field count, order, and types match 
 ## SetupModule()
 
 Initialize hardware pins and reset parameters to defaults. This method is called by Kernel during `Setup()` and on
-PC-requested resets. Avoid blocking or fail-prone logic:
+PC-requested resets. Deactivate the module's hardware first, then avoid blocking or fail-prone logic:
 
 ```cpp
 bool SetupModule() override
 {
+    // Deactivates the managed hardware first, so the module is idle before anything else runs.
     pinMode(kPin, OUTPUT);
     digitalWrite(kPin, LOW);
 
@@ -251,12 +253,76 @@ bool SetupModule() override
 
 **Rules:**
 - Configure all GPIO pins (`pinMode`, `digitalWriteFast`, etc.)
+- Deactivate every managed output before anything else, so the module ends the method idle
 - Set all parameter fields to their default values
 - Return `true` on success, `false` on failure (failure bricks the controller until firmware reset)
 
-On keepalive timeout the Kernel emits kernel status 10 (`kKeepAliveTimeout`) and re-runs `Setup()`, which re-invokes
-every module's `SetupModule()` and clears all command buffers and hardware states, so `SetupModule()` must be safe to
-call repeatedly.
+On keepalive timeout the Kernel emits kernel status 10 (`kKeepAliveTimeout`) and re-runs `Setup()`, which clears every
+module's command buffers and re-invokes its `SetupModule()`, so `SetupModule()` must be safe to call repeatedly. The
+Kernel clears only the software command state, leaving the return of the hardware to its idle level as this method's
+own job.
+
+### Design requirements
+
+A setup failure is unrecoverable at runtime, which makes `SetupModule()` the one virtual method whose failure modes you
+MUST design out rather than merely report. Apply these three requirements in order.
+
+**1. Write the method so that it cannot fail.** Its body should always return `true`. Restrict it to operations that
+cannot fail: `pinMode` calls, pin state writes, and parameter default assignments. Do NOT place connection handshakes,
+calibration routines, homing sweeps, or sensor readiness polling in this method. Move that logic into a command handler,
+where a failure is reported to the PC as an event code and leaves the controller able to respond.
+
+**2. When a failure mode is unavoidable, move it to compile time.** Validate pin assignments, template arguments,
+parameter struct sizes, and every other statically known property with `static_assert` at the top of the class body, so
+an invalid configuration fails `pio run` instead of bricking a controller in the field. A compilation error is always
+recoverable, while a runtime setup failure needs physical access to the microcontroller.
+
+**3. Leave the module in the idle state, and reach that state before anything that can fail.** Deactivate every hardware
+asset the module manages, driving each output pin to the level that turns its attached device off, as the first
+statement of the method body. Any step that can return `false` MUST come after that point.
+
+Requirement 3 is the load-bearing one. `Kernel::Setup()` calls `SetupModule()` on each managed module in `modules[]`
+array order and returns immediately on the first `false`, leaving its setup tracker inactive. `RuntimeCycle()` then only
+blinks the built-in LED at ~2-second intervals: it never parses PC messages and never calls `RunModuleCommands()`. The
+controller cannot receive the PC-sent `kResetController` command in that state, so nothing will change the hardware
+state again until the firmware is reset. Whatever each module is driving at the instant of the failure, it keeps driving
+indefinitely: a solenoid stays open, a valve keeps dispensing, a motor keeps turning.
+
+The freeze hits every managed module, not only the one that failed:
+
+| Module position           | State after a setup failure                                                         |
+|---------------------------|-------------------------------------------------------------------------------------|
+| Before the failing module | Already ran `SetupModule()`, so it is frozen where that method left it.             |
+| The failing module        | Frozen part-way through its own `SetupModule()`, at the step that returned `false`. |
+| After the failing module  | Never ran `SetupModule()` at all, so it holds the state it had before `Setup()`.    |
+
+The last row is why this matters beyond first boot. `Setup()` also re-runs when the PC sends the reset kernel command
+and when the keepalive monitor times out, both of which fire mid-experiment while modules can be actively driving
+hardware. The Kernel calls `ResetExecutionParameters()` on every module before the setup pass, but that clears only
+software command state and never touches pins, so each module's own `SetupModule()` is the only thing that can return
+its hardware to a safe level. A module whose turn never comes keeps driving whatever its aborted command left active.
+
+Idle is defined by the attached hardware, not by the pin level. Active-low and normally-closed devices idle at `HIGH`,
+so never hardcode `LOW` as the idle level. Derive it from the polarity template parameter with the constexpr pin logic
+pattern in [references/api-reference.md](references/api-reference.md), then write that constant in `SetupModule()`:
+
+```cpp
+template <const uint8_t kPin, const bool kNormallyClosed>
+class ValveModule final : public Module
+{
+        static constexpr bool kOpen  = kNormallyClosed ? HIGH : LOW;
+        static constexpr bool kClose = kNormallyClosed ? LOW  : HIGH;
+
+    public:
+        bool SetupModule() override
+        {
+            // Closes the valve first, which is this module's idle state, before anything else runs.
+            pinMode(kPin, OUTPUT);
+            digitalWriteFast(kPin, kClose);
+            // ...
+        }
+};
+```
 
 ---
 
@@ -481,6 +547,10 @@ Firmware Module, reader-judged:
 - [ ] Custom event codes enum defines event codes with values 51-250
 - [ ] CustomRuntimeParameters struct uses PACKED_STRUCT macro
 - [ ] SetupModule() configures pins and resets parameters to defaults
+- [ ] SetupModule() deactivates every managed output as its first statement, leaving the module idle
+- [ ] SetupModule() contains no logic that can return false, and no blocking, handshake, calibration, or polling step
+- [ ] Any unavoidable SetupModule() failure mode is caught by a static_assert instead of a runtime false return
+- [ ] The idle pin level is a named constexpr verified against the device wiring, not a hardcoded LOW
 - [ ] SetCustomParameters() calls ExtractParameters() (not _communication.ExtractModuleParameters())
 - [ ] RunActiveCommand() switches on get_active_command() and returns true/false
 - [ ] All command handlers call CompleteCommand() when done

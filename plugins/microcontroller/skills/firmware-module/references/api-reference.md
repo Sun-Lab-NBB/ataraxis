@@ -54,6 +54,12 @@ Called by Kernel during `Setup()` and on PC-requested resets. Initializes hardwa
 not contain blocking logic. Returns `true` on success, `false` on failure (failure bricks the controller until firmware
 reset).
 
+Design this method so it cannot fail, push any unavoidable failure to compile time with `static_assert`, and deactivate
+all managed hardware as the first statement of the body, before any logic that can return `false`. A `false` return
+aborts `Kernel::Setup()` and reduces `RuntimeCycle()` to blinking the LED, so no module command ever runs again and
+every managed module stays frozen in its current physical state until the firmware is reset. See the SetupModule design
+requirements in SKILL.md for the full rationale and the per-module consequences.
+
 ### SetCustomParameters
 
 ```cpp
