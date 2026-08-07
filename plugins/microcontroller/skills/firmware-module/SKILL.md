@@ -71,7 +71,7 @@ Check the locally available ataraxis-micro-controller version:
 cat ../ataraxis-micro-controller/library.json | grep version
 ```
 
-The current version is **4.0.0**, which requires `ataraxis-transport-layer-mc` at `^4.0.0`. Check that pin in the
+The current version is **4.0.1**, which requires `ataraxis-transport-layer-mc` at `^4.0.0`. Check that pin in the
 project's `platformio.ini` as well. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
@@ -122,10 +122,10 @@ class CustomModule final : public Module
         );
 
     public:
-        // Constructor, enums, parameters, virtual method overrides
+        // Constructor, parameters, virtual method overrides
 
     private:
-        // Command handler methods
+        // Enums, command handler methods
 };
 
 #endif  // CUSTOM_MODULE_H
@@ -317,10 +317,11 @@ bool RunActiveCommand() override
 - Do NOT evaluate whether the command ran successfully here, only whether it was recognized
 - Do NOT call `CompleteCommand()` or `AbortCommand()` from the `default` case, because returning `false` is sufficient
 
-Returning `false` makes the Kernel report error code 3 and then discard the active command, so an unrecognized one-off
-command clears itself after a single runtime cycle. The discard clears the active command and its stage, not the queue,
-so an unrecognized recurrent command reactivates on each repetition and reports the same error until the PC dequeues or
-replaces it.
+Returning `false` makes the Kernel report error code 3 and then discard the active command, so an unrecognized command
+clears itself after a single runtime cycle. The discard also drops the command from the queue when the queue still
+holds it, because a code the module does not recognize cannot become recognized on a later repetition. A recurrent
+command therefore reports the error once rather than on every repetition, and the module stays free to run whatever the
+PC queues next.
 
 ---
 
@@ -471,7 +472,7 @@ polarity-configurable modules and sensor hysteresis for polling commands).
 
 ```text
 Firmware Module:
-- [ ] Verified ataraxis-micro-controller >=4.0.0 and ataraxis-transport-layer-mc >=4.0.0
+- [ ] Verified ataraxis-micro-controller >=4.0.1 and ataraxis-transport-layer-mc >=4.0.0
 - [ ] Read module.h source to confirm API has not changed
 - [ ] Module header file created with an include guard, and library headers included with angle brackets
 - [ ] Class inherits from Module (public inheritance)

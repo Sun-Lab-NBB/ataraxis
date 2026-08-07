@@ -1,7 +1,7 @@
 # Module base class API reference
 
 Complete API reference for the `Module` base class and supporting classes in ataraxis-micro-controller.
-All signatures are sourced from the library's header files at version 4.0.0.
+All signatures are sourced from the library's header files at version 4.0.1.
 
 ---
 
@@ -75,11 +75,11 @@ Called during each Kernel runtime cycle when the module has an active command. S
 command code from `get_active_command()` into a call to the command-specific handler method. Returns
 `true` if the command was recognized, `false` otherwise. Does NOT indicate command success.
 
-Returning `false` makes the Kernel call `SendCommandActivationError()`, which reports event code 3,
-and then `DiscardActiveCommand()`, which clears the active command and its stage without a
-`kCommandCompleted` message. A one-off command is therefore dropped after a single error report. A
-recurrent command stays queued and reactivates on its next repetition, reporting event code 3 again
-until the PC dequeues or replaces it.
+Returning `false` makes the Kernel call `SendCommandActivationError()`, which reports event code 3, and then
+`DiscardActiveCommand()`, which clears the active command and its stage without a `kCommandCompleted` message. That
+method also resets the command queue when the queue still holds the rejected command, so one-off and recurrent commands
+alike are dropped after a single error report. A command the PC queued while the rejected one was running is left
+untouched and activates on the next cycle.
 
 ### Virtual destructor
 
@@ -124,7 +124,7 @@ void DiscardActiveCommand();
 | `get_module_type_id`         | The `kIdentifyModules` kernel command (code 4). Returns `module_type << 8 \| module_id`.      |
 | `SendCommandActivationError` | `RunActiveCommand()` returned `false`. Reports event code 3 against the active command.       |
 | `SendCommandRejection`       | A module command message carries command code 0. Reports event code 3 against that code.      |
-| `DiscardActiveCommand`       | Immediately after `SendCommandActivationError()`. Sends no completion message.                |
+| `DiscardActiveCommand`       | Immediately after `SendCommandActivationError()`. Drops the queue entry, sends no message.    |
 
 `ResolveActiveCommand()` applies the command priority chain: finish the active command, then activate a newly queued
 command, then repeat a recurrent command whose delay has elapsed. The recurrent comparison is inclusive
@@ -332,8 +332,9 @@ after a keepalive-triggered emergency reset.
 
 ### kKernelCommands
 
-The codes the PC sends in a KernelCommand message (protocol 4). Firmware authors do not implement these, and the Kernel
-handles all of them internally.
+The kernel command codes. The PC addresses codes 2 through 5 in a KernelCommand message (protocol 4), while codes 0 and
+1 mark internal Kernel states, which the Kernel reports as kernel status 8 when a PC message carries either of them.
+Firmware authors implement none of the six, as the Kernel handles them all internally.
 
 | Code | Constant              | Description                                                      |
 |------|-----------------------|------------------------------------------------------------------|
@@ -559,11 +560,11 @@ Build, upload, and monitor the firmware with PlatformIO. The board environment(s
 # Build only (compile, no upload)
 pio run
 
-# Build and upload to the board (uses the default environment)
-pio run --target upload
-
-# Target a specific board environment (e.g. teensy41) when platformio.ini defines several
+# Build and upload to a specific board environment
 pio run --environment teensy41 --target upload
+
+# Build and upload every environment platformio.ini defines
+pio run --target upload
 
 # List the environments defined in platformio.ini
 pio project config
@@ -571,6 +572,10 @@ pio project config
 # Open the serial monitor after upload (match the Serial.begin() baudrate)
 pio device monitor --baud 115200
 ```
+
+A command that names no environment covers every environment `platformio.ini` defines, unless the file sets
+`default_envs`, which narrows the set to the environments it names. Prefer the `--environment` form when the project
+targets several boards, because an upload to a board that is not connected fails that environment.
 
 After uploading, the controller runs the deterministic `RuntimeCycle()` loop and is ready for the PC-side
 `MicroControllerInterface` to connect (see `/communication:microcontroller-interface`). Re-upload whenever the firmware
