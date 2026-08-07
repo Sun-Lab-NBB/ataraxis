@@ -1,6 +1,5 @@
 # Module base class API reference
 
-Complete API reference for the `Module` base class and supporting classes in ataraxis-micro-controller.
 All signatures are sourced from the library's header files at version 4.0.1.
 
 ---
@@ -21,8 +20,7 @@ Module(const uint8_t module_type, const uint8_t module_id, Communication& commun
 
 ## ExecutionControlParameters
 
-Tracks command execution state. Managed by Kernel and utility methods. End users should not modify
-fields directly.
+Tracks command execution state. Managed by Kernel and utility methods. End users should not modify fields directly.
 
 ```cpp
 struct ExecutionControlParameters
@@ -34,9 +32,9 @@ struct ExecutionControlParameters
     bool next_noblock        = false;  // Noblock flag for the queued command.
     bool new_command         = false;  // True if next_command is newly queued (not recurrent repeat).
     bool run_recurrently     = false;  // True if the command repeats after completion.
-    uint32_t recurrent_delay = 0;     // Microseconds between command repetitions.
-    elapsedMicros recurrent_timer;    // Measures recurrent command activation delays.
-    elapsedMicros delay_timer;        // Measures delays between command stages.
+    uint32_t recurrent_delay = 0;      // Microseconds between command repetitions.
+    elapsedMicros recurrent_timer;     // Measures recurrent command activation delays.
+    elapsedMicros delay_timer;         // Measures delays between command stages.
 };
 ```
 
@@ -52,9 +50,9 @@ These three methods MUST be overridden by every Module subclass.
 virtual bool SetupModule() = 0;
 ```
 
-Called by Kernel during `Setup()` and on PC-requested resets. Initializes hardware and sets parameter
-defaults. Should not contain blocking logic. Returns `true` on success, `false` on failure (failure
-bricks the controller until firmware reset).
+Called by Kernel during `Setup()` and on PC-requested resets. Initializes hardware and sets parameter defaults. Should
+not contain blocking logic. Returns `true` on success, `false` on failure (failure bricks the controller until firmware
+reset).
 
 ### SetCustomParameters
 
@@ -71,9 +69,9 @@ Called when the PC sends a ModuleParameters message (protocol 5) addressed to th
 virtual bool RunActiveCommand() = 0;
 ```
 
-Called during each Kernel runtime cycle when the module has an active command. Should translate the
-command code from `get_active_command()` into a call to the command-specific handler method. Returns
-`true` if the command was recognized, `false` otherwise. Does NOT indicate command success.
+Called during each Kernel runtime cycle when the module has an active command. Should translate the command code from
+`get_active_command()` into a call to the command-specific handler method. Returns `true` if the command was recognized,
+`false` otherwise. Does NOT indicate command success.
 
 Returning `false` makes the Kernel call `SendCommandActivationError()`, which reports event code 3, and then
 `DiscardActiveCommand()`, which clears the active command and its stage without a `kCommandCompleted` message. That
@@ -87,9 +85,8 @@ untouched and activates on the next cycle.
 virtual ~Module() = default;
 ```
 
-Module subclasses should declare an overriding destructor (`~MyModule() override = default;`) to ensure
-proper cleanup through base class pointers. The Kernel manages modules via `Module*` arrays, so the
-virtual destructor is load-bearing.
+Module subclasses should declare an overriding destructor (`~MyModule() override = default;`) to ensure proper cleanup
+through base class pointers. The Kernel manages modules via `Module*` arrays, so the virtual destructor is load-bearing.
 
 ---
 
@@ -158,25 +155,23 @@ Returns the execution stage of the active command (starts at 1), or 0 if no comm
 void CompleteCommand();
 ```
 
-Ends the active command. Sends a kCommandCompleted (event code 2) message to the PC when any of these
-conditions hold: a new command is waiting to replace the current one, no next command is queued (including
-after an explicit dequeue), or the command is not recurrent. Resets stage to 0, allowing the next command
-to activate. **You MUST call this at the end of every command handler.** Failure to call it deadlocks the
-module.
+Ends the active command. Sends a kCommandCompleted (event code 2) message to the PC under three conditions. A new
+command is waiting to replace the current one, no next command is queued (including after an explicit dequeue), or the
+command is not recurrent. Resets stage to 0, allowing the next command to activate. **You MUST call this at the end of
+every command handler.** Failure to call it deadlocks the module.
 
 ```cpp
 void AbortCommand();
 ```
 
-Cancels the active command. If no new command is pending, resets the command queue to prevent
-reactivation. Then calls `CompleteCommand()` internally.
+Cancels the active command. If no new command is pending, resets the command queue to prevent reactivation. Then calls
+`CompleteCommand()` internally.
 
 ```cpp
 void AdvanceCommandStage();
 ```
 
-Increments the stage counter and resets the delay timer. Use to transition between stages of a
-multi-stage command.
+Increments the stage counter and resets the delay timer. Use to transition between stages of a multi-stage command.
 
 ### Non-blocking delay
 
@@ -185,14 +180,12 @@ multi-stage command.
 ```
 
 Delays execution for the specified microseconds, measured relative to the last stage advancement.
-- **Blocking mode** (`noblock=false`): blocks in-place until the duration has passed, always
-  returns `true`.
-- **Non-blocking mode** (`noblock=true`): returns `true` if the duration has elapsed, `false`
-  otherwise. The module returns control to the Kernel, allowing other modules to execute.
-- **Duration clamp**: `delay_duration` is clamped to `UINT32_MAX - 1` microseconds, roughly 71.6
-  minutes. The 32-bit stage timer has to exceed the duration for the blocking wait to end, so an
-  unclamped `UINT32_MAX` would hang the controller until it is power-cycled. Build a stage delay
-  longer than that bound out of several stages.
+- **Blocking mode** (`noblock=false`): blocks in-place until the duration has passed, always returns `true`.
+- **Non-blocking mode** (`noblock=true`): returns `true` if the duration has elapsed, `false` otherwise. The module
+  returns control to the Kernel, allowing other modules to execute.
+- **Duration clamp**: `delay_duration` is clamped to `UINT32_MAX - 1` microseconds, roughly 71.6 minutes. The 32-bit
+  stage timer has to exceed the duration for the blocking wait to end, so an unclamped `UINT32_MAX` would hang the
+  controller until it is power-cycled. Build a stage delay longer than that bound out of several stages.
 
 ### Pin reading
 
@@ -201,24 +194,23 @@ template <const uint8_t kPin>
 [[nodiscard]] static uint16_t AnalogRead(const uint16_t pool_size = 0);
 ```
 
-Reads the analog pin named by the `kPin` template argument, so the call form is
-`AnalogRead<kSensorPin>(pool_size)`. If `pool_size >= 2`, reads and averages that many samples using
-half-up rounding. Returns the raw or averaged readout.
+Reads the analog pin named by the `kPin` template argument, so the call form is `AnalogRead<kSensorPin>(pool_size)`. If
+`pool_size >= 2`, reads and averages that many samples using half-up rounding. Returns the raw or averaged readout.
 
 ```cpp
 template <const uint8_t kPin>
 [[nodiscard]] static bool DigitalRead(const uint16_t pool_size = 0);
 ```
 
-Reads the digital pin named by the `kPin` template argument through `digitalReadFast`, so the call
-form is `DigitalRead<kSensorPin>(pool_size)`. If `pool_size >= 2`, reads and averages that many
-samples. Returns `true` (HIGH) or `false` (LOW).
+Reads the digital pin named by the `kPin` template argument through `digitalReadFast`, so the call form is
+`DigitalRead<kSensorPin>(pool_size)`. If `pool_size >= 2`, reads and averages that many samples. Returns `true` (HIGH)
+or `false` (LOW).
 
-`kPin` is a template parameter on both helpers, so every pin passed to them has to be a compile-time
-constant, either a class template parameter or a `static constexpr uint8_t` member. A pin held in a
-runtime parameter struct cannot be read through them. For `DigitalRead`, the compile-time constant
-also resolves the register-level read path that AVR and Teensy boards expose, and Arduino Due exposes
-no such path and reads through `digitalRead`. `AnalogRead` delegates to `analogRead()` on every board.
+`kPin` is a template parameter on both helpers, so every pin passed to them has to be a compile-time constant, either a
+class template parameter or a `static constexpr uint8_t` member. A pin held in a runtime parameter struct cannot be read
+through them. For `DigitalRead`, the compile-time constant also resolves the register-level read path that AVR and
+Teensy boards expose, and Arduino Due exposes no such path and reads through `digitalRead`. `AnalogRead` delegates to
+`analogRead()` on every board.
 
 ### Data transmission
 
@@ -227,18 +219,17 @@ template <typename ObjectType>
 void SendData(const uint8_t event_code, const ObjectType& object);
 ```
 
-Sends a ModuleData message (protocol 6) with event code and typed data object. The prototype code
-for the wire protocol is resolved automatically at compile time from ObjectType. Supports all 11
-scalar types and C-style arrays at type-specific element counts, up to a platform-dependent payload
-cap that peaks at 248 bytes. `uint8_t` arrays have the densest count support and can be used as a
-generic bytes buffer. On failure, automatically attempts to send an error message and turns on the
+Sends a ModuleData message (protocol 6) with event code and typed data object. The prototype code for the wire protocol
+is resolved automatically at compile time from ObjectType. Supports all 11 scalar types and C-style arrays at
+type-specific element counts, up to a platform-dependent payload cap. `uint8_t` arrays have the densest count support
+and can be used as a generic bytes buffer. On failure, automatically attempts to send an error message and turns on the
 built-in LED.
 
-The following table lists all supported data types and element counts. An element count of 1 is a
-scalar, and counts greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`). Unsupported
-(type, count) combinations trigger a compile-time `static_assert` error.
+The following table lists all supported data types and element counts. An element count of 1 is a scalar, and counts
+greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`). Unsupported (type, count) combinations
+trigger a compile-time `static_assert` error.
 
-| C++ Type   | Size    | Numpy Equivalent | Supported Element Counts                                                         |
+| C++ type   | Size    | Numpy equivalent | Supported element counts                                                         |
 |------------|---------|------------------|----------------------------------------------------------------------------------|
 | `bool`     | 1 byte  | `np.bool_`       | 1-15, 16, 24, 32, 40, 48, 52, 248                                                |
 | `uint8_t`  | 1 byte  | `np.uint8`       | 1-15, 16, 18, 20, 22, 24, 28, 32, 36, 40, 44, 48, 52, 64, 96, 128, 192, 244, 248 |
@@ -252,19 +243,18 @@ scalar, and counts greater than 1 require a C-style array declaration (e.g., `ui
 | `int64_t`  | 8 bytes | `np.int64`       | 1-15, 16, 20, 24, 31                                                             |
 | `double`   | 8 bytes | `np.float64`     | 1-15, 16, 20, 24, 31                                                             |
 
-The counts above are the prototype codes the wire protocol defines. The number of bytes a board can
-actually transmit is capped separately by its serial buffer, because the data object has to satisfy
-`sizeof(ObjectType) <= kMaximumPayloadSize - sizeof(ModuleData)`. That yields 248 bytes on Teensy,
-244 bytes on Arduino Due, and 52 bytes on Arduino Mega, so counts such as `uint8_t[248]` or
-`uint16_t[124]` compile only on Teensy. The `SendDataMessage` static assertion rejects an oversized
-object at compile time for the board being built.
+The counts above are the prototype codes the wire protocol defines. The number of bytes a board can actually transmit is
+capped separately by its serial buffer, because the data object has to satisfy
+`sizeof(ObjectType) <= kMaximumPayloadSize - sizeof(ModuleData)`. That yields 248 bytes on Teensy, 244 bytes on Arduino
+Due, and 52 bytes on Arduino Mega, so counts such as `uint8_t[248]` or `uint16_t[124]` compile only on Teensy. The
+`SendDataMessage` static assertion rejects an oversized object at compile time for the board being built.
 
 ```cpp
 void SendData(const uint8_t event_code) const;
 ```
 
-Sends a ModuleState message (protocol 8) with event code only. More efficient than the data-carrying
-overload when no payload is needed. Same error handling behavior.
+Sends a ModuleState message (protocol 8) with event code only. More efficient than the data-carrying overload when no
+payload is needed. Same error handling behavior.
 
 ### Parameter extraction
 
@@ -273,13 +263,13 @@ template <typename ObjectType>
 bool ExtractParameters(ObjectType& storage_object);
 ```
 
-Unpacks the received ModuleParameters message payload into the specified storage object. Internally
-delegates to `Communication::ExtractModuleParameters()`, which `static_assert`s that the struct is at least one byte
-and still fits into the payload alongside the 3-byte ModuleParameters header and the protocol code. That upper bound is
-250 bytes on Teensy, 246 bytes on Arduino Due, and 54 bytes on Arduino Mega, so a struct that builds for one board can
-fail to build for another. Returns `true` on success, `false` on one of three conditions:
-`kExtractionForbidden` (message is not a ModuleParameters message), `kParameterMismatch` (received byte
-count does not equal `sizeof(struct)`), or `kParsingError` (payload parsing failed).
+Unpacks the received ModuleParameters message payload into the specified storage object. Internally delegates to
+`Communication::ExtractModuleParameters()`, which `static_assert`s that the struct is at least one byte and still fits
+into the payload alongside the 3-byte ModuleParameters header and the protocol code. That upper bound is 250 bytes on
+Teensy, 246 bytes on Arduino Due, and 54 bytes on Arduino Mega, so a struct that builds for one board can fail to build
+for another. Returns `true` on success, `false` on one of three conditions: `kExtractionForbidden` (message is not a
+ModuleParameters message), `kParameterMismatch` (received byte count does not equal `sizeof(struct)`), or
+`kParsingError` (payload parsing failed).
 
 ---
 
@@ -347,7 +337,7 @@ Firmware authors implement none of the six, as the Kernel handles them all inter
 
 ### Kernel lifecycle
 
-| Method           | Called From | Description                                               |
+| Method           | Called from | Description                                               |
 |------------------|-------------|-----------------------------------------------------------|
 | `Setup()`        | `setup()`   | Calls `SetupModule()` on all modules. Sends setup status. |
 | `RuntimeCycle()` | `loop()`    | Receives messages, executes commands, checks keepalive.   |
@@ -380,9 +370,8 @@ explicit Communication(Stream& communication_port);
 |----------------------|-----------|--------------------------------------------|
 | `communication_port` | `Stream&` | Arduino Stream (Serial, USB Serial, etc.). |
 
-Creates a TransportLayer instance with a non-reflected CRC16 (polynomial 0x1021, init 0xFFFF, final
-XOR 0x0000). The PC interface has to use the same CRC parameters. Reserves up to ~1 kB of RAM
-(~700 bytes on lower-end boards).
+Creates a TransportLayer instance with a non-reflected CRC16 (polynomial 0x1021, init 0xFFFF, final XOR 0x0000). The PC
+interface has to use the same CRC parameters. Reserves up to ~1 kB of RAM (~700 bytes on lower-end boards).
 
 ---
 
@@ -399,9 +388,6 @@ void Echo()
     CompleteCommand();
 }
 ```
-
-You MUST call `CompleteCommand()` at the end of every command handler. Failure to do so deadlocks
-the module.
 
 ### Multi-stage command with non-blocking delay
 
@@ -441,8 +427,8 @@ void Pulse()
 - Use `get_command_stage()` to read the current stage (stages start at 1)
 - Call `AdvanceCommandStage()` to move to the next stage (also resets the delay timer)
 - `WaitForMicros(duration)` returns `true` when the duration has elapsed, `false` while waiting
-- In non-blocking mode, `WaitForMicros` returns immediately with `false` if the time has not elapsed,
-  allowing other modules to execute. In blocking mode, it blocks in-place until the time has passed.
+- In non-blocking mode, `WaitForMicros` returns immediately with `false` if the time has not elapsed, allowing other
+  modules to execute. In blocking mode, it blocks in-place until the time has passed.
 - Call `CompleteCommand()` on the final stage
 - The `default` case should call `AbortCommand()` to handle unexpected stages
 
@@ -459,21 +445,13 @@ void ReadSensor()
 }
 ```
 
-`AnalogRead<kPin>(pool_size)` reads and averages `pool_size` samples. Set `pool_size` to 0 or 1
-to disable averaging. `DigitalRead<kPin>(pool_size)` works the same way for digital pins. The pin is
-a template argument, so it has to be a compile-time constant, normally the module class's own pin
-template parameter.
-
 ---
 
 ## Implementation hints
 
-These are optional efficiency patterns observed in production modules. They are not required but may
-improve robustness or readability for certain hardware designs.
-
-**Constexpr pin logic for polarity-configurable modules:** When a template parameter controls whether
-hardware is normally-open vs. normally-closed (or similar polarity inversion), compute the active/inactive
-logic levels as constexpr booleans rather than branching at runtime:
+**Constexpr pin logic for polarity-configurable modules:** When a template parameter controls whether hardware is
+normally-open vs. normally-closed (or similar polarity inversion), compute the active/inactive logic levels as constexpr
+booleans rather than branching at runtime:
 
 ```cpp
 template <const uint8_t kPin, const bool kNormallyClosed>
@@ -486,9 +464,9 @@ class ValveModule final : public Module
 };
 ```
 
-**Sensor hysteresis for polling commands:** When a sensor-polling command runs recurrently, tracking the
-previous reading avoids flooding the PC with redundant zero or steady-state messages. Report only when
-the value crosses a meaningful threshold or when the state changes:
+**Sensor hysteresis for polling commands:** When a sensor-polling command runs recurrently, tracking the previous
+reading avoids flooding the PC with redundant zero or steady-state messages. Report only when the value crosses a
+meaningful threshold or when the state changes:
 
 ```cpp
 void CheckSensor()
@@ -516,7 +494,7 @@ This reduces serial bandwidth and log archive size without losing transition inf
 
 ## Template parameter guidelines
 
-| Type       | Use Case                          | Example                        |
+| Type       | Use case                          | Example                        |
 |------------|-----------------------------------|--------------------------------|
 | `uint8_t`  | Pin numbers, counts               | `kPin`, `kEncoderPinA`         |
 | `bool`     | Hardware polarity, default states | `kNormallyClosed`, `kStartOff` |
@@ -553,8 +531,8 @@ class EncoderModule final : public Module
 
 ## Build and upload
 
-Build, upload, and monitor the firmware with PlatformIO. The board environment(s) are defined in
-`platformio.ini` (see `/platformio-config`).
+Build, upload, and monitor the firmware with PlatformIO. The board environment(s) are defined in `platformio.ini` (see
+`/platformio-config`).
 
 ```bash
 # Build only (compile, no upload)
