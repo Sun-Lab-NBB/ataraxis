@@ -1,19 +1,17 @@
 ---
 name: firmware-module
 description: >-
-  Guides creation of custom hardware Module subclasses in the ataraxis-micro-controller C++ firmware
-  library. Covers SetupModule, SetCustomParameters, and RunActiveCommand implementation, stage-based
-  command execution, PACKED_STRUCT parameter structures, event codes, SendData patterns, and main.cpp
-  integration with Kernel and Communication. Use when writing or modifying firmware Module
-  subclasses, or when implementing the microcontroller side of an ataraxis-communication-interface module.
+  Guides creation of custom hardware Module subclasses in the ataraxis-micro-controller C++ firmware library. Covers
+  SetupModule, SetCustomParameters, and RunActiveCommand implementation, stage-based command execution, PACKED_STRUCT
+  parameter structures, event codes, SendData patterns, and main.cpp integration with Kernel and Communication. Use when
+  writing or modifying firmware Module subclasses, or when implementing the microcontroller side of an
+  ataraxis-communication-interface module.
 user-invocable: false
 ---
 
 # Firmware module
 
-Guides implementation of custom hardware Module subclasses in the ataraxis-micro-controller C++ firmware
-library. This skill covers the firmware side of the microcontroller communication stack; for the PC-side
-Python ModuleInterface counterpart, use `/communication:microcontroller-interface` instead.
+Guides implementation of custom hardware Module subclasses in the ataraxis-micro-controller C++ firmware library.
 
 ---
 
@@ -22,6 +20,7 @@ Python ModuleInterface counterpart, use `/communication:microcontroller-interfac
 **Covers:**
 - Module base class inheritance and constructor pattern
 - Three required virtual methods: SetupModule, SetCustomParameters, RunActiveCommand
+- SetupModule design requirements: unfailable body, compile-time validation, and the idle-state guarantee
 - Command handler patterns: immediate, multi-stage with non-blocking delay, sensor polling
 - Runtime parameter structures with `PACKED_STRUCT` macro
 - Event code conventions (system 0-50, user 51-250)
@@ -40,8 +39,8 @@ Python ModuleInterface counterpart, use `/communication:microcontroller-interfac
 
 ## Cross-plugin boundary: firmware vs. interface
 
-This skill and `/communication:microcontroller-interface` are counterparts that share a communication
-protocol but live in different plugins with distinct responsibilities:
+This skill and `/communication:microcontroller-interface` are counterparts that share a communication protocol but live
+in different plugins with distinct responsibilities:
 
 | Concern                                 | Authority                                  |
 |-----------------------------------------|--------------------------------------------|
@@ -52,11 +51,10 @@ protocol but live in different plugins with distinct responsibilities:
 | MicroControllerInterface lifecycle      | `/communication:microcontroller-interface` |
 | MQTTCommunication setup                 | `/communication:microcontroller-interface` |
 
-The two sides must agree on **module_type**, **module_id**, **command codes**, **event codes**,
-and **parameter struct layout** (field order, types, and sizes). When implementing a new hardware
-module, always work both skills together: this skill for the C++ firmware and
-`/communication:microcontroller-interface` for the Python interface. If either side's codes or
-parameter layout change, the other must be updated to match.
+The two sides must agree on **module_type**, **module_id**, **command codes**, **event codes**, and **parameter struct
+layout** (field order, types, and sizes). When implementing a new hardware module, always work both skills together,
+this skill for the C++ firmware and `/communication:microcontroller-interface` for the Python interface. If either
+side's codes or parameter layout change, the other must be updated to match.
 
 ---
 
@@ -69,16 +67,17 @@ parameter layout change, the other must be updated to match.
 Check the locally available ataraxis-micro-controller version:
 
 ```bash
-cat ../ataraxis-micro-controller/library.json | grep version
+grep version ../ataraxis-micro-controller/library.json
 ```
 
-The current version is **3.0.1**. If a version mismatch exists, ask the user how to proceed.
+The current version is **4.0.1**, which requires `ataraxis-transport-layer-mc` at `^4.0.0`. Check that pin in the
+project's `platformio.ini` as well. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
 
 Read the source files to confirm the API has not changed since this skill was written:
 
-| File                                                    | What to Check                                     |
+| File                                                    | What to check                                     |
 |---------------------------------------------------------|---------------------------------------------------|
 | `../ataraxis-micro-controller/src/module.h`             | Module base class, virtual methods, utilities     |
 | `../ataraxis-micro-controller/src/kernel.h`             | Kernel constructor and lifecycle                  |
@@ -89,27 +88,25 @@ Read the source files to confirm the API has not changed since this skill was wr
 
 ## API reference
 
-See [references/api-reference.md](references/api-reference.md) for the complete Module base class API
-including constructor parameters, ExecutionControlParameters fields, all protected utility method
-signatures, kCoreStatusCodes, Kernel constructor, and Communication constructor. The same reference
-also holds the command handler patterns (immediate, multi-stage non-blocking delay, sensor polling)
-and the optional implementation hints.
-
-The prototype code for each `SendData()` call is resolved automatically at compile time from the C++
-type of the data object via the `ResolvePrototype` function in `axmc_shared_assets.h`. Users do not
-need to specify prototype codes manually.
+See [references/api-reference.md](references/api-reference.md) for the complete Module base class API including
+constructor parameters, ExecutionControlParameters fields, the Kernel-facing public methods, all protected utility
+method signatures, kCoreStatusCodes, the Kernel constructor and its status and command codes, and the Communication
+constructor. The same reference also holds the command handler patterns (immediate, multi-stage non-blocking delay,
+sensor polling) and the optional implementation hints.
 
 ---
 
 ## Module class structure
 
-Modules are header-only classes that inherit from `Module` and override three pure virtual methods.
-The template pattern is recommended for compile-time hardware configuration:
+Modules are header-only classes that inherit from `Module` and override three pure virtual methods. The template pattern
+is recommended for compile-time hardware configuration:
 
 ```cpp
-#pragma once
+#ifndef CUSTOM_MODULE_H
+#define CUSTOM_MODULE_H
 
-#include "module.h"
+#include <Arduino.h>
+#include <module.h>
 
 template <const uint8_t kPin>
 class CustomModule final : public Module
@@ -120,12 +117,16 @@ class CustomModule final : public Module
         );
 
     public:
-        // Constructor, enums, parameters, virtual method overrides
+        // Constructor, parameters, virtual method overrides
 
     private:
-        // Command handler methods
+        // Enums, command handler methods
 };
+
+#endif  // CUSTOM_MODULE_H
 ```
+
+Header guards, include form, and include ordering follow `/cpp-style`.
 
 ### Constructor
 
@@ -143,8 +144,8 @@ CustomModule(
 - `module_id` identifies the specific instance within the family. Must be unique per type.
 - `communication` is the shared Communication instance created before any modules.
 
-Also declare an overriding virtual destructor — `~CustomModule() override = default;` — because the
-Kernel manages modules through `Module*` pointers; the base virtual destructor is load-bearing (see
+Also declare an overriding virtual destructor, `~CustomModule() override = default;`, because the Kernel manages modules
+through `Module*` pointers, which makes the base virtual destructor load-bearing (see
 [references/api-reference.md](references/api-reference.md)).
 
 ---
@@ -166,10 +167,9 @@ private:
 
 ### Custom event codes enum
 
-Custom event codes MUST use values 51-250. Values 0-50 are reserved for system use. Each event code
-MUST be unique within the module class and MUST carry the same semantic meaning regardless of which
-command was executing when the message was sent. The extraction pipeline and PC-side
-`process_received_data()` both rely on this invariant:
+Custom event codes MUST use values 51-250. Each event code MUST be unique within the module class and MUST carry the
+same semantic meaning regardless of which command was executing when the message was sent. The extraction pipeline and
+PC-side `process_received_data()` both rely on this invariant:
 
 ```cpp
 private:
@@ -181,21 +181,23 @@ private:
     };
 ```
 
-| Range  | Owner    | Description                                         |
-|--------|----------|-----------------------------------------------------|
-| 0      | System   | Standby (module idle)                               |
-| 1      | System   | Transmission error                                  |
-| 2      | System   | Command completed                                   |
-| 3      | System   | Command not recognized                              |
-| 4-50   | System   | Reserved for future system use                      |
-| 51-250 | User     | Custom event codes, unique within each module class |
-| 251+   | -------- | Reserved, do not use                                |
+| Range  | Owner  | Description                                         |
+|--------|--------|-----------------------------------------------------|
+| 0      | System | Standby (module idle)                               |
+| 1      | System | Transmission error                                  |
+| 2      | System | Command completed                                   |
+| 3      | System | Command not recognized                              |
+| 4-50   | System | Reserved for future system use                      |
+| 51-250 | User   | Custom event codes, unique within each module class |
+| 251+   | System | Reserved, do not use                                |
 
 ### Runtime parameters structure
 
-Parameter structs MUST use the `PACKED_STRUCT` macro to ensure correct binary serialization with the PC.
-The struct size MUST be 1-250 bytes (compile-time enforced by a `static_assert` in `ExtractModuleParameters`).
-Field order and types must exactly match the PC-side `send_parameters()` tuple:
+Parameter structs MUST use the `PACKED_STRUCT` macro to ensure correct binary serialization with the PC. The struct MUST
+be at least one byte and MUST fit into the target board's payload, which is 250 bytes on Teensy, 246 bytes on Arduino
+Due, and 54 bytes on Arduino Mega. A `static_assert` in `ExtractModuleParameters` enforces this per board, so a struct
+that builds for Teensy can still fail to build for Mega. Field order and types must exactly match the PC-side
+`send_parameters()` tuple:
 
 ```cpp
 public:
@@ -207,7 +209,7 @@ public:
     } PACKED_STRUCT parameters;
 ```
 
-| C++ Type   | Size    | Numpy Equivalent | Typical Use               |
+| C++ type   | Size    | Numpy equivalent | Typical use               |
 |------------|---------|------------------|---------------------------|
 | `bool`     | 1 byte  | `np.bool_`       | Enable flags              |
 | `uint8_t`  | 1 byte  | `np.uint8`       | Small counts, codes       |
@@ -216,35 +218,28 @@ public:
 | `int32_t`  | 4 bytes | `np.int32`       | Signed large values       |
 | `float`    | 4 bytes | `np.float32`     | Calibrated sensor values  |
 
-**Cross-language correspondence:** The PC sends parameters as a numpy-typed tuple via
-`send_parameters()`. Each tuple element maps to the struct field at the same position:
+**Cross-language correspondence:** The PC sends parameters as a numpy-typed tuple via `send_parameters()`, and each
+tuple element maps to the struct field at the same position. The struct above corresponds to the tuple
+`(np.uint32(2000000), np.uint32(2000000), np.uint16(666))`.
 
-```text
-C++ struct (firmware)                    Python tuple (PC)
-─────────────────────────────────────    ─────────────────────────────────────
-struct CustomRuntimeParameters           send_parameters(parameter_data=(
-{                                            np.uint32(2000000),   # on_duration
-        uint32_t on_duration  = ...;         np.uint32(2000000),   # off_duration
-        uint32_t off_duration = ...;         np.uint16(666),       # echo_value
-        uint16_t echo_value   = ...;     ))
-} PACKED_STRUCT parameters;
-```
-
-The C++ type of each field determines the required numpy dtype on the Python side. A mismatch (e.g.,
-`np.uint16` sent for a `uint32_t` field) silently corrupts all subsequent fields because `PACKED_STRUCT`
-lays them out contiguously with no padding. Always verify field count, order, and types match across
-both sides when changing the parameter struct.
+The C++ type of each field determines the required numpy dtype on the Python side. A mismatch that changes the struct's
+total size, such as `np.uint16` sent for a `uint32_t` field, is caught at runtime. `ExtractParameters()` checks the
+received payload against the expected size and returns `false` without writing anything, which the Kernel reports as
+kernel status 7. A mismatch that preserves the total size, such as `np.int32` for a `uint32_t` field or two reordered
+same-width fields, passes that check and silently corrupts the parsed values, because `PACKED_STRUCT` lays fields out
+contiguously with no padding. Always verify field count, order, and types match across both sides.
 
 ---
 
 ## SetupModule()
 
-Initialize hardware pins and reset parameters to defaults. This method is called by Kernel during
-`Setup()` and on PC-requested resets. Avoid blocking or fail-prone logic:
+Initialize hardware pins and reset parameters to defaults. This method is called by Kernel during `Setup()` and on
+PC-requested resets. Deactivate the module's hardware first, then avoid blocking or fail-prone logic:
 
 ```cpp
 bool SetupModule() override
 {
+    // Deactivates the managed hardware first, so the module is idle before anything else runs.
     pinMode(kPin, OUTPUT);
     digitalWrite(kPin, LOW);
 
@@ -258,12 +253,76 @@ bool SetupModule() override
 
 **Rules:**
 - Configure all GPIO pins (`pinMode`, `digitalWriteFast`, etc.)
+- Deactivate every managed output before anything else, so the module ends the method idle
 - Set all parameter fields to their default values
 - Return `true` on success, `false` on failure (failure bricks the controller until firmware reset)
 
-On keepalive timeout the Kernel emits kernel status 10 (`kKeepAliveTimeout`) and re-runs `Setup()`, which
-re-invokes every module's `SetupModule()` and clears all command buffers and hardware states — so
-`SetupModule()` must be safe to call repeatedly.
+On keepalive timeout the Kernel emits kernel status 10 (`kKeepAliveTimeout`) and re-runs `Setup()`, which clears every
+module's command buffers and re-invokes its `SetupModule()`, so `SetupModule()` must be safe to call repeatedly. The
+Kernel clears only the software command state, leaving the return of the hardware to its idle level as this method's
+own job.
+
+### Design requirements
+
+A setup failure is unrecoverable at runtime, which makes `SetupModule()` the one virtual method whose failure modes you
+MUST design out rather than merely report. Apply these three requirements in order.
+
+**1. Write the method so that it cannot fail.** Its body should always return `true`. Restrict it to operations that
+cannot fail: `pinMode` calls, pin state writes, and parameter default assignments. Do NOT place connection handshakes,
+calibration routines, homing sweeps, or sensor readiness polling in this method. Move that logic into a command handler,
+where a failure is reported to the PC as an event code and leaves the controller able to respond.
+
+**2. When a failure mode is unavoidable, move it to compile time.** Validate pin assignments, template arguments,
+parameter struct sizes, and every other statically known property with `static_assert` at the top of the class body, so
+an invalid configuration fails `pio run` instead of bricking a controller in the field. A compilation error is always
+recoverable, while a runtime setup failure needs physical access to the microcontroller.
+
+**3. Leave the module in the idle state, and reach that state before anything that can fail.** Deactivate every hardware
+asset the module manages, driving each output pin to the level that turns its attached device off, as the first
+statement of the method body. Any step that can return `false` MUST come after that point.
+
+Requirement 3 is the load-bearing one. `Kernel::Setup()` calls `SetupModule()` on each managed module in `modules[]`
+array order and returns immediately on the first `false`, leaving its setup tracker inactive. `RuntimeCycle()` then only
+blinks the built-in LED at ~2-second intervals: it never parses PC messages and never calls `RunModuleCommands()`. The
+controller cannot receive the PC-sent `kResetController` command in that state, so nothing will change the hardware
+state again until the firmware is reset. Whatever each module is driving at the instant of the failure, it keeps driving
+indefinitely: a solenoid stays open, a valve keeps dispensing, a motor keeps turning.
+
+The freeze hits every managed module, not only the one that failed:
+
+| Module position           | State after a setup failure                                                         |
+|---------------------------|-------------------------------------------------------------------------------------|
+| Before the failing module | Already ran `SetupModule()`, so it is frozen where that method left it.             |
+| The failing module        | Frozen part-way through its own `SetupModule()`, at the step that returned `false`. |
+| After the failing module  | Never ran `SetupModule()` at all, so it holds the state it had before `Setup()`.    |
+
+The last row is why this matters beyond first boot. `Setup()` also re-runs when the PC sends the reset kernel command
+and when the keepalive monitor times out, both of which fire mid-experiment while modules can be actively driving
+hardware. The Kernel calls `ResetExecutionParameters()` on every module before the setup pass, but that clears only
+software command state and never touches pins, so each module's own `SetupModule()` is the only thing that can return
+its hardware to a safe level. A module whose turn never comes keeps driving whatever its aborted command left active.
+
+Idle is defined by the attached hardware, not by the pin level. Active-low and normally-closed devices idle at `HIGH`,
+so never hardcode `LOW` as the idle level. Derive it from the polarity template parameter with the constexpr pin logic
+pattern in [references/api-reference.md](references/api-reference.md), then write that constant in `SetupModule()`:
+
+```cpp
+template <const uint8_t kPin, const bool kNormallyClosed>
+class ValveModule final : public Module
+{
+        static constexpr bool kOpen  = kNormallyClosed ? HIGH : LOW;
+        static constexpr bool kClose = kNormallyClosed ? LOW  : HIGH;
+
+    public:
+        bool SetupModule() override
+        {
+            // Closes the valve first, which is this module's idle state, before anything else runs.
+            pinMode(kPin, OUTPUT);
+            digitalWriteFast(kPin, kClose);
+            // ...
+        }
+};
+```
 
 ---
 
@@ -278,8 +337,8 @@ bool SetCustomParameters() override
 }
 ```
 
-You MUST use `ExtractParameters()` (the Module base class wrapper), not
-`_communication.ExtractModuleParameters()` directly. Post-processing of extracted values is permitted:
+You MUST use `ExtractParameters()` (the Module base class wrapper), not `_communication.ExtractModuleParameters()`
+directly. Post-processing of extracted values is permitted:
 
 ```cpp
 bool SetCustomParameters() override
@@ -316,30 +375,37 @@ bool RunActiveCommand() override
 - Each case calls a private handler method and returns `true`
 - The `default` case returns `false` (triggers system error code 3: command not recognized)
 - Do NOT evaluate whether the command ran successfully here, only whether it was recognized
+- Do NOT call `CompleteCommand()` or `AbortCommand()` from the `default` case, because returning `false` is sufficient
+
+Returning `false` makes the Kernel report error code 3 and then discard the active command, so an unrecognized command
+clears itself after a single runtime cycle. The discard also drops the command from the queue when the queue still holds
+it, because a code the module does not recognize cannot become recognized on a later repetition. A recurrent command
+therefore reports the error once rather than on every repetition, and the module stays free to run whatever the PC
+queues next.
 
 ---
 
 ## Command handler patterns
 
-See [references/api-reference.md](references/api-reference.md) for the immediate, multi-stage
-non-blocking delay, and sensor polling command handler patterns with full code examples.
+See [references/api-reference.md](references/api-reference.md) for the immediate, multi-stage non-blocking delay, and
+sensor polling command handler patterns with full code examples.
 
 ### Recurrent vs one-off commands
 
-The PC queues each command as either **one-off** (`kOneOffModuleCommand`) or **recurrent**
-(`kRepeatedModuleCommand`, carrying a `cycle_delay`). Write handlers identically for both — always
-call `CompleteCommand()` when the work is done — but note the runtime difference: a recurrent command
-auto-reactivates at stage 1 after its `cycle_delay`, and `CompleteCommand()` deliberately suppresses
-the `kCommandCompleted` (status 2) message for recurrent commands until they are dequeued or replaced
-(one-off commands always report completion). Expect repeated activation for recurrent commands and use
-the multi-stage non-blocking-delay / sensor-polling patterns to avoid flooding the PC. The PC sets the
-recurrence interval via `send_command(repetition_delay=...)` — see
-`communication:microcontroller-interface`.
+The PC queues each command as either **one-off** (`kOneOffModuleCommand`) or **recurrent** (`kRepeatedModuleCommand`,
+carrying a `cycle_delay`). Write handlers identically for both, always calling `CompleteCommand()` when the work is
+done, but note the runtime difference. A recurrent command auto-reactivates at stage 1 after its `cycle_delay`, and
+`CompleteCommand()` deliberately suppresses the `kCommandCompleted` (status 2) message for recurrent commands until they
+are dequeued or replaced, while one-off commands always report completion. A recurrent command retired while idle
+between repetitions still reports completion, sent by the dequeue or by the command that replaces it. Expect repeated
+activation for recurrent commands and use the multi-stage non-blocking-delay and sensor-polling patterns to avoid
+flooding the PC. The PC sets the recurrence interval via `send_command(repetition_delay=...)`, covered by
+`/communication:microcontroller-interface`.
 
-**Output-device note:** handlers that drive a pin with `digitalWrite(HIGH/LOW)` control level-driven
-(active) devices — an active buzzer sounds at HIGH and is silent at LOW, a valve or LED switches on/off.
-A device that needs a generated waveform (a **passive** piezo, a servo) needs a `tone()` / `analogWrite`
-(PWM) handler instead; `digitalWrite` alone leaves it silent or unmoving.
+**Output-device note:** handlers that drive a pin with `digitalWrite(HIGH/LOW)` control level-driven (active) devices,
+so an active buzzer sounds at HIGH and is silent at LOW, and a valve or LED switches on and off. A device that needs a
+generated waveform, such as a **passive** piezo or a servo, needs a `tone()` or `analogWrite` (PWM) handler instead,
+because `digitalWrite` alone leaves it silent or unmoving.
 
 ---
 
@@ -351,8 +417,8 @@ A device that needs a generated waveform (a **passive** piezo, a servo) needs a 
 SendData(static_cast<uint8_t>(kStates::kHigh));
 ```
 
-Sends a ModuleState message (protocol 8) containing only the event code. Use when the event itself
-carries all needed information.
+Sends a ModuleState message (protocol 8) containing only the event code. Use when the event itself carries all needed
+information.
 
 ### With typed data payload
 
@@ -360,19 +426,21 @@ carries all needed information.
 SendData(static_cast<uint8_t>(kStates::kEcho), parameters.echo_value);
 ```
 
-Sends a ModuleData message (protocol 6) containing the event code and a typed data object. The
-prototype code for the wire protocol is resolved automatically at compile time from the C++ type
-of the data argument. Supported types: all 11 scalars (`bool` through `double`) and C-style
-arrays of those types at supported element counts up to the 248-byte payload cap. `uint8_t`
-arrays offer the densest count coverage and can serve as a generic bytes buffer for sending
-arbitrary packed structures via `uint8_t[sizeof(MyStruct)]`.
+Sends a ModuleData message (protocol 6) containing the event code and a typed data object. The prototype code for the
+wire protocol is resolved automatically at compile time from the C++ type of the data argument, via the
+`ResolvePrototype` function in `axmc_shared_assets.h`, so callers never specify a prototype code. Supported types: all
+11 scalars (`bool` through `double`) and C-style arrays of those types at supported element counts. `uint8_t` arrays
+offer the densest count coverage and can serve as a generic bytes buffer for sending arbitrary packed structures via
+`uint8_t[sizeof(MyStruct)]`.
 
-Each scalar type supports a type-specific set of array element counts (a count of 1 is a scalar);
-unsupported (type, count) combinations trigger a compile-time `static_assert`. For the full supported
-data-type and element-count table, see [api-reference.md](references/api-reference.md).
+Each scalar type supports a type-specific set of array element counts, where a count of 1 is a scalar. Unsupported
+(type, count) combinations trigger a compile-time `static_assert`. The transmittable size is capped separately by the
+board's serial buffer, at 248 bytes on Teensy, 244 bytes on Arduino Due, and 52 bytes on Arduino Mega. Sizing a data
+object for Teensy therefore does not guarantee it compiles for the other two. For the full supported data-type and
+element-count table, see [api-reference.md](references/api-reference.md).
 
-**Error handling:** If transmission fails, `SendData()` automatically attempts to send an error message
-and turns on the built-in LED. Do not use the LED-connected pin in your module to avoid interference.
+**Error handling:** If transmission fails, `SendData()` automatically attempts to send an error message and turns on the
+built-in LED. Do not use the LED-connected pin in your module to avoid interference.
 
 ---
 
@@ -382,12 +450,12 @@ Follow this exact instantiation order: Communication, Module(s), Kernel.
 
 ```cpp
 #include <Arduino.h>
+#include <communication.h>
+#include <kernel.h>
+#include <module.h>
 #include "custom_module.h"
-#include "communication.h"
-#include "kernel.h"
-#include "module.h"
 
-static constexpr uint8_t kControllerID     = 222;
+static constexpr uint8_t kControllerID       = 222;
 static constexpr uint32_t kKeepaliveInterval = 5000;
 
 Communication axmc_communication(Serial);
@@ -418,53 +486,58 @@ void loop()
 
 **Key points:**
 - `kControllerID` must match the `controller_id` used on the PC side (1-255, unique per controller)
-- `kKeepaliveInterval` is in milliseconds (0 disables, Kernel internally doubles this value)
+- `kKeepaliveInterval` is in milliseconds and 0 disables the mechanism. The Kernel doubles it to derive the effective
+  timeout, saturating rather than wrapping, so 5000 ms fires after about 10 s of silence
+- Keepalive monitoring arms only once the PC sends its first keepalive command, and every `Setup()` run disarms it
+  again, so the controller never times out before the PC starts pinging it
 - Module constructor arguments: `(module_type, module_id, communication)`
 - The `modules[]` array must contain at least one element (enforced by `static_assert`)
 - `Serial.begin()` baudrate must match the PC-side `baudrate` parameter
-- Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`; AVR
-  boards (fixed 10-bit ADC, no `analogReadResolution()`) must guard the call with
-  `#if !defined(__AVR__)`
+- Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`. AVR boards have a fixed
+  10-bit ADC and no `analogReadResolution()`, so the call must be guarded with `#if !defined(__AVR__)`
 
 ---
 
 ## Build and upload
 
-Build, upload, and monitor the firmware with PlatformIO (board environments are defined in
-`platformio.ini`; see `/platformio-config`). For the full `pio` command set, see
-[api-reference.md](references/api-reference.md). Re-upload whenever the firmware module, its
-command/event codes, or its parameter struct change.
+Build, upload, and monitor the firmware with PlatformIO, whose board environments are defined in `platformio.ini` and
+covered by `/platformio-config`. For the full `pio` command set, see [api-reference.md](references/api-reference.md).
+Re-upload whenever the firmware module, its command/event codes, or its parameter struct change.
 
 ---
 
 ## Implementation hints
 
-See [references/api-reference.md](references/api-reference.md) for template parameter type guidelines,
-static-assertion placement, and optional efficiency patterns (constexpr pin logic for
-polarity-configurable modules and sensor hysteresis for polling commands).
+See [references/api-reference.md](references/api-reference.md) for template parameter type guidelines, static-assertion
+placement, and optional efficiency patterns (constexpr pin logic for polarity-configurable modules and sensor hysteresis
+for polling commands).
 
 ---
 
 ## Related skills
 
-| Skill                                      | Relationship                                                                                                                                                              |
-|--------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `/communication:microcontroller-interface` | PC-side counterpart: use for Python ModuleInterface subclassing, MicroControllerInterface lifecycle, and MQTTCommunication setup. Codes and parameter layouts must match. |
-| `/communication:microcontroller-setup`     | Hardware discovery: MCP tools to verify connected microcontrollers                                                                                                        |
-| `/communication:extraction-configuration`  | Downstream: configure extraction for this module's event codes                                                                                                            |
-| `/cpp-style`                               | C++ coding conventions for firmware code                                                                                                                                  |
-| `/project-layout`                          | Project directory structure for PlatformIO firmware projects                                                                                                              |
-| `/platformio-config`                       | PlatformIO config (platformio.ini / library.json) conventions for the firmware project                                                                                    |
+| Skill                                      | Relationship                                                       |
+|--------------------------------------------|--------------------------------------------------------------------|
+| `/communication:microcontroller-interface` | PC-side counterpart: ModuleInterface, lifecycle, and MQTT setup    |
+| `/communication:microcontroller-setup`     | Hardware discovery: MCP tools to verify connected microcontrollers |
+| `/communication:extraction-configuration`  | Downstream: configure extraction for this module's event codes     |
+| `/cpp-style`                               | C++ coding conventions for firmware code                           |
+| `/project-layout`                          | Project directory structure for PlatformIO firmware projects       |
+| `/platformio-config`                       | PlatformIO config conventions for platformio.ini and library.json  |
 
 ---
 
 ## Verification checklist
 
 ```text
-Firmware Module:
-- [ ] Verified ataraxis-micro-controller version matches requirements (>=3.0.0)
+Firmware Module, tool-settled (run `pio run` and `clang-format --dry-run --Werror src/*.h`):
+- [ ] Firmware compiles without warnings
+- [ ] Doxygen and inline comments fill to 120 characters before wrapping, under the wrap-width rule /cpp-style defines
+
+Firmware Module, reader-judged:
+- [ ] Verified ataraxis-micro-controller >=4.0.1 and ataraxis-transport-layer-mc >=4.0.0
 - [ ] Read module.h source to confirm API has not changed
-- [ ] Module header file created with #pragma once or include guard
+- [ ] Module header file created with an include guard, and library headers included with angle brackets
 - [ ] Class inherits from Module (public inheritance)
 - [ ] Template parameters use const keyword
 - [ ] Static assertions at top of class body (after opening brace, before public:)
@@ -474,16 +547,19 @@ Firmware Module:
 - [ ] Custom event codes enum defines event codes with values 51-250
 - [ ] CustomRuntimeParameters struct uses PACKED_STRUCT macro
 - [ ] SetupModule() configures pins and resets parameters to defaults
+- [ ] SetupModule() deactivates every managed output as its first statement, leaving the module idle
+- [ ] SetupModule() contains no logic that can return false, and no blocking, handshake, calibration, or polling step
+- [ ] Any unavoidable SetupModule() failure mode is caught by a static_assert instead of a runtime false return
+- [ ] The idle pin level is a named constexpr verified against the device wiring, not a hardcoded LOW
 - [ ] SetCustomParameters() calls ExtractParameters() (not _communication.ExtractModuleParameters())
 - [ ] RunActiveCommand() switches on get_active_command() and returns true/false
 - [ ] All command handlers call CompleteCommand() when done
 - [ ] Multi-stage commands use get_command_stage() starting at stage 1
 - [ ] Multi-stage commands call AdvanceCommandStage() between stages
 - [ ] Default case in stage switch calls AbortCommand()
+- [ ] Pin reads use the templated form AnalogRead<kPin>(pool_size) and DigitalRead<kPin>(pool_size)
 - [ ] Module registered in main.cpp modules[] array
 - [ ] Instantiation order: Communication -> Module(s) -> Kernel
-- [ ] module_type and module_id match PC-side ModuleInterface values (verify via /communication:microcontroller-interface)
+- [ ] module_type and module_id match PC-side ModuleInterface values (see /communication:microcontroller-interface)
 - [ ] Command codes, event codes, and parameter struct layout match PC-side counterpart
-- [ ] Doxygen and inline comments fill to 120 characters before wrapping, under the wrap-width rule /cpp-style defines
-- [ ] Firmware compiles without warnings
 ```
