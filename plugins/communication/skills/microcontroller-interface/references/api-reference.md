@@ -120,7 +120,7 @@ ModuleInterface(
 
 | Method                  | Key Parameters                                                                                  | Description                        |
 |-------------------------|-------------------------------------------------------------------------------------------------|------------------------------------|
-| `send_command()`        | `command: np.uint8, noblock: np.bool_, repetition_delay: np.uint32 = 0`                         | Sends command to module.           |
+| `send_command()`        | `command: np.uint8, *, noblock: np.bool_, repetition_delay: np.uint32 = 0`                      | Sends command to module.           |
 | `send_parameters()`     | `parameter_data: tuple[np.unsignedinteger \| np.signedinteger \| np.bool_ \| np.floating, ...]` | Sends parameters to module.        |
 | `reset_command_queue()` | `None`                                                                                          | Clears the module's command queue. |
 

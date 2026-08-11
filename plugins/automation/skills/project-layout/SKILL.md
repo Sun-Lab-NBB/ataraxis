@@ -104,15 +104,16 @@ exists rather than where it goes.
 
 These files appear at the root of all (or most) projects:
 
-| File            | All archetypes     | Purpose                                                       |
-|-----------------|--------------------|---------------------------------------------------------------|
-| `LICENSE`       | Yes                | Apache-2.0 license                                            |
-| `README.md`     | Yes                | Project documentation (see `/readme-style`)                   |
-| `.gitignore`    | Yes                | Git ignore patterns                                           |
-| `CLAUDE.md`     | Yes                | Claude Code project instructions                              |
-| `tox.ini`       | Python + C++       | Automation orchestration (lint, type, test, docs)             |
-| `.netlify-site` | Projects with docs | Netlify site identifier used by the `deploy` task             |
-| `.codegraph/`   | Optional           | CodeGraph index, present when the repository has been indexed |
+| File             | All archetypes     | Purpose                                                       |
+|------------------|--------------------|---------------------------------------------------------------|
+| `LICENSE`        | Yes                | Apache-2.0 license                                            |
+| `README.md`      | Yes                | Project documentation (see `/readme-style`)                   |
+| `.gitignore`     | Yes                | Git ignore patterns                                           |
+| `CLAUDE.md`      | Yes                | Claude Code project instructions                              |
+| `tox.ini`        | Python + C++       | Automation orchestration (lint, type, test, docs)             |
+| `.netlify-site`  | Projects with docs | Netlify site identifier used by the `deploy` task             |
+| `.codegraph/`    | Optional           | CodeGraph index, present when the repository has been indexed |
+| `.gitattributes` | Optional           | Line-ending normalization applied to every tracked text file  |
 
 The `.netlify-site` file stores the identifier of the Netlify site that serves the project's API documentation. The
 identifier is not a secret and differs for each project, so the file is tracked by version control. See `/tox-config`
@@ -125,6 +126,10 @@ drops both. See `/tox-config` for the environment.
 The `.codegraph/` directory holds a generated code index. It is present only in repositories that have been indexed.
 Every file inside it is ignored by version control except its own `.gitignore`, which is tracked so that the exclusion
 travels with the repository.
+
+The `.gitattributes` file holds a single `* text=auto` rule, which stores the line endings of every tracked text file as
+LF in the repository and converts them on checkout according to the platform's `core.eol` setting. The file is optional,
+and a project without one leaves that conversion to each contributor's local git configuration.
 
 ### Python-specific root files
 
@@ -193,14 +198,22 @@ PlatformIO and Unity projects do NOT have `envs/` directories.
 
 ### Python test structure
 
-The `tests/` directory mirrors the `src/package_name/` subpackage structure:
+The `tests/` directory mirrors the `src/package_name/` subpackage structure and holds the test-support modules the test
+modules share:
 
 ```text
 tests/
 ├── submodule/
 │   └── module_test.py
+├── conftest.py
+├── shared_builders.py
 └── standalone_test.py
 ```
+
+A test-support module holds the fixtures, builders, or fakes that several test modules draw on rather than tests of its
+own. It is named for what it provides, and `conftest.py` is the support module pytest discovers fixtures from
+automatically. The `_test.py` suffix marks test modules alone, so a support module carrying that suffix would be
+collected as one, which is why the suffix rule does not reach it.
 
 ### PlatformIO test structure
 
@@ -251,6 +264,11 @@ substitution, because the environment a maintainer needs to reproduce a bug diff
 | Python + C++ extension              | `OS: Ubuntu 24.04`, `Python: 3.13`, `CPU: AMD Ryzen 9 5900X`          |
 | C++ PlatformIO library and firmware | `OS: Ubuntu 24.04`, `PlatformIO: 6.1.15`, `Board: Teensy 4.1`         |
 | C# Unity                            | `OS: Windows 11`, `Unity: 2022.3.4f1`, `Platform: Windows Standalone` |
+
+A Python project whose subject is a physical device adds one more line naming that device, as `Hardware: Teensy 4.1`. A
+maintainer cannot reproduce a bug in code that drives hardware without knowing which hardware it drove. The condition is
+the project's subject rather than its dependency list, so a project that exists to talk to a microcontroller, a camera,
+or an instrument qualifies, and a project that merely runs on a host does not.
 
 Each comma-separated entry becomes its own line of the YAML block scalar, indented to match the asset. The example
 values are illustrative. They show the shape of a useful answer rather than the state of any one project, so the
@@ -394,6 +412,7 @@ them rather than recalling the layout.
 - [ ] envs/ file names use correct abbreviation prefix
 - [ ] PlatformIO and Unity projects do NOT have envs/
 - [ ] Python projects use tests/ (plural) with _test.py suffix, mirroring the src/package_name/ subpackage structure
+- [ ] Every non-test module under tests/ is conftest.py or a test-support module named without the _test.py suffix
 - [ ] PlatformIO library projects use test/ (singular) with test_ prefix
 - [ ] PlatformIO firmware and Unity projects have no dedicated test directory
 - [ ] Python and C++ projects have docs/ directory
@@ -411,6 +430,7 @@ names and this skill's ownership boundary.
 - [ ] No hand-authored or stale .pyi stubs committed mid-development (stubs are generated at release time via tox -e stubs)
 - [ ] feature_request.yml copied verbatim from assets/github/
 - [ ] bug_report.yml {environment_example} placeholder replaced with the archetype's environment lines
+- [ ] Hardware line added to those environment lines only for a Python project whose subject is a physical device
 - [ ] config.yml {project} placeholder replaced with the repository name
 - [ ] config.yml otherwise unchanged from assets/github/, keeping blank_issues_enabled: false and the
       retained contact link destinations

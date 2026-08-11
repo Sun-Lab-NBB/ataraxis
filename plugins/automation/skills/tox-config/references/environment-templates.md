@@ -182,7 +182,9 @@ commands =
 **Parameterization:**
 - Python version matrix `{py312, py313, py314}`: Must match the `requires-python` range in `pyproject.toml`. Core
   libraries (`ataraxis-*`) test 3 versions, and applications may test fewer.
-- `{package_name}` in `--cov`: The underscore-separated package name.
+- `{package_name}` in `--cov`: The underscore-separated package name. A project that declares `source_pkgs` under
+  `[tool.coverage.run]` in `pyproject.toml` passes a bare `--cov` instead. Spawned worker processes read the measured
+  package from that config file rather than from the command line, so the name belongs in exactly one place.
 - `package = wheel`: Forces the project to be built as a wheel before testing.
 - `--import-mode=importlib`: Matches the `addopts` declaration in `pyproject.toml`, so a bare `pytest` invocation
   resolves test modules the same way this task does. See `/pyproject-style` for that declaration.
