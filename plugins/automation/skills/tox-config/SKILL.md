@@ -207,6 +207,9 @@ tools instead.
 - `package = wheel` forces a wheel build before testing.
 - `setenv = COVERAGE_FILE = reports{/}.coverage.{envname}` writes per-version coverage data.
 - Runs pytest with `--import-mode=importlib`, `--cov`, `--cov-config=pyproject.toml`, `-n logical`, `--dist loadgroup`.
+- `--cov` carries the package name as `--cov={package_name}`, or stays bare when `pyproject.toml` declares
+  `source_pkgs` under `[tool.coverage.run]`, since a spawned worker reads the measured package from that file rather
+  than from the command line.
 - `--dist loadgroup` routes every test carrying the same `@pytest.mark.xdist_group` marker to one worker. See
   `/python-style` for the marker and the cases that require it.
 - `--import-mode=importlib` matches the `addopts` declaration in `pyproject.toml`, so a bare `pytest` invocation
@@ -428,6 +431,7 @@ Test Environment:
 - [ ] package = wheel is set
 - [ ] COVERAGE_FILE uses reports{/}.coverage.{envname}
 - [ ] pytest uses --import-mode=importlib, --cov, -n logical, --dist loadgroup
+- [ ] --cov names the package, or stays bare when pyproject.toml declares source_pkgs under [tool.coverage.run]
 
 Coverage Environment:
 - [ ] depends matches the test environment Python version matrix

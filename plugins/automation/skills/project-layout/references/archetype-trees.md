@@ -11,6 +11,7 @@ Based on `ataraxis-automation` and `ataraxis-base-utilities`.
 
 ```text
 project-root/
+├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
 │       ├── bug_report.yml            # Structured bug report form
@@ -28,6 +29,8 @@ project-root/
 │   ├── {abbr}_dev_lin.yml            # Linux conda environment specification
 │   ├── {abbr}_dev_osx.yml            # macOS conda environment specification
 │   └── {abbr}_dev_win.yml            # Windows conda environment specification
+├── examples/                         # (optional) Runnable usage examples for library consumers
+│   └── example_usage.py              # Standalone script demonstrating the public API
 ├── src/
 │   └── package_name/                 # Main package (underscore-separated)
 │       ├── submodule/                # (optional) Subpackage directories
@@ -40,7 +43,10 @@ project-root/
 ├── tests/
 │   ├── submodule/                    # (optional) Mirrors src/ subpackage structure
 │   │   └── module_test.py
-│   └── module_test.py                # Test files use _test.py suffix
+│   ├── conftest.py                   # (optional) Fixtures pytest discovers for the whole test directory
+│   ├── module_test.py                # Test files use _test.py suffix
+│   └── shared_builders.py            # (optional) Test-support module, named for what it provides
+├── .gitattributes                    # (optional) Line-ending normalization for tracked text files
 ├── .gitignore
 ├── .netlify-site                  # Netlify site identifier read by the deploy task
 ├── CLAUDE.md                         # Claude Code project instructions
@@ -56,6 +62,13 @@ project-root/
   for ataraxis-base-utilities).
 - The `tests/` directory mirrors the `src/package_name/` structure. Test files use the `_test.py` suffix (e.g.,
   `automation_test.py`).
+- Test-support modules under `tests/` hold the fixtures, builders, and fakes shared across test modules. Each one is
+  named for what it provides rather than with the `_test.py` suffix, which the rule above reserves for test modules,
+  and `conftest.py` is the support module pytest discovers fixtures from automatically.
+- The `examples/` directory is optional and holds runnable scripts that demonstrate the public API for library
+  consumers. It is source-distribution content. A project that also ships it in the wheel maps it to a
+  distribution-qualified package name. A bare top-level `examples` package installs into a shared
+  `site-packages/examples/` namespace that every distribution shipping that directory name would share.
 - `.pyi` stub files and the `py.typed` marker are generated artifacts whose presence is release-phase-dependent, so a
   missing `.pyi` is not a layout violation. See `/python-style` for the stub-file rule.
 - The `.pypirc` file may exist locally but is not committed to version control.
@@ -69,6 +82,7 @@ Based on `ataraxis-time`.
 
 ```text
 project-root/
+├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
 │       ├── bug_report.yml            # Structured bug report form
@@ -88,6 +102,8 @@ project-root/
 │   ├── {abbr}_dev_lin.yml            # Linux conda environment specification
 │   ├── {abbr}_dev_osx.yml            # macOS conda environment specification
 │   └── {abbr}_dev_win.yml            # Windows conda environment specification
+├── examples/                         # (optional) Runnable usage examples for library consumers
+│   └── example_usage.py              # Standalone script demonstrating the public API
 ├── src/
 │   ├── c_extensions/                 # C++ extension sources
 │   │   └── module_ext.cpp            # nanobind extension (snake_case_ext.cpp)
@@ -105,10 +121,13 @@ project-root/
 ├── tests/
 │   ├── python_wrapper/               # Tests for Python wrapper
 │   │   └── wrapper_test.py
-│   └── pure_python_module/           # Tests for pure Python modules
-│       └── module_test.py
+│   ├── pure_python_module/           # Tests for pure Python modules
+│   │   └── module_test.py
+│   ├── conftest.py                   # (optional) Fixtures pytest discovers for the whole test directory
+│   └── shared_builders.py            # (optional) Test-support module, named for what it provides
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
+├── .gitattributes                    # (optional) Line-ending normalization for tracked text files
 ├── .gitignore
 ├── .netlify-site                  # Netlify site identifier read by the deploy task
 ├── CLAUDE.md                         # Claude Code project instructions
@@ -125,6 +144,13 @@ project-root/
 - The `src/` layout uses a flat namespace: `c_extensions/`, wrapper subpackages, and pure Python subpackages are all
   direct children of `src/`.
 - C++ extension stubs (`module_ext.pyi`) live at the `src/` top level alongside `py.typed`.
+- The `tests/` directory carries test-support modules alongside its test modules, holding the fixtures, builders, and
+  fakes shared across them. Each one is named for what it provides rather than with the `_test.py` suffix, and
+  `conftest.py` is the support module pytest discovers fixtures from automatically.
+- The `examples/` directory is optional and holds runnable scripts that demonstrate the public API for library
+  consumers. It is source-distribution content. A project that also ships it in the wheel maps it to a
+  distribution-qualified package name. A bare top-level `examples` package installs into a shared
+  `site-packages/examples/` namespace that every distribution shipping that directory name would share.
 - The `CMakeLists.txt` at the project root drives the nanobind build via scikit-build-core.
 - Build artifacts (`build/`) contain per-Python-version subdirectories and are gitignored.
 
@@ -136,6 +162,7 @@ Based on `ataraxis-transport-layer-mc`.
 
 ```text
 project-root/
+├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
 │       ├── bug_report.yml            # Structured bug report form
@@ -162,6 +189,7 @@ project-root/
 │   └── test_component.cpp            # Unity framework test files
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
+├── .gitattributes                    # (optional) Line-ending normalization for tracked text files
 ├── .gitignore
 ├── .netlify-site                  # Netlify site identifier read by the deploy task
 ├── CLAUDE.md                         # Claude Code project instructions
@@ -191,6 +219,7 @@ Based on a microcontroller firmware project.
 
 ```text
 project-root/
+├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
 │       ├── bug_report.yml            # Structured bug report form
@@ -212,6 +241,7 @@ project-root/
 │   └── another_module.h              # Each module is a single .h file
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
+├── .gitattributes                    # (optional) Line-ending normalization for tracked text files
 ├── .gitignore
 ├── .netlify-site                  # Netlify site identifier read by the deploy task
 ├── CLAUDE.md                         # Claude Code project instructions
@@ -239,6 +269,7 @@ Based on a Unity behavioral-task project.
 
 ```text
 project-root/
+├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
 │       ├── bug_report.yml            # Structured bug report form
@@ -269,6 +300,7 @@ project-root/
 ├── .csharpierignore                  # CSharpier formatter ignore patterns
 ├── .csharpierrc.yaml                 # CSharpier formatter configuration
 ├── .editorconfig                     # Editor configuration (indentation, encoding)
+├── .gitattributes                    # (optional) Line-ending normalization for tracked text files
 ├── .gitignore
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── LICENSE                           # Apache-2.0 license
