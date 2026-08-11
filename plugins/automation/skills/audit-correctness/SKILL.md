@@ -278,7 +278,7 @@ count of discarded candidates for the report's triage header.
 Run the two checks in [verification-protocol.md](references/verification-protocol.md), in order:
 
 1. **Citation verification**, against every surviving finding with no sampling. Confirms each quoted string appears at
-   the line it is cited to, and deletes the finding when it does not.
+   the line it is cited to, re-anchors a quote whose text sits within 20 lines, and deletes the finding otherwise.
 2. **Adversarial refutation**, against every CRITICAL and HIGH finding. A fresh `general-purpose` sub-agent per finding,
    instructed to refute it and to answer REFUTED under uncertainty.
 
@@ -475,7 +475,7 @@ Code Correctness Audit Compliance:
 - [ ] Severity raised one step for T0 and T1 findings, and lowered for none on coverage grounds
 - [ ] One root cause reported once, under its most specific category, with repeats collapsed and counted
 - [ ] Citation verification run against every finding, with each quote confirmed at its cited line
-- [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
+- [ ] Every drifted quote re-anchored within the 20 line window, and every finding whose text the file lacks deleted
 - [ ] Adversarial refutation run against every CRITICAL and HIGH finding, in fresh sub-agents
 - [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
 - [ ] Triage header present, carrying the severity by confidence counts and every discard count

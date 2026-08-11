@@ -27,12 +27,24 @@ For each finding, open the cited `<path>` at the cited line range and confirm th
 character for character. The strings to check are the quoted contract, the quoted implementation, and every line number
 the Wrong bullet names.
 
-Delete the finding when a quote does not appear at the cited location, and when the cited line holds different code.
-Repairing the citation is FORBIDDEN here. A citation that drifted is evidence that the finding was assembled from
-recollection rather than from the file, which makes the claim resting on it unreliable for the same reason. A deleted
-finding is free to be re-derived from scratch in a later audit.
+Search the cited file for each quote's text and settle the quote against this table.
 
-Record the count of findings checked and the count deleted.
+| Outcome  | Test                                                                                  | Action                                         |
+|----------|---------------------------------------------------------------------------------------|------------------------------------------------|
+| VERIFIED | The text appears character for character at the cited line                            | Keep the finding unchanged                     |
+| DRIFTED  | The text appears character for character within 20 lines of the cited line            | Keep the finding, re-anchored to its true line |
+| FAILED   | The text appears nowhere in the file, or only further than 20 lines from the citation | Delete the finding                             |
+
+Re-anchoring a DRIFTED citation to the nearest matching occurrence is the ONLY repair permitted, because text found
+within the window was demonstrably read from the file and only its line label slipped. A multi-line quote drifts as a
+block, so re-anchor its whole span, and re-anchor the finding's own location line by the same rule. A quote that drifts
+and a quote that fails are reported separately, since the counts measure different things.
+
+Every other repair is FORBIDDEN. A quote whose text the cited file does not hold is evidence that the finding was
+assembled from recollection rather than from the file, which makes the claim resting on it unreliable for the same
+reason. A deleted finding is free to be re-derived from scratch in a later audit.
+
+Record the counts of findings checked, re-anchored, and deleted.
 
 ---
 
@@ -81,6 +93,7 @@ Findings: <total> reported
 | LOW      | <n>             | <n>               | <n>            |
 
 Discarded by the false-positive guards: <n>
+Re-anchored by citation verification: <n> of <n> checked
 Deleted by citation verification: <n> of <n> checked
 Refuted by adversarial verification: <n> of <n> checked
 ```
