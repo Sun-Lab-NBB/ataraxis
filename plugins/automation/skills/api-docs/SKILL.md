@@ -191,9 +191,9 @@ MUST NOT add Sphinx or documentation dependencies directly to downstream project
   rendered pages on Sphinx's `Author name not set` default.
 - Do NOT add IDE-specific suppression comments anywhere in `conf.py`, which ruff excludes via `extend-exclude` and mypy
   excludes as part of `docs/`. See `/python-style` for the framework-wide policy on IDE directives.
-- The `templates_path` and `exclude_patterns` fields are included but left at defaults (`['_templates']` and `[]`
-  respectively) for Python-only and hybrid archetypes. The C++-only archetype omits both fields entirely (it uses a
-  minimal breathe-only conf.py).
+- The `exclude_patterns` field is included at its `[]` default for the Python-only and hybrid archetypes, and the
+  C++-only archetype omits it as part of its minimal breathe-only conf.py. No archetype declares `templates_path`,
+  because no project creates the `_templates` directory it names and Sphinx skips a missing entry without a warning.
 - Napoleon is configured for Google-style docstrings only (`napoleon_numpy_docstring = False`).
 - All Napoleon and `sphinx_autodoc_typehints` settings MUST match the templates exactly. The extension is enabled by
   listing it in `extensions`, so the templates carry no `sphinx_autodoc_typehints` boolean. Sphinx accepts unknown names
@@ -353,7 +353,7 @@ every one against the files you wrote.
 - [ ] Author declared as the singular `author` key holding one string (no plural `authors` key, no list value)
 - [ ] Napoleon configured for Google-style only (numpy disabled)
 - [ ] All sphinx_autodoc_typehints settings present and correct (Python/hybrid)
-- [ ] templates_path = ['_templates'] and exclude_patterns = [] present (Python/hybrid), both fields absent (C++-only)
+- [ ] exclude_patterns = [] present (Python/hybrid), absent (C++-only), and no templates_path field in any archetype
 - [ ] html_theme set to 'furo'
 - [ ] welcome.rst follows template with correct project name and description
 - [ ] welcome.rst includes the attribution and GitHub repository links, plus a named link to the component the library
