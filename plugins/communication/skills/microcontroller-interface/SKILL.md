@@ -33,6 +33,7 @@ dataclasses, startup orchestration) is the responsibility of the consuming libra
   integration (see `/microcontroller:firmware-module`)
 - Microcontroller discovery, MQTT testing, or manifest management via MCP tools (see `/microcontroller-setup`)
 - Extraction configuration management (see `/extraction-configuration`)
+- Driving log-processing jobs from code; orchestration runs through MCP or the `axci` CLI only
 - MCP server connectivity issues (see `/communication-mcp-environment-setup`)
 - Binding class design, configuration dataclasses, or system architecture (consumer's responsibility)
 
@@ -53,10 +54,17 @@ but live in different plugins with distinct responsibilities:
 | MQTTCommunication setup                 | This skill                         |
 
 The two sides must agree on **module_type**, **module_id**, **command codes**, **event codes**,
-and **parameter struct layout** (field order, types, and sizes). When implementing a new hardware
-module, always work both skills together: `/microcontroller:firmware-module` for the C++ firmware
-and this skill for the Python interface. If either side's codes or parameter layout change, the
-other must be updated to match.
+**parameter struct layout** (field order, types, and sizes), and the **data payload prototype** of every
+firmware `SendData()` call — its numpy dtype and element count, which fixes the type of `message.data_object`
+on this side. When implementing a new hardware module, always work both skills together:
+`/microcontroller:firmware-module` for the C++ firmware and this skill for the Python interface. If either
+side's codes, parameter layout, or payload prototype change, the other must be updated to match.
+
+**Module command code 0 is reserved.** The firmware uses it to mark the absence of a command, so a module command
+message carrying code 0 is rejected before it is queued and answered with module event code 3
+(COMMAND_NOT_RECOGNIZED). On this side that arrival raises `RuntimeError` and terminates the communication process,
+so `send_command(command=np.uint8(0), ...)` aborts the runtime instead of doing nothing. Number custom command codes
+from 1. See `/microcontroller:firmware-module` for the firmware-side rejection path.
 
 ---
 
@@ -72,7 +80,7 @@ Check the locally installed ataraxis-communication-interface version against the
 pip show ataraxis-communication-interface
 ```
 
-The current version is **6.0.1**. If a version mismatch exists, ask the user how to proceed.
+The current version is **7.0.0**. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
 
@@ -83,19 +91,45 @@ The current version is **6.0.1**. If a version mismatch exists, ask the user how
 | `../ataraxis-communication-interface/src/ataraxis_communication_interface/communication/mqtt.py`        | MQTTCommunication API                            |
 | Project `pyproject.toml`                                                                                | Current pinned version dependency                |
 
+### Step 3: Firmware-side verification
+
+The PC side cannot be verified alone — three constructor arguments are copies of firmware build settings. Read these
+two files in the ataraxis-micro-controller checkout the target board was flashed from:
+
+| File             | What to check                                                                                        |
+|------------------|--------------------------------------------------------------------------------------------------------|
+| `library.json`   | `version` (the axmc release, currently **4.0.2**) and `platforms` (`atmelavr`, `atmelsam`, `teensy`). |
+| `platformio.ini` | The target environment's `monitor_speed`, which the firmware passes to `Serial.begin()`.             |
+
+**`baudrate` must equal the flashed board's `monitor_speed`, and 115200 is not a universal default.** A board whose
+`monitor_speed` differs never answers identification when the default is left in place, which surfaces as an
+initialization timeout rather than as a configuration error, so suspect the baudrate before the module code. The
+per-environment rates live in `/microcontroller:firmware-module`, "Serial speed per board environment". If a project
+ships its own firmware `platformio.ini`, read that file instead of the library's.
+
+The two library versions are independent (axci 7.0.0 pairs with axmc 4.0.2), so they cannot be compared numerically.
+Record both, and treat an incompatible pair as the first suspect behind error code 5 (INVALID_MESSAGE_PROTOCOL),
+which surfaces at runtime rather than at build time. See `/microcontroller:firmware-module` for the firmware build.
+
 ---
 
 ## API reference
 
 See [references/api-reference.md](references/api-reference.md) for the complete API reference including:
 
+- The full 39-name top-level `__all__`, the per-subpackage export map, and which names are subpackage-only
 - MicroControllerInterface constructor parameters and their exact types and defaults
-- ModuleInterface constructor parameters and abstract methods
-- MQTTCommunication constructor and lifecycle methods
+- ModuleInterface constructor parameters, abstract methods, and `set_input_queue()`
+- MQTTCommunication constructor, lifecycle methods, and its delivery and connection semantics
 - All public data classes (ModuleData, ModuleState, ModuleSourceData, MicroControllerSourceData)
 - Configuration classes (MicroControllerManifest, ExtractionConfig hierarchy)
+- The five firmware status-code mirror IntEnums, including the two that decode error payload bytes
+- `SerialProtocols`, `SerialPrototypes`, `PrototypeType`, and the prototype-code decoders
 - Constants, utility functions, the message protocol, data payload types, the keepalive mechanism,
   DataLogger topology, and the MCP-to-code parameter bridge
+
+**Import before transcribing.** The error tables in this file are hand-written subsets; the api-reference names the
+`IntEnum` that carries the complete set. Prefer `KernelStatusCodes.KEEPALIVE_TIMEOUT` over the literal 10.
 
 ---
 
@@ -129,7 +163,9 @@ Key constructor notes:
 - `name` is a required non-empty string written to `microcontroller_manifest.yaml` during `__init__()`,
   associating the `controller_id` with the human-readable name. The manifest enables
   `discover_microcontroller_data_tool` to identify controller-produced log archives.
-- `baudrate` defaults to 115200. Only relevant for UART serial; ignored by USB devices.
+- `baudrate` defaults to 115200 and is ignored by USB-interface devices. For UART boards it must equal the value the
+  firmware passed to `Serial.begin()`, which is the board's `monitor_speed` — see Step 3 above, and do not assume the
+  default fits the board.
 - `keepalive_interval` is in milliseconds. Set to 0 to disable keepalive messaging.
 
 ### Lifecycle
@@ -143,6 +179,12 @@ MicroControllerInterface() → start() → [communication active] → stop()
   communication cycle
 - `reset_controller()` resets the microcontroller to its default state
 - `stop()` terminates the communication process and releases all resources
+
+**Note:** `reset_controller()` is a PC-sent kernel command, so it only works while the controller is still executing
+its runtime cycle. A controller that already reported error code 2 (MODULE_SETUP_ERROR) never reads PC messages
+again, so neither `reset_controller()` nor a `stop()`/`start()` cycle recovers it — the firmware must be re-uploaded,
+and every managed module holds the pin levels it had at the instant of the failure until then. See
+`/microcontroller:firmware-module` for the firmware-side suspension.
 
 `start()` and `stop()` are idempotent (each is a no-op if the interface is already in the target state), and
 `__del__` calls `stop()` plus the multiprocessing Manager shutdown, so a garbage-collected interface releases
@@ -193,22 +235,30 @@ class EncoderInterface(ModuleInterface):
             module_type=np.uint8(1),
             module_id=np.uint8(1),
             name="encoder",
-            error_codes={np.uint8(53), np.uint8(54)},
+            error_codes={
+                np.uint8(53): "Encoder overflowed its counter.",
+                np.uint8(54): "Encoder wiring fault detected.",
+            },
             data_codes={np.uint8(51), np.uint8(52)},
         )
 ```
 
-Both `error_codes` and `data_codes` MUST be in the user range (51+). Event codes 1-50 are intercepted
-as system service messages before per-module routing, so codes in that range never reach the custom
-error or data paths.
+`error_codes` is a mapping from each error event code to the explanation surfaced when that error arrives,
+while `data_codes` is a plain set. The two containers are deliberately different, and passing a set for
+`error_codes` raises `TypeError` at construction.
 
-| Parameter     | Type                   | Default   | Description                                      |
-|---------------|------------------------|-----------|--------------------------------------------------|
-| `module_type` | `np.uint8`             | --------- | Hardware module family code (matches firmware)   |
-| `module_id`   | `np.uint8`             | --------- | Specific module instance ID (matches firmware)   |
-| `name`        | `str`                  | --------- | Human-readable name (written to manifest)        |
-| `error_codes` | `set[np.uint8] / None` | `None`    | Event codes that trigger RuntimeError on receipt |
-| `data_codes`  | `set[np.uint8] / None` | `None`    | Event codes routed to `process_received_data()`  |
+Both `error_codes` and `data_codes` MUST be in the user range 51-250 (`MINIMUM_CUSTOM_STATUS_CODE` through
+`MAXIMUM_CUSTOM_STATUS_CODE`, both inclusive); a declared code outside that range raises `ValueError` at
+construction. Event codes 1-50 are intercepted as system service messages before per-module routing, so codes
+in that range never reach the custom error or data paths.
+
+| Parameter     | Type                         | Default   | Description                                            |
+|---------------|------------------------------|-----------|----------------------------------------------------------|
+| `module_type` | `np.uint8`                   | --------- | Hardware module family code (matches firmware)         |
+| `module_id`   | `np.uint8`                   | --------- | Specific module instance ID (matches firmware)         |
+| `name`        | `str`                        | --------- | Human-readable name (written to manifest)              |
+| `error_codes` | `dict[np.uint8, str] / None` | `None`    | Event code to explanation map; receipt raises RuntimeError |
+| `data_codes`  | `set[np.uint8] / None`       | `None`    | Event codes routed to `process_received_data()`        |
 
 ### Abstract methods to implement
 
@@ -224,6 +274,31 @@ def process_received_data(self, message: ModuleData | ModuleState) -> None:
     """Called when a message with an event code from data_codes is received.
     Implement custom online data processing here. Keep fast — blocks communication."""
 ```
+
+### Remote asset lifecycle
+
+`initialize_remote_assets()` runs inside the communication process, so an asset **created** there exists only in that
+process and the main process can never read it. Create in `__init__()`, connect in `initialize_remote_assets()`.
+
+| Step    | Where                        | What belongs there                                                             |
+|---------|------------------------------|----------------------------------------------------------------------------------|
+| Create  | `__init__()`                 | `SharedMemoryArray.create_array()` and anything the main process must also reach. |
+| Connect | `initialize_remote_assets()` | `connect()` on that array, `PrecisionTimer` construction, anything non-picklable. |
+| Release | `terminate_remote_assets()`  | `disconnect()` and close handles — exactly what the connect step claimed.       |
+
+`examples/example_interface.py` in the axci repository is the reference implementation: it calls
+`SharedMemoryArray.create_array(..., exists_ok=True)` in `__init__()`, `connect()` in `initialize_remote_assets()`,
+and `disconnect()` in `terminate_remote_assets()`. Read it and `examples/example_runtime.py` before writing a new
+interface.
+
+### Runtime script structure
+
+**Guard the whole runtime with `if __name__ == "__main__":`.** MicroControllerInterface spawns a process, and under
+the spawn and forkserver start methods the child re-imports the entry module — without the guard it re-executes the
+runtime instead of only defining it. `example_runtime.py` places the guard near the top of the file and keeps
+everything below it. Wrap the started interface in `try` / `finally` and put `stop()`, `DataLogger.stop()`, and
+`assemble_log_archives()` in the `finally` block, in that order, so the failure path also drains the logger queue
+before the archive is assembled.
 
 ### Implementing process_received_data()
 
@@ -246,6 +321,13 @@ The type of `message.data_object` matches the numpy equivalent of the C++ type p
 `SendData()` on the firmware side. For scalar values it is a numpy scalar (e.g., `np.uint32`);
 for arrays it is an `NDArray` of the corresponding dtype.
 
+**Pick the payload prototype while co-designing the module, before either side is written.** The firmware resolves
+the prototype code from the C++ type at compile time, so the pairing is fixed by the `SendData()` call and cannot be
+renegotiated at runtime. Only certain (type, element count) pairs have a prototype code at all, and the reachable
+counts shrink on non-Teensy boards. Read the payload-type matrix in
+[references/api-reference.md](references/api-reference.md) with the target board in hand, then annotate
+`data_object` against the type it fixes.
+
 ### Sending commands and parameters
 
 ```python
@@ -264,10 +346,32 @@ module.reset_command_queue()
 
 `send_command()`, `send_parameters()`, and `reset_command_queue()` raise `RuntimeError` until the module
 interface is passed to a `MicroControllerInterface`, which wires the input queue during `__init__()` (not
-`start()`). In addition, `send_command()` and `send_parameters()` may only be called from the main runtime
-process — calling them from the spawned communication worker process raises `RuntimeError`, because their
-message-builder caches are stripped when the interface is pickled into that process (`reset_command_queue()`
-works wherever the input queue is wired).
+`start()`).
+
+**`send_command()` and `send_parameters()` may only be called from the main runtime process.** Whether a violation
+is *caught* depends on the multiprocessing start method. The guard fires on the message-builder caches, which
+`__getstate__` strips only when the interface is pickled into the child. Under spawn (Windows and macOS) and under
+forkserver (the Python 3.14 default on Linux) the caches are gone, so the call raises `RuntimeError`. Under fork (the
+Python 3.12 and 3.13 default on Linux) the caches are inherited intact and the same call silently succeeds. axci
+supports both regimes, since it declares `requires-python >=3.12,<3.15`. Treat the rule as a contract the library
+states in its own error text, never as an exception you can rely on to surface the mistake.
+(`reset_command_queue()` works wherever the input queue is wired.)
+
+**`noblock` is a controller-wide decision, not a per-module one.** With `noblock=np.bool_(False)` the firmware blocks
+its entire runtime cycle inside that command's stage delay. Nothing else on that controller advances meanwhile: every
+sibling module stalls, PC messages go unread, and the keepalive check is deferred with them, so a long enough block
+trips KEEPALIVE_TIMEOUT (error code 10) and forces an emergency reset. Pass `np.bool_(True)` unless the command must
+hold the controller for its whole duration. See `/microcontroller:firmware-module` for the blocking-mode contract.
+
+**The firmware holds exactly one pending command per module.** A module has a single pending slot, so a second
+`send_command()` arriving before the module activates the first overwrites it and the first never runs — silently, on
+both sides. The currently *active* command still finishes; it is the pending slot that is lost.
+
+There is no online completion signal to wait on: the firmware's `kCommandCompleted` is module event code 2, inside the
+system-reserved 1-50 range, so it is logged but never reaches `process_received_data()`. Either express repetition
+with `repetition_delay` instead of a burst of one-off sends, or have the firmware emit a custom event code in the
+51-250 range at the end of the handler and declare that code in `data_codes`, which gives the PC a completion
+callback it can pace against. `/microcontroller:firmware-module` documents the queue's priority chain.
 
 ### Parameter struct correspondence
 
@@ -328,6 +432,10 @@ mqtt_client = MQTTCommunication(
 | `port`             | `int`                    | `1883`        | MQTT broker socket port                  |
 | `monitored_topics` | `tuple[str, ...] / None` | `None`        | Topics to subscribe to for incoming data |
 
+`monitored_topics` is the receive switch, and it is set once. Leaving it at `None` subscribes to nothing and starts
+no listener thread, so `get_data()` returns `None` for the whole runtime and no error ever fires. There is no method
+to add a topic after construction, so decide what the instance listens to before you build it.
+
 ### Lifecycle
 
 ```text
@@ -341,6 +449,12 @@ MQTTCommunication() → connect() → [publish/subscribe] → disconnect()
 - `has_data` property returns `True` if there are received messages waiting
 - `disconnect()` releases the connection (also called automatically on garbage collection)
 
+**Note:** a broker-side link loss clears the tracked connection state without raising anything at that moment, so the
+next `send_data()` or `get_data()` is what surfaces the failure. `connect()` early-returns only while the tracked
+state still says connected, so calling it again after a loss genuinely reconnects. Publishing uses QoS 0, which is
+at-most-once with no delivery guarantee — see the delivery and connection semantics table in
+[references/api-reference.md](references/api-reference.md) before relying on MQTT for anything that must not be lost.
+
 ---
 
 ## Message protocol
@@ -351,7 +465,8 @@ See [references/api-reference.md](references/api-reference.md) for the message p
 
 ## Supported data payload types
 
-See [references/api-reference.md](references/api-reference.md) for data payload types and element counts.
+See [references/api-reference.md](references/api-reference.md) for the full numpy-to-C++ matrix, the supported
+element counts, the per-board payload caveat, and the `np.float64` footnote covering AVR boards.
 
 ---
 
@@ -388,22 +503,23 @@ Module messages with event codes 1-50 are system-reserved service messages:
 | Event Code | Name                   | Meaning                                                                      | Data Payload                           |
 |------------|------------------------|------------------------------------------------------------------------------|----------------------------------------|
 | 1          | TRANSMISSION_ERROR     | Module failed to send data to the PC                                         | communication_status, transport_status |
-| 2          | COMMAND_COMPLETE       | Module finished executing its last active command (informational, not error) | (none)                                 |
+| 2          | COMMAND_COMPLETED      | Module finished executing its last active command (informational, not error) | (none)                                 |
 | 3          | COMMAND_NOT_RECOGNIZED | Module received an unknown command code                                      | (none)                                 |
 
 ### User-defined error handling
 
 In addition to the system errors above, `ModuleInterface` subclasses can define custom error codes
-via the `error_codes` constructor parameter. When a message arrives with an event code in this set,
-the communication process raises `RuntimeError` and terminates. This allows firmware-specific error
-conditions to abort the PC runtime.
+via the `error_codes` constructor parameter. When a message arrives with an event code in that mapping,
+the communication process raises `RuntimeError` carrying the registered explanation, and terminates. This
+allows firmware-specific error conditions to abort the PC runtime.
 
 ### Watchdog thread
 
 MicroControllerInterface runs a watchdog thread that monitors the communication process at 20 ms
 intervals. If the communication process terminates unexpectedly (e.g., due to an unhandled exception
 or serial disconnection), the watchdog detects the process death, cleans up resources, and raises
-`RuntimeError` on the main thread.
+`RuntimeError` inside its own daemon thread, so the traceback surfaces on stderr while the main process
+keeps running. Main-thread code cannot catch this error.
 
 ### Initialization verification errors
 
@@ -411,6 +527,8 @@ During `start()`, the interface verifies the microcontroller configuration befor
 communication cycle. Verification fails if:
 - The microcontroller does not respond within 2 seconds (3 attempts max)
 - The reported controller ID does not match the expected `controller_id`
+- The microcontroller does not respond to the module identification request at all
+- The microcontroller reports two modules sharing the same type+id combination
 - The microcontroller has fewer modules than the number of ModuleInterface instances
 - Any ModuleInterface's type+id pair has no matching module on the microcontroller
 - The overall initialization exceeds 30 seconds
@@ -457,7 +575,14 @@ See [references/api-reference.md](references/api-reference.md) for the MCP-to-co
 | Process crashes on initialization       | DataLogger not started                | Start DataLogger before MCI initialization                    |
 | Serial permission denied                | User not in dialout group             | Add user to dialout group or run with sudo                    |
 | Initialization timeout (>30s)           | Microcontroller not responding        | Check serial connection, firmware loaded, correct port        |
+| Initialization timeout on a Due or Mega | `baudrate` left at the 115200 default | Match the board's `monitor_speed` (Step 3); rates in /microcontroller:firmware-module |
 | Error code 2 (MODULE_SETUP_ERROR)       | Module Setup() failed on MCU          | Firmware re-upload required; check module hardware            |
+| Controller ignores reset_controller()   | Error code 2 fired earlier            | Unrecoverable from the PC; re-upload firmware, then power-cycle |
+| Built-in LED solid HIGH after setup     | MCU hit an error sending data to the PC | Check cable, hub, and buffer_size; see /microcontroller:firmware-module |
+| Built-in LED blinking at ~2 s intervals | Kernel setup failed, controller frozen | Re-upload firmware; the PC cannot recover it, and pin levels are stuck |
+| Sent commands silently do not execute   | Pending slot overwritten by a burst   | Pace sends, or use repetition_delay instead of repeated one-off sends |
+| Sibling modules stall during a command  | `noblock=np.bool_(False)` on that command | Pass `np.bool_(True)` unless the command must hold the controller |
+| Firmware will not compile for a Mega    | `double` payload on an AVR board      | Use `np.float32` / `float`, or add `-mdouble=64` to that board's build_flags |
 | Error code 3 (RECEPTION_ERROR)          | MCU failed to parse PC message        | Check serial cable, buffer_size, communication integrity      |
 | Error code 4 (TRANSMISSION_ERROR)       | MCU failed to send to PC              | Check serial cable, USB hub, buffer overflow                  |
 | Error code 5 (INVALID_MESSAGE_PROTOCOL) | Unknown protocol code sent            | Verify library versions match between PC and firmware         |
@@ -467,6 +592,10 @@ See [references/api-reference.md](references/api-reference.md) for the MCP-to-co
 | Error code 10 (KEEPALIVE_TIMEOUT)       | PC missed keepalive deadline          | Check CPU load, serial bandwidth, reduce keepalive_interval   |
 | Watchdog: process prematurely shut down | Communication process crashed         | Check serial connection, inspect stderr for stack trace       |
 | MQTT connection refused                 | Broker not running or wrong host/port | Verify broker with `check_mqtt_broker_tool` MCP tool          |
+| MQTT publisher starts raising ConnectionError mid-run | Broker-side link loss cleared the tracked connection state | Call `connect()` again — not a no-op once the state is cleared — then re-publish |
+| `send_data()` raises ConnectionError while the broker is up | Non-success publish return code; the payload never reached the broker | Check topic permissions and broker health; the failure is per-publish, not per-connection |
+| MQTT messages vanish with no error at all | QoS is hardcoded 0 on publish and subscribe, so delivery is at-most-once | Acknowledge over a second topic, or move the traffic to the serial path |
+| `get_data()` returns None forever, `has_data` always False | `monitored_topics` left at `None`: nothing subscribed, no listener thread | Pass the topics to the constructor; they cannot be added after `connect()` |
 
 ---
 
@@ -489,14 +618,21 @@ See [references/api-reference.md](references/api-reference.md) for the MCP-to-co
 
 ```text
 Microcontroller Interface:
-- [ ] Verified ataraxis-communication-interface version matches requirements (>=6.0.0)
+- [ ] Verified ataraxis-communication-interface version matches requirements (>=7.0.0)
+- [ ] Read the firmware's library.json and platformio.ini; recorded the axmc version and the board's monitor_speed
+- [ ] baudrate equals that monitor_speed (115200 is the Teensy value, not a universal default)
 - [ ] Verified microcontrollers are discoverable using /microcontroller-setup workflow
 - [ ] Allocated unique controller IDs in the 101-150 advised range
 - [ ] DataLogger initialized and started before MicroControllerInterface creation
 - [ ] ModuleInterface subclasses implement all three abstract methods
 - [ ] Module type/id codes match firmware configuration (verify via /microcontroller:firmware-module)
 - [ ] Command codes, event codes, and parameter layout match firmware counterpart
-- [ ] Comments and docstrings fill to 120 characters before wrapping, under the wrap-width rule /python-style defines
+- [ ] Custom command codes start at 1; code 0 is reserved and is rejected before it is queued
+- [ ] Every SendData() payload prototype (numpy dtype and element count) is supported on the target board
+- [ ] Remote assets are created in __init__() and only connected in initialize_remote_assets()
+- [ ] Runtime script body is inside an `if __name__ == "__main__":` guard
+- [ ] Comments and docstrings fill to 120 characters before wrapping, under the wrap-width rule
+      `/automation:python-style` defines
 - [ ] stop() called on all MicroControllerInterface instances during shutdown
 - [ ] assemble_log_archives() called after DataLogger.stop()
 ```

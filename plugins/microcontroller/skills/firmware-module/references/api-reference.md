@@ -1,6 +1,7 @@
 # Module base class API reference
 
-All signatures are sourced from the library's header files at version 4.0.1.
+All signatures are sourced from the library's header files at version 4.0.2, which pins `ataraxis-transport-layer-mc`
+at `^4.0.1`.
 
 ---
 
@@ -378,6 +379,98 @@ explicit Communication(Stream& communication_port);
 
 Creates a TransportLayer instance with a non-reflected CRC16 (polynomial 0x1021, init 0xFFFF, final XOR 0x0000). The PC
 interface has to use the same CRC parameters. Reserves up to ~1 kB of RAM (~700 bytes on lower-end boards).
+
+---
+
+## Communication error payload
+
+Neither status enumeration below is ever sent as an event code. Every firmware path that fails to send or receive calls
+`Communication::SendCommunicationErrorMessage()`, which packs the two-byte array
+`{Communication status, TransportLayer status}` as the data object of an error message, then drives `LED_BUILTIN` HIGH.
+Nothing on the error path clears that LED. It goes out only when a `Kernel::Setup()` pass completes with no module
+failure, so a lit LED means at least one transfer failed since the last successful setup, not that one is failing
+right now. The two bytes are the whole firmware-side diagnosis of the failure, so read them as a pair.
+
+| Failing call                                  | Message emitted | Event code reported                 |
+|-----------------------------------------------|-----------------|-------------------------------------|
+| `Module::SendData()`, `Module::SendEvent()`   | ModuleData (6)  | Core code 1, `kTransmissionError`   |
+| `Kernel::SendData()` and its service senders  | KernelData (7)  | Kernel code 4, `kTransmissionError` |
+| `Kernel::ReceiveData()`                       | KernelData (7)  | Kernel code 3, `kReceptionError`    |
+
+One reception failure carries no such payload. When the PC sends a protocol code the firmware does not accept, the
+Kernel reports kernel code 5 (`kInvalidMessageProtocol`) with the rejected protocol code as its data object instead.
+
+**Note:** the PC-side mirrors of both enumerations use the same numbering, and every code in either mirror has a
+firmware counterpart, so no PC-side code is orphaned. Only the firmware side knows which method sets each code, which
+is what the two tables below add.
+
+### kCommunicationStatusCodes
+
+Defined in `axmc_shared_assets.h` and returned by `Communication::get_communication_status()`. Fills the first byte of
+the error payload. "A sender" below means any of `SendDataMessage()`, `SendStateMessage()`, and `SendServiceMessage()`,
+all three of which set codes 54, 55, and 62 identically.
+
+| Code | Constant               | Firmware meaning, with the method that sets the code                                       |
+|------|------------------------|--------------------------------------------------------------------------------------------|
+| 51   | `kStandby`             | Initializer value. No Communication method has completed yet.                              |
+| 52   | `kReceptionError`      | `ReceiveMessage()` failed on packet reception. Byte 2 names the reason.                    |
+| 53   | `kParsingError`        | `ReceiveMessage()` or `ExtractModuleParameters()` could not read the arrived payload.      |
+| 54   | `kPackingError`        | A sender could not stage the message. Nothing was sent, and the buffer was reset.          |
+| 55   | `kMessageSent`         | A sender wrote the whole packet to the port.                                               |
+| 56   | `kMessageReceived`     | `ReceiveMessage()` read the protocol code. A header read can still fail after it.          |
+| 57   | `kInvalidProtocol`     | The received protocol code is not accepted on reception. Kernel reports kernel code 5.     |
+| 58   | `kNoBytesToReceive`    | No message was waiting. The idle path, not an error, and nothing is reported.              |
+| 59   | `kParameterMismatch`   | Received bytes are not `sizeof(struct)` plus header. The PC tuple and the struct disagree. |
+| 60   | `kParametersExtracted` | `ExtractModuleParameters()` wrote the parameter struct.                                    |
+| 61   | `kExtractionForbidden` | `ExtractParameters()` ran while the stored message was not ModuleParameters.               |
+| 62   | `kTransmissionError`   | The serial interface accepted only part of the packet a sender wrote.                      |
+
+### kTransportStatusCodes
+
+Defined by the `ataraxis-transport-layer-mc` dependency in `axtlmc_shared_assets.h` and set by `TransportLayer` in
+`transport_layer.h`. `Communication::get_transport_layer_status()` returns it, and it fills the second byte of the
+error payload. Codes 14, 16, and 27 are governed by the TransportLayer's private `kTimeout` stall window, which
+firmware cannot configure.
+
+| Code | Constant                       | Firmware meaning, with the method that sets the code                       |
+|------|--------------------------------|----------------------------------------------------------------------------|
+| 11   | `kStandby`                     | Initializer value. No packet operation has completed yet.                  |
+| 12   | `kDecodingFailed`              | `ValidatePacket()`: CRC passed, but COBS decoding of the payload failed.   |
+| 13   | `kPacketSent`                  | `SendData()` wrote the full packet to the port.                            |
+| 14   | `kPayloadSizeByteNotFound`     | `ParsePacket()`: start byte arrived, no size byte within the stall window. |
+| 15   | `kInvalidPayloadSize`          | `ParsePacket()`: announced size is under the minimum or over the cap.      |
+| 16   | `kPacketTimeoutError`          | `ParsePacket()`: the packet body stalled before the delimiter arrived.     |
+| 17   | `kNoBytesToParse`              | Nothing available, or no start byte in what was. The idle path.            |
+| 18   | `kPacketParsed`                | `ParsePacket()` read the body and the CRC postamble.                       |
+| 19   | `kCRCCheckFailed`              | `ValidatePacket()`: CRC failed. Corruption or mismatched CRC parameters.   |
+| 20   | `kPacketReceived`              | `ReceiveData()` parsed, validated, and decoded the packet.                 |
+| 21   | `kWriteObjectBufferError`      | `WriteData()`: the object exceeds the free transmission payload space.     |
+| 22   | `kObjectWrittenToBuffer`       | `WriteData()` staged the object for transmission.                          |
+| 23   | `kReadObjectBufferError`       | `ReadData()`: fewer unread payload bytes remain than the object needs.     |
+| 24   | `kObjectReadFromBuffer`        | `ReadData()` read the object out of the reception payload.                 |
+| 25   | `kDelimiterNotFoundError`      | `ParsePacket()`: a full packet arrived with no delimiter. Corrupted.       |
+| 26   | `kDelimiterFoundTooEarlyError` | `ParsePacket()`: the delimiter arrived before the announced packet end.    |
+| 27   | `kPostambleTimeoutError`       | `ParsePacket()`: the CRC postamble missed the stall window.                |
+| 28   | `kEmptyPayloadError`           | `SendData()` was called with an empty transmission payload.                |
+| 29   | `kPacketPartiallySent`         | `SendData()`: the interface accepted only part of the packet.              |
+
+### Reading a pair
+
+```text
+{58, 17}  Idle. No message was waiting. Never reaches the PC.
+{52, 19}  CRC failure. Suspect line noise, a baud mismatch, or PC-side CRC parameters.
+{52, 15}  The PC announced a payload this board's reception buffer cannot hold. Shrink the PC-side message.
+{52, 16}  Stalled body. {52, 27} is the same fault in the CRC postamble. The link dropped bytes mid-packet.
+{52, 25}  Framing corruption, delimiter never arrived. {52, 26} is the delimiter arriving early.
+{53, 23}  A header or parameter read ran past the payload. The message layout and the firmware disagree.
+{54, 21}  The outgoing object does not fit the payload. Shrink the data object or split it across messages.
+{62, 29}  The port accepted only part of the packet. The host is not draining the link, or the link dropped.
+{59, ..}  Parameter size mismatch. Align the PACKED_STRUCT with the PC-side send_parameters() tuple.
+{61, ..}  ExtractParameters() ran outside SetCustomParameters().
+```
+
+A second byte that reports success (18, 20, 22, or 24) means the packet layer was healthy and the fault lies entirely
+in the Communication layer, which is the normal shape of the 59 and 61 parameter faults.
 
 ---
 

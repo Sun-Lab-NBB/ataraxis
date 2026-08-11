@@ -49,8 +49,10 @@ Log archives follow the naming pattern `{source_id}_log.npz`:
 51_log.npz     # Source ID 51 (from VideoSystem system_id=51, if sharing the logger)
 ```
 
-The suffix `_log.npz` is defined as `LOG_ARCHIVE_SUFFIX` in `log_processing.py`. The source ID portion
-is the integer form of the originating system's controller ID.
+The suffix `_log.npz` is defined as `LOG_ARCHIVE_SUFFIX` in `ataraxis-data-structures`
+(`serialized_data_logger.py`), and imported by AXCI's `orchestration/discovery.py` and
+`interfaces/discovery_tools.py`. The source ID portion is the integer form of the originating system's
+controller ID.
 
 ### How archives are produced
 
@@ -107,12 +109,16 @@ controller-produced log archives. Directories without a `microcontroller_manifes
 discovered. Manifests also associate controller IDs with human-readable names and enumerate the hardware
 modules managed by each controller.
 
-**Manifest gates, config selects:** The controller IDs to process are taken from the `ExtractionConfig`
-(`resolved_config.controllers`) and are the sole source of truth for which archives are processed — not
-the manifest or which `.npz` files exist on disk. Each config controller ID must also appear in
-`microcontroller_manifest.yaml`, or processing raises a `ValueError` listing the unregistered IDs and the
-registered set. Manifest controllers the config omits are simply not processed. The manifest only
-validates/gates; it does not select.
+**Manifest gates, config selects:** The `ExtractionConfig` bounds the work. A controller it does not declare is
+never processed, whatever the manifest registers and whatever `.npz` files sit on disk. Within that bound the
+caller's `source_ids` argument selects, and omitting it requests every configured controller. The manifest only
+gates: a requested controller it does not register yields no job, and neither the manifest nor the archives on disk
+can add a controller the config omits.
+
+**The failure model is not uniform:** what happens to a requested controller that clears neither gate depends on the
+entry point — the local library path fails the whole call, the MCP path records the controller and prepares the rest.
+`/log-processing` is authoritative for that lenient-sourcing model, for the per-reason remedies, and for the
+`skipped_sources` key that reports them. Read it before diagnosing a batch that prepared fewer jobs than requested.
 
 **Key difference from AXVS manifests:** AXCI manifests include a `modules` list per controller, providing
 full hardware module metadata (type, id, name). AXVS camera manifests only have source ID and camera name.
@@ -134,6 +140,38 @@ MicroControllerInterface(controller_id=np.uint8(101), data_logger=logger)
     → Assembled archive: 101_log.npz
     → Processed output: controller_101_module_1_1.feather, controller_101_kernel.feather
 ```
+
+### Integer form versus string form
+
+One source ID has two written forms, and the boundary between them is fixed. The manifest and the extraction
+configuration store the ID as an **integer**. Every surface that names a job, an archive, a tracker entry, or an
+output file uses its **string** form. The conversion is plain `str(id)` and `int(source_id)` with no padding, so
+controller 51 is `"51"` and never `"051"`.
+
+| Surface                                                            | Form                             |
+|--------------------------------------------------------------------|----------------------------------|
+| `microcontroller_manifest.yaml` `id:` field                        | int                              |
+| `write_microcontroller_manifest_tool(controller_id=)`              | int                              |
+| `read_microcontroller_manifest_tool` -> `controllers[].id`         | int                              |
+| `ExtractionConfig` `controller_id:`, `read_extraction_config_tool` | int                              |
+| `write_extraction_config_tool(controllers=[...])`                  | either, the tool applies `int()` |
+| `discover_microcontroller_data_tool` -> `sources[].source_id`      | str                              |
+| `assemble_log_archives_tool` -> `source_ids`                       | str                              |
+| `prepare_log_processing_batch_tool(source_ids=)`                   | str                              |
+| `reset_log_processing_jobs_tool(source_ids=)`                      | str                              |
+| every `source_id` in a prepare, execute, status, or timing return  | str                              |
+| `{source_id}_log.npz`, `controller_{source_id}_*.feather`          | str, plain decimal, no padding   |
+| `.npy` filenames and archive keys, `{source_id:03d}_...`           | zero-padded to three digits      |
+
+**You MUST copy a `source_id` string verbatim** from a discovery, prepare, or status return into the next tool call.
+Both consumers compare exactly. Job preparation tests each requested ID against the string forms of the configured
+controller IDs, and `reset_log_processing_jobs_tool` tests them against the tracker's job specifiers. A zero-padded,
+whitespace-bearing, or integer value matches nothing.
+
+**A mismatch fails quietly.** A padded ID such as `"051"` raises nothing on the MCP path. The batch simply prepares
+no job for it and reports it under `skipped_sources` as absent from the extraction configuration, which blames the
+config rather than the malformed ID. Re-read the ID from `discover_microcontroller_data_tool` before editing a config
+in response to that message.
 
 ### Uniqueness constraints
 
@@ -231,12 +269,31 @@ source ID and 20-digit zero-padded timestamp from the original `.npy` filenames.
 
 ### Protocol codes
 
-| Protocol Code | Name           | Description                                     |
-|---------------|----------------|-------------------------------------------------|
-| 6             | MODULE_DATA    | Data message from a hardware module             |
-| 7             | KERNEL_DATA    | Data message from the kernel                    |
-| 8             | MODULE_STATE   | State/status message from a hardware module     |
-| 9             | KERNEL_STATE   | State/status message from the kernel            |
+`SerialProtocols` (`communication/protocols.py`) defines thirteen codes, and the firmware's `kProtocols`
+enumeration mirrors them value for value — see `/microcontroller:firmware-module` for the firmware side.
+
+| Code | Name                      | Direction | Role                                                  |
+|------|---------------------------|-----------|-------------------------------------------------------|
+| 0    | UNDEFINED                 | —         | Initializer only, never appears on the wire           |
+| 1    | REPEATED_MODULE_COMMAND   | PC -> MC  | Recurrently executed module command                   |
+| 2    | ONE_OFF_MODULE_COMMAND    | PC -> MC  | Single-shot module command                            |
+| 3    | DEQUEUE_MODULE_COMMAND    | PC -> MC  | Clears a module's queued commands                     |
+| 4    | KERNEL_COMMAND            | PC -> MC  | Kernel command, always single-shot                    |
+| 5    | MODULE_PARAMETERS         | PC -> MC  | Module parameter object                               |
+| 6    | MODULE_DATA               | MC -> PC  | **Extracted** — module event plus a typed data object |
+| 7    | KERNEL_DATA               | MC -> PC  | **Extracted** — kernel event plus a typed data object |
+| 8    | MODULE_STATE              | MC -> PC  | **Extracted** — module event code alone               |
+| 9    | KERNEL_STATE              | MC -> PC  | **Extracted** — kernel event code alone               |
+| 10   | RECEPTION_CODE            | MC -> PC  | Acknowledges a received command or parameter message  |
+| 11   | CONTROLLER_IDENTIFICATION | MC -> PC  | Reports the controller's own ID                       |
+| 12   | MODULE_IDENTIFICATION     | MC -> PC  | Reports one module's combined type-and-id code        |
+
+**Both directions are logged.** `SerialCommunication` logs every message it sends as well as every payload it
+receives, so an archive holds outgoing commands and parameters (1-5) and inbound service messages (10-12) alongside
+the data and state messages the pipeline extracts. Only protocols 6-9 are routed to an accumulator, and every other
+code is skipped without error. An archive's message count therefore exceeds its extracted row count by design, before
+the per-module event-code filter narrows the extracted set further. Do not read that gap as data loss — see
+`/log-processing-results`.
 
 ### Message types
 
@@ -282,6 +339,16 @@ After the leading protocol byte, the remaining bytes follow protocol-specific la
 [command: 1 byte][event: 1 byte]
 ```
 
+**Service messages** (protocols 10, 11, 12) share one layout, a bare service code with no command or event byte:
+
+```text
+[service_code: 1, 2, or 4 bytes]
+```
+
+The firmware's packed `ServiceMessage` struct admits a `uint8`, `uint16`, or `uint32` code. In practice
+RECEPTION_CODE and CONTROLLER_IDENTIFICATION send one byte, and MODULE_IDENTIFICATION sends the module's combined
+type-and-id value as a `uint16`. These messages carry no event code, so no extraction config can select them.
+
 - **module_type** — Module family code of the sending module (module messages only)
 - **module_id** — Instance ID of the sending module (module messages only)
 - **command** — The command code the module/kernel was executing
@@ -316,12 +383,18 @@ Before running the log processing pipeline, verify these conditions:
 3. **Archive naming valid** — Files match the `{source_id}_log.npz` pattern.
 
    - **One archive per source ID** — Exactly one `{source_id}_log.npz` may exist anywhere under the
-     search root. `find_log_archive` recursively rglobs the pattern, and more than one match raises a
-     `ValueError` ("Found N matching archives, but expected exactly one") — duplicates fail, not first-wins.
-   - **Single parent directory per invocation** — All source IDs processed in one local invocation must
-     resolve to the same parent directory. If resolved archives span more than one directory,
-     `run_log_processing_pipeline` raises a `ValueError` ("span multiple directories ... Each DataLogger
-     output directory must be processed independently"). Point the pipeline at each logger directory separately.
+     search root. `resolve_jobs()` indexes the archive names with `index_marker_files()`, and a source ID
+     resolving to zero files or to several is left unresolved — duplicates never resolve first-wins. The
+     unresolved source then either fails the call or is reported as a skip, on the entry-point split described
+     under "Manifest gates, config selects" above and owned by `/log-processing`.
+   - **Single parent directory per invocation** — All source IDs processed in one invocation must resolve to
+     the same parent directory. If the resolved archives span more than one directory, job preparation raises a
+     `ValueError` ("The resolved log archives sit in N different directories ... Each DataLogger output
+     directory must be prepared and processed on its own invocation"). Unlike the two gates above, this check
+     is not subject to the lenient-versus-strict split and raises on both entry points. Point the pipeline at
+     each logger directory separately.
+   - **One manifest per invocation** — A search root holding more than one `microcontroller_manifest.yaml`
+     spans several recordings and raises a `ValueError` before any archive is indexed, on both entry points.
 
 4. **Onset message present** — Each archive must contain exactly one onset message (elapsed_us=0)
    with a valid UTC epoch payload. Archives missing the onset message cannot be processed.
@@ -342,6 +415,7 @@ Before running the log processing pipeline, verify these conditions:
 | `/log-processing-results`              | Downstream: documents the output format produced from these archives |
 | `/pipeline`                            | Context: reference skill for the end-to-end pipeline phases          |
 | `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for discovery and processing   |
+| `/microcontroller:firmware-module`     | Context: firmware side of the protocol codes and message layouts     |
 
 ---
 
@@ -353,6 +427,7 @@ Log Input Format:
 - [ ] Log directories contain assembled .npz archives (not raw .npy files)
 - [ ] Archive filenames match {source_id}_log.npz pattern
 - [ ] Source IDs are unique within each log directory
+- [ ] Source IDs passed to processing tools are unpadded strings copied verbatim from a discovery return
 - [ ] Each archive contains an onset message (elapsed_us=0 with UTC epoch payload)
 - [ ] Extraction config has event codes matching firmware message events
 - [ ] Directory structure matches expected DataLogger output layout

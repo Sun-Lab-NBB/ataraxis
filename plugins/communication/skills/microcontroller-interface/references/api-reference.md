@@ -6,32 +6,82 @@ Complete API reference for ataraxis-communication-interface public classes, func
 
 ## Public API
 
+The top-level `__all__` exports exactly these 39 names. Anything not listed here must be imported from a subpackage.
+
 ```python
 from ataraxis_communication_interface import (
-    # Core classes
+    # Interface classes
     MicroControllerInterface,
     ModuleInterface,
     MQTTCommunication,
-    # Data classes
+    # Message classes
     ModuleData,
     ModuleState,
-    ModuleSourceData,
-    MicroControllerSourceData,
-    # Configuration classes
+    # Firmware code mirrors (IntEnum)
+    KernelCommandCodes,
+    KernelStatusCodes,
+    ModuleStatusCodes,
+    CommunicationStatusCodes,
+    TransportStatusCodes,
+    # Manifest and extraction configuration
     MicroControllerManifest,
+    MicroControllerSourceData,
+    ModuleSourceData,
     ExtractionConfig,
     ControllerExtractionConfig,
     ModuleExtractionConfig,
     KernelExtractionConfig,
-    # Functions
-    write_microcontroller_manifest,
     create_extraction_config,
-    run_log_processing_pipeline,
+    write_microcontroller_manifest,
+    # Extracted-table schema and access primitives
+    ExtractedDataColumns,
+    get_event_data,
+    get_event_timestamps,
+    partition_events,
     # Constants
-    MICROCONTROLLER_MANIFEST_FILENAME,
     EXTRACTION_CONFIGURATION_FILENAME,
+    MICROCONTROLLER_MANIFEST_FILENAME,
+    MAXIMUM_CUSTOM_STATUS_CODE,
+    MINIMUM_CUSTOM_STATUS_CODE,
+    # Output path resolvers — documented in /log-processing-results
+    find_module_paths,
+    parse_module_path,
+    resolve_kernel_path,
+    resolve_module_path,
+    # Orchestration — exported, but deliberately not an agent-facing surface
+    CONTROLLER_EXTRACTION_JOB_CORES,
+    CONTROLLER_EXTRACTION_JOB_NAME,
+    JobSource,
+    JobUniverse,
+    estimate_archive_job_memory_mb,
+    execute_job,
+    resolve_jobs,
+    run_log_processing_pipeline,
 )
 ```
+
+### Subpackage map
+
+Every subpackage declares its own `__all__`, and for the names it owns that list is wider than the curated top-level
+one. Import a name through the package that exports it, never from the module file inside it.
+
+| Import path                                        | Exports | Contents                                                                      |
+|----------------------------------------------------|---------|-------------------------------------------------------------------------------|
+| `ataraxis_communication_interface`                 | 39      | The curated public API listed above.                                          |
+| `ataraxis_communication_interface.communication`   | 17      | MQTT and serial transports, all 12 message classes, protocol/prototype enums. |
+| `ataraxis_communication_interface.microcontroller` | 30      | Interfaces, dataclasses, status-code mirrors, extraction and table access.    |
+| `ataraxis_communication_interface.orchestration`   | 38      | Job identity, sizing, discovery, the single-job runner, and the batch engine. |
+| `ataraxis_communication_interface.interfaces`      | 0       | CLI and MCP server entry points only; `__all__` is empty by design.           |
+
+**Note:** all 12 names the `.orchestration` subpackage contributes are re-exported at top level, but this plugin
+deliberately does not document the job-scheduling contract they form. Orchestration runs through the MCP tools or
+through the `axci` CLI a user invokes by hand, and there is no third path. Do not write code against these symbols.
+They are listed here only so a reader recognizes them as out of scope rather than as an omission.
+
+Names a caller reaches for by symmetry that are **not** top level: `build_message_dataframe`, `evaluate_port`,
+`extract_logged_microcontroller_data`, `ExtractedMessages`, `ExtractedModuleData`, and `ExtractedControllerData`
+(all `.microcontroller`); `prepare_jobs`, `JobDescriptor`, `JobSet`, `size_job`, and `JobSizing`
+(all `.orchestration`). Importing any of them from the top level raises `ImportError`.
 
 ---
 
@@ -60,11 +110,17 @@ MicroControllerInterface(
 | `controller_id`      | `np.uint8`                    | (required) | Unique controller ID (1-255). Advised range: 101-150.            |
 | `data_logger`        | `DataLogger`                  | (required) | Initialized and started DataLogger instance for message logging. |
 | `module_interfaces`  | `tuple[ModuleInterface, ...]` | (required) | Non-empty tuple of ModuleInterface subclass instances.           |
-| `buffer_size`        | `int`                         | (required) | Serial buffer size in bytes (from manufacturer spec).            |
+| `buffer_size`        | `int`                         | (required) | Serial buffer size in bytes (from manufacturer spec). Minimum 9. |
 | `port`               | `str`                         | (required) | Serial port device path (e.g., `/dev/ttyACM0`, `COM3`).          |
 | `name`               | `str`                         | (required) | Human-readable controller name. Written to manifest on init.     |
 | `baudrate`           | `int`                         | `115200`   | UART baudrate. Ignored for USB serial.                           |
 | `keepalive_interval` | `int`                         | `0`        | Keepalive interval in milliseconds. 0 disables keepalive.        |
+
+`buffer_size` below 9 raises `TypeError` in `__init__()`, not later in the spawned process: 9 bytes is the width of the
+TransportLayer packet preamble and postamble plus one payload byte. The value bounds only what the **PC transmits**;
+reception is bounded separately by the 254-byte COBS ceiling. It is the PC-side mirror of the firmware's
+`kSerialBufferSize`, so a value larger than the board's real buffer produces parameter messages the controller cannot
+receive. See `/microcontroller:firmware-module` for the per-board payload budgets that constant yields.
 
 ### Methods
 
@@ -76,11 +132,11 @@ MicroControllerInterface(
 
 ### Properties
 
-| Property        | Type                          | Description                                            |
-|-----------------|-------------------------------|--------------------------------------------------------|
-| `controller_id` | `np.uint8`                    | The controller's unique identifier.                    |
-| `name`          | `str`                         | Human-readable controller name.                        |
-| `modules`       | `tuple[ModuleInterface, ...]` | All ModuleInterface instances bound to this controller.|
+| Property        | Type                          | Description                                             |
+|-----------------|-------------------------------|---------------------------------------------------------|
+| `controller_id` | `np.uint8`                    | The controller's unique identifier.                     |
+| `name`          | `str`                         | Human-readable controller name.                         |
+| `modules`       | `tuple[ModuleInterface, ...]` | All ModuleInterface instances bound to this controller. |
 
 ---
 
@@ -95,18 +151,21 @@ ModuleInterface(
     module_type: np.uint8,
     module_id: np.uint8,
     name: str,
-    error_codes: set[np.uint8] | None = None,
+    error_codes: dict[np.uint8, str] | None = None,
     data_codes: set[np.uint8] | None = None,
 )
 ```
 
-| Parameter     | Type                    | Default    | Description                                      |
-|---------------|-------------------------|------------|--------------------------------------------------|
-| `module_type` | `np.uint8`              | (required) | Module family code (1-255). Matches firmware.    |
-| `module_id`   | `np.uint8`              | (required) | Module instance ID (1-255). Matches firmware.    |
-| `name`        | `str`                   | (required) | Human-readable name. Written to manifest.        |
-| `error_codes` | `set[np.uint8] \| None` | `None`     | Event codes that trigger RuntimeError.           |
-| `data_codes`  | `set[np.uint8] \| None` | `None`     | Event codes routed to `process_received_data()`. |
+| Parameter     | Type                          | Default    | Description                                                 |
+|---------------|-------------------------------|------------|-------------------------------------------------------------|
+| `module_type` | `np.uint8`                    | (required) | Module family code (1-255). Matches firmware.               |
+| `module_id`   | `np.uint8`                    | (required) | Module instance ID (1-255). Matches firmware.               |
+| `name`        | `str`                         | (required) | Human-readable name. Written to manifest.                   |
+| `error_codes` | `dict[np.uint8, str] \| None` | `None`     | Event code to explanation map; receipt raises RuntimeError. |
+| `data_codes`  | `set[np.uint8] \| None`       | `None`     | Event codes routed to `process_received_data()`.            |
+
+Every declared `error_codes` key and `data_codes` member must fall in the range 51-250, inclusive. A code
+outside that range raises `ValueError` at construction, and a non-dict `error_codes` raises `TypeError`.
 
 ### Abstract methods
 
@@ -118,22 +177,36 @@ ModuleInterface(
 
 ### Command methods
 
-| Method                  | Key Parameters                                                                                  | Description                        |
-|-------------------------|-------------------------------------------------------------------------------------------------|------------------------------------|
-| `send_command()`        | `command: np.uint8, *, noblock: np.bool_, repetition_delay: np.uint32 = 0`                      | Sends command to module.           |
-| `send_parameters()`     | `parameter_data: tuple[np.unsignedinteger \| np.signedinteger \| np.bool_ \| np.floating, ...]` | Sends parameters to module.        |
-| `reset_command_queue()` | `None`                                                                                          | Clears the module's command queue. |
+| Method                  | Key Parameters                                                                                  | Description                                  |
+|-------------------------|-------------------------------------------------------------------------------------------------|----------------------------------------------|
+| `send_command()`        | `command: np.uint8, *, noblock: np.bool_, repetition_delay: np.uint32 = 0`                      | Sends command to module.                     |
+| `send_parameters()`     | `parameter_data: tuple[np.unsignedinteger \| np.signedinteger \| np.bool_ \| np.floating, ...]` | Sends parameters to module.                  |
+| `reset_command_queue()` | `None`                                                                                          | Clears the pending slot, cancels recurrence. |
+| `set_input_queue()`     | `input_queue: MPQueue`                                                                          | Wires the send path. Called by MCI.          |
+
+`set_input_queue()` is the mechanism behind the "not usable until passed to a MicroControllerInterface" rule:
+`MicroControllerInterface.__init__()` calls it on every interface in `module_interfaces`, and until it runs the
+`_input_queue` attribute is `None`, so all three command methods raise `RuntimeError`. Never call it yourself — an
+interface wired to a queue no controller owns accepts messages that reach no microcontroller.
+
+`send_command()` and `send_parameters()` additionally require their message-builder LRU caches, which `__getstate__`
+strips to `None` when the interface is pickled. Both guards raise the same `RuntimeError`, whose text states the
+contract: only the main runtime process may construct and send messages. See the SKILL.md note on start methods.
+
+`reset_command_queue()` does not abort a running command — the active command finishes. It clears the module's one
+pending slot and cancels any recurrence, and the firmware reports a completion message for a recurrent command that
+was idle between repetitions.
 
 ### Properties
 
-| Property      | Type            | Description                                      |
-|---------------|-----------------|--------------------------------------------------|
-| `module_type` | `np.uint8`      | Module family code.                              |
-| `module_id`   | `np.uint8`      | Module instance ID.                              |
-| `type_id`     | `np.uint16`     | Combined type+id as uint16: (type << 8) OR id.   |
-| `name`        | `str`           | Human-readable module name.                      |
-| `data_codes`  | `set[np.uint8]` | Event codes routed to `process_received_data()`. |
-| `error_codes` | `set[np.uint8]` | Event codes that trigger RuntimeError.           |
+| Property      | Type                  | Description                                                        |
+|---------------|-----------------------|--------------------------------------------------------------------|
+| `module_type` | `np.uint8`            | Module family code.                                                |
+| `module_id`   | `np.uint8`            | Module instance ID.                                                |
+| `type_id`     | `np.uint16`           | Combined type+id as uint16: (type << 8) OR id.                     |
+| `name`        | `str`                 | Human-readable module name.                                        |
+| `data_codes`  | `set[np.uint8]`       | Event codes routed to `process_received_data()`.                   |
+| `error_codes` | `dict[np.uint8, str]` | Event code to explanation map for codes that trigger RuntimeError. |
 
 ---
 
@@ -162,18 +235,31 @@ MQTTCommunication(
 
 ### Methods
 
-| Method                           | Returns                     | Description                                                                                                                                         |
-|----------------------------------|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `connect()`                      | `None`                      | Connects to broker and subscribes to monitored topics.                                                                                              |
-| `disconnect()`                   | `None`                      | Disconnects from broker. Called automatically on garbage collect.                                                                                   |
-| `send_data(topic, payload=None)` | `None`                      | Publishes a payload (`str \| bytes \| bytearray \| float \| None`; `None` = empty message) to the topic. Raises `ConnectionError` if not connected. |
-| `get_data()`                     | `tuple[str, bytes] \| None` | Returns next received `(topic, payload)` or `None` if empty.                                                                                        |
+| Method                           | Returns                     | Description                                                                                                                                             |
+|----------------------------------|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `connect()`                      | `None`                      | Connects to broker and subscribes to monitored topics. Raises `ConnectionError` if the broker cannot be reached, including on a failed name resolution. |
+| `disconnect()`                   | `None`                      | Disconnects from broker. Called automatically on garbage collect.                                                                                       |
+| `send_data(topic, payload=None)` | `None`                      | Publishes a payload (`str \| bytes \| bytearray \| float \| None`; `None` = empty message) to the topic. Raises `ConnectionError` if not connected.     |
+| `get_data()`                     | `tuple[str, bytes] \| None` | Returns next received `(topic, payload)` or `None` if empty. Raises `ConnectionError` if not connected.                                                 |
 
 ### Properties
 
 | Property   | Type   | Description                                          |
 |------------|--------|------------------------------------------------------|
 | `has_data` | `bool` | `True` if there are received messages waiting.       |
+
+### Delivery and connection semantics
+
+| Behaviour                     | Contract                                                                                                   |
+|-------------------------------|------------------------------------------------------------------------------------------------------------|
+| QoS                           | Hardcoded to 0 on both publish and subscribe. At-most-once, no delivery guarantee, no retry.               |
+| `monitored_topics=None`       | Subscribes to nothing and starts no listener thread. `get_data()` returns `None` forever.                  |
+| Broker-side link loss         | The disconnect callback clears the tracked connection state, with no exception at that moment.             |
+| Publish failure               | `send_data()` raises `ConnectionError` on any non-success publish return code, not just when disconnected. |
+| `connect()` after a link loss | Not a no-op. It early-returns only while the tracked state says connected, so it reconnects.               |
+
+The QoS choice assumes a loopback or LAN TCP socket. Never use `MQTTCommunication` as the sole transport for a command
+that must not be lost — acknowledge it over a second topic, or send it over the serial path instead.
 
 ---
 
@@ -184,26 +270,28 @@ MQTTCommunication(
 Received data message from a hardware module (protocol code 6). Properties are backed by an internal
 `message: NDArray[np.uint8]` field; `data_object` holds the deserialized payload.
 
-| Property         | Type                   | Description                               |
-|------------------|------------------------|-------------------------------------------|
-| `module_type`    | `np.uint8`             | Module family code of the sending module. |
-| `module_id`      | `np.uint8`             | Instance ID of the sending module.        |
-| `command`        | `np.uint8`             | Command the module was executing.         |
-| `event`          | `np.uint8`             | Event code of the message.                |
-| `prototype_code` | `np.uint8`             | Prototype code identifying data layout.   |
-| `data_object`    | `np.number \| NDArray` | Deserialized data payload.                |
+| Property         | Type            | Description                                                                  |
+|------------------|-----------------|------------------------------------------------------------------------------|
+| `module_type`    | `np.uint8`      | Module family code of the sending module.                                    |
+| `module_id`      | `np.uint8`      | Instance ID of the sending module.                                           |
+| `type_id`        | `np.uint16`     | Combined type+id as uint16: (type << 8) OR id.                               |
+| `command`        | `np.uint8`      | Command the module was executing.                                            |
+| `event`          | `np.uint8`      | Event code of the message.                                                   |
+| `prototype_code` | `np.uint8`      | Prototype code identifying data layout.                                      |
+| `data_object`    | `PrototypeType` | Deserialized payload: a numpy scalar (including `np.bool_`) or an `NDArray`. |
 
 ### ModuleState
 
 Received state message from a hardware module (protocol code 8). Properties are backed by an internal
 `message: NDArray[np.uint8]` field.
 
-| Property      | Type       | Description                               |
-|---------------|------------|-------------------------------------------|
-| `module_type` | `np.uint8` | Module family code of the sending module. |
-| `module_id`   | `np.uint8` | Instance ID of the sending module.        |
-| `command`     | `np.uint8` | Command the module was executing.         |
-| `event`       | `np.uint8` | Event code of the message.                |
+| Property      | Type        | Description                                    |
+|---------------|-------------|------------------------------------------------|
+| `module_type` | `np.uint8`  | Module family code of the sending module.      |
+| `module_id`   | `np.uint8`  | Instance ID of the sending module.             |
+| `type_id`     | `np.uint16` | Combined type+id as uint16: (type << 8) OR id. |
+| `command`     | `np.uint8`  | Command the module was executing.              |
+| `event`       | `np.uint8`  | Event code of the message.                     |
 
 ### ModuleSourceData (frozen dataclass)
 
@@ -237,7 +325,7 @@ Registry of controllers and their modules within a DataLogger output directory.
 |---------------|-----------------------------------|--------------------------------|
 | `controllers` | `list[MicroControllerSourceData]` | Registered controller entries. |
 
-Methods: `save(file_path)`, `load(file_path)` (classmethod).
+Methods: `to_yaml(file_path)`, `from_yaml(file_path)` (classmethod), inherited from `YamlConfig`.
 
 ### ExtractionConfig (YamlConfig)
 
@@ -247,7 +335,7 @@ Configuration controlling which data is extracted from log archives.
 |---------------|---------------------------------------|-----------------------------------|
 | `controllers` | `list[ControllerExtractionConfig]`    | Controller extraction entries.    |
 
-Methods: `save(file_path)`, `load(file_path)` (classmethod).
+Methods: `to_yaml(file_path)`, `from_yaml(file_path)` (classmethod), inherited from `YamlConfig`.
 
 ### ControllerExtractionConfig (frozen dataclass)
 
@@ -275,10 +363,16 @@ Methods: `save(file_path)`, `load(file_path)` (classmethod).
 
 ## Constants
 
-| Constant                               | Value                                | Description                         |
-|----------------------------------------|--------------------------------------|-------------------------------------|
-| `MICROCONTROLLER_MANIFEST_FILENAME`    | `"microcontroller_manifest.yaml"`    | Manifest filename in log dirs.      |
-| `EXTRACTION_CONFIGURATION_FILENAME`    | `"extraction_configuration.yaml"`    | Default extraction config filename. |
+| Constant                            | Value                             | Description                          |
+|-------------------------------------|-----------------------------------|--------------------------------------|
+| `MICROCONTROLLER_MANIFEST_FILENAME` | `"microcontroller_manifest.yaml"` | Manifest filename in log dirs.       |
+| `EXTRACTION_CONFIGURATION_FILENAME` | `"extraction_configuration.yaml"` | Default extraction config filename.  |
+| `MINIMUM_CUSTOM_STATUS_CODE`        | `51`                              | Lowest event code a module may use.  |
+| `MAXIMUM_CUSTOM_STATUS_CODE`        | `250`                             | Highest event code a module may use. |
+
+Two further top-level constants, `CONTROLLER_EXTRACTION_JOB_NAME` and `CONTROLLER_EXTRACTION_JOB_CORES`, belong to the
+orchestration layer, which this plugin does not document. `/log-processing` names the per-job core ceiling where a
+reader needs it.
 
 ---
 
@@ -315,6 +409,7 @@ run_log_processing_pipeline(
     output_directory: Path,
     config: Path,
     job_id: str | None = None,
+    source_ids: Sequence[str] | None = None,
     *,
     workers: int = -1,
     display_progress: bool = True,
@@ -322,16 +417,62 @@ run_log_processing_pipeline(
 ```
 
 Processes log archives from a single DataLogger output directory using the extraction config. Controller
-IDs to process are resolved from the config. Prefer MCP batch tools for multi-archive processing.
+IDs to process are resolved from the config, and `source_ids` narrows that set further in local mode (it is
+ignored when `job_id` selects the work). Prefer MCP batch tools for multi-archive processing.
+
+### Top-level functions documented elsewhere
+
+| Function                                                                                    | Owning skill              |
+|---------------------------------------------------------------------------------------------|---------------------------|
+| `get_event_data`, `get_event_timestamps`, `partition_events`                                | `/log-processing-results` |
+| `find_module_paths`, `parse_module_path`, `resolve_kernel_path`, `resolve_module_path`      | `/log-processing-results` |
+| `execute_job`, `resolve_jobs`, `estimate_archive_job_memory_mb`, `JobSource`, `JobUniverse` | Not documented — use MCP or the CLI |
 
 ---
 
 ## Dependencies
 
 - Python >=3.12, <3.15
-- numpy, polars, paho-mqtt, click, httpx
+- numpy, polars, paho-mqtt, pyserial, click, psutil, filelock
 - ataraxis-time, ataraxis-base-utilities, ataraxis-data-structures, ataraxis-transport-layer-pc
 - mcp (for MCP server)
+
+---
+
+## Firmware status code mirrors
+
+Five top-level `IntEnum` classes mirror the firmware enumerations. Import them instead of hand-transcribing codes into
+comparisons, dictionaries, or extraction configs — a literal drifts, a member does not.
+
+| Enum                       | Values | Mirrors                                          | Use for                                               |
+|----------------------------|--------|--------------------------------------------------|-------------------------------------------------------|
+| `KernelCommandCodes`       | 0-5    | `kKernelCommands`                                | Naming the command a Kernel message was sent under.   |
+| `KernelStatusCodes`        | 0-10   | `kKernelStatusCodes`                             | Kernel event codes, including the non-error members.  |
+| `ModuleStatusCodes`        | 0-3    | Module service codes                             | Module event codes 0-3, below the custom range.       |
+| `CommunicationStatusCodes` | 51-62  | firmware `Communication` class                   | Byte 1 of a reception/transmission error payload.     |
+| `TransportStatusCodes`     | 11-29  | microcontroller-side `TransportLayer`            | Byte 2 of a reception/transmission error payload.     |
+
+The first three cover the **complete** firmware sets, not the error-only subsets the SKILL.md tables list. They include
+the success members the runtime never raises on — `KernelStatusCodes.SETUP_COMPLETE` (1) and
+`KernelStatusCodes.MODULE_PARAMETERS_SET` (6) on the Kernel side, `ModuleStatusCodes.COMMAND_COMPLETED` (2) on the
+module side. Those three are the codes to select when building an extraction config that captures runtime progress
+rather than faults. For the firmware-side meaning of every member, see `/microcontroller:firmware-module`.
+
+**Note:** `MINIMUM_CUSTOM_STATUS_CODE` (51) and `MAXIMUM_CUSTOM_STATUS_CODE` (250) bound the custom event range and are
+also top-level exports. Use them in a `ModuleInterface` subclass rather than writing 51 and 250 as literals.
+
+### CommunicationStatusCodes and TransportStatusCodes
+
+These two never arrive as event codes. The firmware attaches them as the two-byte payload of every Kernel
+RECEPTION_ERROR (3) and TRANSMISSION_ERROR (4) message and every module TRANSMISSION_ERROR (1) message: byte 1 is the
+`Communication` status, byte 2 is the `TransportLayer` status.
+
+**axci 7.0.0 already decodes both bytes into the `RuntimeError` text it raises.** Read the raised message first. The
+two enumerations are the decoder for the other path: the raw pair the extraction pipeline writes undecoded into the
+`data` column of a processed kernel or module feather. Index byte 1 into `CommunicationStatusCodes` (51-62) and byte 2
+into `TransportStatusCodes` (11-29), which mirrors the microcontroller's own TransportLayer rather than the PC's,
+instead of transcribing either code as a literal. For the firmware-side meaning of every member, and the corrective
+action each byte pair points at, see `/microcontroller:firmware-module`.
 
 ---
 
@@ -342,13 +483,13 @@ by protocol codes. Understanding this protocol is essential for debugging commun
 
 ### Outgoing messages (PC → microcontroller)
 
-| Protocol Code | Message Type          | Description                                               |
-|---------------|-----------------------|-----------------------------------------------------------|
-| 1             | RepeatedModuleCommand | Module command that executes recurrently at a cycle delay |
-| 2             | OneOffModuleCommand   | Module command that executes once                         |
-| 3             | DequeueModuleCommand  | Removes all queued commands from a module                 |
-| 4             | KernelCommand         | System-level command (reset, identify, keepalive)         |
-| 5             | ModuleParameters      | Sets runtime parameters on a module                       |
+| Protocol Code | Message Type          | Description                                                  |
+|---------------|-----------------------|--------------------------------------------------------------|
+| 1             | RepeatedModuleCommand | Module command that executes recurrently at a cycle delay    |
+| 2             | OneOffModuleCommand   | Module command that executes once                            |
+| 3             | DequeueModuleCommand  | Clears a module's single pending slot and cancels recurrence |
+| 4             | KernelCommand         | System-level command (reset, identify, keepalive)            |
+| 5             | ModuleParameters      | Sets runtime parameters on a module                          |
 
 ### Incoming messages (microcontroller → PC)
 
@@ -362,12 +503,54 @@ by protocol codes. Understanding this protocol is essential for debugging commun
 | 11            | ControllerIdentification | Microcontroller ID response during initialization              |
 | 12            | ModuleIdentification     | Module type+id response during initialization                  |
 
+### Protocol and prototype enums
+
+The codes above are not literals to retype — `.communication` exports them as enums, plus the decoders that turn a
+prototype code into a concrete numpy description.
+
+```python
+from ataraxis_communication_interface.communication import PrototypeType, SerialProtocols, SerialPrototypes
+```
+
+| Symbol                                      | Kind       | Description                                                             |
+|---------------------------------------------|------------|-------------------------------------------------------------------------|
+| `SerialProtocols`                           | `IntEnum`  | Protocol codes 0-12. Code 0 is `UNDEFINED` and never valid on the wire. |
+| `SerialPrototypes`                          | `IntEnum`  | Prototype codes naming the dtype and element count of a data payload.   |
+| `PrototypeType`                             | type alias | Union of the 11 numpy scalar types and their `NDArray` forms.           |
+| `SerialProtocols.as_uint8()`                | method     | Returns the member as `np.uint8`, the type the message classes expect.  |
+| `SerialPrototypes.get_prototype_for_code()` | static     | Code to a shared read-only prototype object, or `None` if unknown.      |
+| `SerialPrototypes.get_byte_size_for_code()` | static     | Code to the payload byte size, or `None` if unknown.                    |
+| `SerialPrototypes.get_dtype_for_code()`     | static     | Code to a numpy dtype string (`'float32'`), or `None` if unknown.       |
+
+`get_dtype_for_code()` is the bridge between a logged message's `prototype_code` byte and the `dtype` column of a
+processed feather. That column stores exactly this string, which is why a consumer can rebuild the payload with
+`np.frombuffer(data, dtype=dtype_str)` without importing this library. A code the library does not recognize yields
+`None` from all three decoders, and the extraction pipeline writes null into both the `dtype` and `data` columns for
+that message.
+
+**Note:** all three decoders return objects from a module-level table shared by every caller. Treat a returned
+prototype as read-only and never write into it.
+
+### Subpackage-only names
+
+`ModuleData` and `ModuleState` are the only message classes exported at top level, because they are the only two a
+`process_received_data()` implementation annotates against. The other ten — `ControllerIdentification`,
+`DequeueModuleCommand`, `KernelCommand`, `KernelData`, `KernelState`, `ModuleIdentification`, `ModuleParameters`,
+`OneOffModuleCommand`, `ReceptionCode`, `RepeatedModuleCommand` — plus `SerialCommunication`, `SerialProtocols`,
+`SerialPrototypes`, and `PrototypeType` import from `.communication` only.
+
+`SerialCommunication` is internal: its own docstring states it is designed for other library assets and should not be
+used directly. `MicroControllerInterface` owns the one instance, inside the spawned communication process. If you read
+it anyway, note that `receive_message()` parses into a **reused instance attribute** and returns a reference to it, so
+each call overwrites the previous message. Finish with a message before receiving the next one, and copy anything you
+intend to keep.
+
 ### Event code ranges
 
-| Range | Owner  | Description                                                                    |
-|-------|--------|--------------------------------------------------------------------------------|
-| 1-50  | System | Reserved service codes for internal module status (errors, command completion) |
-| 51+   | User   | User-defined event codes for application-specific data and state messages      |
+| Range  | Owner  | Description                                                                    |
+|--------|--------|--------------------------------------------------------------------------------|
+| 1-50   | System | Reserved service codes for internal module status (errors, command completion) |
+| 51-250 | User   | User-defined event codes for application-specific data and state messages      |
 
 Event codes are unique within each module and within the kernel — the same code always carries the
 same semantic meaning regardless of which command was executing when the message was sent. This means
@@ -398,12 +581,24 @@ PC side deserializes them into numpy values. The `data_object` field in `ModuleD
 | `np.float32` | `float`        | 4 bytes | 1-15, 16, 20, 24, 32, 48, 62                                                     |
 | `np.uint64`  | `uint64_t`     | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
 | `np.int64`   | `int64_t`      | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
-| `np.float64` | `double`       | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
+| `np.float64` | `double` *     | 8 bytes | 1-15, 16, 20, 24, 31                                                             |
 
 An element count of 1 represents a scalar value. For arrays, `ModuleData.data_object` is a numpy
-array of the corresponding dtype. The maximum payload is 248 bytes; array element counts are
-constrained by `floor(248 / element_size)`. `uint8` arrays have the densest count coverage and can
+array of the corresponding dtype. `uint8` arrays have the densest count coverage and can
 serve as a generic bytes buffer for packed structures.
+
+**The counts above are the wire-protocol prototype codes, not a per-board guarantee.** The bytes a board can actually
+carry are capped separately by its serial buffer, and only the Teensy budget reaches the 248-byte top of this table —
+the Arduino Due and Arduino Mega budgets are smaller, for parameters as well as for data. A payload sized against this
+table therefore compiles on Teensy and can fail the firmware's `static_assert` on another board. Get the per-board
+figures from `/microcontroller:firmware-module`, and size `parameter_data` against the target board before writing the
+tuple.
+
+\* **`np.float64` does not reach an AVR board by default.** avr-gcc compiles `double` to 4 bytes unless the build
+passes `-mdouble=64`, and axmc 4.0.2 rejects the narrower width at compile time rather than tagging a 4-byte payload
+with a prototype code the PC would decode as 8 bytes. So on an Arduino Mega the firmware fails to build, not at
+runtime: either add `-mdouble=64` to that board's `build_flags`, or use `np.float32` / `float` on both sides. Teensy
+and Arduino Due are unaffected.
 
 ---
 
@@ -416,13 +611,27 @@ runtime. It is optional and controlled by the `keepalive_interval` constructor p
 1. When `keepalive_interval > 0`, the PC sends a KernelCommand (command code 5) to the
    microcontroller at the specified interval (in milliseconds)
 2. The microcontroller's Kernel tracks the time since the last received keepalive message
-3. If the microcontroller does not receive a keepalive within its configured timeout, it performs
+3. If the microcontroller does not receive a keepalive within its own timeout, it performs
    an emergency reset (all modules return to default state) and reports error code 10
    (KEEPALIVE_TIMEOUT) via a KernelData message
 4. In the other direction, if the microcontroller does not return the keepalive acknowledgement
    (a ReceptionCode message with reception_code 255) within one `keepalive_interval`, the PC
    communication process issues a reset command and raises `RuntimeError`, terminating the interface.
    This PC-side failure is distinct from and additional to the MCU-reported error code 10
+
+**The two sides do not use the same deadline.** The PC allows one `keepalive_interval` for the acknowledgement, while
+the firmware Kernel **doubles** the interval it was constructed with to derive its own timeout, deliberately tolerating
+a brief lapse. The MCU therefore holds hardware for roughly twice as long as the PC does before either side reacts, so
+`keepalive_interval` is a PC-side deadline and a firmware-side half-deadline. Size the interval so that twice its value
+is still an acceptable time for a valve, solenoid, or motor to stay energized after the PC stops talking.
+
+**The firmware watchdog is disarmed until the first keepalive arrives, and every reset disarms it again.** It arms on
+the first `kKeepAlive` command the Kernel receives, not at boot, and the firmware's setup routine clears the armed flag.
+Setup runs at boot, on a PC-sent reset, and after a keepalive-timeout emergency reset. Two consequences for the PC:
+the window between `start()` and the first keepalive is unprotected, and `reset_controller()` leaves the controller
+unprotected until the next keepalive re-arms it. Both windows close on their own within one `keepalive_interval`,
+because the communication process keeps sending. The firmware side of this contract belongs to
+`/microcontroller:firmware-module`.
 
 **When to enable:**
 - Enable keepalive for safety-critical hardware that must be reset if the PC loses communication

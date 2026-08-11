@@ -44,8 +44,10 @@ You MUST use the ataraxis-communication-interface MCP tools for all configuratio
 import configuration Python classes directly or edit YAML files manually. If MCP tools are not available,
 invoke `/communication-mcp-environment-setup` to diagnose and resolve connectivity issues.
 
-You MUST ask the user for event codes for each module and kernel entry. Event codes are firmware-specific
-and cannot be determined by inspecting the codebase. Never guess or assume event codes.
+You MUST ask the user for the custom event codes (51-250) of every module entry. Those codes are firmware-specific
+and cannot be determined by inspecting the codebase. Never guess or assume them. Kernel event codes and module
+service codes are a fixed library enumeration, so select those yourself instead of asking (see "Event code
+semantics").
 
 You MUST validate the configuration before handing off to `/log-processing`. An invalid config will cause
 processing failures.
@@ -92,12 +94,19 @@ Each controller dictionary must have:
 - `modules` (list[dict]): Module entries, each with `module_type` (int), `module_id` (int), `event_codes` (list[int])
 - `kernel` (dict or null): Optional kernel entry with `event_codes` (list[int])
 
+**Return structure:**
+```text
+success:            Boolean flag, true when the file was written
+config_path:        Path to the written config file
+controller_count:   Number of controller entries written
+```
+
 ### `validate_extraction_config_tool`
 
-| Parameter       | Type         | Default    | Description                                             |
-|-----------------|--------------|------------|---------------------------------------------------------|
-| `config_path`   | `str`        | (required) | Absolute path to the extraction config YAML to validate |
-| `manifest_path` | `str / None` | `None`     | Optional manifest path for cross-reference validation   |
+| Parameter       | Type         | Default    | Description                                                           |
+|-----------------|--------------|------------|-----------------------------------------------------------------------|
+| `config_path`   | `str`        | (required) | Absolute path to the extraction config YAML to validate               |
+| `manifest_path` | `str / None` | `None`     | Manifest path for cross-reference validation. Always pass it (step 6) |
 
 **Return structure:**
 ```text
@@ -164,18 +173,26 @@ instance.
   (e.g., encoder position updates, sensor readings, command completion signals)
 - **Kernel event codes** correspond to system-level messages (e.g., controller status, error reports,
   keepalive signals)
-- Event codes above 50 are user-defined module events; codes 0-50 are reserved for system service messages
+- Module codes 51-250 are the user-defined events a specific firmware build declares; codes 0-50 are reserved for
+  the base Module class service messages, and codes above 250 are not valid custom codes
 
 Extraction filters each module against only its own `event_codes` set (no cross-module leakage), so
 listing the same code value under two modules is safe and isolated; any message for an unlisted module or
 an unlisted event code is silently excluded from output with no error.
 
-The agent CANNOT determine which event codes to use by inspecting the codebase. Event codes are
-firmware-specific knowledge that must come from the user.
+**Only custom module codes 51-250 must come from the user.** Kernel codes and module service codes are a fixed
+library enumeration that every firmware build shares, so pick those yourself rather than asking. The kernel menu
+spans 0-10 and the module service menu spans 0-3 inside the reserved 0-50 band. `/microcontroller:firmware-module`
+owns both tables; axci mirrors them as the `KernelStatusCodes` and `ModuleStatusCodes` IntEnums.
 
 ---
 
 ## Config lifecycle workflow
+
+**Reusing an existing config.** Before running the steps below, ask whether a config already exists for this
+recording. If one does, call `read_extraction_config_tool` on it and show the user the controllers, modules, and
+event codes it already carries. Resume at step 4 for the entries that need changing instead of regenerating the
+file, since a rewrite discards every event code the user previously supplied.
 
 ### Step 1: Discover recordings
 
@@ -192,32 +209,58 @@ module entries. Record the controller IDs, module types, and module IDs.
 Build the config structure with all controllers and modules from the manifest but with empty event codes.
 Present the structure to the user so they can see which controllers and modules are available.
 
-No MCP tool exposes precursor generation, so the agent constructs the structure manually. A precursor
-config can also be generated programmatically via `create_extraction_config(manifest_path)` or the
-`axci config create` CLI command, which populate a controller entry for each registered controller with
-empty event codes.
+No MCP tool exposes precursor generation. The server registers exactly three configuration tools — read, write,
+and validate — so pick one of two routes:
+
+| Route            | Use when                                     | Procedure                                                          |
+|------------------|----------------------------------------------|--------------------------------------------------------------------|
+| Manual (default) | The manifest is small or already summarized  | Build the structure from the step 2 entries and carry it to step 4 |
+| CLI-assisted     | The manifest is large or error-prone to copy | Have the user run `axci config create`, then read the result back  |
+
+**CLI-assisted route.** Ask the user to run `axci config create -m <manifest_path> -o <output_path>`, then call
+`read_extraction_config_tool` on `<output_path>`. Do not invoke `axci` yourself. This replaces hand-transcription of
+the manifest with a tool read, so the controller IDs, module types, and module IDs cannot drift from the manifest.
+
+**What the precursor contains.** One controller entry per registered controller, one module entry per registered
+module, every `event_codes` list empty, and `kernel: null` on every entry. Kernel extraction is never pre-populated,
+so a user who wants kernel messages needs a kernel entry added in step 5.
+
+**Note:** a precursor round-trips through `read_extraction_config_tool` cleanly, but it fails
+`validate_extraction_config_tool` on the empty-`event_codes` rule. Do not validate before step 5.
 
 ### Step 4: Ask user for event codes
 
-For each module and (optionally) each kernel entry, ask the user which event codes to extract. Present
-the modules clearly:
+Ask the user for the custom event codes of each module. For the kernel, ask only whether kernel messages are
+wanted at all, then propose the codes yourself from the fixed menu. Present the modules clearly:
 
 ```text
 Controller 101 ("teensy_main"):
-  Module type=1, id=1 ("encoder"): Which event codes?
-  Module type=2, id=1 ("lick_sensor"): Which event codes?
-  Kernel: Extract kernel messages? If yes, which event codes?
+  Module type=1, id=1 ("encoder"): which custom event codes (51-250)?
+  Module type=2, id=1 ("lick_sensor"): which custom event codes (51-250)?
+  Kernel: extract kernel messages? (codes come from the fixed 0-10 menu, no user knowledge needed)
 ```
+
+**Note:** do not ask "which kernel event codes". That set is fixed across firmware builds, so name the candidates
+from `/microcontroller:firmware-module` and let the user confirm the subset they want extracted.
 
 ### Step 5: Write completed config
 
 Call `write_extraction_config_tool` with the user-provided event codes populated. Ask the user for the
 output file path.
 
+Then call `read_extraction_config_tool` on the same path and confirm the round trip. The write tool reports only
+`controller_count`, so it cannot show that a module entry or a kernel entry landed with the codes intended. Compare
+the returned `controllers` against what the user supplied before moving on.
+
 ### Step 6: Validate config
 
-Call `validate_extraction_config_tool` with the config path and optionally the manifest path for
-cross-reference validation. Report any errors to the user.
+Call `validate_extraction_config_tool` with the config path **and** the manifest path. Always pass `manifest_path`,
+even though the tool accepts `None`. Without it, only the structural rules run, and a config naming a controller or
+a module the manifest never registered still reads `valid: true`. Report any errors to the user.
+
+That cross-reference is the only pre-flight gate on the silent-skip failure: at processing time an unregistered
+controller is dropped into `skipped_sources` rather than raising, so a config that passes structural validation
+alone can extract nothing and still look healthy.
 
 ### Step 7: Handoff to processing
 
@@ -276,20 +319,35 @@ controllers:
 
 | Rule                                         | Error message pattern                           |
 |----------------------------------------------|-------------------------------------------------|
+| Manifest path exists                         | "Manifest file not found"                       |
+| Manifest path points to a file               | "Manifest path is not a file"                   |
+| Manifest parses                              | "Unable to read manifest for cross-referencing" |
 | Controller ID exists in manifest             | "Controller ID not found in manifest"           |
 | Module (type, id) pair exists in manifest    | "Module (type, id) not registered in manifest"  |
 
+A `manifest_path` that does not exist, is not a file, or cannot be parsed is reported through `errors` (so
+`valid` reads false), not as a tool-level error dictionary.
+
 ### Runtime enforcement (not covered by the validate tool)
 
-The config may list only a subset of the manifest's controllers and modules (extraction is selective),
-but every `controller_id` it lists must resolve to exactly one `.npz` archive in the log directory at
-processing time. A missing archive raises `FileNotFoundError` and duplicate matching archives raise
-`ValueError`. `validate_extraction_config_tool` does NOT verify on-disk archive presence, so a structurally
-valid config can still crash `/log-processing`.
+The config may list only a subset of the manifest's controllers and modules, because extraction is selective. A
+requested `controller_id` that the manifest does not register, that this config does not declare, or whose `.npz`
+archive is missing or ambiguous is **dropped and reported, not raised**, on the MCP preparation path. The dropped
+ID lands in that directory's `skipped_sources` list while the batch still reports success.
 
-The empty-`event_codes` rule is also enforced at runtime: processing raises `ValueError` if any configured
-module or kernel entry has empty `event_codes`. The `axci config create` precursor always ships empty event
-codes by design, so it must be filled in before processing.
+`/log-processing` is authoritative for this model — see its "Lenient sourcing" section for the three skip reasons
+and the remedy each one routes to. Leniency is a property of the MCP path alone, which opts out explicitly. Every
+direct Python caller of `prepare_jobs` gets strict sourcing by default, including the `axci process` CLI, and
+raises `FileNotFoundError` or `ValueError` instead. Do not expect an exception on the MCP path.
+
+The consequence here: `validate_extraction_config_tool` never inspects the log directory, so a structurally valid
+config can silently extract nothing. The manifest cross-reference in step 6 catches the registration half of that
+before processing; the archive half is only visible in `skipped_sources` after preparing.
+
+The empty-`event_codes` rule is enforced at job runtime rather than at validation: a module or kernel entry with an
+empty `event_codes` list, and a controller entry declaring neither modules nor kernel, each fail that controller's
+job with a `ValueError` instead of failing preparation. The precursor from step 3 always ships empty event codes by
+design, so it must be filled in and validated before processing.
 
 ---
 
@@ -303,6 +361,7 @@ codes by design, so it must be filled in before processing.
 | Validation errors after write      | Fix the reported issues and re-validate                          |
 | Controller ID not in manifest      | Verify the controller ID matches the manifest exactly            |
 | Module not in manifest             | Check module_type and module_id match the manifest entries       |
+| Valid config extracts nothing      | Re-validate with `manifest_path`, then read `skipped_sources`    |
 
 ---
 
@@ -312,11 +371,18 @@ codes by design, so it must be filled in before processing.
 > **human-facing** tool. **Agents must never invoke `axci` commands** — every agent-driven operation has an
 > equivalent MCP tool (noted in the table). This section exists solely so the agent can answer user
 > questions about the CLI.
+>
+> `/cli-reference` is the canonical reference for the whole `axci` command surface. The table below is the
+> configuration subset. Invoke `/cli-reference` for anything it does not answer.
 
-| Command              | Key options                            | Purpose                                              | MCP equivalent                                       |
-|----------------------|----------------------------------------|------------------------------------------------------|------------------------------------------------------|
-| `axci config create` | `-m/--manifest-path`, `-o/--output-path` | Writes a precursor config from the manifest (empty event codes) | None (no MCP tool exposes precursor generation) |
-| `axci config show`   | `-c/--config-path`                     | Prints a config's controllers, modules, and event codes | `read_extraction_config_tool`                     |
+| Command              | Key options                              | Purpose                                                         | MCP equivalent                              |
+|----------------------|------------------------------------------|-----------------------------------------------------------------|---------------------------------------------|
+| `axci config create` | `-m/--manifest-path`, `-o/--output-path` | Writes a precursor config from the manifest (empty event codes) | None — user-run precursor route, see step 3 |
+| `axci config show`   | `-c/--config-path`                       | Prints a config's controllers, modules, and event codes         | `read_extraction_config_tool`               |
+
+**Note:** `-c` expands to `--config-path` on `axci config show` but to `--config` on `axci process` (documented in
+`/log-processing`). Both are required options, so the short form is safe to quote to a user and the long form is
+not interchangeable between the two commands.
 
 ---
 
@@ -330,6 +396,7 @@ codes by design, so it must be filled in before processing.
 | `/log-input-format`                    | Reference: archive format that extraction config targets                   |
 | `/log-processing`                      | Downstream: consumes the validated extraction config                       |
 | `/log-processing-results`              | Downstream: output format depends on config targets                        |
+| `/cli-reference`                       | Reference: the full `axci` command surface, human-facing                   |
 | `/pipeline`                            | Context: extraction config is phase 3 of the end-to-end pipeline           |
 | `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for config tools                     |
 
@@ -340,10 +407,12 @@ codes by design, so it must be filled in before processing.
 ```text
 Extraction Configuration:
 - [ ] MCP server connected (if not, invoke `/communication-mcp-environment-setup`)
+- [ ] Existing config, if any, read via `read_extraction_config_tool` before regenerating
 - [ ] Manifest inspected to identify controllers and modules
-- [ ] Event codes obtained from user for each module and kernel entry
+- [ ] Custom module event codes (51-250) obtained from user; kernel codes selected from the fixed menu
 - [ ] Config written via `write_extraction_config_tool`
-- [ ] Config validated via `validate_extraction_config_tool` (with manifest cross-reference)
+- [ ] Written config read back via `read_extraction_config_tool` to confirm the round trip
+- [ ] Config validated via `validate_extraction_config_tool` with `manifest_path` supplied
 - [ ] All validation errors resolved
 - [ ] Config path ready for `/log-processing` handoff
 ```

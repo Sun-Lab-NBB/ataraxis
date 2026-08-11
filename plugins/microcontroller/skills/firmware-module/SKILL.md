@@ -28,6 +28,8 @@ Guides implementation of custom hardware Module subclasses in the ataraxis-micro
 - Template-based module design with compile-time pin configuration
 - Static assertions for compile-time validation
 - main.cpp integration: Communication, Module, and Kernel wiring
+- Firmware build configuration: per-board serial speed, supported platforms, and the keepalive interval
+- Firmware-side diagnosis of a failed transfer via the Communication and TransportLayer status code pair
 
 **Does not cover:**
 - PC-side ModuleInterface subclassing (see `/communication:microcontroller-interface`)
@@ -70,8 +72,14 @@ Check the locally available ataraxis-micro-controller version:
 grep version ../ataraxis-micro-controller/library.json
 ```
 
-The current version is **4.0.1**, which requires `ataraxis-transport-layer-mc` at `^4.0.0`. Check that pin in the
+The current version is **4.0.2**, which requires `ataraxis-transport-layer-mc` at `^4.0.1`. Check that pin in the
 project's `platformio.ini` as well. If a version mismatch exists, ask the user how to proceed.
+
+`library.json` is the single source of the C++ library version, and its `platforms` field names the three PlatformIO
+platforms the firmware supports: `atmelavr`, `atmelsam`, and `teensy`. A board outside those platforms is unsupported,
+so resolve the target board's platform before writing any board-conditional code. The same file excludes
+`./src/main.cpp` from the published package, which is why the library's own main.cpp is a development harness that
+mirrors `examples/module_integration.cpp` rather than shipped library code.
 
 ### Step 2: API verification
 
@@ -83,6 +91,7 @@ Read the source files to confirm the API has not changed since this skill was wr
 | `../ataraxis-micro-controller/src/kernel.h`             | Kernel constructor and lifecycle                  |
 | `../ataraxis-micro-controller/src/communication.h`      | Communication constructor                         |
 | `../ataraxis-micro-controller/src/axmc_shared_assets.h` | Protocol codes, ResolvePrototype, message structs |
+| `../ataraxis-micro-controller/platformio.ini`           | Board environments, per-board `monitor_speed`     |
 
 ---
 
@@ -91,8 +100,10 @@ Read the source files to confirm the API has not changed since this skill was wr
 See [references/api-reference.md](references/api-reference.md) for the complete Module base class API including
 constructor parameters, ExecutionControlParameters fields, the Kernel-facing public methods, all protected utility
 method signatures, kCoreStatusCodes, the Kernel constructor and its status and command codes, and the Communication
-constructor. The same reference also holds the command handler patterns (immediate, multi-stage non-blocking delay,
-sensor polling) and the optional implementation hints.
+constructor. It also documents the two-byte communication error payload and the two enumerations that fill it,
+kCommunicationStatusCodes (51-62) and kTransportStatusCodes (11-29), with the firmware method that sets each code. The
+same reference also holds the command handler patterns (immediate, multi-stage non-blocking delay, sensor polling) and
+the optional implementation hints.
 
 ---
 
@@ -442,6 +453,11 @@ element-count table, see [api-reference.md](references/api-reference.md).
 **Error handling:** If transmission fails, `SendData()` automatically attempts to send an error message and turns on the
 built-in LED. Do not use the LED-connected pin in your module to avoid interference.
 
+That error message is a ModuleData message carrying core event code 1 (`kTransmissionError`) and a two-byte payload,
+`{Communication status, TransportLayer status}`. Those two bytes are the firmware's entire diagnosis of a failed
+transfer, so read them as a pair. See the communication error payload section in
+[references/api-reference.md](references/api-reference.md) for both code tables and the fix each pair points at.
+
 ---
 
 ## main.cpp integration
@@ -457,6 +473,7 @@ Follow this exact instantiation order: Communication, Module(s), Kernel.
 
 static constexpr uint8_t kControllerID       = 222;
 static constexpr uint32_t kKeepaliveInterval = 5000;
+static constexpr uint32_t kSerialBaudRate    = 115200;  // Matches the teensy41 monitor_speed.
 
 Communication axmc_communication(Serial);
 
@@ -469,7 +486,7 @@ Kernel axmc_kernel(kControllerID, axmc_communication, modules, kKeepaliveInterva
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(kSerialBaudRate);
 
 #if !defined(__AVR__)
     analogReadResolution(12);
@@ -492,9 +509,45 @@ void loop()
   again, so the controller never times out before the PC starts pinging it
 - Module constructor arguments: `(module_type, module_id, communication)`
 - The `modules[]` array must contain at least one element (enforced by `static_assert`)
-- `Serial.begin()` baudrate must match the PC-side `baudrate` parameter
+- `Serial.begin()` baudrate must match both the target board environment's `monitor_speed` and the PC-side `baudrate`
+  parameter, so keep it in a named constant rather than a literal (see below)
 - Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`. AVR boards have a fixed
   10-bit ADC and no `analogReadResolution()`, so the call must be guarded with `#if !defined(__AVR__)`
+
+### Serial speed per board environment
+
+`platformio.ini` sets `monitor_speed` separately for every board environment, and the firmware's `Serial.begin()` rate
+has to match the `monitor_speed` of the environment being built. The library's own main.cpp holds the rate in a named
+constant and states that the value it carries matches the `teensy41` environment only.
+
+| Environment | Board        | `monitor_speed` |
+|-------------|--------------|-----------------|
+| `teensy41`  | Teensy 4.1   | 115200          |
+| `due`       | Arduino Due  | 5250000         |
+| `mega`      | Arduino Mega | 1000000         |
+
+**Note:** these rates are a link contract, not a tunable. The PC side has to open the port at the same speed, and if it
+does not, nothing reports a baud-rate fault. The controller runs `RuntimeCycle()` normally, and the PC-side
+`MicroControllerInterface` raises a "did not respond to the identification request" error once its retry budget
+expires. Read that identification failure as a baud mismatch first, before suspecting the module code. A project that
+targets more than one board should resolve the rate at compile time, so the wrong constant cannot reach the wrong
+board.
+
+### Keepalive interval
+
+`kKeepaliveInterval` is the firmware-side knob. It is passed to the Kernel constructor as milliseconds, and a value of
+0 disables keepalive monitoring outright. The library README recommends enabling it for most use cases and gives these
+starting bands, chosen by link speed and CPU frequency rather than by board name:
+
+| Board profile                            | README starting band |
+|------------------------------------------|----------------------|
+| Fast controller on USB (Teensy 4.1)      | 100-500 ms           |
+| Slower controller on UART (Arduino Mega) | 2-5 s                |
+
+**Note:** the bands are the README's own authored guidance, and the README pairs the slow-board band with a 115200
+UART link while the `mega` environment in `platformio.ini` runs at 1000000. Treat a band as a starting point to
+confirm against the link the project actually uses. A band names the PC's ping period, not the silence the controller
+tolerates, because the Kernel doubles the interval to derive the timeout.
 
 ---
 
@@ -535,7 +588,7 @@ Firmware Module, tool-settled (run `pio run` and `clang-format --dry-run --Werro
 - [ ] Doxygen and inline comments fill to 120 characters before wrapping, under the wrap-width rule /cpp-style defines
 
 Firmware Module, reader-judged:
-- [ ] Verified ataraxis-micro-controller >=4.0.1 and ataraxis-transport-layer-mc >=4.0.0
+- [ ] Verified ataraxis-micro-controller >=4.0.2 and ataraxis-transport-layer-mc >=4.0.1
 - [ ] Read module.h source to confirm API has not changed
 - [ ] Module header file created with an include guard, and library headers included with angle brackets
 - [ ] Class inherits from Module (public inheritance)
@@ -560,6 +613,8 @@ Firmware Module, reader-judged:
 - [ ] Pin reads use the templated form AnalogRead<kPin>(pool_size) and DigitalRead<kPin>(pool_size)
 - [ ] Module registered in main.cpp modules[] array
 - [ ] Instantiation order: Communication -> Module(s) -> Kernel
+- [ ] Serial.begin() receives the monitor_speed of the board environment being built, held in a named constant
+- [ ] kKeepaliveInterval is either 0 by deliberate choice or a value inside the README band for the board's link
 - [ ] module_type and module_id match PC-side ModuleInterface values (see /communication:microcontroller-interface)
 - [ ] Command codes, event codes, and parameter struct layout match PC-side counterpart
 ```
