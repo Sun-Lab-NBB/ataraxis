@@ -413,6 +413,7 @@ Before running the log processing pipeline, verify these conditions:
 | `/extraction-configuration`            | Context: extraction config determines which messages are extracted   |
 | `/log-processing`                      | Downstream: consumes archives in the format documented here          |
 | `/log-processing-results`              | Downstream: documents the output format produced from these archives |
+| `/cli-reference`                       | Reference: the `axci process` path that reads these archives         |
 | `/pipeline`                            | Context: reference skill for the end-to-end pipeline phases          |
 | `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for discovery and processing   |
 | `/microcontroller:firmware-module`     | Context: firmware side of the protocol codes and message layouts     |

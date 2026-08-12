@@ -53,10 +53,13 @@ in different plugins with distinct responsibilities:
 | MicroControllerInterface lifecycle      | `/communication:microcontroller-interface` |
 | MQTTCommunication setup                 | `/communication:microcontroller-interface` |
 
-The two sides must agree on **module_type**, **module_id**, **command codes**, **event codes**, and **parameter struct
-layout** (field order, types, and sizes). When implementing a new hardware module, always work both skills together,
-this skill for the C++ firmware and `/communication:microcontroller-interface` for the Python interface. If either
-side's codes or parameter layout change, the other must be updated to match.
+The two sides must agree on **module_type**, **module_id**, **command codes**, **event codes**, **parameter struct
+layout** (field order, types, and sizes), and the **data payload prototype** of every `SendData()` call, which is its
+C++ type and element count and fixes the numpy type the PC reads from `message.data_object`. When implementing a new
+hardware module, always work both skills together, this skill for the C++ firmware and
+`/communication:microcontroller-interface` for the Python interface. If either side's codes, parameter layout, or
+payload prototype change, the other must be updated to match. `/communication:pipeline` carries the ordered co-design
+procedure both skills follow when a module is built from scratch.
 
 ---
 
@@ -447,7 +450,9 @@ offer the densest count coverage and can serve as a generic bytes buffer for sen
 Each scalar type supports a type-specific set of array element counts, where a count of 1 is a scalar. Unsupported
 (type, count) combinations trigger a compile-time `static_assert`. The transmittable size is capped separately by the
 board's serial buffer, at 248 bytes on Teensy, 244 bytes on Arduino Due, and 52 bytes on Arduino Mega. Sizing a data
-object for Teensy therefore does not guarantee it compiles for the other two. For the full supported data-type and
+object for Teensy therefore does not guarantee it compiles for the other two. `double` carries a second board
+constraint, because avr-gcc compiles it to 4 bytes and the library rejects that width at compile time, so an AVR build
+needs `-mdouble=64` in its `build_flags` or `float` in place of `double`. For the full supported data-type and
 element-count table, see [api-reference.md](references/api-reference.md).
 
 **Error handling:** If transmission fails, `SendData()` automatically attempts to send an error message and turns on the
@@ -557,6 +562,10 @@ Build, upload, and monitor the firmware with PlatformIO, whose board environment
 covered by `/platformio-config`. For the full `pio` command set, see [api-reference.md](references/api-reference.md).
 Re-upload whenever the firmware module, its command/event codes, or its parameter struct change.
 
+A flashed board answers the identification query, so the work continues at `/communication:microcontroller-setup` for
+discovery and then at `/communication:microcontroller-interface` for the recording code, under the phase ordering
+`/communication:pipeline` owns.
+
 ---
 
 ## Implementation hints
@@ -574,6 +583,10 @@ for polling commands).
 | `/communication:microcontroller-interface` | PC-side counterpart: ModuleInterface, lifecycle, and MQTT setup    |
 | `/communication:microcontroller-setup`     | Hardware discovery: MCP tools to verify connected microcontrollers |
 | `/communication:extraction-configuration`  | Downstream: configure extraction for this module's event codes     |
+| `/communication:log-input-format`          | Reference: protocol codes and archive layout this firmware writes  |
+| `/communication:log-processing-results`    | Downstream: feather tables this module's event codes land in       |
+| `/communication:pipeline`                  | Context: this skill is phase 0 of the end-to-end pipeline          |
+| `/communication:cli-reference`             | Reference: `axci id`, the human path that confirms a flashed board |
 | `/cpp-style`                               | C++ coding conventions for firmware code                           |
 | `/project-layout`                          | Project directory structure for PlatformIO firmware projects       |
 | `/platformio-config`                       | PlatformIO config conventions for platformio.ini and library.json  |
@@ -616,5 +629,5 @@ Firmware Module, reader-judged:
 - [ ] Serial.begin() receives the monitor_speed of the board environment being built, held in a named constant
 - [ ] kKeepaliveInterval is either 0 by deliberate choice or a value inside the README band for the board's link
 - [ ] module_type and module_id match PC-side ModuleInterface values (see /communication:microcontroller-interface)
-- [ ] Command codes, event codes, and parameter struct layout match PC-side counterpart
+- [ ] Command codes, event codes, parameter struct layout, and SendData() prototypes match PC-side counterpart
 ```

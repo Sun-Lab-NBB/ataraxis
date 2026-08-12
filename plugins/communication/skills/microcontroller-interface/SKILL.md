@@ -609,6 +609,7 @@ See [references/api-reference.md](references/api-reference.md) for the MCP-to-co
 | `/log-input-format`                    | Reference: documents archive format produced by this code                                                                                                         |
 | `/log-processing`                      | Downstream: processes archives from MicroControllerInterface data                                                                                                 |
 | `/log-processing-results`              | Downstream: analyzes output from processed archives                                                                                                               |
+| `/cli-reference`                       | Reference: the `axci` command surface, the only orchestration path besides MCP                                                                                    |
 | `/pipeline`                            | Context: end-to-end orchestration and multi-controller planning                                                                                                   |
 | `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for API verification                                                                                                        |
 
@@ -631,8 +632,7 @@ Microcontroller Interface:
 - [ ] Every SendData() payload prototype (numpy dtype and element count) is supported on the target board
 - [ ] Remote assets are created in __init__() and only connected in initialize_remote_assets()
 - [ ] Runtime script body is inside an `if __name__ == "__main__":` guard
-- [ ] Comments and docstrings fill to 120 characters before wrapping, under the wrap-width rule
-      `/automation:python-style` defines
+- [ ] Comments and docstrings fill to 120 characters before wrapping, under the wrap-width rule /python-style defines
 - [ ] stop() called on all MicroControllerInterface instances during shutdown
 - [ ] assemble_log_archives() called after DataLogger.stop()
 ```

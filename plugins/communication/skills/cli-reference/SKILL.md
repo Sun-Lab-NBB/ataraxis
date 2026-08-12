@@ -304,6 +304,9 @@ output verification, query, and cleanup tool. Say so plainly rather than improvi
 | `/microcontroller-setup`               | Owns manifests, archive assembly, and the discovery behind `axci id` and `axci mqtt` |
 | `/communication-mcp-environment-setup` | Owns the `--help` exemption, the `axci mcp` transports, and MCP recovery             |
 | `/log-processing-results`              | Downstream: the feather output both paths write                                      |
+| `/log-input-format`                    | Reference: the assembled archives `axci process` reads under `-ld`                   |
+| `/microcontroller-interface`           | Context: the PC-side recording code, which no `axci` command replaces                |
+| `/microcontroller:firmware-module`     | Reference: the per-board serial rates behind the `axci id` baudrate                  |
 | `/pipeline`                            | Context: where each CLI command sits in the end-to-end pipeline                      |
 
 ---

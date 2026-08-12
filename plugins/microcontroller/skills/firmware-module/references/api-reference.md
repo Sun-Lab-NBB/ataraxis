@@ -256,6 +256,13 @@ capped separately by its serial buffer, because the data object has to satisfy
 Due, and 52 bytes on Arduino Mega, so counts such as `uint8_t[248]` or `uint16_t[124]` compile only on Teensy. The
 `SendDataMessage` static assertion rejects an oversized object at compile time for the board being built.
 
+**`double` does not build for an AVR board by default.** avr-gcc compiles `double` to 4 bytes unless the build passes
+`-mdouble=64`, and `axmc_shared_assets.h` rejects the narrower width at compile time rather than tagging a 4-byte
+payload with a prototype code the PC would decode as 8 bytes. An Arduino Mega therefore fails to compile rather than
+failing at runtime. Add `-mdouble=64` to that board's `build_flags`, or use `float` and `np.float32` on both sides.
+Teensy and Arduino Due are unaffected. `/communication:microcontroller-interface` carries the PC-side statement of the
+same constraint.
+
 ```cpp
 void SendData(const uint8_t event_code) const;
 ```

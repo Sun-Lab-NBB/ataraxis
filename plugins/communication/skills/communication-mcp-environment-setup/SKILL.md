@@ -285,6 +285,9 @@ archive assembly, recording discovery, extraction config write and validate, eve
 cancel, and reset tool, and every output verification, query, and cleanup tool. Say so plainly rather than
 improvising a substitute.
 
+`/cli-reference` is canonical for the whole `axci` surface, so invoke it for any option, default, or failure mode
+this table leaves out.
+
 ---
 
 ## Common issues and resolutions
@@ -314,6 +317,7 @@ improvising a substitute.
 | `/log-processing`            | Requires the MCP server for batch log processing tools                          |
 | `/log-processing-results`    | Requires the MCP server for output verification and event query tools           |
 | `/log-input-format`          | References MCP server tools for archive discovery and assembly                  |
+| `/cli-reference`             | Canonical reference for every `axci` command handed to a user in the fallback   |
 | `/pipeline`                  | Orchestrates all phases that depend on MCP server connectivity                  |
 
 ---

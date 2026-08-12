@@ -39,11 +39,13 @@ skill for detailed tool usage, parameter reference, and troubleshooting.
 ## Pipeline phases
 
 ```text
-Firmware      Environment   Hardware      Extraction    Recording     Log           Results
-Flash      →  Setup      →  Discovery  →  Config     →             →  Processing →  Analysis
-    |             |             |             |             |             |             |
-/firmware-    /mcp-env-     /mc-setup     /extraction-  /mc-interface /log-         /log-processing
-module         setup                      configuration               processing    -results
+Phase 0  Firmware flash      →  /microcontroller:firmware-module
+Phase 1  Environment setup   →  /communication-mcp-environment-setup
+Phase 2  Hardware discovery  →  /microcontroller-setup
+Phase 3  Extraction config   →  /extraction-configuration
+Phase 4  Recording session   →  /microcontroller-interface
+Phase 5  Log processing      →  /log-processing
+Phase 6  Results analysis    →  /log-processing-results
 ```
 
 ### Phase 0: Firmware
@@ -314,6 +316,26 @@ one call that reads trackers from disk without opening an execution session.
    "Re-running failed jobs"; anything still running → `/log-processing` monitoring rather than a new batch
 3. `discover_microcontroller_data_tool` — when the overview found no trackers, or fewer directories than the
    user expects, to establish which directories hold assembled archives before preparing anything
+
+### New hardware module, firmware and interface together
+
+A hardware module is one design split across two plugins, and six values have to match on both sides. Work the two
+skills in this order rather than finishing one side and transcribing it into the other.
+
+1. `/microcontroller:firmware-module` — pick `module_type` and `module_id`, number the command enum from 1, assign
+   custom event codes in the 51-250 range, lay out the `PACKED_STRUCT` parameter struct, and choose the C++ type and
+   element count every `SendData()` call transmits
+2. `/microcontroller-interface` — mirror all six in the `ModuleInterface` subclass: the same type and id, the same
+   command codes, `data_codes` and `error_codes` drawn from the same event codes, a `send_parameters()` tuple matching
+   the struct field for field, and `message.data_object` annotated against the payload prototype the firmware fixed
+3. Confirm the payload prototype and the parameter struct both fit the target board before either side is written,
+   because the reachable byte budgets fall below the Teensy figures on the Arduino Due and the Arduino Mega
+4. Flash the board and discover it, which is phases 0 and 2 above
+5. `/extraction-configuration` — declare the same custom event codes under that module's entry
+6. `/log-processing-results` — decode the extracted `event` and `command` columns against the codes chosen in step 1
+
+Any later change to a code, to the parameter struct, or to a payload prototype is a change to both sides. Re-run
+steps 1 and 2 together instead of editing one side alone.
 
 ### Single microcontroller, first session
 

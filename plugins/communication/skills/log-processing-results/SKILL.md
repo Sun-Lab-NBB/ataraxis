@@ -449,6 +449,7 @@ To determine detailed job status, use `get_batch_status_overview_tool` from `/lo
 | `/log-input-format`                    | Reference: input archive format and source ID semantics             |
 | `/log-processing`                      | Upstream: processing workflow that produces this output             |
 | `/microcontroller:firmware-module`     | Reference: firmware code tables behind the extracted codes          |
+| `/cli-reference`                       | Reference: the `axci process` path that produces the same output    |
 | `/pipeline`                            | Context: results analysis is phase 6 of the end-to-end pipeline     |
 
 ---

@@ -219,6 +219,23 @@ active session, use `get_batch_status_overview_tool`, which reads trackers from 
 never held one reads `active: False` with a `message` and no `jobs` key at all. Branch on the presence of `jobs`,
 not on `active` alone.
 
+**`get_log_processing_status_tool` return structure:**
+```text
+active:           True while the session's manager thread is alive
+canceled:         True once `cancel_log_processing_tool` cleared this session's pending queue
+jobs[]:           One entry per job the session tracks, read from the trackers on disk:
+  job_id:         Canonical hexadecimal job identifier
+  source_id:      Controller ID the job reads
+  status:         "SCHEDULED", "RUNNING", "SUCCEEDED", "FAILED", or "UNKNOWN"
+  error_message:  Present only when the tracker recorded one for that job
+  executor_id:    Present only when the tracker recorded one
+summary:          Session counts: `total`, `succeeded`, `failed`, `running`, `scheduled`
+```
+
+**Note:** `total` counts every job the session accepted, while the four status counts cover only the jobs whose tracker
+entry resolved. A session holding `UNKNOWN` entries therefore sums below its own `total`, which is the shape an
+unreadable or missing tracker takes.
+
 **`get_log_processing_timing_tool` return structure:**
 ```text
 active:                     True while the session's manager thread is alive
