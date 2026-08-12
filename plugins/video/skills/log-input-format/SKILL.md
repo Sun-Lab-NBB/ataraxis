@@ -47,9 +47,9 @@ Log archives follow the naming pattern `{source_id}_log.npz`:
 1_log.npz      # Source ID 1
 ```
 
-The suffix `_log.npz` is defined as `LOG_ARCHIVE_SUFFIX` in `log_processing.py`. The source ID portion
-is the integer form of the originating system's ID — leading zeros from the raw `.npy` filenames are
-stripped during archive assembly.
+The suffix `_log.npz` is the `LOG_ARCHIVE_SUFFIX` constant that ataraxis-data-structures defines and
+ataraxis-video-system imports. The source ID portion is the integer form of the originating system's ID, so
+leading zeros from the raw `.npy` filenames are stripped during archive assembly.
 
 ### How archives are produced
 
@@ -85,7 +85,9 @@ sources:
 **How manifests are produced:**
 
 - **Automatic:** `VideoSystem.__init__()` writes a manifest entry to the DataLogger output directory using
-  the `name` parameter. Each VideoSystem sharing a DataLogger appends its entry to the same manifest file.
+  the `name` parameter. Each VideoSystem sharing a DataLogger registers into the same manifest file. The write
+  is idempotent per source ID: an entry already registered under that ID is replaced rather than duplicated,
+  and the read-replace-write sequence is held under a file lock so concurrent registrations are safe.
 - **MCP sessions:** `start_video_session_tool` creates a VideoSystem with `name="live_camera"`, which writes
   a manifest automatically.
 - **Manual:** Use `write_camera_manifest_tool` (see `/camera-setup`) to retroactively tag legacy log
@@ -94,11 +96,14 @@ sources:
 **Why manifests matter:** The manifest is a hard gate for both discovery and processing.
 `discover_camera_data_tool` uses manifest-based routing to identify axvs-produced log archives, so
 directories without a `camera_manifest.yaml` will not be discovered by this tool. Beyond discovery,
-`run_log_processing_pipeline` requires the manifest as well: it raises `FileNotFoundError` when none
-is found, raises `ValueError` when it has no sources, resolves the source IDs to process from the
-manifest when `log_ids` is None, and rejects any requested `log_id` not registered in the manifest.
-Manifests also associate source IDs with human-readable names and enable the discovery tool to locate
-corresponding video files by camera name.
+processing requires the manifest as well: a tree holding none resolves no job, a manifest with no source
+entries raises `ValueError`, the source IDs to process are resolved from the manifest when none are requested,
+and any requested source ID the manifest does not register is rejected. Manifests also associate source IDs with
+human-readable names and enable the discovery tool to locate corresponding video files by camera name.
+
+**One manifest per tree:** exactly one `camera_manifest.yaml` may sit under the directory being processed. A
+tree holding several spans several recordings or several DataLogger instances and raises `ValueError` rather
+than resolving against the first match. Pass each DataLogger output directory individually.
 
 ---
 
@@ -106,7 +111,7 @@ corresponding video files by camera name.
 
 ### What source IDs represent
 
-A source ID is a `np.uint8` value (1-255) that identifies the hardware system that produced log data.
+A source ID is a `np.uint8` value (0-255) that identifies the hardware system that produced log data.
 In ataraxis-video-system, each `VideoSystem` instance has a `system_id` that becomes the `source_id`
 in all log entries sent to the `DataLogger`.
 
@@ -134,9 +139,10 @@ This means source IDs are unique **per log directory**, not globally across a re
 
 ### Common source ID assignments
 
-Runtime VideoSystem instances (actual recording cameras) are advised to use IDs in the range 51-100.
 The CLI (`system_id=111`) and MCP server (`system_id=112`) use fixed IDs for testing and exploration
-sessions, not production recording.
+sessions, not production recording. These two are the only values the library reserves. Runtime
+VideoSystem instances (actual recording cameras) are advised to use IDs in the range 51-100, which is
+this plugin's allocation convention rather than a library-enforced range (see `/pipeline`).
 
 ---
 
@@ -183,12 +189,12 @@ Each log directory is an **independent processing unit**. The discovery tool gro
 parent directory (the DataLogger output directory), and each directory is prepared and processed
 independently.
 
-Source-ID-to-archive resolution requires exactly one matching `{source_id}_log.npz` under the
-recursively searched tree (`ValueError` on duplicates), and all resolved archives must share a single
-parent directory (`ValueError` otherwise, "Each DataLogger output directory must be processed
-independently"). Therefore `run_log_processing_pipeline` must be invoked once per DataLogger output
-directory, not once per recording root, and a duplicate source ID across nested subdirectories is a
-fatal error, not a combined-processing path.
+Source-ID-to-archive resolution requires exactly one matching `{source_id}_log.npz` under the recursively
+searched tree (`FileNotFoundError` when the archive is absent or resolves to more than one file), and all
+resolved archives must share a single parent directory (`ValueError` otherwise, "Each DataLogger output
+directory must be prepared and processed on its own invocation"). Processing therefore runs once per
+DataLogger output directory, not once per recording root, and a duplicate source ID across nested
+subdirectories is a fatal error, not a combined-processing path.
 
 ### Multiple recordings under one root
 
@@ -261,14 +267,13 @@ processing via `ProcessPoolExecutor`.
 
 Before running the log processing pipeline, verify these conditions:
 
-1. **Camera manifest present** — Log directories MUST contain a `camera_manifest.yaml` file. The
-   manifest is required both by `discover_camera_data_tool` and by `run_log_processing_pipeline`
-   itself: the pipeline locates it via recursive `rglob` (using the first match), raises
-   `FileNotFoundError` when none is found, and raises `ValueError` when it has no source entries.
-   When `log_ids` is None the pipeline resolves the source IDs to process from the manifest, and it
-   rejects any requested `log_id` not registered in the manifest. Job IDs are a deterministic function
-   of `(job_name, source_id)`, so an "invalid job_id" error from the pipeline likewise means the source
-   ID is not registered in the manifest. If missing, use `write_camera_manifest_tool` to create one.
+1. **Camera manifest present** — Log directories MUST contain a `camera_manifest.yaml` file, and exactly one
+   must sit under the tree being processed. The manifest is required both by `discover_camera_data_tool` and by
+   processing itself: the tree is searched recursively, a tree holding several manifests raises `ValueError`,
+   and so does a manifest carrying no source entries. When no source IDs are requested they are resolved from
+   the manifest, and any requested source ID the manifest does not register is rejected. Job IDs are a
+   deterministic function of `(job_name, source_id)`, so an "invalid job_id" error likewise means the source ID
+   is not registered in the manifest. If missing, use `write_camera_manifest_tool` to create one.
 
 2. **Archives assembled** — Log directories contain `.npz` files, not just raw `.npy` files. If only
    `.npy` files are present, `assemble_log_archives()` must be run first.

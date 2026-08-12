@@ -74,8 +74,24 @@ manual assembly tool.
 | Parameter          | Type   | Default    | Description                                                      |
 |--------------------|--------|------------|------------------------------------------------------------------|
 | `log_directory`    | `str`  | (required) | Absolute path to DataLogger output directory containing `.npy`   |
-| `remove_sources`   | `bool` | `true`     | Whether to remove `.npy` files after successful assembly         |
-| `verify_integrity` | `bool` | `false`    | Whether to verify archive integrity against source files first   |
+| `remove_sources`   | `bool` | `true`     | Keyword-only. Remove `.npy` files after successful assembly      |
+| `verify_integrity` | `bool` | `false`    | Keyword-only. Verify archive integrity against sources first     |
+
+**Return structure:**
+
+```text
+{"status": "assembled", "directory": "/path/to/session_data_log", "archives": ["51_log.npz"],
+ "source_ids": ["51"], "archive_count": 1}
+```
+
+Read `source_ids` and `archive_count` directly to confirm every expected source assembled. No follow-up
+discovery call is needed for that check.
+
+Assembly covers the `.npy` entries lying **directly inside** `log_directory` and never descends into
+subdirectories, so the path must be the DataLogger output directory itself (`{instance_name}_data_log/`),
+never a recording root grouping several of them. When the directory holds no `.npy` of its own but its
+subdirectories do, the tool returns an error saying so instead of reporting a silently empty success.
+Other error dictionaries cover an absent path, a non-directory path, and a failed assembly.
 
 ### Video validation tool
 
@@ -126,10 +142,13 @@ source, the tool locates the corresponding log archive, video file, and processe
 output, returning a flat `sources` list. The return also includes a flat `log_directories` list (which
 feeds batch `/log-processing`) plus `total_sources` and `total_log_directories` aggregate counts.
 
-**Caution:** `video_file`/`timestamps_file` are resolved by a name-then-ID substring heuristic with
-path-proximity tie-breaking, not exact paths. A `None` `video_file` means "not matched", not necessarily
-"not on disk" — confirm with `validate_video_file_tool` using the path returned by the stop tool. Beware false
-matches when a camera name or the zero-padded ID appears in an unrelated `.mp4` stem under the root.
+**Caution:** `video_file` is resolved by a name-then-ID substring heuristic with path-proximity tie-breaking,
+not an exact path. A `None` `video_file` means "not matched", not necessarily "not on disk", so confirm with
+`validate_video_file_tool` using the path returned by the stop tool. Beware false matches when a camera name
+or the zero-padded ID appears in an unrelated `.mp4` stem under the root. `timestamps_file` carries no such
+risk: it is resolved by exact filename (`camera_{source_id}_timestamps.feather`) inside each discovered
+`camera_timestamps/` directory, with proximity used only to choose between same-named outputs of different
+recordings.
 
 ---
 
@@ -142,13 +161,15 @@ You MUST follow these steps after every recording session.
 
 2. **Verify video file** — Call `validate_video_file_tool` with the `video_file` path. Confirm:
    - The file exists and has non-zero `file_size_bytes`
-   - `frame_count` is greater than 0 (note: `frame_count` may be `null` when ffprobe cannot report
-     `nb_frames` for the container, so treat a `null` value as "unknown" rather than zero frames)
+   - `frame_count`, `duration_seconds`, and `bit_rate_bps` are each `null` when ffprobe does not report the
+     corresponding field, so treat a `null` as "unknown" rather than zero. `file_size_bytes` is always
+     populated, since it falls back to a filesystem stat
    - `codec`, `width`, `height`, and `frame_rate` match expected session parameters
    - A `null` `video_file` means the session had no output directory / no saver configured
-     (`output_directory` was `None` at construction); a non-null path that fails
-     `validate_video_file_tool` with "File not found" is the signal that `start_frame_saving_tool` was
-     never called and no `.mp4` was written
+     (`output_directory` was `None` at construction). A non-null path whose validation returns
+     `{"error": "No video stream found in file."}`, backed by a file of only a few hundred bytes on disk,
+     is the signal that `start_frame_saving_tool` was never called: the encoder process starts with the
+     session and always creates the `.mp4` container, but it holds no encoded stream
 
 3. **Verify archive assembly** — If `archives_assembled` is `true` in the stop response, call
    `discover_camera_data_tool` with the recording root to confirm archives exist for all expected
@@ -175,7 +196,8 @@ Use `assemble_log_archives_tool` when:
 - The `stop_video_session_tool` response shows `archives_assembled: false`
 - Processing log directories from code-based sessions that called `logger.stop()` without assembly
 - Recovering from partial session failures
-- Assembling archives from sessions run via the `axvs run` CLI that were interrupted before assembly
+- Recovering an `axvs run` session whose process was killed outright. An ordinary interrupt still assembles,
+  because the CLI runs assembly in a `finally` block that executes on every exit path
 
 After calling the tool, verify the result with `discover_camera_data_tool` to confirm all expected
 source IDs have corresponding `.npz` archives.
@@ -236,7 +258,8 @@ only the video name is padded.
 
 | Symptom                                  | Likely Cause                             | Resolution                                     |
 |------------------------------------------|------------------------------------------|------------------------------------------------|
-| No video file in output directory        | Saving was never started                 | Verify `start_frame_saving_tool` was called    |
+| "No video stream found in file." on a tiny file | Saving was never started          | Verify `start_frame_saving_tool` was called    |
+| No video file in output directory        | Session ran with `output_directory=None` | Re-record with an output directory configured  |
 | Video file is 0 bytes                    | FFMPEG encoding failed silently          | Check FFMPEG installation; re-record           |
 | No `.npz` archives after stopping        | Auto-assembly failed or nothing logged   | Call `assemble_log_archives_tool` manually     |
 | Assembly produces empty archives         | No frame messages were logged            | Verify `start_frame_saving_tool` was called    |
@@ -246,9 +269,9 @@ only the video name is padded.
 | MCP tools unavailable                    | Server not running                       | Invoke `/video-mcp-environment-setup`          |
 
 A frame deficit concentrated at the **end** of a recording is a distinct case: `stop()` waits up to
-10 minutes for the saver queue to drain, then forcibly terminates the consumer and discards the
-unencoded tail with no error surfaced by the stop tool. It means the encoder could not keep up at
-shutdown — use a faster `encoder_speed_preset` or hardware encoding next time.
+10 minutes (600 seconds) for the saver queue to drain, then abandons the daemon consumer process and loses
+the unencoded tail, with no error surfaced by the stop tool. It means the encoder could not keep up at
+shutdown, so use a faster `encoder_speed_preset` or hardware encoding next time.
 
 ---
 

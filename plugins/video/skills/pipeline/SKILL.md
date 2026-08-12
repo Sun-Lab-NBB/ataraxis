@@ -142,16 +142,20 @@ registers as the `source_id`, and it names the camera's `{system_id}_log.npz` ar
 `/log-input-format`). This skill uses "source ID" for the shared DataLogger namespace and `system_id`
 for the VideoSystem constructor.
 
-| Range  | Assignment                   | Notes                                                        |
-|--------|------------------------------|--------------------------------------------------------------|
-| 51-100 | Camera VideoSystem instances | One unique ID per camera; advised range for all camera code  |
-| 111    | CLI (`axvs run`)             | Fixed; interactive testing only                              |
-| 112    | MCP server sessions          | Fixed; agent-driven testing only                             |
+| Range  | Assignment                   | Notes                                                          |
+|--------|------------------------------|----------------------------------------------------------------|
+| 51-100 | Camera VideoSystem instances | Plugin convention, not a library-enforced range                |
+| 111    | CLI (`axvs run`)             | Fixed in the library; interactive testing only                 |
+| 112    | MCP server sessions          | Fixed in the library; agent-driven testing only                |
 
-Camera code should stay within the 51-100 band. Allocate camera IDs sequentially starting at 51 (e.g.,
-51, 52, 53 for a 3-camera rig). System IDs must be unique across **all** sources sharing a DataLogger,
-including sources from other libraries (e.g., ataraxis-communication-interface controllers in the 101-150
-range). The 51-100 band avoids collisions with those advised ranges.
+The library constrains one thing and requires one more: a `system_id` must fit `np.uint8` (0-255, enforced with
+an `OverflowError`), and every source sharing one DataLogger must carry a unique one. That second rule is a
+requirement the library does not check, since a duplicate ID silently replaces the earlier manifest entry rather
+than raising. 111 and 112 are the only values the library itself reserves, and the
+axvs README's own quickstart uses 101 for a camera. The 51-100 band is this plugin's allocation convention
+for keeping camera code clear of the reserved pair, so confirm the rig's existing allocation with the user
+rather than assuming it follows the convention. Within the band, allocate sequentially from 51 (e.g., 51,
+52, 53 for a 3-camera rig).
 
 ### DataLogger topology
 
@@ -167,9 +171,10 @@ DataLogger(instance_name="session")
 All cameras share one log directory, all timestamps are correlated, one `assemble_log_archives` call
 consolidates everything, and one processing batch covers all source IDs. Each VideoSystem writes an
 entry to `camera_manifest.yaml` during initialization, enabling manifest-based discovery downstream.
-The manifest append is not idempotent -- re-constructing a VideoSystem against an already-used output
-directory appends a duplicate source entry rather than replacing it, so use a fresh session directory
-per recording.
+The manifest write is idempotent per source ID: re-constructing a VideoSystem against an already-used
+output directory replaces that source's entry rather than appending a duplicate. The read-replace-write
+sequence runs under a lock file beside the manifest and aborts if the lock cannot be taken within 10
+seconds, so the concurrent registrations of several VideoSystems sharing one DataLogger are safe.
 
 Multiple DataLoggers should only be used if a single logger cannot handle the load, leading to excessive
 buffering. This is extremely rare in practice. When it does occur, each DataLogger creates a separate
@@ -207,42 +212,45 @@ from ataraxis_data_structures import DataLogger, assemble_log_archives
 
 from ataraxis_video_system import CameraInterfaces, VideoSystem
 
-session_directory = Path("/path/to/session")
+# The guard is mandatory. The library sets the 'spawn' start method at import, and every spawned child
+# re-imports this module, so unguarded module-level construction re-runs in each child.
+if __name__ == "__main__":
+    session_directory = Path("/path/to/session")
 
-# Starts the shared DataLogger first.
-logger = DataLogger(output_directory=session_directory, instance_name="session")
-logger.start()
+    # Starts the shared DataLogger first.
+    logger = DataLogger(output_directory=session_directory, instance_name="session")
+    logger.start()
 
-# Initializes and starts each camera with a unique system ID and descriptive name.
-cameras: list[VideoSystem] = []
-camera_configs = [(51, 0, "face_camera"), (52, 1, "body_camera"), (53, 2, "arena_camera")]
-for camera_id, camera_index, camera_name in camera_configs:
-    camera = VideoSystem(
-        system_id=np.uint8(camera_id),
-        data_logger=logger,
-        name=camera_name,
-        output_directory=session_directory,
-        camera_interface=CameraInterfaces.HARVESTERS,
-        camera_index=camera_index,
-    )
-    camera.start()
-    cameras.append(camera)
+    # Initializes and starts each camera with a unique system ID and descriptive name.
+    cameras: list[VideoSystem] = []
+    camera_configs = [(51, 0, "face_camera"), (52, 1, "body_camera"), (53, 2, "arena_camera")]
+    for camera_id, camera_index, camera_name in camera_configs:
+        camera = VideoSystem(
+            system_id=np.uint8(camera_id),
+            data_logger=logger,
+            name=camera_name,
+            output_directory=session_directory,
+            camera_interface=CameraInterfaces.HARVESTERS,
+            camera_index=camera_index,
+        )
+        camera.start()
+        cameras.append(camera)
 
-# Starts frame saving on all cameras.
-for camera in cameras:
-    camera.start_frame_saving()
+    # Starts frame saving on all cameras.
+    for camera in cameras:
+        camera.start_frame_saving()
 
-# ... recording ...
+    # ... recording ...
 
-# Shuts down in reverse order.
-for camera in cameras:
-    camera.stop_frame_saving()
-for camera in cameras:
-    camera.stop()
-logger.stop()
+    # Shuts down in reverse order.
+    for camera in cameras:
+        camera.stop_frame_saving()
+    for camera in cameras:
+        camera.stop()
+    logger.stop()
 
-# Assembles archives after the DataLogger has fully stopped.
-assemble_log_archives(log_directory=logger.output_directory, remove_sources=True)
+    # Assembles archives after the DataLogger has fully stopped.
+    assemble_log_archives(log_directory=logger.output_directory, remove_sources=True)
 ```
 
 ---
@@ -260,10 +268,13 @@ This simplifies batch processing:
 4. Output: one feather file per camera under a `camera_timestamps/` subdirectory
    (`camera_timestamps/camera_51_timestamps.feather`, `camera_timestamps/camera_52_timestamps.feather`, etc.)
 
-For multi-DataLogger setups, process each DataLogger output directory as a separate batch: run one
-discovery and one batch per output directory. The MCP batch tools do not reject cross-directory inputs,
-so this separation is a convention you must follow. (The CLI `axvs process` command does enforce it,
-raising ValueError "Each DataLogger output directory must be processed independently".)
+For multi-DataLogger setups, pass each DataLogger output directory as its own entry in the
+`log_directories` list. One batch call can carry several, and each is prepared independently, so a
+separate batch per directory is not required. Passing a parent directory that spans several DataLogger
+outputs is rejected rather than merged: preparation fails that entry and returns it under `invalid_paths`.
+The `axvs process` CLI raises the equivalent ValueError, either "Each DataLogger output directory must be
+prepared and processed on its own invocation" or a manifest-count error when the tree holds several
+`camera_manifest.yaml` files.
 
 ---
 
@@ -334,7 +345,8 @@ Pipeline Orchestration:
 - [ ] Environment verified (MCP server connected, FFMPEG/GPU/CTI checked)
 - [ ] Camera(s) discovered and configuration validated
 - [ ] Interface decision made (MCP vs code, single vs multi-camera)
-- [ ] System IDs allocated (unique per camera, 51-100 range)
+- [ ] System IDs allocated (unique per DataLogger; 51-100 by plugin convention, or the rig's existing
+      allocation confirmed with the user)
 - [ ] DataLogger topology decided (single vs multiple)
 - [ ] Encoding parameters selected for use case
 - [ ] Recording session completed (all cameras started and stopped in order)

@@ -45,7 +45,9 @@ axvs = "ataraxis_video_system.interfaces.cli:axvs_cli"
 |-------------------------|-------------|------------------------------------------------------------------|
 | `ataraxis-video-system` | `axvs mcp`  | Camera discovery, video session management, log processing tools |
 
-The server accepts a `--transport` option (defaults to `stdio`). The plugin manifest
+The server accepts a `-t` / `--transport` option restricted to exactly two values, `stdio` (the default) and
+`streamable-http`. The underlying `run_server()` function also admits `sse`, but the CLI rejects it, so never run
+or recommend `axvs mcp -t sse`. The plugin manifest
 `.claude-plugin/plugin.json` configures the Claude assistant to launch the server automatically via its
 `mcpServers` block:
 
@@ -173,10 +175,22 @@ axvs --help
 If the command fails with an import error, a dependency is missing or broken. Run:
 
 ```bash
-pip check ataraxis-video-system 2>&1 | head -20
+pip check 2>&1 | head -20
 ```
 
-Report any missing or incompatible dependencies to the user.
+`pip check` takes no package argument and verifies every installed distribution, so ignore unrelated package
+lines and report only failures involving ataraxis-video-system or one of its dependencies.
+
+### Step 5b: Smoke-test the server by hand
+
+```bash
+axvs mcp -t streamable-http
+```
+
+Use `streamable-http` rather than the `stdio` default for this check. Under `stdio` the server disables the
+console so that no library output corrupts the JSON-RPC stream on stdout, which means a healthy server prints
+nothing and is indistinguishable from a hung one. The `streamable-http` branch echoes
+`Starting AXVS MCP server with streamable-http transport...` and then blocks, which confirms the server starts.
 
 ### Step 6: Restart the MCP server
 
@@ -196,6 +210,26 @@ pick up the changes. The ataraxis video plugin will automatically configure the 
 | MCP server starts but tools are missing | Outdated ataraxis-video-system version | `pip install --upgrade ataraxis-video-system`                 |
 | MCP server connected but tools fail     | Not an environment issue               | Check tool-specific error messages                            |
 | Skills available but MCP tools missing  | Plugin installed without pip package   | `pip install ataraxis-video-system` in the active environment |
+| GenICam/CTI tools report Unsupported on macOS | GenICam runtime never installed  | Expected, not a fault. See GenICam runtime availability below |
+| GenICam/CTI tools report Unsupported on Linux or Windows | Damaged installation  | `pip install --force-reinstall ataraxis-video-system`         |
+
+### GenICam runtime availability
+
+The GenICam camera runtime ships as the `harvesters` and `genicam` distributions, which
+ataraxis-video-system declares with a `sys_platform != 'darwin'` marker. They install automatically on Linux
+and Windows, and never on macOS, because the `genicam` distribution publishes no macOS wheel for every Python
+version the library supports. The library guards the import, so an absent runtime produces no import error.
+
+Branch on the host platform whenever `check_runtime_requirements_tool` reports `CTI: Unsupported` or
+`get_cti_status_tool` reports `CTI: Unavailable.`:
+
+- **macOS** — permanent and by design. Do not prescribe a reinstall. Steer the user to the `opencv` camera
+  interface, or to a Linux or Windows host for GenICam cameras. Every other feature, including video encoding
+  and log processing, works normally.
+- **Linux or Windows** — the runtime installs alongside the library there, so its absence means a damaged
+  installation. `pip install --force-reinstall ataraxis-video-system` restores it.
+
+For the tool-level consequences of an absent runtime, see `/camera-setup`.
 
 ---
 

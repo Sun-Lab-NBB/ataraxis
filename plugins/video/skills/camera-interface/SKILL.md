@@ -43,7 +43,9 @@ Check the locally installed ataraxis-video-system version against the latest rel
 pip show ataraxis-video-system
 ```
 
-The current version is **4.0.1**. If a version mismatch exists, ask the user how to proceed.
+The current version is **5.0.0**. If a version mismatch exists, ask the user how to proceed. 5.0.0 is a breaking
+release relative to 4.x: `quantization_parameter` no longer accepts -1, the `video/log_processing.py` module was
+removed, and the GenICam interface is no longer installed on macOS.
 
 ### Step 2: API verification
 
@@ -104,11 +106,20 @@ Key constructor notes:
   for OpenCV cameras that lack GenICam node control. Exposure, gain, and other GenICam nodes are applied at
   configuration time via the `/camera-setup` tools or, in code, via the `HarvestersCamera` config methods
   (`set_node_value`, `get_configuration`, `apply_configuration`); see the API reference. The deterministic
-  acquisition script does not reconfigure nodes at runtime.
+  acquisition script does not reconfigure nodes at runtime. The camera's `PixelFormat` must be an 8-bit
+  format, since the constructor grabs a probe frame and raises `ValueError` on any other frame dtype.
 - `display_frame_rate` defaults to `None` (preview disabled). Set to a positive integer FPS not exceeding
-  the camera's acquisition frame rate to enable, else `__init__` raises `TypeError`. Frame display is
-  unsupported on macOS: it is auto-disabled (a warning is emitted), so the value has no effect there.
+  the camera's acquisition frame rate to enable. A value that is neither an int nor `None` raises `TypeError`,
+  while an int that is zero, negative, or above the camera's acquisition rate raises `ValueError`. Frame display
+  is unsupported on macOS: it is auto-disabled (a warning is emitted), so the value has no effect there.
 - `gpu` defaults to `-1` (CPU encoding). Set to `0+` for NVIDIA GPU encoding.
+- `quantization_parameter` must be an integer between 0 and 51 inclusive. There is no sentinel for "let the
+  encoder decide", and a negative value raises `ValueError`. The parameter is validated only when
+  `output_directory` is set, since a system that saves nothing constructs no encoder.
+- `camera_interface=CameraInterfaces.HARVESTERS` requires the GenICam runtime, which ataraxis-video-system
+  installs on Linux and Windows only. On macOS the constructor raises `NotImplementedError`, as do
+  `add_cti_file()` and every GenICam configuration call. Write code that targets GenICam cameras for a
+  Linux or Windows host, and use `CameraInterfaces.OPENCV` on macOS.
 - `color` is a keyword-only parameter defaulting to `None`. For OpenCV and Mock, `None` resolves to
   monochrome (`False`) — a color OpenCV camera left at `None` silently records grayscale, so pass
   `color=True` explicitly to record color. Only Harvesters infers color/mono from the GenICam config.
@@ -120,15 +131,20 @@ VideoSystem() → start() → [start_frame_saving() → stop_frame_saving()] →
 ```
 
 - `start()` begins frame acquisition without saving. Useful for preview or warm-up.
-- `start_frame_saving()` / `stop_frame_saving()` toggle recording while acquisition continues.
+- `start_frame_saving()` / `stop_frame_saving()` toggle a flag rather than opening and closing files. One
+  VideoSystem writes exactly one `{system_id:03d}.mp4` for its whole lifetime, finalized only when `stop()`
+  runs, so toggling saving off and back on resumes appending to that same file. To produce separate video
+  files, stop the system and construct a new one.
 - `stop()` terminates acquisition and releases all resources. Must be called explicitly. It blocks until
-  all buffered frames are encoded, up to a 10-minute cap; beyond that it force-kills the consumer and
-  discards remaining frames.
+  all buffered frames are encoded, up to a 10-minute (600 s) cap. Beyond that the daemon consumer process is
+  abandoned and its remaining frames are discarded, with no error raised.
 
 ### System ID allocation
 
-Each VideoSystem instance requires a unique `system_id` (`np.uint8`) for DataLogger timestamp correlation.
-Runtime instances are advised to use IDs in the range 51-100. The output video file is named
+Each VideoSystem instance requires a `system_id` (`np.uint8`, 0-255) that must be unique among all sources
+sharing one DataLogger. The library itself reserves only 111 (the `axvs run` CLI) and 112 (the MCP server).
+Using IDs in the range 51-100 for runtime cameras is this plugin's allocation convention rather than a
+library-enforced range, so confirm the rig's allocation with the user. The output video file is named
 `{system_id:03d}.mp4` (e.g., `051.mp4` for system_id 51).
 
 ---
@@ -207,6 +223,11 @@ H265 produces better compression at equivalent visual quality. To match quality 
 | `Queue input is backward in time`  | Timestamp ordering issue          | Ensure frames arrive in order                  |
 | `CUDA_ERROR_OUT_OF_MEMORY`         | GPU memory exhausted              | Reduce concurrent GPU encoders or resolution   |
 | `Too many packets buffered`        | Encoding too slow for frame rate  | Use faster preset or reduce resolution         |
+
+These messages surface on the **stderr of the process that hosts the runtime**, written there directly by the
+spawned consumer, because that child re-imports the library with a disabled console. They do not appear in any
+MCP tool return, so an agent cannot read them: they land on the terminal for an `axvs run` CLI session, and on
+the MCP server's stderr log for an MCP session. Ask the user to check whichever of the two applies.
 
 ---
 
@@ -302,9 +323,10 @@ cause drops when the scene changes. Consider this when selecting presets.
 
 ```text
 Camera Interface:
-- [ ] Verified ataraxis-video-system version matches requirements (>=4.0.0)
+- [ ] Verified ataraxis-video-system version matches requirements (>=5.0.0)
 - [ ] Verified cameras are discoverable using /camera-setup workflow
-- [ ] Allocated unique system IDs in the 51-100 range (checked existing allocations)
+- [ ] Allocated system IDs that are unique per DataLogger (51-100 by plugin convention, or the rig's existing
+      allocation confirmed with the user)
 - [ ] DataLogger initialized and started before VideoSystem creation
 - [ ] Encoding configuration selected using use-case guidance table
 - [ ] MCP test results translated to code parameters (if applicable)

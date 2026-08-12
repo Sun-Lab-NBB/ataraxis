@@ -125,6 +125,9 @@ The `camera_processing_tracker.yaml` file tracks job lifecycle per output direct
 - **status:** `SCHEDULED`, `RUNNING`, `SUCCEEDED`, or `FAILED`
 - **started_at / completed_at:** Microsecond UTC timestamps (when available)
 - **error_message:** Error details (when status is `FAILED`)
+- **executor_id:** Identifier of the executor that ran the job (when set). `get_log_processing_status_tool` and
+  `get_log_processing_timing_tool` (see `/log-processing`) surface it in their per-job entries, while
+  `get_batch_status_overview_tool` does not report it
 
 ---
 
@@ -183,7 +186,8 @@ Each entry in `drop_locations`:
 
 **Auto-detection algorithm:** When `drop_threshold_us=0`, the threshold is computed as 2x the median
 inter-frame interval. Gaps exceeding this threshold are classified as frame drops. The number of lost
-frames per gap is estimated by dividing the gap duration by the median interval and rounding.
+frames per gap is estimated by dividing the gap duration by the median interval, rounding, subtracting one,
+and clamping the result at zero, because a gap spanning N median intervals represents N-1 lost frames.
 
 **Edge cases:** When `total_frames == 0`, only `basic_stats.total_frames` is returned and
 `inter_frame_timing` / `frame_drop_analysis` are empty `{}`. When `total_frames == 1`, `basic_stats` is
@@ -273,7 +277,9 @@ includes processing output status via the `timestamps_file` field:
 | `null`                   | Not yet processed, processing failed, or output was cleaned      |
 
 To determine detailed job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), check the
-`camera_processing_tracker.yaml` file via `get_batch_status_overview_tool`.
+`camera_processing_tracker.yaml` file via `get_batch_status_overview_tool`. That tool reports one entry per
+`camera_timestamps/` subdirectory rather than per DataLogger log directory, so its `output_directory` values
+will not match the `log_directory` values this tool returns.
 
 ---
 
