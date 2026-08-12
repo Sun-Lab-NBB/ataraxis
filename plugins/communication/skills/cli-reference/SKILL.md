@@ -113,17 +113,18 @@ code 2). Path options carry Click `click.Path` constraints, listed under Effect.
 | `-c`  | `--config`           | `Path` | (required) | required   | The extraction config `.yaml`. Must exist and be a readable file                                                                                   |
 | `-id` | `--job-id`           | `str`  | `None`     | optional   | Runs ONLY the job whose canonical hexadecimal identifier matches. External single-job dispatch. Suppresses `-s`                                    |
 | `-s`  | `--specifier`        | `str`  | `()`       | repeatable | A controller ID to process. Repeat once per controller. When omitted, every controller the config declares is processed. Ignored when `-id` is set |
-| `-w`  | `--workers`          | `int`  | `-1`       | optional   | The ceiling on the workers ONE job receives, not a batch width. See the note below                                                                 |
+| `-w`  | `--workers`          | `int`  | `-1`       | optional   | The workers ONE job receives, not a batch width. See the note below                                                                                |
 | `-np` | `--no-progress`      | flag   | `False`    | flag       | Suppresses the extraction progress bar. Bars are displayed by default                                                                              |
 
 **Note:** `-c` expands to `--config` here but to `--config-path` on `axci config show`. The short form is safe to quote
 to a user for either command. The long forms are not interchangeable.
 
-**Note on `-w`:** the ceiling resolves in two steps. A non-positive value (the `-1` default) auto-resolves to the host's
-logical cores minus the host core reserve. A positive value is honored up to the host's logical core count and reserves
-nothing. Either result is then capped at `CONTROLLER_EXTRACTION_JOB_CORES`, the widest allocation the library gives one
-extraction job. `-w 1` makes every job sequential. The command's own `--help` prints the cap as a concrete figure. Read
-it from there rather than from this skill.
+**Note on `-w`:** the value is a width the job runs at, and the library caps it against nothing. A non-positive value
+(the `-1` default) resolves the width from each archive in turn, which yields a single worker below the library's
+parallel extraction threshold and `CONTROLLER_EXTRACTION_JOB_CORES`, the declared per-job allocation, at or above it. A
+positive value is passed through verbatim to every job, above the declared allocation and above the host's own core
+count alike, so a user who names one owns the oversubscription it buys. `-w 1` makes every job sequential. The command's
+own `--help` prints the declared allocation as a concrete figure. Read it from there rather than from this skill.
 
 **Note on `-id`:** a job identifier is `CONTROLLER_EXTRACTION_JOB_NAME` hashed together with the controller's
 `source_id`, so one controller keeps the same identifier in every recording. A user obtains it from the `job_id` key of
@@ -239,17 +240,18 @@ Use `streamable-http` for any hand-launched smoke test, never the `stdio` defaul
 These four divergences are the whole reason a user's CLI report can describe behavior the MCP workflow cannot reproduce.
 Read them before answering "why did it fail for me but not for you".
 
-| Divergence            | CLI behavior                                                                                                                                                                                                                                | MCP behavior                                                                                                                                     |
-|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| Strict sourcing       | `prepare_jobs` runs with its `strict_sources` default, so an unregistered, unconfigured, or unresolvable controller **raises** and no job runs                                                                                              | `prepare_log_processing_batch_tool` passes `strict_sources=False`, records the same three conditions in `skipped_sources`, and prepares the rest |
-| No error recovery     | The job loop carries **no exception handling**. The first job that raises aborts the invocation. The tracker records that one job `FAILED`, and every job behind it stays `SCHEDULED` with no failure record of its own and no requeue      | The batch engine requeues a broken job, then fails jobs explicitly with a named reason                                                           |
-| Empty result is fatal | A log directory resolving no job raises `FileNotFoundError` naming it                                                                                                                                                                       | The same situation returns `success: True` with `jobs: []` and `source_ids: []`                                                                  |
-| No sizing             | Reads no archive before dispatch, weighs nothing against a budget, and hands every job the same flat core ceiling. `memory_mb`, `message_count`, `archive_bytes`, `modeled`, `pool_size`, and `job_allocations` have **no CLI counterpart** | Sizes every job from its archive's zip directory and admits jobs against resolved core and memory budgets                                        |
+| Divergence            | CLI behavior                                                                                                                                                                                                                                               | MCP behavior                                                                                                                                     |
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| Strict sourcing       | `prepare_jobs` runs with its `strict_sources` default, so an unregistered, unconfigured, or unresolvable controller **raises** and no job runs                                                                                                             | `prepare_log_processing_batch_tool` passes `strict_sources=False`, records the same three conditions in `skipped_sources`, and prepares the rest |
+| No error recovery     | The job loop carries **no exception handling**. The first job that raises aborts the invocation. The tracker records that one job `FAILED`, and every job behind it stays `SCHEDULED` with no failure record of its own and no requeue                     | The batch engine requeues a broken job, then fails jobs explicitly with a named reason                                                           |
+| Empty result is fatal | A log directory resolving no job raises `FileNotFoundError` naming it                                                                                                                                                                                      | The same situation returns `success: True` with `jobs: []` and `source_ids: []`                                                                  |
+| No budget sizing      | Resolves each job's width from its own archive at the `-w -1` default and stops there, estimating no memory and weighing nothing against a budget. `memory_mb`, `archive_bytes`, `modeled`, `pool_size`, and `job_allocations` have **no CLI counterpart** | Sizes every job from its archive's zip directory and admits jobs against resolved core and memory budgets                                        |
 
-**Note on `-np`:** the flag reaches only the parallel extraction path. A job that runs sequentially, because `-w 1` was
-passed, or because the archive holds fewer messages than the parallel-processing threshold, renders no progress bar
-whatever the flag says. The flag therefore matters mainly for non-interactive runs, where the bar would otherwise
-pollute a captured log.
+**Note on `-np`:** the flag reaches only the parallel extraction path. A job that runs sequentially renders no progress
+bar whatever the flag says. That covers `-w 1`, an archive the `-w -1` default sizes to a single worker because it sits
+below the parallel extraction threshold, and an archive the reader itself batches sequentially because it sits below
+the parallel processing threshold. The flag therefore matters mainly for non-interactive runs, where the bar would
+otherwise pollute a captured log.
 
 **Note on tracker contention:** both paths lock the same `microcontroller_processing_tracker.yaml` through its `.LOCK`
 file, on the CLI side when the pipeline aligns the tracker and again on every job state transition. A user running `axci

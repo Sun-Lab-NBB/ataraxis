@@ -155,6 +155,7 @@ is `"51"` and never `"051"`.
 | `ExtractionConfig` `controller_id:`, `read_extraction_config_tool` | int                              |
 | `write_extraction_config_tool(controllers=[...])`                  | either, the tool applies `int()` |
 | `discover_microcontroller_data_tool` -> `sources[].source_id`      | str                              |
+| `discover_microcontroller_data_tool` -> `breakdown.source_id` keys | str                              |
 | `assemble_log_archives_tool` -> `source_ids`                       | str                              |
 | `prepare_log_processing_batch_tool(source_ids=)`                   | str                              |
 | `reset_log_processing_jobs_tool(source_ids=)`                      | str                              |

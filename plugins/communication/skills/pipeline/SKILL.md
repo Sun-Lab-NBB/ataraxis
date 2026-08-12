@@ -228,8 +228,8 @@ case where assembly must be run separately against an already-stopped directory.
 
 All controllers sharing a DataLogger write to the same log directory and the same `microcontroller_manifest.yaml`.
 
-1. `discover_microcontroller_data_tool` finds the manifest and identifies all confirmed sources with their controller
-   names and module listings
+1. `discover_microcontroller_data_tool` finds the manifest and names every confirmed source and controller name through
+   its `breakdown`, with `detailed=True` adding the module listings
 2. Create and validate extraction config covering all controllers (see `/extraction-configuration`)
 3. `prepare_log_processing_batch_tool` creates one job per source ID with the config path
 4. Process all source IDs in a single batch for efficiency
@@ -251,7 +251,7 @@ supported per invocation. `discover_microcontroller_data_tool` does tolerate the
 ### Resuming an existing project root
 
 Start here whenever the user points at a directory rather than at a task. `/log-processing` owns
-`get_batch_status_overview_tool`, whose recursive per-log-directory `status` decides the route.
+`get_batch_status_overview_tool`, whose recursive `breakdown` of directories per status decides the route.
 
 | The overview reports      | Route to                                                              |
 |---------------------------|-----------------------------------------------------------------------|

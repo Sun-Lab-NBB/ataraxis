@@ -143,23 +143,34 @@ legacy manifest that still holds several rows for one ID reports a single source
 
 **`discover_microcontroller_data_tool` parameters:**
 
-| Parameter        | Type  | Default    | Description                                   |
-|------------------|-------|------------|-----------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to the root directory to search |
+| Parameter        | Type               | Default    | Description                                                 |
+|------------------|--------------------|------------|-------------------------------------------------------------|
+| `root_directory` | `str`              | (required) | Absolute path to the root directory to search               |
+| `source_ids`     | `list[str] / None` | `None`     | Restricts the listing to these controller IDs               |
+| `name`           | `str / None`       | `None`     | Restricts the listing to one controller name                |
+| `limit`          | `int / None`       | `None`     | Sources to list. Defaults to 200, or to 50 under `detailed` |
+| `start_row`      | `int`              | `0`        | Match index to begin the listing at                         |
+| `include_items`  | `bool`             | `False`    | Lists sources when no filter is named                       |
+| `detailed`       | `bool`             | `False`    | Adds `log_archive` and `modules` to each listed source      |
 
 **Return structure:**
 ```text
-sources[]:              Flat list of confirmed source entries:
-  recording_root:       Path to the recording root directory
-  source_id:            Source ID string (controller ID)
-  name:                 Controller name from manifest
-  log_archive:          Absolute path to the .npz archive
-  log_directory:        Absolute path to the DataLogger output directory
-  modules[]:            Module entries from manifest (module_type, module_id, name)
 log_directories:        Flat list of log directory paths (pass directly to batch tools)
 total_sources:          Number of confirmed source entries
 total_log_directories:  Number of log directories with archives
+breakdown{}:            Counts spanning every confirmed source, keyed `source_id` and `name`
+sources[]:              Present under a filter, under `include_items`, and on a scan confirming no source:
+  recording_root:       Path to the recording root directory
+  source_id:            Source ID string (controller ID)
+  name:                 Controller name from manifest
+  log_directory:        Absolute path to the DataLogger output directory
+  log_archive:          Absolute path to the .npz archive. Present only under `detailed`
+  modules[]:            Module entries from manifest. Present only under `detailed`
 ```
+
+**Note:** a bare call lists no `sources` at all, and names the controller IDs and the controller names through
+`breakdown` instead. That is enough to confirm a recording is discoverable, so ask for the listing only when a table
+needs each source's own row. `/log-processing` owns the paging fields that accompany a listed page.
 
 **Important:** This tool requires `microcontroller_manifest.yaml` files in DataLogger output directories. These
 manifests are written automatically by `MicroControllerInterface.__init__()`. For legacy sessions without manifests, use
