@@ -238,6 +238,14 @@ The ataraxis-communication-interface processing pipeline only processes archives
 `microcontroller_manifest.yaml`, and the ataraxis-video-system pipeline only processes archives referenced in
 `camera_manifest.yaml`.
 
+Both archive kinds carry the same `{source_id}_log.npz` name, so the manifest is the only thing that tells them apart.
+An unregistered archive is invisible to a pipeline rather than mis-parsed. `/video:log-input-format` documents the
+camera archives and their payload layout, and `/video:pipeline` owns the shared source ID namespace.
+
+Assembly is directory-wide, not per-library. The source ID grouping above ignores which library wrote an entry, so
+**one** call covers both libraries. Running it a second time after either side has already assembled is the destructive
+case `/microcontroller-setup` documents.
+
 ---
 
 ## Archive internal structure
@@ -409,6 +417,7 @@ Before running the log processing pipeline, verify these conditions:
 | `/pipeline`                            | Context: reference skill for the end-to-end pipeline phases          |
 | `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for discovery and processing   |
 | `/microcontroller:firmware-module`     | Context: firmware side of the protocol codes and message layouts     |
+| `/video:log-input-format`              | Peer: the camera archives that may share the same log directory      |
 
 ---
 

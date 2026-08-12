@@ -180,6 +180,11 @@ Allocate controller IDs sequentially starting at 101 (e.g., 101, 102, 103 for a 
 unique across **all** sources sharing a DataLogger, including sources from other libraries (e.g.,
 ataraxis-video-system). The 101-150 range avoids collisions with other libraries' advised ranges.
 
+When cameras record into the same DataLogger, invoke `/video:pipeline` for the camera side. It advises the 51-100 band
+for VideoSystem instances, and it owns the rules for a directory holding both libraries' manifests and archives. One
+value overlaps: the axvs interactive CLI is fixed at 111, which falls inside this band, so keep 111 free on any logger
+a user may run `axvs run` against.
+
 ### DataLogger topology
 
 A single shared DataLogger is the preferred topology for all use cases:
@@ -305,6 +310,7 @@ and 2 together instead of editing one side alone.
 | `/log-processing`                      | Phase 5: data extraction. Owns batch resource management |
 | `/log-processing-results`              | Phase 6: output verification and event analysis          |
 | `/cli-reference`                       | Reference: the full `axci` command surface, human-facing |
+| `/video:pipeline`                      | Peer: the camera side of a shared-DataLogger recording   |
 
 ---
 

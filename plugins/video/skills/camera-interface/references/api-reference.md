@@ -1,6 +1,6 @@
 # ataraxis-video-system API reference
 
-Complete API reference for ataraxis-video-system v4.0.1.
+Complete API reference for ataraxis-video-system v5.0.0.
 
 ---
 
@@ -16,6 +16,7 @@ from ataraxis_video_system import (
     EncoderSpeedPresets,
     InputPixelFormats,
     OutputPixelFormats,
+    ExtractedDataColumns,
     # Data classes
     CameraInformation,
     GenicamNodeInfo,
@@ -26,16 +27,28 @@ from ataraxis_video_system import (
     discover_camera_ids,
     add_cti_file,
     check_cti_file,
+    genicam_runtime_available,
+    harvester_connection,
     # Utilities
     check_ffmpeg_availability,
     check_gpu_availability,
+    resolve_camera_video_path,
+    write_camera_manifest,
     # Configuration
     DEFAULT_BLACKLISTED_NODES,
     CAMERA_MANIFEST_FILENAME,
     # Log processing
     run_log_processing_pipeline,
+    extract_logged_camera_timestamps,
 )
 ```
+
+The top-level `__all__` also exports the orchestration layer's job and sizing assets (`JobSource`, `JobUniverse`,
+`execute_job`, `resolve_jobs`, `resolve_timestamps_path`, `estimate_archive_job_memory_mb`, and the
+`CAMERA_EXTRACTION_JOB_*` constants). Those are deliberately left undocumented here: schedule log processing through the
+MCP tools that `/log-processing` covers rather than driving jobs through those assets by hand.
+`run_log_processing_pipeline` is the one orchestration entry point this reference documents, since it is the
+whole-recording pipeline the `axvs process` CLI runs.
 
 ---
 
@@ -69,43 +82,65 @@ VideoSystem(
 
 ### Constructor parameters
 
-| Parameter                | Type                        | Required | Default                      | Description                                                                                            |
-|--------------------------|-----------------------------|----------|------------------------------|--------------------------------------------------------------------------------------------------------|
-| `system_id`              | `np.uint8`                  | Yes      | -                            | Unique identifier for DataLogger timestamp correlation                                                 |
-| `data_logger`            | `DataLogger`                | Yes      | -                            | Shared logger instance (must be started)                                                               |
-| `name`                   | `str`                       | Yes      | -                            | Human-readable camera name (e.g., `"face_camera"`). Written to camera manifest for discovery.          |
-| `output_directory`       | `Path / None`               | Yes      | -                            | Directory for video output (None disables saving)                                                      |
-| `camera_interface`       | `CameraInterfaces / str`    | No       | `CameraInterfaces.OPENCV`    | Camera backend: HARVESTERS, OPENCV, or MOCK                                                            |
-| `camera_index`           | `int`                       | No       | `0`                          | Camera index from discovery functions                                                                  |
-| `display_frame_rate`     | `int / None`                | No       | `None`                       | Live preview rate in FPS (None disables preview)                                                       |
-| `frame_width`            | `int / None`                | No       | `None`                       | Override native camera frame width in pixels                                                           |
-| `frame_height`           | `int / None`                | No       | `None`                       | Override native camera frame height in pixels                                                          |
-| `frame_rate`             | `int / None`                | No       | `None`                       | Override native camera frame rate in FPS                                                               |
-| `gpu`                    | `int`                       | No       | `-1`                         | GPU index for hardware encoding (-1 for CPU only)                                                      |
-| `video_encoder`          | `VideoEncoders / str`       | No       | `VideoEncoders.H265`         | Video codec: H264 or H265                                                                              |
-| `encoder_speed_preset`   | `EncoderSpeedPresets / int` | No       | `EncoderSpeedPresets.SLOW`   | Encoding speed vs quality tradeoff (1-7)                                                               |
-| `output_pixel_format`    | `OutputPixelFormats / str`  | No       | `OutputPixelFormats.YUV444`  | Output color format: YUV420 or YUV444                                                                  |
-| `quantization_parameter` | `int`                       | No       | `15`                         | Quality parameter -1..51 (lower = higher quality); -1 defers QP to the encoder default                 |
-| `color`                  | `bool / None`               | No       | `None`                       | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
+| Parameter                | Type                        | Required | Default                     | Description                                                                                            |
+|--------------------------|-----------------------------|----------|-----------------------------|--------------------------------------------------------------------------------------------------------|
+| `system_id`              | `np.uint8`                  | Yes      | -                           | Unique identifier for DataLogger timestamp correlation                                                 |
+| `data_logger`            | `DataLogger`                | Yes      | -                           | Shared logger instance (must be started)                                                               |
+| `name`                   | `str`                       | Yes      | -                           | Human-readable camera name (e.g., `"face_camera"`)                                                     |
+| `output_directory`       | `Path / None`               | Yes      | -                           | Directory for video output (None disables saving)                                                      |
+| `camera_interface`       | `CameraInterfaces / str`    | No       | `CameraInterfaces.OPENCV`   | Camera backend: HARVESTERS, OPENCV, or MOCK                                                            |
+| `camera_index`           | `int`                       | No       | `0`                         | Camera index from discovery functions                                                                  |
+| `display_frame_rate`     | `int / None`                | No       | `None`                      | Live preview rate in FPS (None disables preview)                                                       |
+| `frame_width`            | `int / None`                | No       | `None`                      | Override native camera frame width in pixels                                                           |
+| `frame_height`           | `int / None`                | No       | `None`                      | Override native camera frame height in pixels                                                          |
+| `frame_rate`             | `int / None`                | No       | `None`                      | Override native camera frame rate in FPS                                                               |
+| `gpu`                    | `int`                       | No       | `-1`                        | GPU index for hardware encoding (-1 for CPU only)                                                      |
+| `video_encoder`          | `VideoEncoders / str`       | No       | `VideoEncoders.H265`        | Video codec: H264 or H265                                                                              |
+| `encoder_speed_preset`   | `EncoderSpeedPresets / int` | No       | `EncoderSpeedPresets.SLOW`  | Encoding speed vs quality tradeoff (1-7)                                                               |
+| `output_pixel_format`    | `OutputPixelFormats / str`  | No       | `OutputPixelFormats.YUV444` | Output color format: YUV420 or YUV444                                                                  |
+| `quantization_parameter` | `int`                       | No       | `15`                        | Quality parameter 0..51 (lower = higher quality)                                                       |
+| `color`                  | `bool / None`               | No       | `None`                      | Color mode for OpenCV/Mock (True=BGR, False=MONO). Keyword-only. Harvesters infers from camera config. |
 
 **Notes:**
-- `name` is written to a `camera_manifest.yaml` file in the DataLogger output directory during
-  `__init__()`, associating the `system_id` with the human-readable name for downstream archive
-  identification
 - `frame_width`, `frame_height`, and `frame_rate` default to the camera's native values when set to None
-- `color` is only used by OpenCV and Mock interfaces; Harvesters cameras determine color mode from their GenICam config
-- `quantization_parameter` accepts -1 to 51 inclusive; -1 is a sentinel that defers QP choice to the
-  encoder's own default, distinct from QP 0 (near-lossless)
-- The output video file is named `{system_id:03d}.mp4` in the output directory
+- `color` is only used by OpenCV and Mock interfaces. Harvesters cameras determine color mode from their GenICam config
+- `quantization_parameter` accepts 0 to 51 inclusive, where 0 is near-lossless and 51 is worst quality. There is
+  no sentinel value, and the bound is enforced only when `output_directory` is set
+- The output video file is named `{system_id:03d}.mp4` in the output directory, which `resolve_camera_video_path()`
+  computes for callers that need the path without constructing a VideoSystem
+- Requesting `CameraInterfaces.HARVESTERS` where the GenICam runtime is absent raises `NotImplementedError`
+- The constructor connects to the camera and grabs one probe frame, then rejects the camera with `ValueError`
+  when that frame's dtype is not `np.uint8`. Every `InputPixelFormats` member describes 8 bits per component
+  and the library performs no software conversion, so a GenICam camera must be set to an 8-bit pixel format
+  (Mono8, BGR8, RGB8) before a VideoSystem is constructed against it. Mono10, Mono12, Mono16, and other wide
+  formats are rejected outright rather than down-converted
+
+### Constructor failure modes
+
+| Exception             | Cause                                                                                  |
+|-----------------------|----------------------------------------------------------------------------------------|
+| `TypeError`           | An argument has the wrong type                                                         |
+| `ValueError`          | An argument is out of range, or the camera acquires frames that are not 8-bit unsigned |
+| `OverflowError`       | `system_id` falls outside the 0-255 range a uint8 supports                             |
+| `RuntimeError`        | FFMPEG is unavailable, or GPU encoding was requested without an NVIDIA GPU             |
+| `NotImplementedError` | The Harvesters interface was requested where the GenICam runtime is absent (macOS)     |
+| `FileNotFoundError`   | The Harvesters interface was requested before a .cti file was configured               |
+| `OSError`             | The configured .cti file is not a loadable GenTL Producer                              |
+| `BrokenPipeError`     | The validation frame grab from the managed camera failed                               |
+| `Timeout`             | The camera manifest's `.lock` file could not be acquired within 10 seconds             |
+
+The `Timeout` comes from the `filelock` dependency that guards the manifest write. It is the one to expect when several
+VideoSystems register against one DataLogger directory concurrently, from separate processes or from the threads
+concurrent MCP tool calls run on. Sequential construction releases the lock before the next constructor asks for it.
 
 ### Methods
 
-| Method                 | Returns | Description                                                          |
-|------------------------|---------|----------------------------------------------------------------------|
-| `start()`              | `None`  | Spawns producer (acquisition) and consumer (encoding) processes      |
-| `stop()`               | `None`  | Terminates all processes and releases camera/encoder resources       |
-| `start_frame_saving()` | `None`  | Enables writing encoded frames to disk (call after `start()`)        |
-| `stop_frame_saving()`  | `None`  | Stops writing frames to disk while keeping acquisition active        |
+| Method                 | Returns | Description                                                     |
+|------------------------|---------|-----------------------------------------------------------------|
+| `start()`              | `None`  | Spawns producer (acquisition) and consumer (encoding) processes |
+| `stop()`               | `None`  | Terminates all processes and releases camera/encoder resources  |
+| `start_frame_saving()` | `None`  | Enables writing encoded frames to disk (call after `start()`)   |
+| `stop_frame_saving()`  | `None`  | Stops writing frames to disk while keeping acquisition active   |
 
 ### Properties
 
@@ -205,7 +240,7 @@ class CameraInformation:
     interface: CameraInterfaces | str  # OPENCV or HARVESTERS
     frame_width: int                   # Native frame width in pixels
     frame_height: int                  # Native frame height in pixels
-    acquisition_frame_rate: int        # Native frame rate in FPS
+    acquisition_frame_rate: int        # Native frame rate in FPS; 0 for Harvesters cameras lacking AcquisitionFrameRate
     serial_number: str | None = None   # Harvesters only
     model: str | None = None           # Harvesters only
 ```
@@ -219,7 +254,14 @@ Stores a single GenICam feature node's value:
 class GenicamNodeInfo:
     name: str                              # Feature name (e.g., "Width", "ExposureTime")
     value: int | float | str | bool        # Current value
+    selectors: dict[str, str | int] = field(default_factory=dict)  # Selector values addressing this instance
 ```
+
+`selectors` is empty for an ordinary node. SFNC multiplexes some features behind a selector, so a camera holds one
+`BalanceRatio` per `BalanceRatioSelector` entry rather than a single value. The mapping pins the instance a value
+belongs to, and it is applied to the camera before the value is read or written. A dumped configuration therefore
+carries one entry per selector combination, which is why a dump can report more entries than the camera has distinct
+feature names.
 
 ### GenicamConfiguration
 
@@ -244,20 +286,22 @@ config = GenicamConfiguration.from_yaml(file_path=Path("camera_config.yaml"))
 
 ### Programmatic GenICam configuration
 
-GenICam state is applied in code through the `HarvestersCamera` interface — the same operations the
-`/camera-setup` MCP tools (`read_genicam_node_tool`, `write_genicam_node_tool`, `dump_genicam_config_tool`,
-`load_genicam_config_tool`) perform. Two supply modes are supported:
+GenICam state is applied in code through the `HarvestersCamera` interface, the same operations the `/camera-setup` MCP
+tools (`read_genicam_node_tool`, `write_genicam_node_tool`, `dump_genicam_config_tool`, `load_genicam_config_tool`)
+perform. Two supply modes are supported:
 
 ```python
-# Per-parameter targeting: write a single ReadWrite node (value is coerced to the node's native type)
-camera.set_node_value(name="ExposureTime", value="4000")
-camera.set_node_value(name="Gain", value="2.0")
-info = camera.get_node_info(name="AcquisitionFrameRate")          # -> GenicamNodeInfo(name, value)
+# harvester_connection() yields a connected camera and disconnects when the block exits.
+with harvester_connection(camera_index=0) as camera:
+    # Per-parameter targeting: write a single ReadWrite node (value is coerced to the node's native type)
+    camera.set_node_value(name="ExposureTime", value="4000")
+    camera.set_node_value(name="Gain", value="2.0")
+    info = camera.get_node_info(name="AcquisitionFrameRate")      # -> GenicamNodeInfo(name, value, selectors)
 
-# Full-config restoration: dump every ReadWrite node, persist to YAML, re-apply later
-config = camera.get_configuration()                               # -> GenicamConfiguration
-config.to_yaml(file_path=Path("camera_config.yaml"))
-camera.apply_configuration(config=config, strict_identity=False)  # strict_identity/blacklisted_nodes are keyword-only
+    # Full-config restoration: dump every ReadWrite node, persist to YAML, re-apply later
+    config = camera.get_configuration()                           # -> GenicamConfiguration
+    config.to_yaml(file_path=Path("camera_config.yaml"))
+    camera.apply_configuration(config=config, strict_identity=False)  # both keyword-only after config
 ```
 
 `HarvestersCamera` config method signatures:
@@ -271,16 +315,16 @@ def apply_configuration(self, config: GenicamConfiguration, *, strict_identity: 
                         blacklisted_nodes: frozenset[str] = DEFAULT_BLACKLISTED_NODES) -> None: ...
 ```
 
-`strict_identity=False` warns (rather than aborts) on a camera model/serial mismatch. The default
-`blacklisted_nodes` (`{CustomerIDKey, CustomerValueKey, TestPattern}`) skips vendor nodes that report
-ReadWrite access but reject writes. A connected `HarvestersCamera` is normally obtained at configuration
-time via the `/camera-setup` tools (which wrap these calls); these methods exist for advanced in-process use.
+`strict_identity=False` warns (rather than aborts) on a camera model/serial mismatch. The default `blacklisted_nodes`
+(`{CustomerIDKey, CustomerValueKey, TestPattern}`) skips vendor nodes that report ReadWrite access but reject writes. A
+connected `HarvestersCamera` is normally obtained at configuration time via the `/camera-setup` tools (which wrap these
+calls). These methods exist for advanced in-process use.
 
-The `VideoSystem` constructor accepts **no** GenICam config object: resolution and frame rate are applied
-from its `frame_width`/`frame_height`/`frame_rate` arguments at `connect()`, while exposure, gain, and other
-nodes are configured through the methods above. Because the deterministic acquisition script does not
-reconfigure nodes at runtime, apply GenICam state at configuration time and either persist it on the camera
-(save a UserSet) or re-apply a saved `GenicamConfiguration` before starting acquisition.
+The `VideoSystem` constructor accepts **no** GenICam config object: resolution and frame rate are applied from its
+`frame_width` /`frame_height`/`frame_rate` arguments at `connect()`, while exposure, gain, and other nodes are
+configured through the methods above. Because the deterministic acquisition script does not reconfigure nodes at
+runtime, apply GenICam state at configuration time and either persist it on the camera (save a UserSet) or re-apply a
+saved `GenicamConfiguration` before starting acquisition.
 
 ### CameraSourceData
 
@@ -295,8 +339,8 @@ class CameraSourceData:
 
 ### CameraManifest
 
-Stores camera source identification data for all VideoSystem instances sharing a DataLogger. Extends
-`YamlConfig` with `to_yaml()` and `from_yaml()` methods:
+Stores camera source identification data for all VideoSystem instances sharing a DataLogger. Extends `YamlConfig` with
+`to_yaml()` and `from_yaml()` methods:
 
 ```python
 @dataclass
@@ -304,16 +348,15 @@ class CameraManifest(YamlConfig):
     sources: list[CameraSourceData] = field(default_factory=list)
 ```
 
-Written automatically by `VideoSystem.__init__()` to the DataLogger output directory as
-`camera_manifest.yaml`. Used by `discover_camera_data_tool` to identify axvs-produced
-log archives.
+Written automatically by `VideoSystem.__init__()` to the DataLogger output directory as `camera_manifest.yaml`. Used by
+`discover_camera_data_tool` to identify axvs-produced log archives.
 
 ### Constants
 
-| Constant                     | Type            | Value                       | Description                                      |
-|------------------------------|-----------------|-----------------------------|--------------------------------------------------|
-| `CAMERA_MANIFEST_FILENAME`   | `str`           | `"camera_manifest.yaml"`    | Filename for camera manifest files               |
-| `DEFAULT_BLACKLISTED_NODES`  | `frozenset[str]`| (3 entries)                 | GenICam nodes excluded from configuration dumps  |
+| Constant                    | Type             | Value                    | Description                                     |
+|-----------------------------|------------------|--------------------------|-------------------------------------------------|
+| `CAMERA_MANIFEST_FILENAME`  | `str`            | `"camera_manifest.yaml"` | Filename for camera manifest files              |
+| `DEFAULT_BLACKLISTED_NODES` | `frozenset[str]` | (3 entries)              | GenICam nodes excluded from configuration dumps |
 
 ---
 
@@ -326,7 +369,8 @@ def discover_camera_ids() -> tuple[CameraInformation, ...]
 ```
 
 Discovers all cameras accessible through both OpenCV and Harvesters interfaces. OpenCV cameras are discovered first.
-Harvesters discovery is skipped if no CTI file is configured.
+Harvesters discovery is skipped if no CTI file is configured, and also wherever the GenICam runtime is absent, which is
+every macOS host. Call `genicam_runtime_available()` to distinguish the two cases.
 
 ### add_cti_file
 
@@ -334,8 +378,11 @@ Harvesters discovery is skipped if no CTI file is configured.
 def add_cti_file(cti_path: Path) -> None
 ```
 
-Configures the GenTL Producer file path. Persists across sessions (stored in user data directory via platformdirs).
-Must be called before `discover_camera_ids()` or creating a VideoSystem with `CameraInterfaces.HARVESTERS`.
+Configures the GenTL Producer file path. Persists across sessions (stored in user data directory via platformdirs). Must
+be called before `discover_camera_ids()` or creating a VideoSystem with `CameraInterfaces.HARVESTERS`. The supplied path
+is expanded and resolved before it is persisted, so a relative path is stored absolute. Raises `NotImplementedError`
+where the GenICam runtime is absent, `FileNotFoundError` if the file does not exist, and `OSError` if it is not a
+loadable GenTL Producer.
 
 ### check_cti_file
 
@@ -343,7 +390,28 @@ Must be called before `discover_camera_ids()` or creating a VideoSystem with `Ca
 def check_cti_file() -> Path | None
 ```
 
-Returns the configured CTI file path if valid, or None if not configured or the file no longer exists.
+Returns the configured CTI file path if valid, or None if not configured or the file no longer exists. The
+`AXVS_CTI_PATH` environment variable overrides the persisted path, matching the resolution order applied when connecting
+to a camera. Also returns None wherever the GenICam runtime is absent, regardless of any configured path.
+
+### genicam_runtime_available
+
+```python
+def genicam_runtime_available() -> bool
+```
+
+Returns True when the GenICam camera runtime is importable. It returns False wherever that runtime is not installed, and
+the Dependencies section below records the platforms that runtime installs on.
+
+### harvester_connection
+
+```python
+@contextmanager
+def harvester_connection(camera_index: int) -> Generator[HarvestersCamera, None, None]
+```
+
+Yields a connected `HarvestersCamera` for the duration of the block and disconnects on exit. This is the sanctioned way
+to obtain the camera object the programmatic GenICam configuration methods above are called on.
 
 ---
 
@@ -372,34 +440,34 @@ def run_log_processing_pipeline(
     log_directory: Path,
     output_directory: Path,
     job_id: str | None = None,
-    log_ids: list[str] | None = None,
+    source_ids: Sequence[str] | None = None,
     *,
     workers: int = -1,
     display_progress: bool = True,
 ) -> None
 ```
 
-Orchestrates timestamp extraction for all log archives in a directory. Creates a ProcessingTracker, discovers
-source IDs, and runs extraction jobs. For MCP-based batch processing, use `/log-processing` instead.
+Orchestrates timestamp extraction for all log archives in a directory. Creates a ProcessingTracker, discovers source
+IDs, and runs extraction jobs. For MCP-based batch processing, use `/log-processing` instead.
 
-### extract_logged_camera_timestamps (internal)
+### extract_logged_camera_timestamps
 
-Not exported in `__all__`; import directly from `ataraxis_video_system.video.log_processing` if needed.
+Exported from the top-level `ataraxis_video_system` package and defined in `ataraxis_video_system.video.timestamps`.
 
 ```python
 def extract_logged_camera_timestamps(
     log_path: Path,
-    n_workers: int = -1,
+    workers: int = -1,
     *,
     display_progress: bool = True,
     executor: ProcessPoolExecutor | None = None,
 ) -> NDArray[np.uint64]
 ```
 
-Extracts frame acquisition timestamps from a DataLogger `.npz` archive. Returns a contiguous numpy array of
-timestamps as microseconds since UTC epoch, in frame order. When an `executor` is provided, parallel work is
-submitted to the shared pool instead of creating a new `ProcessPoolExecutor` per call (used by MCP batch
-processing for worker-tier pool sharing).
+Extracts frame acquisition timestamps from a DataLogger `.npz` archive. Returns a contiguous numpy array of timestamps
+as microseconds since UTC epoch, in frame order. When an `executor` is provided, parallel work is submitted to the
+shared pool instead of creating a new `ProcessPoolExecutor` per call (used by MCP batch processing for worker-tier pool
+sharing).
 
 ---
 
@@ -420,11 +488,11 @@ Each entry is a 1D numpy uint8 array:
 
 The first log entry for each VideoSystem uses a special format:
 
-| Offset | Size    | Content                                      |
-|--------|---------|----------------------------------------------|
-| 0      | 1 byte  | System ID (uint8)                            |
-| 1      | 8 bytes | Zero (indicates onset entry)                 |
-| 9      | 8 bytes | UTC timestamp (microseconds since epoch)     |
+| Offset | Size    | Content                                  |
+|--------|---------|------------------------------------------|
+| 0      | 1 byte  | System ID (uint8)                        |
+| 1      | 8 bytes | Zero (indicates onset entry)             |
+| 9      | 8 bytes | UTC timestamp (microseconds since epoch) |
 
 ---
 
@@ -432,11 +500,17 @@ The first log entry for each VideoSystem uses a special format:
 
 ### External
 
-| Dependency | Required | Purpose                                                |
-|------------|----------|--------------------------------------------------------|
-| FFMPEG     | Yes      | Backend for H.264/H.265 video encoding                 |
-| CTI file   | No       | GenTL Producer for Harvesters cameras                  |
-| NVIDIA GPU | No       | Hardware-accelerated encoding (optional)               |
+| Dependency | Required | Purpose                                  |
+|------------|----------|------------------------------------------|
+| FFMPEG     | Yes      | Backend for H.264/H.265 video encoding   |
+| CTI file   | No       | GenTL Producer for Harvesters cameras    |
+| NVIDIA GPU | No       | Hardware-accelerated encoding (optional) |
+
+### Python
+
+The package requires Python `>=3.12,<3.15`. Its `harvesters` and `genicam` dependencies carry the marker
+`sys_platform != 'darwin'`, so the GenICam camera runtime is installed on Linux and Windows only. Its absence on macOS
+is by design, not a damaged installation, and no reinstall restores it.
 
 ---
 
@@ -483,8 +557,8 @@ if __name__ == "__main__":
 
 ### Harvesters camera
 
-For Harvesters cameras, set resolution and frame rate via GenICam configuration (see `/camera-setup`)
-rather than VideoSystem constructor overrides.
+For Harvesters cameras, set resolution and frame rate via GenICam configuration (see `/camera-setup`) rather than
+VideoSystem constructor overrides.
 
 ```python
 from pathlib import Path
