@@ -9,9 +9,9 @@ user-invocable: false
 
 # Microcontroller setup
 
-Guides the use of the ataraxis-communication-interface MCP tools for hardware discovery, MQTT verification,
-manifest management, and log archive assembly. This skill covers all MCP tool interactions; for writing code
-that integrates MicroControllerInterface into an acquisition system, use `/microcontroller-interface` instead.
+Guides the use of the ataraxis-communication-interface MCP tools for hardware discovery, MQTT verification, manifest
+management, and log archive assembly. This skill covers all MCP tool interactions, for writing code that integrates
+MicroControllerInterface into an acquisition system, use `/microcontroller-interface` instead.
 
 ---
 
@@ -21,7 +21,7 @@ that integrates MicroControllerInterface into an acquisition system, use `/micro
 - Discovering connected microcontrollers via serial ports
 - Testing MQTT broker connectivity
 - Reading, writing, and inspecting microcontroller manifests
-- Assembling raw log entries into archives
+- Assembling raw log entries into archives after a recording
 - Discovering microcontroller recordings across directory trees
 
 **Does not cover:**
@@ -34,10 +34,9 @@ that integrates MicroControllerInterface into an acquisition system, use `/micro
 
 ## MCP tool reference
 
-The ataraxis-communication-interface MCP server exposes 19 tools. This skill covers the 6 tools most
-relevant to hardware setup and data management. Log processing and analysis tools are documented in
-`/log-processing` and `/log-processing-results`. Configuration tools are documented in
-`/extraction-configuration`.
+The ataraxis-communication-interface MCP server exposes 19 tools. This skill covers the 6 tools most relevant to
+hardware setup and data management. Log processing and analysis tools are documented in `/log-processing` and
+`/log-processing-results`. Configuration tools are documented in `/extraction-configuration`.
 
 ### Hardware discovery
 
@@ -48,38 +47,49 @@ relevant to hardware setup and data management. Log processing and analysis tool
 
 **`list_microcontrollers_tool` parameters:**
 
-| Parameter  | Type  | Default    | Description                                                     |
-|------------|-------|------------|-----------------------------------------------------------------|
-| `baudrate` | `int` | `115200`   | Baudrate for identification (UART only; ignored by USB devices) |
+| Parameter  | Type  | Default  | Description                                                     |
+|------------|-------|----------|-----------------------------------------------------------------|
+| `baudrate` | `int` | `115200` | Baudrate for identification (UART only, ignored by USB devices) |
+
+For a UART connection the identification baudrate must match the speed the firmware was built with, and 115200 is not a
+universal default across boards. Confirm the flashed board's configured speed with the user before concluding a port
+holds no microcontroller. `/microcontroller-interface` carries the per-board values and the firmware build files that
+fix them.
 
 Output format:
 ```text
 Evaluated 3 serial port(s) at baudrate 115200:
 1: /dev/ttyACM0 -> Teensy 4.1 [Microcontroller ID: 101]
 2: /dev/ttyACM1 -> Arduino Mega [No microcontroller]
-3: /dev/ttyUSB0 -> USB-SERIAL CH340 [Connection Failed: timeout]
+3: /dev/ttyUSB0 -> USB-SERIAL CH340 [Connection Failed: SerialException: could not open port /dev/ttyUSB0]
 ```
 
 Each line shows the device path, description, and one of three statuses:
-- **Microcontroller ID: N** — Identified as running ataraxis-micro-controller with the given controller ID
-- **No microcontroller** — Port responds but is not running ataraxis-micro-controller firmware
-- **Connection Failed** — Could not establish communication (timeout, permission error, etc.)
+- **Microcontroller ID: N**: Identified as running ataraxis-micro-controller with the given controller ID
+- **No microcontroller**: Port responds but is not running ataraxis-micro-controller firmware
+- **Connection Failed**: Could not establish communication (timeout, permission error, etc.)
 
-`MQTTCommunication` extends the serial microcontroller communication by connecting remote producers and
-consumers to the microcontroller ecosystem over TCP. It is designed for tight integration with
-`MicroControllerInterface` — for example, allowing a separate process or machine to send commands to or
-receive data from microcontrollers via MQTT topics. It can be used standalone, but the library was
-designed with this integrated usage in mind. Use `check_mqtt_broker_tool` to verify the broker is reachable
-before writing code that depends on MQTT connectivity.
+Each line is rendered from `evaluate_port(port, baudrate)`, which the `ataraxis_communication_interface.microcontroller`
+sub-package exports. The three statuses are its three return shapes, so import it when code must branch on the outcome
+instead of parsing this string:
+
+| `evaluate_port` return  | Rendered status         | Meaning                                                    |
+|-------------------------|-------------------------|------------------------------------------------------------|
+| `(controller_id, None)` | `Microcontroller ID: N` | The controller answered the identification command         |
+| `(-1, None)`            | `No microcontroller`    | The port opened but nothing answered within the ID timeout |
+| `(-1, "Type: message")` | `Connection Failed`     | Opening or querying the port raised. `Type` is the class   |
+
+The function never propagates an exception, so one unreachable port never aborts the sweep over the others.
+
+Use `check_mqtt_broker_tool` to verify the broker is reachable before writing code that depends on MQTT connectivity.
+`/microcontroller-interface` owns `MQTTCommunication`, the class that carries that connectivity into the runtime.
 
 **`check_mqtt_broker_tool` parameters:**
 
-| Parameter | Type  | Default       | Description                                       |
-|-----------|-------|---------------|---------------------------------------------------|
-| `host`    | `str` | `"127.0.0.1"` | IP address or hostname of the MQTT broker         |
-| `port`    | `int` | `1883`        | Socket port used by the MQTT broker               |
-
-Returns a message indicating whether the broker is reachable.
+| Parameter | Type  | Default       | Description                               |
+|-----------|-------|---------------|-------------------------------------------|
+| `host`    | `str` | `"127.0.0.1"` | IP address or hostname of the MQTT broker |
+| `port`    | `int` | `1883`        | Socket port used by the MQTT broker       |
 
 ### Manifest management
 
@@ -91,9 +101,9 @@ Returns a message indicating whether the broker is reachable.
 
 **`read_microcontroller_manifest_tool` parameters:**
 
-| Parameter       | Type  | Default    | Description                                              |
-|-----------------|-------|------------|----------------------------------------------------------|
-| `manifest_path` | `str` | (required) | Absolute path to the microcontroller_manifest.yaml file  |
+| Parameter       | Type  | Default    | Description                                             |
+|-----------------|-------|------------|---------------------------------------------------------|
+| `manifest_path` | `str` | (required) | Absolute path to the microcontroller_manifest.yaml file |
 
 **Return structure:**
 ```text
@@ -108,6 +118,10 @@ controllers[]:      List of registered controller entries:
 total_controllers:  Number of registered controllers
 ```
 
+**Note:** this tool reports `id` as an integer, while `discover_microcontroller_data_tool` reports the same value as the
+string `source_id`. Every batch tool takes `source_ids` as strings, so wrap a manifest `id` in `str()` before passing it
+on. `/log-input-format` carries the full source ID type rule.
+
 **`write_microcontroller_manifest_tool` parameters:**
 
 | Parameter         | Type         | Default    | Description                                                           |
@@ -117,22 +131,21 @@ total_controllers:  Number of registered controllers
 | `controller_name` | `str`        | (required) | Human-readable name for the controller                                |
 | `modules`         | `list[dict]` | (required) | Module descriptors: each must have `module_type`, `module_id`, `name` |
 
-**Important:** You MUST know the controller ID, name, and module details. Do not guess these values.
-Each module dictionary must have keys: `module_type` (int), `module_id` (int), `name` (str).
+**Important:** You MUST know the controller ID, name, and module details. Do not guess these values. Each module
+dictionary must have keys: `module_type` (int), `module_id` (int), `name` (str).
 
-Creates a new manifest if none exists; appends to the existing manifest otherwise.
+Creates a new manifest if none exists. Otherwise replaces the entry already registered under the same `controller_id`,
+or appends a new entry when the manifest carries none.
 
-This tool ALWAYS appends — it does not detect or replace existing entries. Calling it twice for the same
-`controller_id` creates a duplicate manifest entry, which `discover_microcontroller_data_tool` will then
-report as two separate sources (it iterates every controller in the manifest). Read the manifest first with
-`read_microcontroller_manifest_tool`; if the controller is already registered, do not call write again. To
-correct a wrong entry, edit the YAML manually.
+Re-registering the same `controller_id` overwrites that controller's entry rather than duplicating it, so a corrected
+call replaces a wrong entry in place. `discover_microcontroller_data_tool` also collapses repeated controller IDs, so a
+legacy manifest that still holds several rows for one ID reports a single source.
 
 **`discover_microcontroller_data_tool` parameters:**
 
-| Parameter        | Type  | Default    | Description                                          |
-|------------------|-------|------------|------------------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to the root directory to search        |
+| Parameter        | Type  | Default    | Description                                   |
+|------------------|-------|------------|-----------------------------------------------|
+| `root_directory` | `str` | (required) | Absolute path to the root directory to search |
 
 **Return structure:**
 ```text
@@ -148,10 +161,12 @@ total_sources:          Number of confirmed source entries
 total_log_directories:  Number of log directories with archives
 ```
 
-**Important:** This tool requires `microcontroller_manifest.yaml` files in DataLogger output directories.
-These manifests are written automatically by `MicroControllerInterface.__init__()`. For legacy sessions
-without manifests, use `write_microcontroller_manifest_tool` to retroactively tag log directories before
-running discovery.
+**Important:** This tool requires `microcontroller_manifest.yaml` files in DataLogger output directories. These
+manifests are written automatically by `MicroControllerInterface.__init__()`. For legacy sessions without manifests, use
+`write_microcontroller_manifest_tool` to retroactively tag log directories before running discovery. It also returns
+only those sources whose log archive (`{source_id}_log.npz`) already exists in that directory, a manifest entry with no
+archive beside it is skipped, so assemble archives with `assemble_log_archives_tool` before running discovery on a
+legacy directory.
 
 ### Archive assembly
 
@@ -161,32 +176,44 @@ running discovery.
 
 **Parameters:**
 
-| Parameter          | Type   | Default    | Description                                                  |
-|--------------------|--------|------------|--------------------------------------------------------------|
-| `log_directory`    | `str`  | (required) | Absolute path to DataLogger output directory. **Ask user.**  |
-| `remove_sources`   | `bool` | `true`     | Delete original .npy files after assembly                    |
-| `verify_integrity` | `bool` | `false`    | Verify archive integrity before removing sources             |
+| Parameter          | Type   | Default    | Description                                                 |
+|--------------------|--------|------------|-------------------------------------------------------------|
+| `log_directory`    | `str`  | (required) | Absolute path to DataLogger output directory. **Ask user.** |
+| `remove_sources`   | `bool` | `true`     | Delete original .npy files after assembly                   |
+| `verify_integrity` | `bool` | `false`    | Verify archive integrity before removing sources            |
 
-The defaults permanently delete the raw .npy files (`remove_sources=true`) without verifying the archive
-first (`verify_integrity=false`). For irreplaceable or legacy recordings, pass `verify_integrity=true` (and
-optionally `remove_sources=false`) to keep the raw entries until you have confirmed the archives are valid.
+The defaults permanently delete the raw .npy files (`remove_sources=true`) without verifying the archive first
+(`verify_integrity=false`). For irreplaceable or legacy recordings, pass `verify_integrity=true` (and optionally
+`remove_sources=false`) to keep the raw entries until you have confirmed the archives are valid.
 
 **Return structure:**
 ```text
 status:         "assembled"
 directory:      Path to the log directory
-archives:       List of created archive filenames (e.g., ["101_log.npz", "102_log.npz"])
+archives:       List of archive filenames present in the directory after assembly (e.g., ["101_log.npz"])
 source_ids:     List of extracted source ID strings
-archive_count:  Number of archives created
+archive_count:  Number of archives present after assembly
 ```
+
+The tool returns `{"error": "<message>"}` in place of that dictionary on three conditions, so check for an `error` key
+before reading `status`:
+
+| Condition                          | Message                            |
+|------------------------------------|------------------------------------|
+| `log_directory` does not exist     | `Directory not found: <path>`      |
+| `log_directory` is not a directory | `Not a directory: <path>`          |
+| The assembly call itself raised    | `Archive assembly failed: <error>` |
+
+**Note:** `archives`, `source_ids`, and `archive_count` are recomputed by scanning the directory AFTER assembly runs, so
+they report what is present rather than what this call produced. A directory that already holds .npz archives and no
+.npy entries returns `status: "assembled"` with a full archive list and no indication that nothing was assembled. To
+confirm a real change, list the .npy entries in the directory before calling the tool.
 
 ---
 
 ## Workflows
 
 ### Microcontroller discovery
-
-Run this to identify which microcontrollers are connected and their IDs:
 
 1. Call `list_microcontrollers_tool` (adjust `baudrate` if using non-default UART settings)
 2. Record the device paths and controller IDs for identified microcontrollers
@@ -203,9 +230,9 @@ Run this to identify which microcontrollers are connected and their IDs:
    - Verify the MQTT broker service is running (e.g., `systemctl status mosquitto`)
    - Check firewall rules allow connections on the specified port
    - Verify the host address is correct
-3. A raw tool error (rather than the "not reachable" message) usually means the host/hostname could not be
-   resolved or is malformed — the underlying `connect()` only returns the friendly message for
-   connection-level failures. Verify the host string before assuming the broker service is down.
+3. The "not reachable" message covers every socket-level failure, including a refused connection, a timeout, and a host
+   name that could not be resolved. Verify the host string as well as the broker service before concluding the broker is
+   down.
 
 ### Manifest inspection and retroactive tagging
 
@@ -214,75 +241,84 @@ Run this to identify which microcontrollers are connected and their IDs:
 2. Review the controller and module entries
 
 **Retroactively tag a legacy session:**
-1. Call `write_microcontroller_manifest_tool` with the log directory, controller ID, controller name,
-   and module list (this always appends — read the manifest first and do not write a `controller_id`
-   that is already registered, or discovery will report it as a duplicate source)
+1. Call `write_microcontroller_manifest_tool` with the log directory, controller ID, controller name, and module list
+   (re-registering the same `controller_id` replaces that entry rather than duplicating it)
 2. Verify by calling `read_microcontroller_manifest_tool` on the created manifest
 3. Run `discover_microcontroller_data_tool` to confirm the session is now discoverable
 
+**Warning:** the manifest bounds the set of jobs a recording can hold, and `prepare_log_processing_batch_tool` DELETES
+every tracker entry that falls outside it. Editing or regenerating a manifest so it stops registering a controller, then
+re-preparing that directory, silently erases the completed-job history of the dropped controllers. Correct entries in
+place with `write_microcontroller_manifest_tool`, which replaces the entry under the same `controller_id`. Never
+hand-edit or rewrite a manifest to drop a controller whose jobs already ran.
+
 ### Post-session archive assembly
 
-After a recording session, assemble raw logs into archives:
+Assembly is a step of its own that runs once per recording, not something a shutdown call performs. axci exposes no tool
+that starts or stops a runtime, and neither `MicroControllerInterface.stop()` nor `DataLogger.stop()` assembles
+anything. One log directory holds every source the recording wrote, so a system recording alongside a microcontroller
+writes into the same directory and is assembled by the same pass.
 
-1. Ask the user for the DataLogger output directory path
-2. Call `assemble_log_archives_tool` with the directory
-3. Verify with `discover_microcontroller_data_tool` to confirm archives and manifests are present
-4. Proceed to `/extraction-configuration` for config setup or `/log-processing` if config exists
+1. Confirm with the user that the runtime script stopped every interface and then the DataLogger
+2. Check the log directory for `.npy` entries, and for `.npz` archives (see the hazard below)
+3. Call `assemble_log_archives_tool` with the directory
+4. Call `discover_microcontroller_data_tool` to prove the archives exist and every expected source is present
+5. Proceed to `/extraction-configuration` for config setup, or `/log-processing` if a config exists
+
+**A directory holding both `.npy` entries and `.npz` archives is a half-assembled recording, and assembling it again is
+unsafe.** Archiving overwrites an existing archive of the same source, and neither `assemble_log_archives_tool` nor the
+library function beneath it guards against this, so the destructive call succeeds silently and reports `status:
+"assembled"`. Check for both extensions first. If both are present, have the user back up the existing archives and
+remove them from the log directory before retrying.
+
+Nothing downstream errors when this transition is skipped. `discover_microcontroller_data_tool` returns no source for an
+unassembled directory, and a directory reached without discovery has each of its sources recorded under prepare's
+`skipped_sources` while the call still reports `success: True`. A skipped assembly reads as an empty recording, never as
+a failure.
 
 ---
 
 ## Bridge to code integration
 
-When transitioning from MCP-based discovery to writing MicroControllerInterface code, use this mapping.
-
-### Parameter mapping
-
-| MCP Discovery                                 | Code Parameter                | How                                                  |
-|-----------------------------------------------|-------------------------------|------------------------------------------------------|
-| Device path from `list_microcontrollers_tool` | `port`                        | Pass the device path directly (e.g., `/dev/ttyACM0`) |
-| Microcontroller ID                            | `controller_id`               | Use the discovered ID as `np.uint8(id)`              |
-| Baudrate used in discovery                    | `baudrate`                    | Same value (default: 115200)                         |
-| MQTT broker host/port                         | `MQTTCommunication(ip, port)` | Pass to MQTTCommunication constructor                |
-
-### Controller ID semantics
-
-| Range   | Assignment                         | Notes                                             |
-|---------|------------------------------------|---------------------------------------------------|
-| 101-150 | MicroControllerInterface instances | Advised production range; not enforced            |
-| 1-255   | Valid range                        | Any np.uint8 value; must be unique per DataLogger |
-
-Allocate controller IDs sequentially starting at 101 (e.g., 101, 102, 103 for a 3-controller setup).
-Source IDs must be unique across **all** sources sharing a DataLogger, including sources from other
-libraries (e.g., ataraxis-video-system). The 101-150 range avoids collisions with other libraries'
-advised ranges.
+`/microcontroller-interface` owns the mapping from a discovered device path, controller ID, and baudrate to the
+`MicroControllerInterface` constructor arguments, and it owns controller ID allocation.
 
 ---
 
 ## Troubleshooting
 
-| Symptom                                                | Likely Cause                          | Resolution                                                |
-|--------------------------------------------------------|---------------------------------------|-----------------------------------------------------------|
-| `list_microcontrollers_tool` → "No valid serial ports" | No USB devices connected              | Check physical connections and USB cables                 |
-| Port shows "No microcontroller"                        | Firmware not loaded or wrong baudrate | Verify firmware and try alternate baudrate                |
-| Port shows "Connection Failed"                         | Permission denied or port in use      | Check serial port permissions; close conflicting programs |
-| MQTT broker unreachable                                | Broker not running                    | Start the broker service                                  |
-| Assembly fails                                         | Directory has no .npy files           | Verify DataLogger was stopped and flushed                 |
-| Discovery finds no sources                             | Missing manifest files                | Use `write_microcontroller_manifest_tool` to tag sessions |
-| MCP tools unavailable                                  | Server not running                    | Use `/communication-mcp-environment-setup` to diagnose    |
+| Symptom                                                | Likely Cause                          | Resolution                                                                                   |
+|--------------------------------------------------------|---------------------------------------|----------------------------------------------------------------------------------------------|
+| `list_microcontrollers_tool` → "No valid serial ports" | No USB devices connected              | Check physical connections and USB cables                                                    |
+| Port shows "No microcontroller"                        | Firmware not loaded or wrong baudrate | Verify firmware, then retry at the board's own rate (see `/microcontroller:firmware-module`) |
+| Port shows "Connection Failed"                         | Permission denied or port in use      | Check serial port permissions. Close conflicting programs                                    |
+| MQTT broker unreachable                                | Broker not running                    | Start the broker service                                                                     |
+| Assembly returns an `error` key                        | Missing path, or assembly raised      | Read the `error` message. See the assemble error table                                       |
+| Assembly returns "assembled" but no new .npz           | Directory held no .npy entries        | Confirm the DataLogger wrote here, then stopped and flushed                                  |
+| Discovery finds no sources                             | Missing manifest files                | Use `write_microcontroller_manifest_tool` to tag sessions                                    |
+| Discovery errors with "Unable to search"               | Root or a subdirectory is unreadable  | Fix directory permissions or remount. Not a manifest gap                                     |
+| MCP tools unavailable                                  | Server not running                    | Use `/communication-mcp-environment-setup` to diagnose                                       |
 
 ---
 
-## CLI reference (human-facing — do not invoke)
+## CLI reference (human-facing, do not invoke)
 
-> **CLI reference — for answering user questions only.** The `axci` command-line interface is a
-> **human-facing** tool. **Agents must never invoke `axci` commands** — every agent-driven operation has an
+> **CLI reference, for answering user questions only.** The `axci` command-line interface is a
+> **human-facing** tool. **Agents must never invoke `axci` commands**, every agent-driven operation has an
 > equivalent MCP tool (noted in the table). This section exists solely so the agent can answer user
 > questions about the CLI.
+>
+> `/cli-reference` is the canonical reference for the whole `axci` command surface. The table below is the
+> discovery subset. Invoke `/cli-reference` for anything it does not answer.
 
 | Command     | Key options                                                     | Purpose                                             | MCP equivalent               |
 |-------------|-----------------------------------------------------------------|-----------------------------------------------------|------------------------------|
 | `axci id`   | `-b`/`--baudrate` (default 115200)                              | Discovers connected Arduino/Teensy microcontrollers | `list_microcontrollers_tool` |
 | `axci mqtt` | `-h`/`--host` (default 127.0.0.1), `-p`/`--port` (default 1883) | Checks whether an MQTT broker is reachable          | `check_mqtt_broker_tool`     |
+
+**Note:** `axci mqtt` binds `-h` to `--host`, and the CLI registers no `-h` help alias on any command, so `-h` consumes
+the next token as a host instead of printing help. `--help` is the only help form. Tell a user who wants the option list
+to run `axci mqtt --help`.
 
 ---
 
@@ -296,6 +332,7 @@ advised ranges.
 | `/log-input-format`                    | Reference: documents the archive format produced by this workflow               |
 | `/log-processing`                      | Downstream: processes archives assembled by this skill                          |
 | `/log-processing-results`              | Downstream: analyzes output from processed archives                             |
+| `/cli-reference`                       | Reference: the full `axci` command surface, human-facing                        |
 | `/pipeline`                            | Context: end-to-end orchestration and multi-controller planning                 |
 | `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for all tool interactions                 |
 

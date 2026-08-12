@@ -1,6 +1,7 @@
 # Module base class API reference
 
-All signatures are sourced from the library's header files at version 4.0.1.
+All signatures are sourced from the library's header files at version 4.0.2, which pins `ataraxis-transport-layer-mc` at
+`^4.0.1`.
 
 ---
 
@@ -42,8 +43,6 @@ struct ExecutionControlParameters
 
 ## Pure virtual methods
 
-These three methods MUST be overridden by every Module subclass.
-
 ### SetupModule
 
 ```cpp
@@ -79,11 +78,10 @@ Called during each Kernel runtime cycle when the module has an active command. S
 `get_active_command()` into a call to the command-specific handler method. Returns `true` if the command was recognized,
 `false` otherwise. Does NOT indicate command success.
 
-Returning `false` makes the Kernel call `SendCommandActivationError()`, which reports event code 3, and then
-`DiscardActiveCommand()`, which clears the active command and its stage without a `kCommandCompleted` message. That
-method also resets the command queue when the queue still holds the rejected command, so one-off and recurrent commands
-alike are dropped after a single error report. A command the PC queued while the rejected one was running is left
-untouched and activates on the next cycle.
+Returning `false` makes the Kernel call `SendCommandActivationError()` and then `DiscardActiveCommand()`, which clears
+the active command and its stage without a `kCommandCompleted` message. That method also resets the command queue when
+the queue still holds the rejected command, so one-off and recurrent commands alike are dropped after a single error
+report. A command the PC queued while the rejected one was running is left untouched and activates on the next cycle.
 
 ### Virtual destructor
 
@@ -98,8 +96,8 @@ through base class pointers. The Kernel manages modules via `Module*` arrays, so
 
 ## Kernel-facing public methods
 
-The Kernel drives each module through these public methods. Command handlers must not call them, because a handler
-manages its own lifecycle through the protected utilities below, and subclasses must not override or shadow them.
+Command handlers must not call these methods, because a handler manages its own lifecycle through the protected
+utilities below, and subclasses must not override or shadow them.
 
 ```cpp
 void QueueCommand(const uint8_t command, const bool noblock, const uint32_t cycle_delay);
@@ -125,17 +123,13 @@ void DiscardActiveCommand();
 | `get_module_id`              | Resolving the target of a module-addressed message and building error payloads.               |
 | `get_module_type`            | Resolving the target of a module-addressed message and building error payloads.               |
 | `get_module_type_id`         | The `kIdentifyModules` kernel command (code 4). Returns `module_type << 8 \| module_id`.      |
-| `SendCommandActivationError` | `RunActiveCommand()` returned `false`. Reports event code 3 against the active command.       |
-| `SendCommandRejection`       | A module command message carries command code 0. Reports event code 3 against that code.      |
-| `DiscardActiveCommand`       | Immediately after `SendCommandActivationError()`. Drops the queue entry, sends no message.    |
+| `SendCommandActivationError` | `RunActiveCommand()` returned `false` for the active command.                                 |
+| `SendCommandRejection`       | A module command message carries command code 0.                                              |
+| `DiscardActiveCommand`       | Immediately after `SendCommandActivationError()`. Drops the queue entry.                      |
 
 `ResolveActiveCommand()` applies the command priority chain: finish the active command, then activate a newly queued
 command, then repeat a recurrent command whose delay has elapsed. The recurrent comparison is inclusive
 (`recurrent_timer >= recurrent_delay`), so the largest representable delay still repeats.
-
-Both `QueueCommand()` overloads and `ResetCommandQueue()` first report the retirement of a recurrent command that is
-idle between repetitions, sending `kCommandCompleted` attributed to that command's own code. `CompleteCommand()` cannot
-cover that case, because none of the retired command's stages are running at the moment it is replaced or dequeued.
 
 ---
 
@@ -161,10 +155,10 @@ Returns the execution stage of the active command (starts at 1), or 0 if no comm
 void CompleteCommand();
 ```
 
-Ends the active command. Sends a kCommandCompleted (event code 2) message to the PC under three conditions. A new
-command is waiting to replace the current one, no next command is queued (including after an explicit dequeue), or the
-command is not recurrent. Resets stage to 0, allowing the next command to activate. **You MUST call this at the end of
-every command handler.** Failure to call it deadlocks the module.
+Ends the active command. Sends a kCommandCompleted message, which is core event code 2, to the PC under three
+conditions. A new command is waiting to replace the current one, no next command is queued (including after an explicit
+dequeue), or the command is not recurrent. Resets stage to 0, allowing the next command to activate. **You MUST call
+this at the end of every command handler.** Failure to call it deadlocks the module.
 
 ```cpp
 void AbortCommand();
@@ -227,9 +221,7 @@ void SendData(const uint8_t event_code, const ObjectType& object);
 
 Sends a ModuleData message (protocol 6) with event code and typed data object. The prototype code for the wire protocol
 is resolved automatically at compile time from ObjectType. Supports all 11 scalar types and C-style arrays at
-type-specific element counts, up to a platform-dependent payload cap. `uint8_t` arrays have the densest count support
-and can be used as a generic bytes buffer. On failure, automatically attempts to send an error message and turns on the
-built-in LED.
+type-specific element counts. `uint8_t` arrays have the densest count support and can be used as a generic bytes buffer.
 
 The following table lists all supported data types and element counts. An element count of 1 is a scalar, and counts
 greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`). Unsupported (type, count) combinations
@@ -250,17 +242,24 @@ trigger a compile-time `static_assert` error.
 | `double`   | 8 bytes | `np.float64`     | 1-15, 16, 20, 24, 31                                                             |
 
 The counts above are the prototype codes the wire protocol defines. The number of bytes a board can actually transmit is
-capped separately by its serial buffer, because the data object has to satisfy
-`sizeof(ObjectType) <= kMaximumPayloadSize - sizeof(ModuleData)`. That yields 248 bytes on Teensy, 244 bytes on Arduino
-Due, and 52 bytes on Arduino Mega, so counts such as `uint8_t[248]` or `uint16_t[124]` compile only on Teensy. The
-`SendDataMessage` static assertion rejects an oversized object at compile time for the board being built.
+capped separately by its serial buffer, because the data object has to satisfy `sizeof(ObjectType) <=
+kMaximumPayloadSize - sizeof(ModuleData)`. That yields 248 bytes on Teensy, 244 bytes on Arduino Due, and 52 bytes on
+Arduino Mega, so counts such as `uint8_t[248]` or `uint16_t[124]` compile only on Teensy. The `SendDataMessage` static
+assertion rejects an oversized object at compile time for the board being built.
+
+**`double` does not build for an AVR board by default.** avr-gcc compiles `double` to 4 bytes unless the build passes
+`-mdouble=64`, and `axmc_shared_assets.h` rejects the narrower width at compile time rather than tagging a 4-byte
+payload with a prototype code the PC would decode as 8 bytes. An Arduino Mega therefore fails to compile rather than
+failing at runtime. Add `-mdouble=64` to that board's `build_flags`, or use `float` and `np.float32` on both sides.
+Teensy and Arduino Due are unaffected. `/communication:microcontroller-interface` carries the PC-side statement of the
+same constraint.
 
 ```cpp
 void SendData(const uint8_t event_code) const;
 ```
 
 Sends a ModuleState message (protocol 8) with event code only. More efficient than the data-carrying overload when no
-payload is needed. Same error handling behavior.
+payload is needed. Both overloads report a failed transfer through the communication error payload below.
 
 ### Parameter extraction
 
@@ -290,13 +289,13 @@ System-reserved event codes used by Module base class methods:
 | 2    | `kCommandCompleted`     | A command finished.                |
 | 3    | `kCommandNotRecognized` | A command could not be executed.   |
 
-Code 2 has two emitters. `CompleteCommand()` sends it for the command that just ran, under the conditions listed for
-that method, and `QueueCommand()` or `ResetCommandQueue()` sends it for a recurrent command retired while idle between
-repetitions, attributed to that command's own code. `DiscardActiveCommand()` sends nothing.
+Core event code 2 has two emitters. `CompleteCommand()` sends it for the command that just ran, under the conditions
+listed for that method, and `QueueCommand()` or `ResetCommandQueue()` sends it for a recurrent command retired while
+idle between repetitions, attributed to that command's own code. `DiscardActiveCommand()` sends nothing.
 
-Code 3 also has two emitters, both invoked by the Kernel. `SendCommandActivationError()` sends it against the active
-command when `RunActiveCommand()` returns `false`, and `SendCommandRejection()` sends it against the rejected code when
-the PC addresses the module with command code 0, leaving the active command undisturbed.
+Core event code 3 also has two emitters, both invoked by the Kernel. `SendCommandActivationError()` sends it against the
+active command when `RunActiveCommand()` returns `false`, and `SendCommandRejection()` sends it against the rejected
+code when the PC addresses the module with command code 0, leaving the active command undisturbed.
 
 ---
 
@@ -325,6 +324,13 @@ Keepalive tracking stays inert until the PC sends its first keepalive kernel com
 the configured interval is non-zero and resets the timer. A controller the PC has not yet contacted therefore never
 times out. Every `Setup()` run disarms tracking again, so the PC has to re-arm the watchdog after a requested reset or
 after a keepalive-triggered emergency reset.
+
+The library README recommends enabling keepalive for most use cases and gives starting bands chosen by link speed and
+CPU frequency rather than by board name. The bands are 100-500 ms for a fast controller on USB such as the Teensy 4.1,
+and 2-5 s for a slower controller on UART such as the Arduino Mega. The README pairs the slow band with a 115200 UART
+link while the `mega` environment in `platformio.ini` runs faster, so treat a band as a starting point to confirm
+against the link the project actually uses. A band names the PC's ping period, and the silence the controller tolerates
+follows from the doubling above.
 
 ### kKernelCommands
 
@@ -381,6 +387,98 @@ interface has to use the same CRC parameters. Reserves up to ~1 kB of RAM (~700 
 
 ---
 
+## Communication error payload
+
+Neither status enumeration below is ever sent as an event code. Every firmware path that fails to send or receive calls
+`Communication::SendCommunicationErrorMessage()`, which packs the two-byte array `{Communication status, TransportLayer
+status}` as the data object of an error message, then drives `LED_BUILTIN` HIGH. Nothing on the error path clears that
+LED. It goes out only when a `Kernel::Setup()` pass completes with no module failure, so a lit LED means at least one
+transfer failed since the last successful setup, not that one is failing right now. The two bytes are the whole
+firmware-side diagnosis of the failure, so read them as a pair.
+
+| Failing call                                 | Message emitted | Event code reported                     |
+|----------------------------------------------|-----------------|-----------------------------------------|
+| `Module::SendData()`, `Module::SendEvent()`  | ModuleData (6)  | Core event code 1, `kTransmissionError` |
+| `Kernel::SendData()` and its service senders | KernelData (7)  | Kernel status 4, `kTransmissionError`   |
+| `Kernel::ReceiveData()`                      | KernelData (7)  | Kernel status 3, `kReceptionError`      |
+
+One reception failure carries no such payload. When the PC sends a protocol code the firmware does not accept, the
+Kernel reports kernel status 5 (`kInvalidMessageProtocol`) with the rejected protocol code as its data object instead.
+
+**Note:** the PC-side mirrors of both enumerations use the same numbering, and every code in either mirror has a
+firmware counterpart, so no PC-side code is orphaned. Only the firmware side knows which method sets each code, which is
+what the two tables below add.
+
+### kCommunicationStatusCodes
+
+Defined in `axmc_shared_assets.h` and returned by `Communication::get_communication_status()`. Fills the first byte of
+the error payload. "A sender" below means any of `SendDataMessage()`, `SendStateMessage()`, and `SendServiceMessage()`,
+all three of which set codes 54, 55, and 62 identically.
+
+| Code | Constant               | Firmware meaning, with the method that sets the code                                       |
+|------|------------------------|--------------------------------------------------------------------------------------------|
+| 51   | `kStandby`             | Initializer value. No Communication method has completed yet.                              |
+| 52   | `kReceptionError`      | `ReceiveMessage()` failed on packet reception. Byte 2 names the reason.                    |
+| 53   | `kParsingError`        | `ReceiveMessage()` or `ExtractModuleParameters()` could not read the arrived payload.      |
+| 54   | `kPackingError`        | A sender could not stage the message. Nothing was sent, and the buffer was reset.          |
+| 55   | `kMessageSent`         | A sender wrote the whole packet to the port.                                               |
+| 56   | `kMessageReceived`     | `ReceiveMessage()` read the protocol code. A header read can still fail after it.          |
+| 57   | `kInvalidProtocol`     | The received protocol code is not accepted on reception. Kernel reports kernel status 5.   |
+| 58   | `kNoBytesToReceive`    | No message was waiting. The idle path, not an error, and nothing is reported.              |
+| 59   | `kParameterMismatch`   | Received bytes are not `sizeof(struct)` plus header. The PC tuple and the struct disagree. |
+| 60   | `kParametersExtracted` | `ExtractModuleParameters()` wrote the parameter struct.                                    |
+| 61   | `kExtractionForbidden` | `ExtractParameters()` ran while the stored message was not ModuleParameters.               |
+| 62   | `kTransmissionError`   | The serial interface accepted only part of the packet a sender wrote.                      |
+
+### kTransportStatusCodes
+
+Defined by the `ataraxis-transport-layer-mc` dependency in `axtlmc_shared_assets.h` and set by `TransportLayer` in
+`transport_layer.h`. `Communication::get_transport_layer_status()` returns it, and it fills the second byte of the error
+payload. Codes 14, 16, and 27 are governed by the TransportLayer's private `kTimeout` stall window, which firmware
+cannot configure.
+
+| Code | Constant                       | Firmware meaning, with the method that sets the code                       |
+|------|--------------------------------|----------------------------------------------------------------------------|
+| 11   | `kStandby`                     | Initializer value. No packet operation has completed yet.                  |
+| 12   | `kDecodingFailed`              | `ValidatePacket()`: CRC passed, but COBS decoding of the payload failed.   |
+| 13   | `kPacketSent`                  | `SendData()` wrote the full packet to the port.                            |
+| 14   | `kPayloadSizeByteNotFound`     | `ParsePacket()`: start byte arrived, no size byte within the stall window. |
+| 15   | `kInvalidPayloadSize`          | `ParsePacket()`: announced size is under the minimum or over the cap.      |
+| 16   | `kPacketTimeoutError`          | `ParsePacket()`: the packet body stalled before the delimiter arrived.     |
+| 17   | `kNoBytesToParse`              | Nothing available, or no start byte in what was. The idle path.            |
+| 18   | `kPacketParsed`                | `ParsePacket()` read the body and the CRC postamble.                       |
+| 19   | `kCRCCheckFailed`              | `ValidatePacket()`: CRC failed. Corruption or mismatched CRC parameters.   |
+| 20   | `kPacketReceived`              | `ReceiveData()` parsed, validated, and decoded the packet.                 |
+| 21   | `kWriteObjectBufferError`      | `WriteData()`: the object exceeds the free transmission payload space.     |
+| 22   | `kObjectWrittenToBuffer`       | `WriteData()` staged the object for transmission.                          |
+| 23   | `kReadObjectBufferError`       | `ReadData()`: fewer unread payload bytes remain than the object needs.     |
+| 24   | `kObjectReadFromBuffer`        | `ReadData()` read the object out of the reception payload.                 |
+| 25   | `kDelimiterNotFoundError`      | `ParsePacket()`: a full packet arrived with no delimiter. Corrupted.       |
+| 26   | `kDelimiterFoundTooEarlyError` | `ParsePacket()`: the delimiter arrived before the announced packet end.    |
+| 27   | `kPostambleTimeoutError`       | `ParsePacket()`: the CRC postamble missed the stall window.                |
+| 28   | `kEmptyPayloadError`           | `SendData()` was called with an empty transmission payload.                |
+| 29   | `kPacketPartiallySent`         | `SendData()`: the interface accepted only part of the packet.              |
+
+### Reading a pair
+
+```text
+{58, 17}  Idle. No message was waiting. Never reaches the PC.
+{52, 19}  CRC failure. Suspect line noise, a baud mismatch, or PC-side CRC parameters.
+{52, 15}  The PC announced a payload this board's reception buffer cannot hold. Shrink the PC-side message.
+{52, 16}  Stalled body. {52, 27} is the same fault in the CRC postamble. The link dropped bytes mid-packet.
+{52, 25}  Framing corruption, delimiter never arrived. {52, 26} is the delimiter arriving early.
+{53, 23}  A header or parameter read ran past the payload. The message layout and the firmware disagree.
+{54, 21}  The outgoing object does not fit the payload. Shrink the data object or split it across messages.
+{62, 29}  The port accepted only part of the packet. The host is not draining the link, or the link dropped.
+{59, ..}  Parameter size mismatch. Align the PACKED_STRUCT with the PC-side send_parameters() tuple.
+{61, ..}  ExtractParameters() ran outside SetCustomParameters().
+```
+
+A second byte that reports success (18, 20, 22, or 24) means the packet layer was healthy and the fault lies entirely in
+the Communication layer, which is the normal shape of the 59 and 61 parameter faults.
+
+---
+
 ## Command handler patterns
 
 ### Immediate command
@@ -397,7 +495,7 @@ void Echo()
 
 ### Multi-stage command with non-blocking delay
 
-For commands requiring timed steps. Stages start at 1, not 0:
+For commands requiring timed steps:
 
 ```cpp
 void Pulse()
@@ -430,11 +528,6 @@ void Pulse()
 ```
 
 **Stage-based execution rules:**
-- Use `get_command_stage()` to read the current stage (stages start at 1)
-- Call `AdvanceCommandStage()` to move to the next stage (also resets the delay timer)
-- `WaitForMicros(duration)` returns `true` when the duration has elapsed, `false` while waiting
-- In non-blocking mode, `WaitForMicros` returns immediately with `false` if the time has not elapsed, allowing other
-  modules to execute. In blocking mode, it blocks in-place until the time has passed.
 - Call `CompleteCommand()` on the final stage
 - The `default` case should call `AbortCommand()` to handle unexpected stages
 
@@ -496,71 +589,24 @@ void CheckSensor()
 
 This reduces serial bandwidth and log archive size without losing transition information.
 
----
-
-## Template parameter guidelines
-
-| Type       | Use case                          | Example                        |
-|------------|-----------------------------------|--------------------------------|
-| `uint8_t`  | Pin numbers, counts               | `kPin`, `kEncoderPinA`         |
-| `bool`     | Hardware polarity, default states | `kNormallyClosed`, `kStartOff` |
-| `uint16_t` | Larger constants (calibration)    | `kDefaultThreshold`            |
-
-Use `255` as a sentinel for optional pins:
-
-```cpp
-template <const uint8_t kTonePin = 255>
-// In implementation:
-if constexpr (kTonePin != 255) { pinMode(kTonePin, OUTPUT); }
-```
-
----
-
-## Static assertions
-
-Place static assertions at the **top of the class body**, before `public:`:
-
-```cpp
-template <const uint8_t kPinA, const uint8_t kPinB>
-class EncoderModule final : public Module
-{
-        static_assert(kPinA != kPinB, "Channel A and Channel B pins cannot be the same.");
-        static_assert(kPinA != LED_BUILTIN, "Select a different Channel A pin.");
-        static_assert(kPinB != LED_BUILTIN, "Select a different Channel B pin.");
-
-    public:
-        // ...
-};
-```
+`/cpp-style` owns the value template parameter conventions and the static-assertion placement these patterns rely on, in
+its class patterns reference.
 
 ---
 
 ## Build and upload
 
-Build, upload, and monitor the firmware with PlatformIO. The board environment(s) are defined in `platformio.ini` (see
-`/platformio-config`).
+`/platformio-config` owns the `pio` command set and the per-board `monitor_speed` values `platformio.ini` defines.
+Prefer `pio run --environment <board> --target upload` when the project targets several boards, because a command that
+names no environment covers every environment `platformio.ini` defines and an upload to a board that is not connected
+fails that environment. Re-upload whenever the firmware module, its command/event codes, or its parameter struct change,
+after which the flashed controller is ready for the PC-side `MicroControllerInterface` to connect.
 
-```bash
-# Build only (compile, no upload)
-pio run
+### Serial speed
 
-# Build and upload to a specific board environment
-pio run --environment teensy41 --target upload
-
-# Build and upload every environment platformio.ini defines
-pio run --target upload
-
-# List the environments defined in platformio.ini
-pio project config
-
-# Open the serial monitor after upload (match the Serial.begin() baudrate)
-pio device monitor --baud 115200
-```
-
-A command that names no environment covers every environment `platformio.ini` defines, unless the file sets
-`default_envs`, which narrows the set to the environments it names. Prefer the `--environment` form when the project
-targets several boards, because an upload to a board that is not connected fails that environment.
-
-After uploading, the controller runs the deterministic `RuntimeCycle()` loop and is ready for the PC-side
-`MicroControllerInterface` to connect (see `/communication:microcontroller-interface`). Re-upload whenever the firmware
-module, its command/event codes, or its parameter struct change.
+The firmware's `Serial.begin()` rate has to match the `monitor_speed` of the environment being built, and the PC side
+has to open the port at that same speed, so hold the rate in a named constant rather than a literal. Nothing reports a
+baud-rate fault when the two disagree. The controller runs `RuntimeCycle()` normally, and the PC-side
+`MicroControllerInterface` raises a "did not respond to the identification request" error once its retry budget expires.
+Read that identification failure as a baud mismatch first, before suspecting the module code. A project that targets
+more than one board resolves the rate at compile time, so the wrong constant cannot reach the wrong board.

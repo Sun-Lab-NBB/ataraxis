@@ -1,6 +1,6 @@
 {
   "name": "microcontroller",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Provides firmware module implementation skills for ataraxis-micro-controller.",
   "repository": "https://github.com/Sun-Lab-NBB/ataraxis",
   "license": "Apache-2.0",
