@@ -36,8 +36,8 @@ Diagnoses and resolves ataraxis-communication-interface MCP server connectivity 
 
 ## Architecture
 
-ataraxis-communication-interface provides a single MCP server accessed through the `axci` CLI entry point
-defined in `pyproject.toml`:
+ataraxis-communication-interface provides a single MCP server accessed through the `axci` CLI entry point defined in
+`pyproject.toml`:
 
 ```toml
 [project.scripts]
@@ -55,8 +55,8 @@ The server accepts `-t`/`--transport`, a `click.Choice` restricted to exactly tw
 | `stdio` (default) | Carries the JSON-RPC stream over stdout and calls `console.disable()`, so it prints NOTHING |
 | `streamable-http` | Serves over HTTP and echoes `Starting AXCI MCP server with streamable-http transport...`    |
 
-**Note:** `run_server()` in `mcp_server.py` also accepts a third value, `sse`, but the CLI `Choice` rejects it,
-so `sse` is unreachable through `axci mcp`. Never pass `-t sse`, and never tell the user to.
+**Note:** `run_server()` in `mcp_server.py` also accepts a third value, `sse`, but the CLI `Choice` rejects it, so `sse`
+is unreachable through `axci mcp`. Never pass `-t sse`, and never tell the user to.
 
 The communication plugin's `plugin.json` configures the Claude assistant to launch the server automatically:
 
@@ -71,8 +71,8 @@ The communication plugin's `plugin.json` configures the Claude assistant to laun
 }
 ```
 
-The `axci` command must be on PATH when the Claude assistant starts. This means the Python environment
-where ataraxis-communication-interface is installed must be active before launching the assistant.
+The `axci` command must be on PATH when the Claude assistant starts. This means the Python environment where
+ataraxis-communication-interface is installed must be active before launching the assistant.
 
 ### Dual-distribution model
 
@@ -84,26 +84,24 @@ The ataraxis communication plugin's Claude integration is split across two distr
 | MCP server registrations                | ataraxis communication plugin                | Plugin entries that tell the Claude assistant how to start the server |
 | MCP server code (`axci mcp`)            | ataraxis-communication-interface pip package | The actual CLI command and server implementation                      |
 
-Installing the plugin alone registers the MCP server and makes skills available, but the server will fail to
-start because the `axci` CLI command is not present. The pip package must also be installed in the active
-Python environment for the MCP server to function.
+Installing the plugin alone registers the MCP server and makes skills available, but the server will fail to start
+because the `axci` CLI command is not present. The pip package must also be installed in the active Python environment
+for the MCP server to function.
 
-This is the most common cause of MCP failures after initial setup: the plugin is installed but the pip
-package is not, or the pip package is installed in a different Python environment than the one active when
-the Claude assistant launches.
+This is the most common cause of MCP failures after initial setup. Either the plugin is installed and the pip package is
+not, or the pip package sits in a different Python environment than the one active when the Claude assistant launches.
 
 ### MQTT broker prerequisite
 
-An MQTT broker is an external service the user installs separately. It is NOT a pip dependency, and no
-installation method pulls it in. The library is validated against a locally running
+An MQTT broker is an external service the user installs separately. It is NOT a pip dependency, and no installation
+method pulls it in. The library is validated against a locally running
 [mosquitto](https://mosquitto.org/) broker, version **2.1.2**.
 
-The broker is required only for sending and receiving data over MQTT. The MCP server starts without one, and
-every non-MQTT tool works without one. `check_mqtt_broker_tool` defaults to `127.0.0.1:1883`.
+The broker is required only for sending and receiving data over MQTT. The MCP server starts without one, and every
+non-MQTT tool works without one. `check_mqtt_broker_tool` defaults to `127.0.0.1:1883`.
 
-**Note:** a "not reachable" result from `check_mqtt_broker_tool` is NOT an MCP server fault. Do not run this
-skill's diagnostic workflow for it, and do not prescribe a reinstall. Tell the user to install and start a
-broker instead.
+**Note:** a "not reachable" result from `check_mqtt_broker_tool` is NOT an MCP server fault. Do not run this skill's
+diagnostic workflow for it, and do not prescribe a reinstall. Tell the user to install and start a broker instead.
 
 ---
 
@@ -121,17 +119,17 @@ grep -l 'name = "ataraxis-communication-interface"' \
 ```
 
 If it prints a path, the working directory is inside a source checkout of the library itself. You MUST stop the
-diagnostic workflow here and hand off to the user. Every resolution below installs the PyPI wheel, which would
-shadow the user's working tree and silently serve stale code to the MCP server.
+diagnostic workflow here and hand off to the user. Every resolution below installs the PyPI wheel, which would shadow
+the user's working tree and silently serve stale code to the MCP server.
 
-Tell the user that the developer install path is the one in the repository's `Developers` section. That path is
-`tox -e create` to build the `axci_dev` mamba environment, followed by `tox -e install` to install the checkout
-into it. Then stop. Development and contribution workflows are outside this skill's scope.
+Tell the user that the developer install path is the one in the repository's `Developers` section. That path is `tox -e
+create` to build the `axci_dev` mamba environment, followed by `tox -e install` to install the checkout into it. Then
+stop. Development and contribution workflows are outside this skill's scope.
 
 ### Step 1: Check MCP server status
 
-Use the `/mcp` slash command or inspect available tools to determine whether the ataraxis-communication-interface
-MCP server is connected. If connected, the issue is not environmental — investigate tool-specific errors instead.
+Use the `/mcp` slash command or inspect available tools to determine whether the ataraxis-communication-interface MCP
+server is connected. If connected, the issue is not environmental, investigate tool-specific errors instead.
 
 ### Step 2: Verify command availability
 
@@ -156,8 +154,8 @@ Based on the output, guide the user through the appropriate resolution:
 
 **Conda environment (CONDA_PREFIX is set but ataraxis-communication-interface is missing):**
 
-The user has an active conda environment but ataraxis-communication-interface is not installed in it.
-Instruct the user to install ataraxis-communication-interface into the active environment:
+The user has an active conda environment but ataraxis-communication-interface is not installed in it. Instruct the user
+to install ataraxis-communication-interface into the active environment:
 
 ```bash
 pip install ataraxis-communication-interface
@@ -171,17 +169,16 @@ uv pip install ataraxis-communication-interface
 
 **Conda environment not activated (CONDA_PREFIX is not set, but conda is available):**
 
-The user needs to activate their environment before launching the Claude assistant. Instruct the user to
-exit the assistant and run:
+The user needs to activate their environment before launching the Claude assistant. Instruct the user to exit the
+assistant and run:
 
 ```bash
 mamba activate <environment-name>
 claude
 ```
 
-You MUST explain that the Claude assistant inherits the shell environment at launch time. Activating a
-conda environment after the assistant has started does not make the `axci` command available to MCP server
-subprocesses.
+You MUST explain that the Claude assistant inherits the shell environment at launch time. Activating a conda environment
+after the assistant has started does not make the `axci` command available to MCP server subprocesses.
 
 **Virtual environment (VIRTUAL_ENV is set but ataraxis-communication-interface is missing):**
 
@@ -191,9 +188,9 @@ pip install ataraxis-communication-interface
 
 **No environment active (both CONDA_PREFIX and VIRTUAL_ENV are unset):**
 
-The user is running in the system Python. If ataraxis-communication-interface is installed globally, `which axci`
-would have succeeded. Instruct the user to either activate their environment or install
-ataraxis-communication-interface into an accessible location.
+The user is running in the system Python. If ataraxis-communication-interface is installed globally, `which axci` would
+have succeeded. Instruct the user to either activate their environment or install ataraxis-communication-interface into
+an accessible location.
 
 ### Step 4: Verify Python version compatibility
 
@@ -201,9 +198,9 @@ ataraxis-communication-interface into an accessible location.
 python --version
 ```
 
-ataraxis-communication-interface requires Python `>=3.12,<3.15`. If the Python version does not match, inform
-the user that their environment has an incompatible Python version, and they need to create or activate an
-environment with a compatible version.
+ataraxis-communication-interface requires Python `>=3.12,<3.15`. If the Python version does not match, inform the user
+that their environment has an incompatible Python version, and they need to create or activate an environment with a
+compatible version.
 
 ### Step 5: Verify package integrity
 
@@ -211,12 +208,12 @@ environment with a compatible version.
 axci --help
 ```
 
-**Note:** the sibling skills forbid agents from invoking `axci`. `--help` is the ONE exemption to that rule.
-It is read-only, it starts no server and touches no hardware, and it reports the installed build rather than a
-documented snapshot of it, so it never drifts. Use it to smoke-test the install and to settle any question
-about a command's real options. The exemption covers `axci --help` and `axci COMMAND --help` only, and no other
-`axci` invocation. Always use the long form: the CLI leaves Click's `help_option_names` at its `["--help"]`
-default, so `-h` is never a help alias, and on `axci mqtt` it is bound to `--host`.
+**Note:** the sibling skills forbid agents from invoking `axci`. `--help` is the ONE exemption to that rule. It is
+read-only, it starts no server and touches no hardware, and it reports the installed build rather than a documented
+snapshot of it, so it never drifts. Use it to smoke-test the install and to settle any question about a command's real
+options. The exemption covers `axci --help` and `axci COMMAND --help` only, and no other `axci` invocation. Always use
+the long form: the CLI leaves Click's `help_option_names` at its `["--help"]` default, so `-h` is never a help alias,
+and on `axci mqtt` it is bound to `--host`.
 
 If the command fails with an import error, a dependency is missing or broken. Run:
 
@@ -224,101 +221,81 @@ If the command fails with an import error, a dependency is missing or broken. Ru
 pip check 2>&1 | head -20
 ```
 
-`pip check` accepts no package argument and reports the whole environment, so ignore lines about unrelated
-packages. Report any missing or incompatible dependency involving ataraxis-communication-interface or one of
-its dependencies to the user.
+`pip check` accepts no package argument and reports the whole environment, so ignore lines about unrelated packages.
+Report any missing or incompatible dependency involving ataraxis-communication-interface or one of its dependencies to
+the user.
 
 ### Step 6: Hand-launch the server as a smoke test
 
-`axci --help` proves the package imports. It does NOT prove the MCP server starts. If steps 2 through 5 all
-pass and the tools are still unavailable, have the user launch the server by hand:
+`axci --help` proves the package imports. It does NOT prove the MCP server starts. If steps 2 through 5 all pass and the
+tools are still unavailable, have the user launch the server by hand:
 
 ```bash
 axci mcp -t streamable-http
 ```
 
-Use `streamable-http`, NOT the `stdio` default. Under `stdio` the server calls `console.disable()` and prints
-absolutely nothing, so a healthy server is indistinguishable from a hung one. Under `streamable-http` a healthy
-server echoes `Starting AXCI MCP server with streamable-http transport...` and then blocks, serving HTTP until
-interrupted.
+Use `streamable-http`, NOT the `stdio` default. Under `stdio` the server calls `console.disable()` and prints absolutely
+nothing, so a healthy server is indistinguishable from a hung one. Under `streamable-http` a healthy server echoes
+`Starting AXCI MCP server with streamable-http transport...` and then blocks, serving HTTP until interrupted.
 
 | Observed                              | Meaning                                                                   |
 |---------------------------------------|---------------------------------------------------------------------------|
-| Startup line, then the process blocks | The server is healthy; the fault is in the assistant's launch environment |
-| Traceback instead of the startup line | A broken dependency; return to step 5                                     |
-| Exits immediately with no output      | A crash during startup; capture stderr and report it                      |
+| Startup line, then the process blocks | The server is healthy. The fault is in the assistant's launch environment |
+| Traceback instead of the startup line | A broken dependency. Return to step 5                                     |
+| Exits immediately with no output      | A crash during startup. Capture stderr and report it                      |
 
 This is a foreground process. Tell the user to interrupt it with Ctrl+C once they have read the result.
 
 ### Step 7: Restart the MCP server
 
-After the user resolves the environment issue, they must restart the Claude assistant for the MCP server to
-pick up the changes. The ataraxis communication plugin will automatically configure the server on the next
-session.
+After the user resolves the environment issue, they must restart the Claude assistant for the MCP server to pick up the
+changes. The ataraxis communication plugin will automatically configure the server on the next session.
 
 ---
 
 ## Fallback: hand the user a CLI command
 
-When the server cannot be restored in this session — the user cannot restart the assistant right now, or the
-fix needs an environment change that only takes effect at the next launch — the work is not necessarily
-blocked. Several `axci` CLI commands run entirely without the MCP server.
+When the server cannot be restored in this session, the user cannot restart the assistant right now, or the fix needs an
+environment change that only takes effect at the next launch, the work is not necessarily blocked. Several `axci` CLI
+commands run entirely without the MCP server.
 
-**The ban on invoking `axci` stays absolute.** You MUST NOT run any command in the table below yourself, even
-though the shell is available and the command would work. Print the exact command, tell the user to run it,
-and ask them to paste the output back. `--help` remains the sole exemption (see step 5).
+**The ban on invoking `axci` stays absolute.** You MUST NOT run those commands yourself, even though the shell is
+available and they would work. Print the exact command, tell the user to run it, and ask them to paste the output back.
+`--help` remains the sole exemption (see step 5).
 
-| Blocked MCP tool                                                         | Tell the user to run                            |
-|--------------------------------------------------------------------------|-------------------------------------------------|
-| `list_microcontrollers_tool`                                             | `axci id -b <baudrate>`                         |
-| `check_mqtt_broker_tool`                                                 | `axci mqtt -h <host> -p <port>`                 |
-| `read_extraction_config_tool`                                            | `axci config show -c <config>`                  |
-| `prepare_log_processing_batch_tool` + `execute_log_processing_jobs_tool` | `axci process -ld <logs> -od <out> -c <config>` |
-
-Two caveats on that last row. `axci process` handles ONE log directory per invocation, so a batch spanning
-several recordings becomes one invocation per recording. It also demands a finished extraction configuration,
-which `write_extraction_config_tool` normally produces; with the server down, the user generates the precursor
-with `axci config create -m <manifest> -o <config>` and fills in the event codes by hand.
-
-Everything else has no CLI path and genuinely blocks until the server is back: manifest read and write, log
-archive assembly, recording discovery, extraction config write and validate, every batch status, timing,
-cancel, and reset tool, and every output verification, query, and cleanup tool. Say so plainly rather than
-improvising a substitute.
-
-`/cli-reference` is canonical for the whole `axci` surface, so invoke it for any option, default, or failure mode
-this table leaves out.
+`/cli-reference` is canonical for the whole `axci` surface, so invoke it for the capabilities that have a CLI path, the
+command to hand the user for each one, and the tools that stay blocked until the server is back.
 
 ---
 
 ## Common issues and resolutions
 
-| Symptom                                 | Cause                                             | Resolution                                                               |
-|-----------------------------------------|---------------------------------------------------|--------------------------------------------------------------------------|
-| `axci: command not found`               | Environment not activated                         | Activate conda/venv, then restart the Claude assistant                   |
-| `axci: command not found`               | ataraxis-communication-interface not installed    | `pip install ataraxis-communication-interface` in the active environment |
-| Import error on `axci mcp`              | Missing or incompatible dependency                | `pip install --force-reinstall ataraxis-communication-interface`         |
-| Python version mismatch                 | Wrong environment activated                       | Activate environment with Python >=3.12,<3.15                            |
-| MCP server starts but tools are missing | Outdated ataraxis-communication-interface version | `pip install --upgrade ataraxis-communication-interface`                 |
-| MCP server connected but tools fail     | Not an environment issue                          | Check tool-specific error messages                                       |
-| Skills available but MCP tools missing  | Plugin installed without pip package              | `pip install ataraxis-communication-interface` in the active environment |
-| MQTT broker reported unreachable        | No broker running; not an MCP fault               | User installs and starts a broker (validated: mosquitto 2.1.2)           |
-| Stale code served from a source clone   | PyPI wheel shadowing a developer checkout         | Hand off: `tox -e create`, then `tox -e install` (see the guard)         |
-| `axci mcp` prints nothing, appears hung | `stdio` transport calls `console.disable()`       | Re-launch with `-t streamable-http` for a visible startup line           |
+| Symptom                                 | Resolved by                                              |
+|-----------------------------------------|----------------------------------------------------------|
+| `axci: command not found`               | Steps 2 and 3                                            |
+| Skills available but MCP tools missing  | Step 3, under the dual-distribution model                |
+| Python version mismatch                 | Step 4                                                   |
+| Import error on `axci mcp`              | Step 5                                                   |
+| `axci mcp` prints nothing, appears hung | Step 6                                                   |
+| MCP server connected but tools fail     | Step 1                                                   |
+| MCP server starts but tools are missing | `pip install --upgrade ataraxis-communication-interface` |
+| MQTT broker reported unreachable        | The MQTT broker prerequisite section above               |
+| Stale code served from a source clone   | The checkout guard at the top of the workflow            |
 
 ---
 
 ## Related skills
 
-| Skill                        | Relationship                                                                    |
-|------------------------------|---------------------------------------------------------------------------------|
-| `/microcontroller-setup`     | Requires the MCP server for hardware discovery and manifest management          |
-| `/microcontroller-interface` | Requires the MCP server for API verification                                    |
-| `/extraction-configuration`  | Requires the MCP server for config read/write/validate tools                    |
-| `/log-processing`            | Requires the MCP server for batch log processing tools                          |
-| `/log-processing-results`    | Requires the MCP server for output verification and event query tools           |
-| `/log-input-format`          | References MCP server tools for archive discovery and assembly                  |
-| `/cli-reference`             | Canonical reference for every `axci` command handed to a user in the fallback   |
-| `/pipeline`                  | Orchestrates all phases that depend on MCP server connectivity                  |
+| Skill                        | Relationship                                                                  |
+|------------------------------|-------------------------------------------------------------------------------|
+| `/microcontroller-setup`     | Requires the MCP server for hardware discovery and manifest management        |
+| `/microcontroller-interface` | Requires the MCP server for API verification                                  |
+| `/extraction-configuration`  | Requires the MCP server for config read/write/validate tools                  |
+| `/log-processing`            | Requires the MCP server for batch log processing tools                        |
+| `/log-processing-results`    | Requires the MCP server for output verification and event query tools         |
+| `/log-input-format`          | References MCP server tools for archive discovery and assembly                |
+| `/cli-reference`             | Canonical reference for every `axci` command handed to a user in the fallback |
+| `/pipeline`                  | Orchestrates all phases that depend on MCP server connectivity                |
 
 ---
 
