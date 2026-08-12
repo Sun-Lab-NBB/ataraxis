@@ -10,8 +10,7 @@ user-invocable: false
 
 # Pipeline
 
-End-to-end orchestration reference for camera recording and data analysis. Covers single-camera and
-multi-camera setups, phase ordering, handoff conditions, and decision guidance.
+End-to-end orchestration reference for camera recording and data analysis.
 
 ---
 
@@ -33,9 +32,8 @@ multi-camera setups, phase ordering, handoff conditions, and decision guidance.
 - The `axvs` command surface (see `/cli-reference`)
 - MCP server connectivity (see `/video-mcp-environment-setup`)
 
-**Handoff rules:** This skill dispatches to phase-specific skills at each stage. Always invoke the relevant
-skill for detailed tool usage, parameter reference, and troubleshooting. When the recording also carries
-microcontroller sources, invoke `/communication:pipeline` for that side before allocating any source ID.
+**Handoff rules:** This skill dispatches to phase-specific skills at each stage. Always invoke the relevant skill for
+detailed tool usage, parameter reference, and troubleshooting.
 
 ---
 
@@ -50,15 +48,15 @@ Phase 5  Log processing        →  /log-processing
 Phase 6  Results analysis      →  /log-processing-results
 ```
 
-Three skills sit outside the phase order and serve every phase. `/pipeline` plans the run, `/log-input-format`
-documents the archives phases 3 through 5 hand along, and `/cli-reference` answers questions about the `axvs`
-commands a user runs by hand.
+Three skills sit outside the phase order and serve every phase. `/pipeline` plans the run, `/log-input-format` documents
+the archives phases 3 through 5 hand along, and `/cli-reference` answers questions about the `axvs` commands a user runs
+by hand.
 
 ### Who owns what
 
-Every one of the MCP server's 27 tools has exactly one skill that documents its parameters and return structure.
-Other skills name a tool only to say which of its fields they read. When two skills seem to disagree, the owner
-below is authoritative.
+Every one of the MCP server's 27 tools has exactly one skill that documents its parameters and return structure. Other
+skills name a tool only to say which of its fields they read. When two skills seem to disagree, the owner below is
+authoritative.
 
 | Skill                          | Owns                                                                             |
 |--------------------------------|----------------------------------------------------------------------------------|
@@ -76,7 +74,7 @@ below is authoritative.
 
 - **Skill:** `/video-mcp-environment-setup`
 - **Actions:** Verify MCP server connectivity, check `axvs` command availability, verify Python version
-- **Handoff condition:** MCP tools accessible; `check_runtime_requirements_tool` returns OK for all needed
+- **Handoff condition:** MCP tools accessible, and `check_runtime_requirements_tool` returns OK for all needed
   components
 - **Skip condition:** MCP already verified in this session
 
@@ -132,23 +130,23 @@ Does the camera support GenTL (GenICam Transport Layer)?
 
 ### MCP vs code
 
-| Scenario                                          | Recommendation                          |
-|---------------------------------------------------|-----------------------------------------|
-| Verify the host, discover cameras, configure GenICam | MCP via `/camera-setup`              |
-| Single camera, interactive testing or exploration | MCP via `/camera-setup`                 |
-| Single camera, production with custom encoding    | Code via `/camera-interface`            |
-| Multi-camera simultaneous recording               | Code via `/camera-interface`            |
-| Verify outputs and assemble archives              | MCP via `/post-recording`               |
-| Log processing (any scenario)                     | MCP via `/log-processing`               |
-| Results analysis (any scenario)                   | MCP via `/log-processing-results`       |
-| Answer a question about an `axvs` command         | Reference only via `/cli-reference`     |
-| Work an operation while the MCP server is down    | Hand the user a command, `/cli-reference` |
+| Scenario                                             | Recommendation                            |
+|------------------------------------------------------|-------------------------------------------|
+| Verify the host, discover cameras, configure GenICam | MCP via `/camera-setup`                   |
+| Single camera, interactive testing or exploration    | MCP via `/camera-setup`                   |
+| Single camera, production with custom encoding       | Code via `/camera-interface`              |
+| Multi-camera simultaneous recording                  | Code via `/camera-interface`              |
+| Verify outputs and assemble archives                 | MCP via `/post-recording`                 |
+| Log processing (any scenario)                        | MCP via `/log-processing`                 |
+| Results analysis (any scenario)                      | MCP via `/log-processing-results`         |
+| Answer a question about an `axvs` command            | Reference only via `/cli-reference`       |
+| Work an operation while the MCP server is down       | Hand the user a command, `/cli-reference` |
 
 MCP supports only one active video session at a time. Multi-camera recording requires Python code.
 
-There is no third path. Orchestration happens through the MCP tools or through the `axvs` CLI a user runs by hand.
-The library exports its orchestration symbols, but they are not an agent-facing surface, so never drive a batch from
-Python. Agents never invoke `axvs` either, with `--help` the sole exemption `/video-mcp-environment-setup` owns.
+There is no third path. Orchestration happens through the MCP tools or through the `axvs` CLI a user runs by hand. The
+library exports its orchestration symbols, but they are not an agent-facing surface, so never drive a batch from Python.
+Agents never invoke `axvs` either, with `--help` the sole exemption `/video-mcp-environment-setup` owns.
 
 ### Encoding selection
 
@@ -156,7 +154,7 @@ Do not select encoding parameters from this skill. `/camera-interface` owns the 
 trade-off, the cross-encoder quantization equivalence, and the FFMPEG error catalog, and it is the only place those
 figures are authoritative. `/camera-setup` covers what is specific to the MCP session defaults.
 
-The one planning fact this phase contributes is that a multi-camera rig encodes every channel concurrently, so the
+The one planning fact this skill contributes is that a multi-camera rig encodes every channel concurrently, so the
 per-camera preset that works alone may not survive the rig. Plan for GPU encoding and a faster preset than a
 single-camera setup would need, then confirm the choice against `/camera-interface`.
 
@@ -166,32 +164,30 @@ single-camera setup would need, then confirm the choice against `/camera-interfa
 
 ### System ID allocation
 
-A camera's `system_id` IS its source ID at the DataLogger level: it is the value VideoSystem
-registers as the `source_id`, and it names the camera's `{system_id}_log.npz` archive (see
-`/log-input-format`). This skill uses "source ID" for the shared DataLogger namespace and `system_id`
-for the VideoSystem constructor.
+A camera's `system_id` IS its source ID at the DataLogger level: it is the value VideoSystem registers as the
+`source_id`, and it names the camera's `{system_id}_log.npz` archive (see `/log-input-format`). This skill uses "source
+ID" for the shared DataLogger namespace and `system_id` for the VideoSystem constructor.
 
-| Range   | Assignment                              | Notes                                                     |
-|---------|-----------------------------------------|-----------------------------------------------------------|
-| 51-100  | Camera VideoSystem instances            | Plugin convention, not a library-enforced range           |
-| 101-150 | MicroControllerInterface instances      | The sibling communication plugin's convention. Avoid      |
-| 111     | CLI (`axvs run`)                        | Fixed in the library. Interactive testing only            |
-| 112     | MCP server sessions                     | Fixed in the library. Agent-driven testing only           |
+| Range   | Assignment                         | Notes                                                |
+|---------|------------------------------------|------------------------------------------------------|
+| 51-100  | Camera VideoSystem instances       | Plugin convention, not a library-enforced range      |
+| 101-150 | MicroControllerInterface instances | The sibling communication plugin's convention. Avoid |
+| 111     | CLI (`axvs run`)                   | Fixed in the library. Interactive testing only       |
+| 112     | MCP server sessions                | Fixed in the library. Agent-driven testing only      |
 
-The library constrains one thing and requires one more. A `system_id` must fit `np.uint8` (0-255, enforced with
-an `OverflowError`), and every source sharing one DataLogger must carry a unique one. That second rule is a
-requirement the library does not check, since a duplicate ID silently replaces the earlier manifest entry rather
-than raising. 111 and 112 are the only values the library itself reserves, and the axvs README's own quickstart
-uses 101 for a camera.
+The library constrains one thing and requires one more. A `system_id` must fit `np.uint8` (0-255, enforced with an
+`OverflowError`), and every source sharing one DataLogger must carry a unique one. That second rule is a requirement the
+library does not check, since a duplicate ID silently replaces the earlier manifest entry rather than raising. 111 and
+112 are the only values the library itself reserves, and the axvs README's own quickstart uses 101 for a camera.
 
-The 51-100 band is this plugin's allocation convention for keeping camera code clear of the reserved pair and of
-the 101-150 band `/communication:pipeline` advises for microcontrollers. Confirm the rig's existing allocation
-with the user rather than assuming it follows the convention. Within the band, allocate sequentially from 51
-(51, 52, 53 for a 3-camera rig).
+The 51-100 band is this plugin's allocation convention for keeping camera code clear of the reserved pair and of the
+101-150 band `/communication:pipeline` advises for microcontrollers. Confirm the rig's existing allocation with the user
+rather than assuming it follows the convention. Within the band, allocate sequentially from 51 (51, 52, 53 for a
+3-camera rig).
 
 Note that 111 falls inside the communication plugin's advised band, so a rig that runs `axvs run` against the same
-DataLogger a controller 111 writes to collides. This is only a concern for interactive testing, since production
-camera code never uses 111.
+DataLogger a controller 111 writes to collides. This is only a concern for interactive testing, since production camera
+code never uses 111.
 
 ### DataLogger topology
 
@@ -204,22 +200,20 @@ DataLogger(instance_name="session")
   └── VideoSystem(system_id=53, name="arena_camera")   → 53_log.npz
 ```
 
-All cameras share one log directory, all timestamps are correlated, one `assemble_log_archives` call
-consolidates everything, and one processing batch covers all source IDs. Each VideoSystem writes an
-entry to `camera_manifest.yaml` during initialization, enabling manifest-based discovery downstream.
-The manifest write is idempotent per source ID: re-constructing a VideoSystem against an already-used
-output directory replaces that source's entry rather than appending a duplicate. The read-replace-write
-sequence runs under a lock file beside the manifest and aborts if the lock cannot be taken within 10
-seconds, so the concurrent registrations of several VideoSystems sharing one DataLogger are safe.
+All cameras share one log directory, all timestamps are correlated, one `assemble_log_archives` call consolidates
+everything, and one processing batch covers all source IDs. Each VideoSystem writes an entry to `camera_manifest.yaml`
+during initialization, enabling manifest-based discovery downstream. The manifest write is idempotent per source ID:
+re-constructing a VideoSystem against an already-used output directory replaces that source's entry rather than
+appending a duplicate. The read-replace-write sequence runs under a lock file beside the manifest and aborts if the lock
+cannot be taken within 10 seconds, so the concurrent registrations of several VideoSystems sharing one DataLogger are
+safe.
 
-Multiple DataLoggers should only be used if a single logger cannot handle the load, leading to excessive
-buffering. This is extremely rare in practice. When it does occur, each DataLogger creates a separate
-output directory that must be assembled and processed independently, and cross-camera timestamp comparison
-requires merging data from separate directories.
+Multiple DataLoggers should only be used if a single logger cannot handle the load, leading to excessive buffering. This
+is extremely rare in practice. When it does occur, each DataLogger creates a separate output directory that must be
+assembled and processed independently, and cross-camera timestamp comparison requires merging data from separate
+directories.
 
 ### Coordinated lifecycle
-
-The ordering of initialization and shutdown is critical for multi-camera setups:
 
 ```text
 Startup (in order):
@@ -293,9 +287,9 @@ if __name__ == "__main__":
 
 ## Cross-system recordings
 
-A DataLogger is not a video-system object. It comes from ataraxis-data-structures, and any ataraxis library that
-logs can share one. The common case is a rig where cameras and microcontrollers record the same session, which is
-what puts every source's timestamps on one clock.
+A DataLogger is not a video-system object. It comes from ataraxis-data-structures, and any ataraxis library that logs
+can share one. The common case is a rig where cameras and microcontrollers record the same session, which is what puts
+every source's timestamps on one clock.
 
 ```text
 DataLogger(instance_name="session")
@@ -309,23 +303,23 @@ Four rules govern the shared directory:
 - **One source ID namespace.** Uniqueness spans every source on the logger, not just the cameras. Allocate the
   camera IDs against the controller IDs already in use, and invoke `/communication:pipeline` for that side.
 - **Two manifests, one directory.** Each library writes its own manifest naming only its own sources, and each
-  library's discovery reads only its own. A camera source is invisible to the communication tooling and the
-  reverse, which is what keeps the two processing batches independent.
-- **One assembly call.** `assemble_log_archives()` groups by source ID and consolidates every source in the
-  directory at once, whatever library produced it. Run it once, after every logging component has stopped.
+  library's discovery reads only its own. A camera source is invisible to the communication tooling, and the
+  reverse holds, which is what keeps the two processing batches independent.
+- **One assembly call.** `assemble_log_archives()` groups by source ID and consolidates every source in the directory
+  at once, whatever library produced it.
 - **Two processing batches.** `/log-processing` here and `/communication:log-processing` there both read the same
   directory and each prepares only its own sources. The two trackers have different filenames, so the batches do
   not contend.
 
-Shut the stack down in strict reverse order. Every VideoSystem and every MicroControllerInterface must stop before
-the shared DataLogger does, and assembly runs only after `DataLogger.stop()` returns.
+Shut the stack down in strict reverse order. Every VideoSystem and every MicroControllerInterface must stop before the
+shared DataLogger does.
 
 ---
 
 ## Multi-camera log processing
 
-All cameras sharing a DataLogger write to the same log directory and the same `camera_manifest.yaml`.
-This simplifies batch processing:
+All cameras sharing a DataLogger write to the same log directory and the same `camera_manifest.yaml`. This simplifies
+batch processing:
 
 1. `discover_camera_data_tool` finds the manifest and identifies all confirmed sources (e.g., 51, 52, 53)
    with their camera names, log archives, video files, and feather outputs in one flat `sources` list
@@ -335,30 +329,29 @@ This simplifies batch processing:
 4. Output: one feather file per camera under a `camera_timestamps/` subdirectory
    (`camera_timestamps/camera_51_timestamps.feather`, `camera_timestamps/camera_52_timestamps.feather`, etc.)
 
-For multi-DataLogger setups, pass each DataLogger output directory as its own entry in the
-`log_directories` list. One batch call can carry several, and each is prepared independently, so a
-separate batch per directory is not required. Passing a parent directory that spans several DataLogger
-outputs is rejected rather than merged: preparation fails that entry and returns it under `invalid_paths`.
-The `axvs process` CLI raises the equivalent ValueError, either "Each DataLogger output directory must be
-prepared and processed on its own invocation" or a manifest-count error when the tree holds several
-`camera_manifest.yaml` files.
+For multi-DataLogger setups, pass each DataLogger output directory as its own entry in the `log_directories` list. One
+batch call can carry several, and each is prepared independently, so a separate batch per directory is not required.
+Passing a parent directory that spans several DataLogger outputs is rejected rather than merged: preparation fails that
+entry and returns it under `invalid_paths`. The `axvs process` CLI raises the equivalent ValueError, either "Each
+DataLogger output directory must be prepared and processed on its own invocation" or a manifest-count error when the
+tree holds several `camera_manifest.yaml` files.
 
 ---
 
 ## Cross-camera frame statistics comparison
 
-After processing, use `analyze_camera_frame_statistics_tool` with all camera feather files (pass the
-`timestamps_file` paths from `discover_camera_data_tool` as the `feather_files` list) and compare:
+After processing, use `analyze_camera_frame_statistics_tool` with all camera feather files (pass the `timestamps_file`
+paths from `discover_camera_data_tool` as the `feather_files` list) and compare:
 
-- **Estimated FPS** — All cameras should match the configured rate. A camera with lower FPS than others
+- **Estimated FPS**: All cameras should match the configured rate. A camera with lower FPS than others
   indicates an interface or encoding bottleneck on that specific channel.
-- **Timing jitter (std_us)** — Identifies which camera has the worst jitter. High jitter on one camera
+- **Timing jitter (std_us)**: Identifies which camera has the worst jitter. High jitter on one camera
   with low jitter on others points to a per-camera issue (cable, hub port, GenICam config).
-- **Drop rate** — Compare `drop_rate_percent` across cameras to identify bandwidth bottlenecks. If all
+- **Drop rate**: Compare `drop_rate_percent` across cameras to identify bandwidth bottlenecks. If all
   cameras drop simultaneously, the issue is system-wide (disk I/O, CPU, GPU saturation).
-- **Correlated drops** — Check if drops occur at the same `frame_index` ranges across cameras. Correlated
-  drops indicate system-level events; uncorrelated drops indicate per-camera issues.
-- **Start synchronization** — Compare `first_timestamp_us` across cameras. The delta between the earliest
+- **Correlated drops**: Check if drops occur at the same `frame_index` ranges across cameras. Correlated
+  drops indicate system-level events, and uncorrelated drops indicate per-camera issues.
+- **Start synchronization**: Compare `first_timestamp_us` across cameras. The delta between the earliest
   and latest first timestamps measures acquisition start synchronization quality.
 
 ---
@@ -367,36 +360,36 @@ After processing, use `analyze_camera_frame_statistics_tool` with all camera fea
 
 ### Single USB camera, first test
 
-1. `/video-mcp-environment-setup` — verify MCP connectivity (if first session)
-2. `/camera-setup` — `list_cameras_tool` → `start_video_session_tool` → test → `stop_video_session_tool`
-3. `/post-recording` — verify video and archives
+1. `/video-mcp-environment-setup`: verify MCP connectivity (if first session)
+2. `/camera-setup`: `list_cameras_tool` → `start_video_session_tool` → test → `stop_video_session_tool`
+3. `/post-recording`: verify video and archives
 4. Done (skip processing for quick test)
 
 ### Single Harvesters camera, production recording
 
-1. `/camera-setup` — configure GenICam nodes, test with MCP session
-2. `/camera-interface` — write VideoSystem code with production encoding parameters
-3. `/post-recording` — verify video and archives
-4. `/log-processing` — extract timestamps
-5. `/log-processing-results` — analyze frame quality
+1. `/camera-setup`: configure GenICam nodes, test with MCP session
+2. `/camera-interface`: write VideoSystem code with production encoding parameters
+3. `/post-recording`: verify video and archives
+4. `/log-processing`: extract timestamps
+5. `/log-processing-results`: analyze frame quality
 
 ### Multi-camera rig, behavioral experiment
 
-1. `/camera-setup` — discover all cameras, configure GenICam nodes individually
-2. `/pipeline` — plan system IDs and DataLogger topology
-3. `/camera-interface` — write multi-camera code following the coordinated lifecycle pattern
-4. `/post-recording` — verify all videos and archives
-5. `/log-processing` — batch process all source IDs together
-6. `/log-processing-results` — cross-camera comparison
+1. `/camera-setup`: discover all cameras, configure GenICam nodes individually
+2. `/pipeline`: plan system IDs and DataLogger topology
+3. `/camera-interface`: write multi-camera code following the coordinated lifecycle pattern
+4. `/post-recording`: verify all videos and archives
+5. `/log-processing`: batch process all source IDs together
+6. `/log-processing-results`: cross-camera comparison
 
 ### Cameras and microcontrollers in one session
 
-1. `/communication:pipeline` — plan the controller IDs and confirm the shared DataLogger topology
-2. `/pipeline` — allocate camera system IDs against the controller IDs already taken
-3. `/camera-interface` and `/communication:microcontroller-interface` — write both sides against one logger
-4. `/post-recording` — assemble once, then verify the camera outputs
-5. `/log-processing` and `/communication:log-processing` — one batch per library over the same directory
-6. `/log-processing-results` — frame statistics for the camera sources
+1. `/communication:pipeline`: plan the controller IDs and confirm the shared DataLogger topology
+2. `/pipeline`: allocate camera system IDs against the controller IDs already taken
+3. `/camera-interface` and `/communication:microcontroller-interface`: write both sides against one logger
+4. `/post-recording`: assemble once, then verify the camera outputs
+5. `/log-processing` and `/communication:log-processing`: one batch per library over the same directory
+6. `/log-processing-results`: frame statistics for the camera sources
 
 ---
 

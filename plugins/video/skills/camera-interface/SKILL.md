@@ -9,10 +9,7 @@ user-invocable: false
 
 # Camera interface
 
-Guides creation and configuration of VideoSystem instances. This skill covers the VideoSystem API itself;
-for interactive camera discovery and testing via MCP tools, use `/camera-setup` instead. Overall system
-architecture (binding classes, configuration dataclasses, startup orchestration) is the responsibility of
-the consuming library or application.
+Guides creation and configuration of VideoSystem instances.
 
 ---
 
@@ -33,16 +30,9 @@ the consuming library or application.
 - MCP server connectivity issues (see `/video-mcp-environment-setup`)
 - Binding class design, configuration dataclasses, or system architecture (consumer's responsibility)
 
-**Handoff rules:** Before writing code, invoke `/camera-setup` to discover the camera and settle its parameters
-against real hardware. For more than one camera, invoke `/pipeline` for system ID allocation and the coordinated
-startup and shutdown ordering. After the run, invoke `/post-recording`. If MCP tools are unavailable, invoke
-`/video-mcp-environment-setup`.
-
 ---
 
 ## Verification requirements
-
-**Before writing any camera code, verify the current state of the library.**
 
 ### Step 1: Version verification
 
@@ -52,9 +42,9 @@ Check the locally installed ataraxis-video-system version against the latest rel
 pip show ataraxis-video-system
 ```
 
-The current version is **5.0.0**. If a version mismatch exists, ask the user how to proceed. 5.0.0 is a breaking
-release relative to 4.x: `quantization_parameter` no longer accepts -1, the `video/log_processing.py` module was
-removed, and the GenICam interface is no longer installed on macOS.
+The current version is **5.0.0**. If a version mismatch exists, ask the user how to proceed. 5.0.0 is a breaking release
+relative to 4.x: `quantization_parameter` no longer accepts -1, the `video/log_processing.py` module was removed, and
+the GenICam interface is no longer installed on macOS.
 
 ### Step 2: API verification
 
@@ -68,7 +58,7 @@ removed, and the GenICam interface is no longer installed on macOS.
 
 ## VideoSystem API reference
 
-See [references/api-reference.md](references/api-reference.md) for the complete API reference including:
+See [api-reference.md](references/api-reference.md) for the complete API reference including:
 
 - VideoSystem constructor parameters and their exact types and defaults
 - Lifecycle methods (start, stop, start_frame_saving, stop_frame_saving)
@@ -114,7 +104,7 @@ Key constructor notes:
   rather than overriding through these parameters. The VideoSystem overrides are primarily intended
   for OpenCV cameras that lack GenICam node control. Exposure, gain, and other GenICam nodes are applied at
   configuration time via the `/camera-setup` tools or, in code, via the `HarvestersCamera` config methods
-  (`set_node_value`, `get_configuration`, `apply_configuration`); see the API reference. The deterministic
+  (`set_node_value`, `get_configuration`, `apply_configuration`). See the API reference. The deterministic
   acquisition script does not reconfigure nodes at runtime. The camera's `PixelFormat` must be an 8-bit
   format, since the constructor grabs a probe frame and raises `ValueError` on any other frame dtype.
 - `display_frame_rate` defaults to `None` (preview disabled). Set to a positive integer FPS not exceeding
@@ -130,7 +120,7 @@ Key constructor notes:
   `add_cti_file()` and every GenICam configuration call. Write code that targets GenICam cameras for a
   Linux or Windows host, and use `CameraInterfaces.OPENCV` on macOS.
 - `color` is a keyword-only parameter defaulting to `None`. For OpenCV and Mock, `None` resolves to
-  monochrome (`False`) — a color OpenCV camera left at `None` silently records grayscale, so pass
+  monochrome (`False`). A color OpenCV camera left at `None` silently records grayscale, so pass
   `color=True` explicitly to record color. Only Harvesters infers color/mono from the GenICam config.
 
 ### Lifecycle
@@ -150,12 +140,12 @@ VideoSystem() → start() → [start_frame_saving() → stop_frame_saving()] →
 
 ### System ID allocation
 
-Each VideoSystem instance requires a `system_id` (`np.uint8`, 0-255) that must be unique among all sources sharing
-one DataLogger, including sources from sibling libraries. The output video file is named `{system_id:03d}.mp4`
-(`051.mp4` for system_id 51), while the log archive uses the bare integer.
+Each VideoSystem instance requires a `system_id` (`np.uint8`, 0-255) that must be unique among all sources sharing one
+DataLogger, including sources from sibling libraries. The output video file is named `{system_id:03d}.mp4` (`051.mp4`
+for system_id 51), while the log archive uses the bare integer.
 
-`/pipeline` owns the allocation convention, the values the library reserves, and the cross-library coexistence
-rules. Invoke it before choosing an ID rather than assuming a band here.
+`/pipeline` owns the allocation convention, the values the library reserves, and the cross-library coexistence rules.
+Invoke it before choosing an ID rather than assuming a band here.
 
 ---
 
@@ -163,32 +153,32 @@ rules. Invoke it before choosing an ID rather than assuming a band here.
 
 ### Encoder selection
 
-| Encoder | Use When                                              |
-|---------|-------------------------------------------------------|
-| H265    | Production workloads (default, better compression)    |
-| H264    | Compatibility with older video players is required    |
+| Encoder | Use When                                           |
+|---------|----------------------------------------------------|
+| H265    | Production workloads (default, better compression) |
+| H264    | Compatibility with older video players is required |
 
 ### Speed preset selection
 
-| Preset      | Value | Use when                                                      |
-|-------------|-------|---------------------------------------------------------------|
-| FASTEST     | 1     | Maximum throughput, large file size acceptable                |
-| FASTER      | 2     | High throughput with slightly better compression              |
-| FAST        | 3     | Real-time acquisition under CPU/GPU load                      |
-| MEDIUM      | 4     | Balanced starting point for real-time acquisition             |
-| SLOW        | 5     | Default; good compression, may buffer under heavy load        |
-| SLOWER      | 6     | Higher compression, offline or low-fps recording              |
-| SLOWEST     | 7     | Maximum compression; offline re-encoding only                 |
+| Preset  | Value | Use when                                               |
+|---------|-------|--------------------------------------------------------|
+| FASTEST | 1     | Maximum throughput, large file size acceptable         |
+| FASTER  | 2     | High throughput with slightly better compression       |
+| FAST    | 3     | Real-time acquisition under CPU/GPU load               |
+| MEDIUM  | 4     | Balanced starting point for real-time acquisition      |
+| SLOW    | 5     | Default, good compression, may buffer under heavy load |
+| SLOWER  | 6     | Higher compression, offline or low-fps recording       |
+| SLOWEST | 7     | Maximum compression, offline re-encoding only          |
 
 ### Pixel format selection
 
 | Format | Use When                                                              |
 |--------|-----------------------------------------------------------------------|
-| YUV444 | Default; preserves color accuracy                                     |
-| YUV420 | Smaller files acceptable; monochrome cameras gain nothing from YUV444 |
+| YUV444 | Default, preserves color accuracy                                     |
+| YUV420 | Smaller files acceptable, monochrome cameras gain nothing from YUV444 |
 
-All encoding recommendations in this skill are healthy starting points. Actual parameters must be fine-tuned
-by the end user for their specific camera, scene content, and throughput requirements.
+All encoding recommendations in this skill are healthy starting points. Actual parameters must be fine-tuned by the end
+user for their specific camera, scene content, and throughput requirements.
 
 ---
 
@@ -198,20 +188,20 @@ by the end user for their specific camera, scene content, and throughput require
 
 | Use Case                        | Encoder | Preset      | Pixel Format | QP    | GPU | Rationale                                         |
 |---------------------------------|---------|-------------|--------------|-------|-----|---------------------------------------------------|
-| Scientific imaging (high-speed) | H265    | SLOWEST (7) | YUV444       | 0-5   | 0   | Maximum quality; GPU offloads encoding cost       |
-| Behavioral video (color)        | H265    | SLOW (5)    | YUV420       | 15-20 | 0   | Good balance; YUV420 acceptable for scoring       |
-| Real-time preview/testing       | H264    | FASTEST (1) | YUV420       | 23    | -1  | Minimum encoding cost; CPU-only for simplicity    |
-| Archival (storage-sensitive)    | H265    | SLOWER (6)  | YUV420       | 20-25 | 0   | Best compression; still usable visual quality     |
-| Multi-camera rig (bandwidth)    | H265    | FAST (3)    | YUV420       | 15    | 0   | Per-camera encoding must be fast; GPU parallelism |
+| Scientific imaging (high-speed) | H265    | SLOWEST (7) | YUV444       | 0-5   | 0   | Maximum quality, GPU offloads encoding cost       |
+| Behavioral video (color)        | H265    | SLOW (5)    | YUV420       | 15-20 | 0   | Good balance, YUV420 acceptable for scoring       |
+| Real-time preview/testing       | H264    | FASTEST (1) | YUV420       | 23    | -1  | Minimum encoding cost, CPU-only for simplicity    |
+| Archival (storage-sensitive)    | H265    | SLOWER (6)  | YUV420       | 20-25 | 0   | Best compression, still usable visual quality     |
+| Multi-camera rig (bandwidth)    | H265    | FAST (3)    | YUV420       | 15    | 0   | Per-camera encoding must be fast, GPU parallelism |
 
 ### GPU vs CPU encoding
 
-| Factor           | CPU                                   | GPU (NVENC)                          |
-|------------------|---------------------------------------|--------------------------------------|
-| Throughput       | Limited by core speed                 | Higher, especially multi-camera      |
-| Quality at QP    | Slightly better at same QP            | Slightly lower (NVENC limitation)    |
-| Multi-camera     | Competes with other processes for CPU | Dedicated hardware; handles parallel |
-| Availability     | Always available                      | Requires NVIDIA GPU                  |
+| Factor        | CPU                                   | GPU (NVENC)                          |
+|---------------|---------------------------------------|--------------------------------------|
+| Throughput    | Limited by core speed                 | Higher, especially multi-camera      |
+| Quality at QP | Slightly better at same QP            | Slightly lower (NVENC limitation)    |
+| Multi-camera  | Competes with other processes for CPU | Dedicated hardware, handles parallel |
+| Availability  | Always available                      | Requires NVIDIA GPU                  |
 
 ### Quantization parameter cross-encoder equivalence
 
@@ -234,10 +224,10 @@ H265 produces better compression at equivalent visual quality. To match quality 
 | `CUDA_ERROR_OUT_OF_MEMORY`         | GPU memory exhausted              | Reduce concurrent GPU encoders or resolution   |
 | `Too many packets buffered`        | Encoding too slow for frame rate  | Use faster preset or reduce resolution         |
 
-These messages surface on the **stderr of the process that hosts the runtime**, written there directly by the
-spawned consumer, because that child re-imports the library with a disabled console. They do not appear in any
-MCP tool return, so an agent cannot read them: they land on the terminal for an `axvs run` CLI session, and on
-the MCP server's stderr log for an MCP session. Ask the user to check whichever of the two applies.
+These messages surface on the **stderr of the process that hosts the runtime**, written there directly by the spawned
+consumer, because that child re-imports the library with a disabled console. They do not appear in any MCP tool return,
+so an agent cannot read them: they land on the terminal for an `axvs run` CLI session, and on the MCP server's stderr
+log for an MCP session. Ask the user to check whichever of the two applies.
 
 ---
 
@@ -250,7 +240,7 @@ the MCP server's stderr log for an MCP session. Ask the user to check whichever 
 | `list_cameras_tool` output                 | `camera_interface`, `camera_index` | Interface type and index transfer directly  |
 | Camera resolution from `list_cameras_tool` | `frame_width`, `frame_height`      | Use native resolution or override           |
 | Camera FPS from `list_cameras_tool`        | `frame_rate`                       | Set to `None` for native, or override       |
-| `check_runtime_requirements_tool`          | `gpu`                              | If GPU: OK, use `gpu=0`; if None, use `-1`  |
+| `check_runtime_requirements_tool`          | `gpu`                              | If GPU: OK, use `gpu=0`. If None, use `-1`  |
 | GenICam node values                        | Camera-level setup                 | Apply same config before VideoSystem init   |
 | MCP session success or failure             | Encoding feasibility               | If MCP session works, code session will too |
 
@@ -263,16 +253,16 @@ the MCP server's stderr log for an MCP session. Ask the user to check whichever 
 | `camera_index` (int)     | `camera_index` (int)      | Same                                                         |
 | `width` (int)            | `frame_width` (int)       | **Name change**                                              |
 | `height` (int)           | `frame_height` (int)      | **Name change**                                              |
-| `frame_rate` (int)       | `frame_rate` (int/None)   | Code default `None` (camera native); MCP requires int        |
+| `frame_rate` (int)       | `frame_rate` (int/None)   | Code default `None` (camera native), MCP requires int        |
 | `gpu_index` (int)        | `gpu` (int)               | **Name change**                                              |
-| `display_frame_rate`     | `display_frame_rate`      | MCP default 25; code default `None`                          |
+| `display_frame_rate`     | `display_frame_rate`      | MCP default 25, code default `None`                          |
 | `monochrome` (bool)      | `color` (bool/None)       | **Inverted**: `monochrome=True` → `color=False`              |
 | `video_encoder` (str)    | `video_encoder`           | `str` → `VideoEncoders` enum                                 |
 | `encoder_speed_preset`   | `encoder_speed_preset`    | `int` → `EncoderSpeedPresets` enum                           |
 | `output_pixel_format`    | `output_pixel_format`     | `str` → `OutputPixelFormats` enum                            |
-| (fixed at 112)           | `system_id`               | Code uses 51-100; MCP uses 112                               |
+| (fixed at 112)           | `system_id`               | Code uses 51-100, MCP uses 112                               |
 | (auto-created)           | `data_logger`             | Code must create and manage DataLogger                       |
-| (fixed: `"live_camera"`) | `name`                    | **New required param**; code must provide a descriptive name |
+| (fixed: `"live_camera"`) | `name`                    | **New required param**, code must provide a descriptive name |
 
 ### What MCP cannot test
 
@@ -292,14 +282,13 @@ the MCP server's stderr log for an MCP session. Ask the user to check whichever 
 ### Encoding failures
 
 1. Verify FFMPEG installation: `check_ffmpeg_availability()` must return `True`
-2. For GPU encoding: `check_gpu_availability()` must return `True`; verify NVIDIA drivers
+2. For GPU encoding: `check_gpu_availability()` must return `True`, and verify NVIDIA drivers
 3. Monitor GPU memory and thermal status during acquisition
 
 ### Frame drops
 
-Encoding cost depends heavily on frame content: high-motion or high-detail scenes are expensive to
-encode, while static or low-contrast scenes are cheap. A preset that works for a stationary camera may
-cause drops when the scene changes. Consider this when selecting presets.
+Encoding cost depends heavily on frame content: high-motion or high-detail scenes are expensive to encode, while static
+or low-contrast scenes are cheap. A preset that works for a stationary camera may cause drops when the scene changes.
 
 1. Reduce `display_frame_rate` or disable preview (set to `None`)
 2. Use a faster `encoder_speed_preset` (lower number)
@@ -308,10 +297,8 @@ cause drops when the scene changes. Consider this when selecting presets.
 
 ### Process crashes
 
-1. Ensure DataLogger is initialized and started before VideoSystem
-2. Verify output directory exists and is writable
-3. Check available disk space
-4. Ensure `system_id` is unique across all active VideoSystem instances
+1. Verify output directory exists and is writable
+2. Check available disk space
 
 ---
 
