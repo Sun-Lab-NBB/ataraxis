@@ -267,6 +267,7 @@ management, and batch log processing.
 | `log-processing`                      | Orchestrates batch log processing via the MCP server                   |
 | `log-processing-results`              | Interprets extracted event data and timing statistics                  |
 | `pipeline`                            | Orchestrates the end-to-end data acquisition and analysis pipeline     |
+| `cli-reference`                       | Documents the human-facing `axci` command-line interface               |
 | `communication-mcp-environment-setup` | Diagnoses and resolves MCP server connectivity issues                  |
 
 ### video
@@ -285,6 +286,7 @@ processing.
 | `log-processing-results`      | Interprets frame timing data, frame drops, and acquisition quality   |
 | `pipeline`                    | Orchestrates the end-to-end recording and analysis pipeline          |
 | `post-recording`              | Verifies recording outputs and prepares them for log processing      |
+| `cli-reference`               | Documents the human-facing `axvs` command-line interface             |
 | `video-mcp-environment-setup` | Diagnoses and resolves MCP server connectivity issues                |
 
 ### microcontroller

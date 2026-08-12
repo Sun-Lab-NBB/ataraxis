@@ -12,7 +12,7 @@
     {
       "name": "video",
       "source": "./plugins/video",
-      "description": "Provides camera acquisition, video recording, log processing, and pipeline orchestration skills for ataraxis-video-system. Includes MCP bindings for camera discovery, GenICam configuration, camera manifest management, interactive recording sessions, and batch log processing."
+      "description": "Provides camera acquisition, video recording, log processing, and pipeline orchestration skills for ataraxis-video-system. Includes MCP bindings for camera discovery, GenICam configuration, camera manifest management, interactive recording sessions, and batch log processing, plus a reference for the human-facing axvs command-line interface."
     },
     {
       "name": "communication",

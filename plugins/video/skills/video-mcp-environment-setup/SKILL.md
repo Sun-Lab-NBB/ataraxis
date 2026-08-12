@@ -23,11 +23,18 @@ Diagnoses and resolves ataraxis-video-system MCP server connectivity and environ
 - Checking Python version compatibility
 - Validating ataraxis-video-system package installation and dependencies
 - Environment-specific guidance for conda, pip, and uv workflows
+- The `--help` exemption to the ban on invoking `axvs`, which this skill owns
+- Handing the user a CLI command when the server cannot be restored in-session
 
 **Does not cover:**
 - MCP tool usage for camera discovery, configuration, and hardware interaction (see `/camera-setup`)
+- MCP tool usage for output verification and archive assembly (see `/post-recording`)
 - MCP tool usage for log data processing (see `/log-processing`, `/log-processing-results`)
+- The `axvs` command surface and its option reference (see `/cli-reference`)
 - ataraxis-video-system package development or contribution workflows
+
+**Handoff rules:** Once the server is reachable, invoke the skill that owns the blocked work and resume there. When
+the server cannot be restored in this session, invoke `/cli-reference` for the command to hand the user.
 
 ---
 
@@ -172,6 +179,12 @@ with a compatible version.
 axvs --help
 ```
 
+**This skill owns the one exemption to the ban on invoking `axvs`.** `axvs --help` and `axvs COMMAND --help` may be
+run: they are read-only, start no server, touch no hardware, and report the installed build rather than a documented
+snapshot of it. Use them to smoke-test the install and to settle any question about a command's real options. No
+other `axvs` invocation is exempt. Always use the long form, since the CLI leaves Click's `help_option_names` at its
+`["--help"]` default, so `-h` is never a help alias, and on `axvs run` it is bound to `--height`.
+
 If the command fails with an import error, a dependency is missing or broken. Run:
 
 ```bash
@@ -181,18 +194,28 @@ pip check 2>&1 | head -20
 `pip check` takes no package argument and verifies every installed distribution, so ignore unrelated package
 lines and report only failures involving ataraxis-video-system or one of its dependencies.
 
-### Step 5b: Smoke-test the server by hand
+### Step 6: Hand-launch the server as a smoke test
+
+`axvs --help` proves the package imports. It does NOT prove the MCP server starts. If steps 2 through 5 all pass and
+the tools are still unavailable, **have the user launch the server by hand**. Starting a server is not covered by the
+`--help` exemption, so print the command rather than running it:
 
 ```bash
 axvs mcp -t streamable-http
 ```
 
-Use `streamable-http` rather than the `stdio` default for this check. Under `stdio` the server disables the
-console so that no library output corrupts the JSON-RPC stream on stdout, which means a healthy server prints
-nothing and is indistinguishable from a hung one. The `streamable-http` branch echoes
-`Starting AXVS MCP server with streamable-http transport...` and then blocks, which confirms the server starts.
+Use `streamable-http`, NOT the `stdio` default. Under `stdio` the server calls `console.disable()` so that no library
+output corrupts the JSON-RPC stream on stdout, which means a healthy server prints nothing and is indistinguishable
+from a hung one. Under `streamable-http` a healthy server echoes
+`Starting AXVS MCP server with streamable-http transport...` and then blocks, serving HTTP until interrupted.
 
-### Step 6: Restart the MCP server
+| Observed                                    | Meaning                                                        |
+|---------------------------------------------|----------------------------------------------------------------|
+| The startup line, then the process blocks   | The server is healthy. The fault is in how the assistant launches it |
+| An import or dependency traceback           | Return to step 5 and repair the installation                   |
+| `Error: Invalid value for '-t'`             | The transport was misspelled. Only `stdio` and `streamable-http` exist |
+
+### Step 7: Restart the MCP server
 
 After the user resolves the environment issue, they must restart the Claude assistant for the MCP server to
 pick up the changes. The ataraxis video plugin will automatically configure the server on the next session.
@@ -233,6 +256,21 @@ For the tool-level consequences of an absent runtime, see `/camera-setup`.
 
 ---
 
+## Fallback: hand the user a CLI command
+
+When the server cannot be restored in this session, the user cannot restart the assistant right now, or the fix needs
+an environment change that only takes effect at the next launch, the work is not necessarily blocked. Most `axvs`
+commands run entirely without the MCP server.
+
+**The ban on invoking `axvs` stays absolute.** You MUST NOT run those commands yourself, even though the shell is
+available and they would work. Print the exact command, tell the user to run it, and ask them to paste the output
+back. `--help` remains the sole exemption (see step 5).
+
+`/cli-reference` is canonical for the whole `axvs` surface, so invoke it for the capabilities that have a CLI path,
+the command to hand the user for each one, and the tools that stay blocked until the server is back.
+
+---
+
 ## Related skills
 
 | Skill                     | Relationship                                                                 |
@@ -240,6 +278,7 @@ For the tool-level consequences of an absent runtime, see `/camera-setup`.
 | `/camera-setup`           | Requires the ataraxis-video-system MCP server for all tool interactions      |
 | `/camera-interface`       | Requires the ataraxis-video-system MCP server for API verification           |
 | `/post-recording`         | Requires the MCP server for archive assembly and video validation tools      |
+| `/cli-reference`          | Owns the `axvs` surface, and the command to hand a user when MCP stays down  |
 | `/log-input-format`       | References MCP server tools for archive discovery and assembly               |
 | `/log-processing`         | Requires the ataraxis-video-system MCP server for batch log processing tools |
 | `/log-processing-results` | Requires the ataraxis-video-system MCP server for frame statistics tools     |
@@ -265,5 +304,8 @@ MCP Environment Setup:
 - [ ] Confirmed Python version matches >=3.12,<3.15
 - [ ] Identified environment type (conda, venv, system)
 - [ ] Provided environment-specific resolution steps
+- [ ] Smoke-tested a hand launch with 'axvs mcp -t streamable-http' if steps 2-5 all passed
+- [ ] Invoked no 'axvs' command other than '--help'
+- [ ] Handed the user a CLI command for any tool blocked by a server that stays down
 - [ ] Informed user that the Claude assistant must be restarted after environment changes
 ```

@@ -25,8 +25,17 @@ into an acquisition system, use `/camera-interface` instead.
 - Reading, writing, dumping, and loading GenICam node configurations
 
 **Does not cover:**
-- Writing VideoSystem integration code (see `/camera-interface`)
+- Writing VideoSystem integration code, and the MCP-to-code parameter mapping (see `/camera-interface`)
+- The use-case encoding table and the FFMPEG error catalog (see `/camera-interface`)
+- System ID allocation and DataLogger topology (see `/pipeline`)
+- The `axvs` command-line surface (see `/cli-reference`)
+- Archive assembly and video file validation after a session (see `/post-recording`)
 - MCP server connectivity issues (see `/video-mcp-environment-setup`)
+
+**Handoff rules:** After a session stops, invoke `/post-recording` for output verification. When the user moves from
+testing to production code, invoke `/camera-interface`. For a multi-camera rig, invoke `/pipeline` before allocating
+system IDs. If the user asks what an `axvs` command does, invoke `/cli-reference`. If MCP tools are unavailable,
+invoke `/video-mcp-environment-setup`.
 
 ---
 
@@ -163,8 +172,8 @@ returns a value rather than an exception and a subsequent recording call would o
   exceed `frame_rate`.
 - `quantization_parameter` must be between 0 and 51 inclusive. There is no sentinel value.
 
-See the encoding parameter guidance section below for recommendations on encoder, preset, pixel format, and
-quantization parameter selection.
+The encoding parameter guidance section below covers what is specific to these MCP defaults. For choosing an
+encoder, preset, pixel format, and quantization parameter for a given use case, invoke `/camera-interface`.
 
 **`stop_video_session_tool` return structure:**
 
@@ -317,98 +326,39 @@ or Mono16 fails to start rather than being down-converted.
 
 ## Encoding parameter guidance
 
-### Encoder selection
+This section covers only what is specific to an MCP session. `/camera-interface` owns the use-case encoding table, the
+encoder and pixel format trade-offs, the H264-to-H265 quantization equivalence, and the FFMPEG error catalog. Read
+those from there rather than from a restatement here.
 
-| Factor         | H264                 | H265                                |
-|----------------|----------------------|-------------------------------------|
-| Compatibility  | Wider player support | May require newer players           |
-| Compression    | Good                 | ~30-50% better at same quality      |
-| Encoding speed | Faster               | Slower (use GPU to offset)          |
-| Default        | Yes (MCP default)    | Recommended for production via code |
+The MCP defaults (`H264`, preset `3`, `yuv420p`, QP `15`) are tuned for a quick compatibility-first test, not for
+production. Two of them deserve attention while testing:
 
-### Speed preset selection
+- **Preset.** `3` (FAST) suits a quick camera test. Raise it to `4` for an extended test recording, and to `5` when the
+  point of the session is evaluating the camera's own image quality rather than proving the pipeline runs.
+- **Quantization parameter.** The default of `15` is calibrated for H265 and is likely too low for the H264 default a
+  session starts with. Around 15-20 is a reasonable place to begin for H264. Tune it for the scene rather than treating
+  it as a documented equivalence.
 
-| Use Case                 | Preset     | Rationale                                          |
-|--------------------------|------------|----------------------------------------------------|
-| Quick camera test        | FAST (3)   | Fast encoding, broad compatibility                 |
-| Extended test recording  | MEDIUM (4) | Balance of speed and file size                     |
-| Quality evaluation       | SLOW (5)   | Better compression for evaluating camera output    |
-
-All recommendations are healthy starting points. Actual parameters must be fine-tuned by the end user for
-their specific camera, scene content, and throughput requirements.
-
-### Pixel format guidance
-
-| Format   | When to Use                                                                    |
-|----------|--------------------------------------------------------------------------------|
-| YUV420   | Default; monochrome cameras; storage-sensitive; behavioral video               |
-| YUV444   | Color-critical scientific imaging; maximum color fidelity                      |
-
-Monochrome cameras gain nothing from YUV444 since all chrominance channels are zero.
-
-### Quantization parameter guidance
-
-| QP Range | Quality Level | Use Case                                           |
-|----------|---------------|----------------------------------------------------|
-| 0-5      | Near-lossless | Scientific imaging requiring maximum detail        |
-| 10-15    | High quality  | Default for production; good balance               |
-| 15-20    | Good quality  | Behavioral video where pixel-perfect is not needed |
-| 20-25    | Moderate      | Archival; long recordings with storage constraints |
-| 25-35    | Low quality   | Preview and testing only                           |
-| 35-51    | Very low      | Not recommended                                    |
-
-The default QP of 15 is calibrated for H265 and is likely too low for H264. As a rough starting point, a
-slightly higher QP (around 15-20) is a reasonable place to begin for H264; tune it for your scene and
-throughput rather than treating it as a documented equivalence.
+Every recommendation is a healthy starting point. Actual parameters must be fine-tuned by the end user for their
+specific camera, scene content, and throughput requirements.
 
 ---
 
 ## Bridge to code integration
 
-When transitioning from MCP-based testing to writing VideoSystem code, use this mapping.
+Testing through MCP is the intended way to settle a camera's parameters before writing code. Once the session works:
 
-### Parameter mapping
+1. Use `list_cameras_tool` to discover camera indices and native resolution and frame rate
+2. Use `start_video_session_tool` to confirm the camera works at the desired parameters
+3. Use the GenICam tools to find and apply the camera's own optimal settings (Harvesters only)
+4. Invoke `/camera-interface` and translate the settled parameters through its MCP-to-code mapping table
 
-| MCP Parameter            | VideoSystem Parameter    | Key Difference                                                      |
-|--------------------------|--------------------------|---------------------------------------------------------------------|
-| `output_directory`       | `output_directory`       | `str` → `Path`; wrap in `Path()`                                    |
-| `interface`              | `camera_interface`       | `str` → `CameraInterfaces` enum                                     |
-| `camera_index`           | `camera_index`           | Same (`int`)                                                        |
-| `width`                  | `frame_width`            | **Name differs**                                                    |
-| `height`                 | `frame_height`           | **Name differs**                                                    |
-| `frame_rate`             | `frame_rate`             | MCP requires explicit value; code default is `None` (camera native) |
-| `gpu_index`              | `gpu`                    | **Name differs**                                                    |
-| `display_frame_rate`     | `display_frame_rate`     | MCP default: 25; code default: `None`                               |
-| `monochrome`             | `color`                  | **Inverted**: `monochrome=True` → `color=False`                     |
-| `video_encoder`          | `video_encoder`          | `str` → `VideoEncoders` enum                                        |
-| `encoder_speed_preset`   | `encoder_speed_preset`   | `int` → `EncoderSpeedPresets` enum                                  |
-| `output_pixel_format`    | `output_pixel_format`    | `str` → `OutputPixelFormats` enum                                   |
-| `quantization_parameter` | `quantization_parameter` | Same (`int`)                                                        |
-| (fixed at 112)           | `system_id`              | Code should use 51-100 range                                        |
-| (auto-created)           | `data_logger`            | Code must create and manage DataLogger                              |
-| (fixed: `"live_camera"`) | `name`                   | **New required param**; code must provide a descriptive camera name |
+**The mapping table lives in `/camera-interface` alone.** Several MCP parameters change name (`width` becomes
+`frame_width`), one inverts (`monochrome` becomes `color`), several change type from string to enum, and three code
+parameters have no MCP counterpart at all. Do not translate them from memory.
 
-### System ID semantics
-
-| ID     | Assignment                   | Context                                                       |
-|--------|------------------------------|---------------------------------------------------------------|
-| 51-100 | Camera VideoSystem instances | Plugin allocation convention, not a library-enforced range    |
-| 111    | CLI (`axvs run`)             | Fixed in the library; interactive terminal testing            |
-| 112    | MCP server sessions          | Fixed in the library; agent-driven testing                    |
-
-The library constrains one thing and requires one more: a `system_id` must fit `np.uint8` (0-255, enforced with
-an `OverflowError`), and every source sharing one DataLogger must carry a unique one. That second rule is a
-requirement the library does not check, since a duplicate ID silently replaces the earlier manifest entry. 111
-and 112 are the only values the library itself reserves. The 51-100 band is this plugin's convention for keeping
-camera code clear of them, so confirm the allocation with the user rather than assuming a rig follows it.
-
-### Workflow: MCP discovery to code integration
-
-1. Use `list_cameras_tool` to discover camera indices and native resolution/FPS
-2. Use `start_video_session_tool` to test the camera works at desired parameters
-3. Use GenICam tools to find and configure optimal camera settings (Harvesters only)
-4. Translate discoveries to VideoSystem constructor parameters using the mapping table above
-5. Use production encoding defaults (H265, SLOW, YUV444) or customize per the encoding guidance
+An MCP session is fixed at `system_id=112` and `name="live_camera"`, so neither value transfers to code. `/pipeline`
+owns system ID allocation and the DataLogger topology that constrains it.
 
 ---
 
@@ -431,32 +381,20 @@ camera code clear of them, so confirm the allocation with the user rather than a
 
 ---
 
-## CLI reference (human-facing — do not invoke)
+## CLI equivalents
 
-> **CLI reference — for answering user questions only.** The `axvs` command-line interface is a **human-facing**
-> tool. **Agents must never invoke `axvs` commands** — every agent-driven operation has an equivalent MCP tool
-> (noted in the table). This section exists solely so the agent can answer user questions about the CLI.
+Every tool in this skill has an `axvs` command a user can run by hand, and `/cli-reference` is canonical for all of
+them. **Agents must never invoke `axvs` commands.** Invoke `/cli-reference` when the user asks what a command does, or
+when `/video-mcp-environment-setup` has established that the server cannot be restored and the work must move to the
+terminal.
 
-| Command                  | Key options                                                            | Purpose                                                | MCP equivalent                                                        |
-|--------------------------|-----------------------------------------------------------------------|--------------------------------------------------------|-----------------------------------------------------------------------|
-| `axvs run`               | `-i/--interface`, `-c/--camera-index`, `-g/--gpu-index`, `-o/--output-directory`, `-m/--monochrome`, `-w/--width`, `-h/--height`, `-f/--frame-rate` | Interactive single-camera live imaging test            | `start_video_session_tool` / `stop_video_session_tool`                |
-| `axvs cti set`           | `-f/--file-path`                                                       | Configures the GenICam GenTL Producer (.cti) file      | `set_cti_file_tool`                                                    |
-| `axvs cti check`         | (none)                                                                 | Verifies the configured CTI file is valid              | `get_cti_status_tool`                                                  |
-| `axvs check devices`     | (none)                                                                 | Discovers connected cameras and their indices          | `list_cameras_tool`                                                    |
-| `axvs check compatibility` | (none)                                                               | Checks FFMPEG/GPU video-encoding requirements          | `check_runtime_requirements_tool`                                     |
-| `axvs configure ... read`  | `-n/--node-name`                    | Reads a GenICam node or lists writable nodes | `read_genicam_node_tool`   |
-| `axvs configure ... write` | `-n/--node-name`, `-v/--value`      | Writes a GenICam node value                  | `write_genicam_node_tool`  |
-| `axvs configure ... dump`  | `-o/--output-file`                  | Exports the full camera config to YAML       | `dump_genicam_config_tool` |
-| `axvs configure ... load`  | `-f/--config-file`, `--strict`      | Applies a YAML config to the camera          | `load_genicam_config_tool` |
-
-The `configure` group parses `-c/--camera-index`, `-b/--blacklisted-node` (repeatable), and `--no-blacklist`
-itself, so all three must be supplied **before** the subcommand name, as in
-`axvs configure -c 0 read -n Width`. Placing `-c` after the subcommand name aborts with "No such option".
-`-c` carries no default, so omitting it raises a usage error. `-b` and `--no-blacklist` are mutually exclusive.
-
-The `axvs run` session is driven by interactive keypresses (`q` to terminate, `w` to start saving frames, `s` to
-stop saving frames) that have no MCP analogue; the MCP session is tool-driven. Its `-i/--interface` option
-defaults to `mock`, so a real camera test must name `opencv` or `harvesters` explicitly.
+| Tool group                  | User-facing command                                                          |
+|-----------------------------|------------------------------------------------------------------------------|
+| CTI configuration           | `axvs cti set`, `axvs cti check`                                             |
+| Runtime and discovery       | `axvs check compatibility`, `axvs check devices`                             |
+| Video session               | `axvs run`, which is keypress-driven and records at fixed encoding           |
+| GenICam configuration       | `axvs configure read`, `write`, `dump`, `load`                               |
+| Camera manifest management  | No CLI path. `read_camera_manifest_tool` and `write_camera_manifest_tool` only |
 
 ---
 
@@ -464,8 +402,9 @@ defaults to `mock`, so a real camera test must name `opencv` or `harvesters` exp
 
 | Skill                          | Relationship                                                      |
 |--------------------------------|-------------------------------------------------------------------|
-| `/camera-interface`            | Covers writing VideoSystem integration code after testing via MCP |
+| `/camera-interface`            | Owns the MCP-to-code mapping and the use-case encoding guidance   |
 | `/post-recording`              | Downstream: verification after recording sessions                 |
+| `/cli-reference`               | Reference: the `axvs` commands equivalent to these tools          |
 | `/log-input-format`            | Reference: documents the archive format produced by this workflow |
 | `/log-processing`              | Downstream: processes archives from camera sessions               |
 | `/log-processing-results`      | Downstream: analyzes frame statistics from processed archives     |
@@ -484,6 +423,7 @@ Camera Setup:
 - [ ] Tested camera with interactive video session
 - [ ] Verified recording produces valid MP4 output
 - [ ] Configured GenICam nodes if using Harvesters cameras (optional)
-- [ ] Encoding parameters understood (see encoding guidance section)
-- [ ] Parameter mapping to code reviewed (if transitioning from MCP to code)
+- [ ] Every tool return checked for an `Error:` prefix or an `error` key before treating it as success
+- [ ] Session stopped and handed to /post-recording for output verification
+- [ ] /camera-interface invoked for the parameter mapping, if transitioning from MCP to code
 ```

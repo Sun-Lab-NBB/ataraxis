@@ -28,14 +28,17 @@ assembly, video validation, output completeness checks, and handoff conditions.
 **Does not cover:**
 - Camera discovery or interactive session management (see `/camera-setup`)
 - Writing VideoSystem integration code (see `/camera-interface`)
-- Log processing workflow or batch operations (see `/log-processing`)
+- Log processing workflow, batch operations, or the discovery tool contract (see `/log-processing`)
 - Input archive format details or source ID semantics (see `/log-input-format`)
 - Output feather files or frame statistics analysis (see `/log-processing-results`)
+- The `axvs run` session this skill may be recovering (see `/cli-reference`)
 - MCP server connectivity (see `/video-mcp-environment-setup`)
 
 **Handoff rules:** If the user asks about archive internal format or source IDs, invoke `/log-input-format`.
 If ready for processing, invoke `/log-processing`. If asking about frame statistics after processing, invoke
-`/log-processing-results`.
+`/log-processing-results`. If verification fails in a way that calls for re-recording, invoke `/camera-setup` for
+an MCP session or `/camera-interface` for code. If MCP tools are unavailable, invoke
+`/video-mcp-environment-setup`.
 
 ---
 
@@ -45,23 +48,14 @@ If ready for processing, invoke `/log-processing`. If asking about frame statist
 
 | Tool                      | Purpose                                                                     |
 |---------------------------|-----------------------------------------------------------------------------|
-| `stop_video_session_tool` | Stops the active session; returns video path, log directory; auto-assembles |
+| `stop_video_session_tool` | Stops the active session, returns video path and log directory, assembles   |
 
-The enhanced `stop_video_session_tool` returns a dictionary:
+`/camera-setup` owns this tool's return structure. This skill reads three of its keys. `video_file` and
+`log_directory` feed the two verification steps below, and `archives_assembled` decides whether assembly already
+happened. When it is `true`, the raw `.npy` entries were consolidated into `.npz` archives and removed. When it is
+`false`, auto-assembly failed and the manual tool below must run.
 
-```text
-{
-    "status": "stopped",
-    "video_file": "/path/to/112.mp4" or null,
-    "log_directory": "/path/to/mcp_video_session_data_log",
-    "archives_assembled": true or false,
-    "source_ids": ["112"]
-}
-```
-
-When `archives_assembled` is `true`, the raw `.npy` log files have been consolidated into `.npz` archives
-and the source `.npy` files have been removed. When `false`, auto-assembly failed, and you should use the
-manual assembly tool.
+A code-based session never calls this tool at all, so its archives always need the manual route.
 
 ### Archive assembly tool
 
@@ -130,17 +124,9 @@ Other error dictionaries cover an absent path, a non-directory path, and a faile
 |------------------------------|----------------------------------------------------------------------------------|
 | `discover_camera_data_tool`  | Verifies archives, video files, and manifests exist via manifest-based discovery |
 
-**Parameters:**
-
-| Parameter        | Type  | Default    | Description                                             |
-|------------------|-------|------------|---------------------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to root directory to search for manifests |
-
-**Note:** This tool requires `camera_manifest.yaml` files to exist in DataLogger output directories.
-These manifests are written automatically by `VideoSystem.__init__()`. For each confirmed manifest
-source, the tool locates the corresponding log archive, video file, and processed timestamp feather
-output, returning a flat `sources` list. The return also includes a flat `log_directories` list (which
-feeds batch `/log-processing`) plus `total_sources` and `total_log_directories` aggregate counts.
+`/log-processing` owns this tool's parameters and full return structure. Verification reads each source entry's
+`log_archive` to confirm the archive landed, and `video_file` to pair it with the recording. The tool requires a
+`camera_manifest.yaml` in every DataLogger output directory, which `VideoSystem.__init__()` writes automatically.
 
 **Caution:** `video_file` is resolved by a name-then-ID substring heuristic with path-proximity tie-breaking,
 not an exact path. A `None` `video_file` means "not matched", not necessarily "not on disk", so confirm with
@@ -198,6 +184,17 @@ Use `assemble_log_archives_tool` when:
 - Recovering from partial session failures
 - Recovering an `axvs run` session whose process was killed outright. An ordinary interrupt still assembles,
   because the CLI runs assembly in a `finally` block that executes on every exit path
+
+**A directory holding both `.npy` entries and `.npz` archives is a half-assembled recording, and assembling it
+again is unsafe.** Assembly overwrites an existing archive of the same source, and neither the tool nor the
+library function beneath it guards against this, so the destructive call succeeds silently and reports
+`status: "assembled"`. Check for both extensions before calling. If both are present, have the user back up the
+existing archives and remove them from the log directory before retrying.
+
+Assembly is directory-wide, not camera-wide. It groups by source ID alone and consolidates every source in the
+directory whatever library produced it, so **one** call covers a DataLogger shared with a sibling library. On a
+mixed recording, confirm nobody has already assembled on the microcontroller side before calling it here. See
+`/pipeline` for the shared-directory rules and `/communication:log-input-format` for the archives on the other side.
 
 After calling the tool, verify the result with `discover_camera_data_tool` to confirm all expected
 source IDs have corresponding `.npz` archives.
@@ -262,6 +259,7 @@ only the video name is padded.
 | No video file in output directory        | Session ran with `output_directory=None` | Re-record with an output directory configured  |
 | Video file is 0 bytes                    | FFMPEG encoding failed silently          | Check FFMPEG installation; re-record           |
 | No `.npz` archives after stopping        | Auto-assembly failed or nothing logged   | Call `assemble_log_archives_tool` manually     |
+| Both `.npy` and `.npz` in one directory  | Half-assembled recording                 | Back up the archives first, never re-assemble  |
 | Assembly produces empty archives         | No frame messages were logged            | Verify `start_frame_saving_tool` was called    |
 | Raw `.npy` files remain after assembly   | Assembly ran with `remove_sources=false` | Re-run with `remove_sources=true`              |
 | Frame count mismatch (video vs archive)  | Buffer flush timing or interruption      | 1-2 frames normal; large gaps indicate loss    |
@@ -279,10 +277,11 @@ shutdown, so use a faster `encoder_speed_preset` or hardware encoding next time.
 
 | Skill                          | Relationship                                              |
 |--------------------------------|-----------------------------------------------------------|
-| `/camera-setup`                | Upstream: MCP session management that produces recordings |
+| `/camera-setup`                | Upstream: MCP session management, and owns the stop tool  |
 | `/camera-interface`            | Upstream: VideoSystem code that produces recordings       |
+| `/cli-reference`               | Upstream: the `axvs run` session this skill recovers      |
 | `/log-input-format`            | Reference: archive format and source ID semantics         |
-| `/log-processing`              | Downstream: processes archives into frame timestamps      |
+| `/log-processing`              | Downstream: processes archives, and owns the discovery tool |
 | `/log-processing-results`      | Downstream: analyzes processed frame statistics           |
 | `/pipeline`                    | Context: end-to-end orchestration including this phase    |
 | `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access     |

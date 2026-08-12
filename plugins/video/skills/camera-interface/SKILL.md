@@ -20,14 +20,23 @@ the consuming library or application.
 
 **Covers:**
 - VideoSystem constructor parameters and lifecycle methods
-- System ID allocation and naming conventions
-- Encoding and pixel format selection
+- The MCP-to-code parameter mapping, which this skill owns for the whole plugin
+- Encoding, pixel format, and quantization selection, which this skill owns for the whole plugin
+- FFMPEG error interpretation
 - DataLogger integration requirements
 
 **Does not cover:**
 - Camera discovery, interactive testing, or GenICam node inspection via MCP tools (see `/camera-setup`)
+- System ID allocation, DataLogger topology, and the multi-camera lifecycle (see `/pipeline`)
+- Archive assembly and output verification after a run (see `/post-recording`)
+- Driving log processing from Python. Orchestration runs through MCP or the `axvs` CLI only
 - MCP server connectivity issues (see `/video-mcp-environment-setup`)
 - Binding class design, configuration dataclasses, or system architecture (consumer's responsibility)
+
+**Handoff rules:** Before writing code, invoke `/camera-setup` to discover the camera and settle its parameters
+against real hardware. For more than one camera, invoke `/pipeline` for system ID allocation and the coordinated
+startup and shutdown ordering. After the run, invoke `/post-recording`. If MCP tools are unavailable, invoke
+`/video-mcp-environment-setup`.
 
 ---
 
@@ -141,11 +150,12 @@ VideoSystem() → start() → [start_frame_saving() → stop_frame_saving()] →
 
 ### System ID allocation
 
-Each VideoSystem instance requires a `system_id` (`np.uint8`, 0-255) that must be unique among all sources
-sharing one DataLogger. The library itself reserves only 111 (the `axvs run` CLI) and 112 (the MCP server).
-Using IDs in the range 51-100 for runtime cameras is this plugin's allocation convention rather than a
-library-enforced range, so confirm the rig's allocation with the user. The output video file is named
-`{system_id:03d}.mp4` (e.g., `051.mp4` for system_id 51).
+Each VideoSystem instance requires a `system_id` (`np.uint8`, 0-255) that must be unique among all sources sharing
+one DataLogger, including sources from sibling libraries. The output video file is named `{system_id:03d}.mp4`
+(`051.mp4` for system_id 51), while the log archive uses the bare integer.
+
+`/pipeline` owns the allocation convention, the values the library reserves, and the cross-library coexistence
+rules. Invoke it before choosing an ID rather than assuming a band here.
 
 ---
 
@@ -309,12 +319,13 @@ cause drops when the scene changes. Consider this when selecting presets.
 
 | Skill                          | Relationship                                                             |
 |--------------------------------|--------------------------------------------------------------------------|
-| `/camera-setup`                | Covers MCP-based camera discovery, testing, and encoding parameter guide |
+| `/camera-setup`                | Upstream: MCP camera discovery and testing that settles these parameters |
 | `/post-recording`              | Downstream: verification after recording sessions                        |
+| `/cli-reference`               | Reference: `axvs run`, the third parameter set, which no code path uses  |
 | `/log-input-format`            | Reference: documents archive format produced by VideoSystem code         |
 | `/log-processing`              | Downstream: processes archives from VideoSystem instances                |
 | `/log-processing-results`      | Downstream: analyzes frame statistics from processed archives            |
-| `/pipeline`                    | Context: end-to-end orchestration and multi-camera planning              |
+| `/pipeline`                    | Owns system ID allocation, DataLogger topology, and multi-camera code    |
 | `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for API verification               |
 
 ---

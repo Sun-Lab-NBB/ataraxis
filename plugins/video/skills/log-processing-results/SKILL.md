@@ -29,9 +29,17 @@ reference, frame statistics analysis, and interpretation guidance for discussing
 **Does not cover:**
 - Input archive format, source ID semantics, or DataLogger output (see `/log-input-format`)
 - Processing workflow, batch operations, or status monitoring (see `/log-processing`)
+- The `discover_camera_data_tool` parameters and full return structure (see `/log-processing`)
 - Camera hardware setup or configuration (see `/camera-setup`)
-- Writing VideoSystem integration code (see `/camera-interface`)
+- Encoding parameter selection, which the remedies below name (see `/camera-interface`)
+- Cross-camera comparison of these statistics on a multi-camera rig (see `/pipeline`)
 - MCP server connectivity issues (see `/video-mcp-environment-setup`)
+
+**Handoff rules:** If a source's `timestamps_file` is `null` or a statistic looks wrong because the job never
+succeeded, invoke `/log-processing` to inspect the tracker and retry. If the remedy is an encoding or acquisition
+parameter change, invoke `/camera-interface` for the code path or `/camera-setup` for the MCP path. If several
+cameras must be compared against one another, invoke `/pipeline`. If MCP tools are unavailable, invoke
+`/video-mcp-environment-setup`.
 
 ---
 
@@ -43,16 +51,9 @@ reference, frame statistics analysis, and interpretation guidance for discussing
 |------------------------------|------------------------------------------------------------------------------------|
 | `discover_camera_data_tool`  | Discovers manifests, log archives, video files, and feather files under a root dir |
 
-**Parameters:**
-
-| Parameter        | Type  | Default    | Description                                             |
-|------------------|-------|------------|---------------------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to root directory to search for manifests |
-
-This tool uses manifest-based routing: it searches for `camera_manifest.yaml` files, then for each
-manifest source locates the corresponding log archive, video file, and processed timestamp feather
-output. Each source entry in the response includes a `timestamps_file` field (path to the feather
-file, or `null` if not yet processed).
+`/log-processing` owns this tool's parameters and full return structure. This skill covers only the one field the
+output side reads: each source entry's `timestamps_file`, which carries the path to that camera's feather file or
+`null` when the source has not been processed. See the processing completeness section below for its interpretation.
 
 ### Analysis tool
 
@@ -245,31 +246,9 @@ entering the field of view) indicate the encoder cannot handle peak complexity a
 
 ---
 
-## Discovery output reference
+## Processing completeness
 
-The `discover_camera_data_tool` returns a flat list of confirmed source entries. Each source entry
-includes processing output status via the `timestamps_file` field:
-
-```text
-{
-    "sources": [
-        {
-            "recording_root": "/path/to/session",
-            "source_id": "51",
-            "name": "face_camera",
-            "log_archive": "/path/to/51_log.npz",
-            "video_file": "/path/to/video.mp4" or null,
-            "timestamps_file": "/path/to/camera_51_timestamps.feather" or null,
-            "log_directory": "/path/to/session_data_log"
-        }
-    ],
-    "log_directories": ["/path/to/session_data_log"],
-    "total_sources": 1,
-    "total_log_directories": 1
-}
-```
-
-**Processing completeness assessment:**
+Read each source entry's `timestamps_file` from the discovery response `/log-processing` documents:
 
 | `timestamps_file` value  | Meaning                                                          |
 |--------------------------|------------------------------------------------------------------|
@@ -289,11 +268,12 @@ will not match the `log_directory` values this tool returns.
 |--------------------------------|--------------------------------------------------------------------|
 | `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access              |
 | `/camera-setup`                | Upstream: MCP discovery tools that locate archives and recordings  |
-| `/camera-interface`            | Context: VideoSystem configuration determines expected frame rates |
+| `/camera-interface`            | Owns the encoding parameters the remedies here name                |
 | `/post-recording`              | Upstream: verifies session outputs before processing               |
+| `/cli-reference`               | Reference: `axvs process` writes the same feather output           |
 | `/log-input-format`            | Reference: input archive format and source ID semantics            |
-| `/log-processing`              | Upstream: processing workflow that produces this output            |
-| `/pipeline`                    | Context: results analysis is phase 6 of the end-to-end pipeline    |
+| `/log-processing`              | Owns the processing workflow and the discovery tool contract       |
+| `/pipeline`                    | Owns cross-camera comparison of these statistics                   |
 
 ---
 

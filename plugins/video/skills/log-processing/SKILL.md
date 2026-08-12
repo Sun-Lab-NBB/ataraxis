@@ -31,12 +31,15 @@ extraction jobs, monitor progress, and hand off to downstream skills for output 
 - Output data formats, feather file schema, or frame statistics analysis (see `/log-processing-results`)
 - Camera hardware setup or interactive testing (see `/camera-setup`)
 - Writing VideoSystem integration code (see `/camera-interface`)
+- Archive assembly, which must already have happened (see `/post-recording`)
+- The `axvs process` command surface and its failure modes (see `/cli-reference`)
 - MCP server connectivity issues (see `/video-mcp-environment-setup`)
 
 **Handoff rules:** If the user asks about archive format, source IDs, or DataLogger output, invoke
 `/log-input-format`. If the user asks about feather file contents, frame timing statistics, frame drops, or
-data interpretation, invoke `/log-processing-results`. If MCP tools are unavailable, invoke
-`/video-mcp-environment-setup`.
+data interpretation, invoke `/log-processing-results`. If discovery finds raw `.npy` entries and no `.npz`
+archives, invoke `/post-recording` to assemble them before preparing anything. If the user asks what an `axvs`
+command does, invoke `/cli-reference`. If MCP tools are unavailable, invoke `/video-mcp-environment-setup`.
 
 ---
 
@@ -445,18 +448,19 @@ reported under `invalid_paths`, and every per-source failure under that director
 
 ---
 
-## CLI reference (human-facing — do not invoke)
+## CLI equivalent
 
-> **CLI reference — for answering user questions only.** The `axvs` command-line interface is a
-> **human-facing** tool. **Agents must never invoke `axvs` commands** — every agent-driven operation has an
-> equivalent MCP tool (noted in the table). This section exists solely so the agent can answer user
-> questions about the CLI.
+`axvs process` is the user-facing route to this workflow, and `/cli-reference` is canonical for its options and failure
+modes. **Agents must never invoke `axvs` commands.** Three divergences matter when discussing it with a user:
 
-| Command       | Key options                                                                                              | Purpose                                                                  | MCP equivalent                                                         |
-|---------------|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|------------------------------------------------------------------------|
-| `axvs process` | `-ld/--log-directory`, `-od/--output-directory`, `-id/--job-id`, `-s/--specifier` (repeatable), `-w/--workers`, `-np/--no-progress` | Extracts frame timestamps from the `.npz` log archives under one directory | The prepare/execute/status batch tools documented above (`prepare_log_processing_batch_tool`, `execute_log_processing_jobs_tool`, `get_log_processing_status_tool`) |
+- It handles ONE log directory per invocation, whereas this batch carries many
+- It runs its jobs sequentially and aborts at the first failing job, whereas this batch isolates a failure to its
+  own job and carries the rest through
+- It sizes nothing. Every job runs at the one `-w` ceiling, whereas preparation here sizes each job from its own
+  archive
 
-`axvs process` handles ONE log directory per invocation, whereas the MCP workflow batches many directories.
+Both paths lock the same `camera_processing_tracker.yaml`, so never prepare or execute over a directory the user has an
+`axvs process` run in. Whichever side asks second raises a `TimeoutError`.
 
 ---
 
@@ -468,6 +472,7 @@ reported under `invalid_paths`, and every per-source failure under that director
 | `/camera-setup`                | Upstream: camera discovery and testing                          |
 | `/camera-interface`            | Upstream: VideoSystem integration code that produces logs       |
 | `/post-recording`              | Upstream: verifies archives before processing                   |
+| `/cli-reference`               | Reference: the `axvs process` command equivalent to this batch  |
 | `/log-input-format`            | Reference: input archive format and source ID semantics         |
 | `/log-processing-results`      | Downstream: output data discovery and frame statistics analysis |
 | `/pipeline`                    | Context: log processing is phase 5 of the end-to-end pipeline   |

@@ -271,6 +271,11 @@ library function beneath it guards against this, so the destructive call succeed
 "assembled"`. Check for both extensions first. If both are present, have the user back up the existing archives and
 remove them from the log directory before retrying.
 
+Assembly is directory-wide, not controller-wide. Under the source ID grouping `/log-input-format` documents, **one**
+call covers a DataLogger shared with ataraxis-video-system. On a mixed recording, the camera side may have assembled
+already, which is exactly the half-assembled state above. `/video:post-recording` owns that side of the call, and
+`/video:pipeline` owns the shared-directory rules.
+
 Nothing downstream errors when this transition is skipped. `discover_microcontroller_data_tool` returns no source for an
 unassembled directory, and a directory reached without discovery has each of its sources recorded under prepare's
 `skipped_sources` while the call still reports `success: True`. A skipped assembly reads as an empty recording, never as
@@ -335,6 +340,7 @@ to run `axci mqtt --help`.
 | `/cli-reference`                       | Reference: the full `axci` command surface, human-facing                        |
 | `/pipeline`                            | Context: end-to-end orchestration and multi-controller planning                 |
 | `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for all tool interactions                 |
+| `/video:post-recording`                | Peer: the camera side of assembly over a shared log directory                   |
 
 ---
 

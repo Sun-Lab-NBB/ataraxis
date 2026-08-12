@@ -31,7 +31,16 @@ archives are produced, their internal structure, and source ID semantics.
 - Processing workflow or batch operations (see `/log-processing`)
 - Output data formats or frame statistics (see `/log-processing-results`)
 - Camera hardware setup or configuration (see `/camera-setup`)
+- Running assembly, or recovering a session that never assembled (see `/post-recording`)
+- The system ID allocation convention (see `/pipeline`)
+- Archives written to the same directory by a sibling library (see `/communication:log-input-format`)
 - MCP server connectivity (see `/video-mcp-environment-setup`)
+
+**Handoff rules:** If a prerequisite below is unmet, invoke the skill that repairs it. Missing `.npz` archives and
+raw `.npy` entries go to `/post-recording`, a missing manifest goes to `/camera-setup` for
+`write_camera_manifest_tool`, and a source ID collision goes to `/pipeline`. Once every prerequisite holds, invoke
+`/log-processing`. If the archives in question are `{controller_id}_log.npz` entries rather than camera archives,
+invoke `/communication:log-input-format`.
 
 ---
 
@@ -185,6 +194,25 @@ recording_root/
     └── 2_log.npz                        # Neural system_id=2
 ```
 
+### Directories shared with a sibling library
+
+A DataLogger is an ataraxis-data-structures object, so a directory may hold archives from several libraries at
+once. A camera archive and a microcontroller archive are indistinguishable by filename, since both follow
+`{source_id}_log.npz`. What separates them is the manifest:
+
+```text
+session_data_log/
+├── camera_manifest.yaml                 # Registers 51 and 52
+├── microcontroller_manifest.yaml        # Registers 101
+├── 51_log.npz                           # Camera
+├── 52_log.npz                           # Camera
+└── 101_log.npz                          # Microcontroller
+```
+
+Discovery here reads `camera_manifest.yaml` alone and never resolves 101, so an unregistered archive is invisible
+rather than mis-parsed. The payload layouts differ as well, and `/communication:log-input-format` documents the
+microcontroller side. `/pipeline` owns the shared-namespace rules that keep the source IDs from colliding.
+
 Each log directory is an **independent processing unit**. The discovery tool groups archives by their
 parent directory (the DataLogger output directory), and each directory is prepared and processed
 independently.
@@ -293,13 +321,15 @@ Before running the log processing pipeline, verify these conditions:
 
 | Skill                          | Relationship                                                         |
 |--------------------------------|----------------------------------------------------------------------|
-| `/camera-setup`                | Upstream: MCP sessions that produce archives in this format          |
+| `/camera-setup`                | Upstream: MCP sessions, and owns `write_camera_manifest_tool`         |
 | `/camera-interface`            | Upstream: VideoSystem instances that produce the log data            |
 | `/post-recording`              | Upstream: validates and assembles archives in this format            |
+| `/cli-reference`               | Upstream: `axvs run` assembles the same archives on every exit path  |
 | `/log-processing`              | Downstream: consumes archives in the format documented here          |
 | `/log-processing-results`      | Downstream: documents the output format produced from these archives |
-| `/pipeline`                    | Context: reference skill for the end-to-end pipeline phases          |
+| `/pipeline`                    | Owns source ID allocation and the shared-DataLogger namespace        |
 | `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for discovery and processing   |
+| `/communication:log-input-format` | Peer: the microcontroller archives that may share the directory   |
 
 ---
 

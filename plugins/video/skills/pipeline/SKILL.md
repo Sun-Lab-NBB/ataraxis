@@ -19,31 +19,58 @@ multi-camera setups, phase ordering, handoff conditions, and decision guidance.
 
 **Covers:**
 - Canonical pipeline phase ordering with handoff conditions
-- Decision trees for interface, encoding, and processing configuration
-- Multi-camera planning: system ID allocation, DataLogger topology, coordinated lifecycle
+- System ID allocation, which this skill owns for the whole plugin
+- Multi-camera planning: DataLogger topology and the coordinated lifecycle
 - Multi-camera log processing and cross-camera frame statistics comparison
+- Cross-system recordings that share one DataLogger with a sibling ataraxis library
 - MCP vs code decision guidance
 - Quick-start references for common scenarios
 
 **Does not cover:**
 - Detailed tool usage for any individual phase (see phase-specific skills)
+- Encoding parameter selection (see `/camera-interface`)
+- Core and memory budget planning for a processing batch (see `/log-processing`)
+- The `axvs` command surface (see `/cli-reference`)
 - MCP server connectivity (see `/video-mcp-environment-setup`)
 
 **Handoff rules:** This skill dispatches to phase-specific skills at each stage. Always invoke the relevant
-skill for detailed tool usage, parameter reference, and troubleshooting.
+skill for detailed tool usage, parameter reference, and troubleshooting. When the recording also carries
+microcontroller sources, invoke `/communication:pipeline` for that side before allocating any source ID.
 
 ---
 
 ## Pipeline phases
 
 ```text
-Environment    Camera         Recording    Post-         Log            Results
-Setup       →  Discovery   →            →  Recording  →  Processing  →  Analysis
-    |              |              |            |              |              |
-/mcp-env-    /camera-setup  /camera-setup /post-       /log-          /log-processing
- setup                      or /camera-    recording    processing     -results
-                             interface
+Phase 1  Environment setup     →  /video-mcp-environment-setup
+Phase 2  Camera discovery      →  /camera-setup
+Phase 3  Recording session     →  /camera-setup (MCP) or /camera-interface (code)
+Phase 4  Post-recording        →  /post-recording
+Phase 5  Log processing        →  /log-processing
+Phase 6  Results analysis      →  /log-processing-results
 ```
+
+Three skills sit outside the phase order and serve every phase. `/pipeline` plans the run, `/log-input-format`
+documents the archives phases 3 through 5 hand along, and `/cli-reference` answers questions about the `axvs`
+commands a user runs by hand.
+
+### Who owns what
+
+Every one of the MCP server's 27 tools has exactly one skill that documents its parameters and return structure.
+Other skills name a tool only to say which of its fields they read. When two skills seem to disagree, the owner
+below is authoritative.
+
+| Skill                          | Owns                                                                             |
+|--------------------------------|----------------------------------------------------------------------------------|
+| `/video-mcp-environment-setup` | Server reachability, the install, and the `axvs --help` exemption                |
+| `/camera-setup`                | The runtime, CTI, camera discovery, session, GenICam, and manifest tools         |
+| `/camera-interface`            | The VideoSystem API, the MCP-to-code mapping, and every encoding recommendation  |
+| `/post-recording`              | `assemble_log_archives_tool` and `validate_video_file_tool`                      |
+| `/log-processing`              | `discover_camera_data_tool`, the batch tools, and job resource sizing            |
+| `/log-processing-results`      | `analyze_camera_frame_statistics_tool` and the feather output schema             |
+| `/log-input-format`            | The `.npz` archive layout, the manifest contract, and processing prerequisites   |
+| `/cli-reference`               | Every `axvs` command and option, and the MCP-down fallback                       |
+| `/pipeline`                    | Phase ordering, source ID allocation, DataLogger topology, cross-camera analysis |
 
 ### Phase 1: Environment setup
 
@@ -105,31 +132,33 @@ Does the camera support GenTL (GenICam Transport Layer)?
 
 ### MCP vs code
 
-| Scenario                                          | Recommendation                    |
-|---------------------------------------------------|-----------------------------------|
-| Single camera, interactive testing or exploration | MCP via `/camera-setup`           |
-| Single camera, production with custom encoding    | Code via `/camera-interface`      |
-| Multi-camera simultaneous recording               | Code via `/camera-interface`      |
-| Log processing (any scenario)                     | MCP via `/log-processing`         |
-| Results analysis (any scenario)                   | MCP via `/log-processing-results` |
+| Scenario                                          | Recommendation                          |
+|---------------------------------------------------|-----------------------------------------|
+| Verify the host, discover cameras, configure GenICam | MCP via `/camera-setup`              |
+| Single camera, interactive testing or exploration | MCP via `/camera-setup`                 |
+| Single camera, production with custom encoding    | Code via `/camera-interface`            |
+| Multi-camera simultaneous recording               | Code via `/camera-interface`            |
+| Verify outputs and assemble archives              | MCP via `/post-recording`               |
+| Log processing (any scenario)                     | MCP via `/log-processing`               |
+| Results analysis (any scenario)                   | MCP via `/log-processing-results`       |
+| Answer a question about an `axvs` command         | Reference only via `/cli-reference`     |
+| Work an operation while the MCP server is down    | Hand the user a command, `/cli-reference` |
 
 MCP supports only one active video session at a time. Multi-camera recording requires Python code.
 
+There is no third path. Orchestration happens through the MCP tools or through the `axvs` CLI a user runs by hand.
+The library exports its orchestration symbols, but they are not an agent-facing surface, so never drive a batch from
+Python. Agents never invoke `axvs` either, with `--help` the sole exemption `/video-mcp-environment-setup` owns.
+
 ### Encoding selection
 
-| Use Case                        | Encoder | Preset      | Pixel Format | QP    | GPU |
-|---------------------------------|---------|-------------|--------------|-------|-----|
-| Interactive testing             | H264    | FAST (3)    | YUV420       | 15    | -1  |
-| Scientific imaging (high-speed) | H265    | SLOWEST (7) | YUV444       | 0-5   | 0   |
-| Behavioral video (color)        | H265    | SLOW (5)    | YUV420       | 15-20 | 0   |
-| Archival (storage-sensitive)    | H265    | SLOWER (6)  | YUV420       | 20-25 | 0   |
-| Multi-camera rig (bandwidth)    | H265    | FAST (3)    | YUV420       | 15    | 0   |
+Do not select encoding parameters from this skill. `/camera-interface` owns the use-case table, the CPU and GPU
+trade-off, the cross-encoder quantization equivalence, and the FFMPEG error catalog, and it is the only place those
+figures are authoritative. `/camera-setup` covers what is specific to the MCP session defaults.
 
-These are healthy starting points. Actual parameters must be fine-tuned by the end user for their specific
-camera, scene content, and throughput requirements.
-
-See `/camera-interface` for detailed encoding guidance and FFMPEG error interpretation. See `/camera-setup`
-for MCP encoding parameter reference.
+The one planning fact this phase contributes is that a multi-camera rig encodes every channel concurrently, so the
+per-camera preset that works alone may not survive the rig. Plan for GPU encoding and a faster preset than a
+single-camera setup would need, then confirm the choice against `/camera-interface`.
 
 ---
 
@@ -142,20 +171,27 @@ registers as the `source_id`, and it names the camera's `{system_id}_log.npz` ar
 `/log-input-format`). This skill uses "source ID" for the shared DataLogger namespace and `system_id`
 for the VideoSystem constructor.
 
-| Range  | Assignment                   | Notes                                                          |
-|--------|------------------------------|----------------------------------------------------------------|
-| 51-100 | Camera VideoSystem instances | Plugin convention, not a library-enforced range                |
-| 111    | CLI (`axvs run`)             | Fixed in the library; interactive testing only                 |
-| 112    | MCP server sessions          | Fixed in the library; agent-driven testing only                |
+| Range   | Assignment                              | Notes                                                     |
+|---------|-----------------------------------------|-----------------------------------------------------------|
+| 51-100  | Camera VideoSystem instances            | Plugin convention, not a library-enforced range           |
+| 101-150 | MicroControllerInterface instances      | The sibling communication plugin's convention. Avoid      |
+| 111     | CLI (`axvs run`)                        | Fixed in the library. Interactive testing only            |
+| 112     | MCP server sessions                     | Fixed in the library. Agent-driven testing only           |
 
-The library constrains one thing and requires one more: a `system_id` must fit `np.uint8` (0-255, enforced with
+The library constrains one thing and requires one more. A `system_id` must fit `np.uint8` (0-255, enforced with
 an `OverflowError`), and every source sharing one DataLogger must carry a unique one. That second rule is a
 requirement the library does not check, since a duplicate ID silently replaces the earlier manifest entry rather
-than raising. 111 and 112 are the only values the library itself reserves, and the
-axvs README's own quickstart uses 101 for a camera. The 51-100 band is this plugin's allocation convention
-for keeping camera code clear of the reserved pair, so confirm the rig's existing allocation with the user
-rather than assuming it follows the convention. Within the band, allocate sequentially from 51 (e.g., 51,
-52, 53 for a 3-camera rig).
+than raising. 111 and 112 are the only values the library itself reserves, and the axvs README's own quickstart
+uses 101 for a camera.
+
+The 51-100 band is this plugin's allocation convention for keeping camera code clear of the reserved pair and of
+the 101-150 band `/communication:pipeline` advises for microcontrollers. Confirm the rig's existing allocation
+with the user rather than assuming it follows the convention. Within the band, allocate sequentially from 51
+(51, 52, 53 for a 3-camera rig).
+
+Note that 111 falls inside the communication plugin's advised band, so a rig that runs `axvs run` against the same
+DataLogger a controller 111 writes to collides. This is only a concern for interactive testing, since production
+camera code never uses 111.
 
 ### DataLogger topology
 
@@ -255,6 +291,37 @@ if __name__ == "__main__":
 
 ---
 
+## Cross-system recordings
+
+A DataLogger is not a video-system object. It comes from ataraxis-data-structures, and any ataraxis library that
+logs can share one. The common case is a rig where cameras and microcontrollers record the same session, which is
+what puts every source's timestamps on one clock.
+
+```text
+DataLogger(instance_name="session")
+  ├── VideoSystem(system_id=51)                  → 51_log.npz  + camera_manifest.yaml
+  ├── VideoSystem(system_id=52)                  → 52_log.npz
+  └── MicroControllerInterface(controller_id=101) → 101_log.npz + microcontroller_manifest.yaml
+```
+
+Four rules govern the shared directory:
+
+- **One source ID namespace.** Uniqueness spans every source on the logger, not just the cameras. Allocate the
+  camera IDs against the controller IDs already in use, and invoke `/communication:pipeline` for that side.
+- **Two manifests, one directory.** Each library writes its own manifest naming only its own sources, and each
+  library's discovery reads only its own. A camera source is invisible to the communication tooling and the
+  reverse, which is what keeps the two processing batches independent.
+- **One assembly call.** `assemble_log_archives()` groups by source ID and consolidates every source in the
+  directory at once, whatever library produced it. Run it once, after every logging component has stopped.
+- **Two processing batches.** `/log-processing` here and `/communication:log-processing` there both read the same
+  directory and each prepares only its own sources. The two trackers have different filenames, so the batches do
+  not contend.
+
+Shut the stack down in strict reverse order. Every VideoSystem and every MicroControllerInterface must stop before
+the shared DataLogger does, and assembly runs only after `DataLogger.stop()` returns.
+
+---
+
 ## Multi-camera log processing
 
 All cameras sharing a DataLogger write to the same log directory and the same `camera_manifest.yaml`.
@@ -322,19 +389,30 @@ After processing, use `analyze_camera_frame_statistics_tool` with all camera fea
 5. `/log-processing` — batch process all source IDs together
 6. `/log-processing-results` — cross-camera comparison
 
+### Cameras and microcontrollers in one session
+
+1. `/communication:pipeline` — plan the controller IDs and confirm the shared DataLogger topology
+2. `/pipeline` — allocate camera system IDs against the controller IDs already taken
+3. `/camera-interface` and `/communication:microcontroller-interface` — write both sides against one logger
+4. `/post-recording` — assemble once, then verify the camera outputs
+5. `/log-processing` and `/communication:log-processing` — one batch per library over the same directory
+6. `/log-processing-results` — frame statistics for the camera sources
+
 ---
 
 ## Related skills
 
-| Skill                          | Relationship                                           |
-|--------------------------------|--------------------------------------------------------|
-| `/video-mcp-environment-setup` | Phase 1: environment verification                      |
-| `/camera-setup`                | Phase 2-3: MCP-based discovery, testing, and recording |
-| `/camera-interface`            | Phase 3: code-based VideoSystem integration            |
-| `/post-recording`              | Phase 4: output verification and archive assembly      |
-| `/log-input-format`            | Reference: archive format for troubleshooting          |
-| `/log-processing`              | Phase 5: timestamp extraction                          |
-| `/log-processing-results`      | Phase 6: frame statistics and quality analysis         |
+| Skill                          | Relationship                                                       |
+|--------------------------------|--------------------------------------------------------------------|
+| `/video-mcp-environment-setup` | Phase 1: environment verification                                  |
+| `/camera-setup`                | Phase 2-3: MCP-based discovery, testing, and recording             |
+| `/camera-interface`            | Phase 3: code-based integration, and owns encoding selection       |
+| `/post-recording`              | Phase 4: output verification and archive assembly                  |
+| `/cli-reference`               | Reference: the `axvs` commands behind the interactive testing path |
+| `/log-input-format`            | Reference: archive format for troubleshooting                      |
+| `/log-processing`              | Phase 5: timestamp extraction, and owns batch resource planning    |
+| `/log-processing-results`      | Phase 6: frame statistics and quality analysis                     |
+| `/communication:pipeline`      | Peer: the microcontroller side of a shared-DataLogger recording    |
 
 ---
 
@@ -345,8 +423,9 @@ Pipeline Orchestration:
 - [ ] Environment verified (MCP server connected, FFMPEG/GPU/CTI checked)
 - [ ] Camera(s) discovered and configuration validated
 - [ ] Interface decision made (MCP vs code, single vs multi-camera)
-- [ ] System IDs allocated (unique per DataLogger; 51-100 by plugin convention, or the rig's existing
+- [ ] System IDs allocated (unique per DataLogger, 51-100 by plugin convention, or the rig's existing
       allocation confirmed with the user)
+- [ ] Source IDs checked against every non-camera source on the same DataLogger (if cross-system)
 - [ ] DataLogger topology decided (single vs multiple)
 - [ ] Encoding parameters selected for use case
 - [ ] Recording session completed (all cameras started and stopped in order)
