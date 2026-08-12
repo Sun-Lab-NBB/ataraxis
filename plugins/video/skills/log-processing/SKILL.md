@@ -62,26 +62,10 @@ manifest identifies a DataLogger output directory containing axvs-produced log a
 exist on disk are included. For each confirmed source, resolves the paired video file and processed timestamp feather
 file.
 
-**Parameters:**
-
-| Parameter        | Type  | Default    | Description                                   |
-|------------------|-------|------------|-----------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to the root directory to search |
-
-**Return structure:**
-```text
-sources[]:             Flat list of confirmed source entries:
-  recording_root:      Path to the recording root directory
-  source_id:           Source ID string
-  name:                Camera name from manifest
-  log_archive:         Absolute path to the .npz archive
-  video_file:          Absolute path to the video file (or null if not found)
-  timestamps_file:     Absolute path to the processed feather file (or null if not yet processed)
-  log_directory:       Absolute path to the DataLogger output directory
-log_directories:       Flat list of log directory paths (pass directly to prepare tool)
-total_sources:         Number of confirmed source entries
-total_log_directories: Number of log directories with archives
-```
+A bare call reports `log_directories`, `total_sources`, `total_log_directories`, and a `breakdown` naming every source
+ID and camera name the scan found, which is everything the preparation step needs. It lists **no** `sources`. Pass
+`include_items=True` to list them, and `detailed=True` to add each source's archive, video, and feather paths. See
+[staged-reads.md](references/staged-reads.md) for the parameters, the return fields, and the paging rules.
 
 **Important:** This tool requires `camera_manifest.yaml` files to exist in DataLogger output directories. Every
 `VideoSystem.__init__()` call writes one, since `name` is a required constructor parameter. For legacy sessions without
@@ -100,7 +84,7 @@ discovery.
 | Parameter            | Type        | Default    | Description                                                                   |
 |----------------------|-------------|------------|-------------------------------------------------------------------------------|
 | `log_directories`    | `list[str]` | (required) | Absolute paths to DataLogger output directories. **Ask the user.**            |
-| `source_ids`         | `list[str]` | (required) | Confirmed source IDs from `discover_camera_data_tool`. Applied uniformly.     |
+| `source_ids`         | `list[str]` | (required) | Confirmed source IDs, read from the discovery `breakdown`. Applied uniformly. |
 | `output_directories` | `list[str]` | (required) | Absolute paths for per-directory output. Must match `log_directories` length. |
 
 Passing an empty `source_ids` list prepares every source the log directory's `camera_manifest.yaml` registers. Sourcing
@@ -167,12 +151,13 @@ invalid_jobs:       Present only when some submitted job could not be read
 **`get_log_processing_timing_tool` return structure:**
 
 Takes no parameters. Returns `active` (manager thread alive), a `jobs` list, and a `session` summary. Each job entry
-carries `job_id` and `source_id`, plus `executor_id`, `started_at` (microsecond UTC), `elapsed_seconds`
-(running jobs only), `completed_at`, and `duration_seconds` (finished jobs only) where available. The `session` block
-carries `total_elapsed_seconds`, `completed_count`, `failed_count`, `running_count`, and `pending_count`, plus
-`throughput_jobs_per_hour` once at least one job has completed. When no execution session exists it returns
-`{"active": false, "message": "No execution session exists."}` with neither `jobs` nor `session`, so check for those
-keys before indexing them.
+carries `job_id`, `source_id`, and the `log_directory` the job reads, plus `executor_id`, `started_at` (microsecond
+UTC), `elapsed_seconds` (running jobs only), `completed_at`, and `duration_seconds` (finished jobs only) where
+available. A batch spanning two recordings of one camera carries that camera's `source_id` in both, so key a per-job
+table on `log_directory` alongside `source_id`. The `session` block carries `total_elapsed_seconds`, `completed_count`,
+`failed_count`, `running_count`, and `pending_count`, plus `throughput_jobs_per_hour` once at least one job has
+completed. When no execution session exists it returns `{"active": false, "message": "No execution session exists."}`
+with neither `jobs` nor `session`, so check for those keys before indexing them.
 
 **`cancel_log_processing_tool` return structure:**
 
@@ -197,16 +182,14 @@ pending queue only. Jobs already running continue to completion, so do not repor
 the tracker file is absent or cannot be read. Confirm `reset` is true and `jobs_reset` is non-zero before re-executing,
 since all three shapes are truthy dictionaries.
 
-**`get_batch_status_overview_tool` parameters:**
+**`get_batch_status_overview_tool`:**
 
-| Parameter        | Type  | Default    | Description                                            |
-|------------------|-------|------------|--------------------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to root directory to search for trackers |
-
-Returns an `output_directories` list, a `total_output_directories` count, and an aggregate `summary` carrying
-`succeeded`, `failed`, `running`, and `scheduled` counts. Each entry carries `output_directory`, `tracker_path`,
-`status`, and the tracker's own `jobs` and `summary`. The `output_directory` value names the `camera_timestamps/`
-subdirectory holding the tracker, not the DataLogger directory the archives came from.
+Requires `root_directory`, the absolute path under which trackers are searched for. A bare call reports
+`total_output_directories`, an aggregate `summary`, and a `breakdown` of directories per status, and it lists **no**
+`output_directories`. Name `statuses`, or pass `include_items=True`, to list them, and `detailed=True` to add each
+directory's tracker path and per-job entries. See [staged-reads.md](references/staged-reads.md) for both. The
+`output_directory` value names the `camera_timestamps/` subdirectory holding the tracker, not the DataLogger directory
+the archives came from.
 
 **`clean_log_processing_output_tool` parameters:**
 
@@ -238,7 +221,8 @@ Single-phase timestamp extraction pipeline:
 Key architectural facts:
 - **ProcessingTracker** manages job lifecycle: `SCHEDULED` → `RUNNING` → `SUCCEEDED` / `FAILED` via YAML state files
 - **Single execution session** constraint: only one batch execution can run at a time
-- **Parallel processing** activates automatically for archives with >=2000 messages
+- **Parallel processing** activates automatically once an archive reaches the library's parallel extraction threshold
+  (see Resource management)
 - **Output layout:** All processing output is written under a `camera_timestamps/` subdirectory within the
   output directory provided by the user
 - **Output naming:** `camera_{source_id}_timestamps.feather` (Feather IPC format)
@@ -262,8 +246,9 @@ The processing workflow uses a **prepare-then-execute** model:
 
 1. **Discover archives**: Call `discover_camera_data_tool` with the user-provided root directory.
 
-2. **Present discovery results**: Show the discovered sources, source IDs, and archive locations. Format
-   the discovery data as a readable summary so the user can see what was found.
+2. **Present discovery results**: Call it again with `include_items=True` and `detailed=True`, render one table row per
+   entry of `sources[]` carrying its `source_id`, `name`, `recording_root`, and `log_archive`, and close with the
+   returned `total_sources` and `total_log_directories`.
 
 3. **Confirm directories to process**: Ask the user which log directories to process. Accept all
    discovered directories or a user-selected subset. You MUST confirm before proceeding.
@@ -300,15 +285,22 @@ any formula reproduced in this skill would drift out of agreement with the libra
 |---------------------------------------------------|----------------------------------------------------------------------------------|
 | `prepare_log_processing_batch_tool` → `jobs[]`    | Per job: `core_weight`, `memory_mb`, `message_count`, `archive_bytes`, `modeled` |
 | `execute_log_processing_jobs_tool` → return value | Resolved `core_budget`, `memory_budget_mb`, `pool_size`, and `job_allocations[]` |
+| `size_archive_job(archive_path)`                  | `(cores, memory_mb, modeled)` for one archive, without preparing a batch         |
 
-Use the first to plan a batch and the second to report what the batch actually committed.
+Use the first to plan a batch and the second to report what the batch actually committed. The third is the library's
+single-archive sizing entry point, which an external scheduler calls to derive both figures from one archive read. This
+workflow reads the two tool assets instead, since it drives no processing from Python.
 
 How the model behaves:
 
-- Three caps bound a job's width and the narrowest of them wins: the extraction stage's own declared core
-  allocation, the ceiling the budget or the caller sets, and the workers the archive's own message count repays.
-  An archive below the parallel processing threshold takes a single core. Read the width a job actually received
-  from its `core_weight` (prepare) and `cores` (execute), never from the budget requested.
+- A job's width takes one of two values with nothing between them. An archive holding fewer data messages than
+  `PARALLEL_EXTRACTION_THRESHOLD` opens no pool and takes a single core, and every archive at or above it takes the
+  declared `CAMERA_EXTRACTION_JOB_CORES` allocation. Execution then collapses that width onto the session's core
+  budget wherever the budget is narrower, which is the only narrowing the model applies. Read the width a job actually
+  received from its `core_weight` (prepare) and `cores` (execute), never from the budget requested.
+- `PARALLEL_EXTRACTION_THRESHOLD` decides whether a job opens a pool at all, and the `PARALLEL_PROCESSING_THRESHOLD`
+  that the `ataraxis-data-structures` archive reader applies decides how it batches messages inside one. They carry
+  different values, so a claim about one settles nothing about the other.
 - Execution re-derives `core_weight` and re-estimates `memory_mb` for every descriptor against this session's own
   budgets, so quote the execute figures whenever they disagree with the ones preparation stamped. The re-derivation
   reads the figures carried in the submitted job descriptors and touches no archive.
@@ -343,7 +335,7 @@ receives, and `memory_budget_mb` to narrow the concurrent set alone.
 The `get_log_processing_status_tool` response carries both an `active` flag (manager thread alive) and a `canceled`
 flag, plus a `message` of `No execution session exists.` when no session ever ran. Treat `active` as the completion
 signal and `canceled` as the cancellation/draining path (active jobs finish while no new jobs start). Per-job entries
-may also include an `executor_id`.
+carry the `log_directory` the job reads, and may also include an `executor_id`.
 
 When presenting batch status to the user, format as a table:
 
@@ -429,8 +421,9 @@ modes. **You MUST never invoke `axvs` commands.** Three divergences matter when 
 - It handles ONE log directory per invocation, whereas this batch carries many
 - It runs its jobs sequentially and aborts at the first failing job, whereas this batch isolates a failure to its
   own job and carries the rest through
-- It sizes nothing. Every job runs at the one `-w` ceiling, whereas preparation here sizes each job from its own
-  archive
+- A positive `-w` reaches every job verbatim, whereas preparation here sizes each job from its own archive. Left at its
+  `-1` default, `-w` resolves each job's width from that job's own archive exactly as this batch does, so the
+  divergence is the explicit value alone
 
 Both paths lock the same `camera_processing_tracker.yaml`, so never prepare or execute over a directory the user has an
 `axvs process` run in. Whichever side asks second raises a `TimeoutError`.

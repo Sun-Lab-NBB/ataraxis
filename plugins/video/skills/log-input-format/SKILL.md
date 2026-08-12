@@ -272,9 +272,10 @@ The processing pipeline converts relative timestamps to absolute UTC microsecond
 absolute_timestamp_us = onset_us + elapsed_us
 ```
 
-The `LogArchiveReader` from `ataraxis-data-structures` handles onset discovery and timestamp conversion. Archives with
-fewer than 2000 messages are processed sequentially, and larger archives use parallel processing via
-`ProcessPoolExecutor`.
+The `LogArchiveReader` from `ataraxis-data-structures` handles onset discovery and timestamp conversion. An archive
+holding fewer messages than the reader's own parallel processing threshold is always read sequentially. A larger
+archive opens a `ProcessPoolExecutor` only when its job was dispatched at more than one worker, which the extraction
+stage decides from a separate and higher threshold that `/log-processing` documents.
 
 ---
 
@@ -317,8 +318,8 @@ fewer than 2000 messages are processed sequentially, and larger archives use par
 ## Verification checklist
 
 ```text
-Log Input Format, tool-settled (run `discover_camera_data_tool` on the recording root, then
-`prepare_log_processing_batch_tool`):
+Log Input Format, tool-settled (run `discover_camera_data_tool` on the recording root under `include_items=True` and
+`detailed=True`, then `prepare_log_processing_batch_tool`):
 - [ ] Camera manifest (camera_manifest.yaml) present in log directories (for discovery tool)
 - [ ] Log directories contain assembled .npz archives (not raw .npy files)
 - [ ] Archive filenames match {source_id}_log.npz pattern
