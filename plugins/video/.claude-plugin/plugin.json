@@ -1,6 +1,6 @@
 {
   "name": "video",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Provides camera acquisition, video recording, log processing, and pipeline orchestration skills for ataraxis-video-system. Includes MCP bindings for camera discovery, GenICam configuration, camera manifest management, interactive recording sessions, and batch log processing, plus a reference for the human-facing axvs command-line interface.",
   "repository": "https://github.com/Sun-Lab-NBB/ataraxis",
   "license": "Apache-2.0",

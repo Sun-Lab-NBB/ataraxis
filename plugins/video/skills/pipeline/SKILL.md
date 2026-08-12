@@ -321,8 +321,9 @@ shared DataLogger does.
 All cameras sharing a DataLogger write to the same log directory and the same `camera_manifest.yaml`. This simplifies
 batch processing:
 
-1. `discover_camera_data_tool` finds the manifest and identifies all confirmed sources (e.g., 51, 52, 53)
-   with their camera names, log archives, video files, and feather outputs in one flat `sources` list
+1. `discover_camera_data_tool` finds the manifest and names all confirmed sources (e.g., 51, 52, 53) in the
+   `breakdown` a bare call reports. Listing each source's own row, carrying its camera name, log archive, video
+   file, and feather output, takes `include_items=True` and `detailed=True` (see `/log-processing`)
 2. `prepare_log_processing_batch_tool` creates one job per source ID (see `/log-processing` for its full
    signature)
 3. Process all source IDs in a single batch for efficiency
@@ -341,7 +342,7 @@ tree holds several `camera_manifest.yaml` files.
 ## Cross-camera frame statistics comparison
 
 After processing, use `analyze_camera_frame_statistics_tool` with all camera feather files (pass the `timestamps_file`
-paths from `discover_camera_data_tool` as the `feather_files` list) and compare:
+paths from a `discover_camera_data_tool` call carrying `include_items=True` and `detailed=True`) and compare:
 
 - **Estimated FPS**: All cameras should match the configured rate. A camera with lower FPS than others
   indicates an interface or encoding bottleneck on that specific channel.

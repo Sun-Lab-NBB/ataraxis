@@ -35,7 +35,7 @@ statistics analysis, and interpretation guidance for discussing results with use
 - Cross-camera comparison of these statistics on a multi-camera rig (see `/pipeline`)
 - MCP server connectivity issues (see `/video-mcp-environment-setup`)
 
-**Handoff rules:** If a source's `timestamps_file` is `null` or a statistic looks wrong because the job never succeeded,
+**Handoff rules:** If a source carries no `timestamps_file` or a statistic looks wrong because the job never succeeded,
 invoke `/log-processing` to inspect the tracker and retry. If the remedy is an encoding or acquisition parameter change,
 invoke `/camera-interface` for the code path or `/camera-setup` for the MCP path. If several cameras must be compared
 against one another, invoke `/pipeline`. If MCP tools are unavailable, invoke `/video-mcp-environment-setup`.
@@ -51,8 +51,9 @@ against one another, invoke `/pipeline`. If MCP tools are unavailable, invoke `/
 | `discover_camera_data_tool` | Discovers manifests, log archives, video files, and feather files under a root dir |
 
 `/log-processing` owns this tool's parameters and full return structure. This skill covers only the one field the output
-side reads: each source entry's `timestamps_file`, which carries the path to that camera's feather file or `null` when
-the source has not been processed. See the processing completeness section below for its interpretation.
+side reads: each source entry's `timestamps_file`, which carries the path to that camera's feather file. The field is
+reported only when `detailed=True` accompanies a listing request, and a source that has not been processed carries no
+`timestamps_file` key at all. See the processing completeness section below for its interpretation.
 
 ### Analysis tool
 
@@ -62,11 +63,11 @@ the source has not been processed. See the processing completeness section below
 
 **Parameters:**
 
-| Parameter            | Type        | Default    | Description                                                     |
-|----------------------|-------------|------------|-----------------------------------------------------------------|
-| `feather_files`      | `list[str]` | (required) | Absolute paths to `camera_*_timestamps.feather` files           |
-| `drop_threshold_us`  | `int`       | `0`        | Gap threshold in microseconds, 0 for auto-detection (2x median) |
-| `max_drop_locations` | `int`       | `50`       | Maximum number of frame drop locations to include per file      |
+| Parameter            | Type        | Default    | Description                                                       |
+|----------------------|-------------|------------|-------------------------------------------------------------------|
+| `feather_files`      | `list[str]` | (required) | Absolute paths to `camera_*_timestamps.feather` files             |
+| `drop_threshold_us`  | `int`       | `0`        | Gap threshold in microseconds, 0 for auto-detection (1.5x median) |
+| `max_drop_locations` | `int`       | `50`       | Maximum number of frame drop locations to include per file        |
 
 Returns a dictionary with a `results` list (one entry per file, each containing `file`, `basic_stats`,
 `inter_frame_timing`, and `frame_drop_analysis` keys) and a `total_files` count. Files that cannot be read produce an
@@ -77,9 +78,10 @@ entry with `file` and `error` keys instead of statistics.
 ## Recommended query order
 
 1. **`discover_camera_data_tool`**: Find all manifests, archives, video files, and feather files under the root
-   directory.
+   directory. Pass `include_items=True` and `detailed=True`, since a bare call lists no source and the feather paths
+   this skill consumes are added by detail.
 2. **`analyze_camera_frame_statistics_tool`**: Compute statistics for discovered feather files. Pass the
-   `timestamps_file` paths from the discovery response as the `feather_files` list.
+   `timestamps_file` paths from that response as the `feather_files` list.
 
 ---
 
@@ -164,8 +166,9 @@ job has:
 | Field                            | Type    | Description                                        |
 |----------------------------------|---------|----------------------------------------------------|
 | `threshold_us`                   | `float` | Gap threshold used for drop detection              |
-| `threshold_source`               | `str`   | `"auto_2x_median"` or `"user_specified"`           |
+| `threshold_source`               | `str`   | `"auto_1.5x_median"` or `"user_specified"`         |
 | `total_gaps_detected`            | `int`   | Number of inter-frame gaps exceeding the threshold |
+| `jitter_compensated_gaps`        | `int`   | Detected gaps the following interval repaid        |
 | `total_estimated_dropped_frames` | `int`   | Estimated total frames lost across all gaps        |
 | `drop_rate_percent`              | `float` | Percentage of expected frames that were dropped    |
 | `longest_gap_us`                 | `int`   | Longest detected gap in microseconds               |
@@ -182,10 +185,20 @@ Each entry in `drop_locations`:
 | `gap_ms`                | `float` | Gap duration in milliseconds                |
 | `estimated_frames_lost` | `int`   | Estimated number of frames lost in this gap |
 
-**Auto-detection algorithm:** When `drop_threshold_us=0`, the threshold is computed as 2x the median inter-frame
-interval. Gaps exceeding this threshold are classified as frame drops. The number of lost frames per gap is estimated by
-dividing the gap duration by the median interval, rounding, subtracting one, and clamping the result at zero, because a
-gap spanning N median intervals represents N-1 lost frames.
+**Auto-detection algorithm:** When `drop_threshold_us=0`, the threshold is computed as 1.5x the median inter-frame
+interval, which sits below the two-interval span a single lost frame produces. Gaps exceeding the threshold are
+classified as frame drops and counted under `total_gaps_detected`.
+
+Each detected gap is then netted against the interval that follows it. A frame whose timestamp arrives late stretches
+its own interval and shortens the next one by the same amount. Whatever the following interval falls short of a full
+interval is subtracted from the gap before any frame is charged against it. The remainder is divided by the median
+interval, rounded, reduced by one, and clamped at zero, because a span of N median intervals accounts for N-1 lost
+frames. A recording's last interval has no successor to repay it, so it is netted against a full interval and carries
+no compensation.
+
+A gap the netting resolves to zero is jitter rather than loss. It counts under `jitter_compensated_gaps`, contributes
+nothing to `total_estimated_dropped_frames`, and still appears in `drop_locations` with an `estimated_frames_lost` of
+zero. A file whose `total_gaps_detected` and `jitter_compensated_gaps` are equal lost no frames at all.
 
 **Edge cases:** When `total_frames == 0`, only `basic_stats.total_frames` is returned and `inter_frame_timing` /
 `frame_drop_analysis` are empty `{}`. When `total_frames == 1`, `basic_stats` is fully populated but `duration_us`,
@@ -246,16 +259,18 @@ indicate the encoder cannot handle peak complexity at the current preset.
 
 ## Processing completeness
 
-Read each source entry's `timestamps_file` from the discovery response `/log-processing` documents:
+Read each source entry's `timestamps_file` from a discovery response taken with `include_items=True` and
+`detailed=True`:
 
-| `timestamps_file` value | Meaning                                                      |
+| `timestamps_file` state | Meaning                                                      |
 |-------------------------|--------------------------------------------------------------|
-| Non-null path           | Processing succeeded for this source, feather file available |
-| `null`                  | Not yet processed, processing failed, or output was cleaned  |
+| Path present            | Processing succeeded for this source, feather file available |
+| Key absent              | Not yet processed, processing failed, or output was cleaned  |
 
-To determine detailed job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), check the `camera_processing_tracker.yaml`
-file via `get_batch_status_overview_tool`. That tool reports one entry per `camera_timestamps/` subdirectory rather than
-per DataLogger log directory, so its `output_directory` values will not match the `log_directory` values
+To determine per-job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), read the `camera_processing_tracker.yaml` file
+through `get_batch_status_overview_tool` with `include_items=True` and `detailed=True`, which together add each
+directory's `jobs` entries. That tool reports one entry per `camera_timestamps/` subdirectory rather than per
+DataLogger log directory, so its `output_directory` values will not match the `log_directory` values
 `discover_camera_data_tool` returns.
 
 ---
@@ -280,8 +295,8 @@ per DataLogger log directory, so its `output_directory` values will not match th
 ```text
 Log Processing Output Completeness, tool-settled (run `discover_camera_data_tool`,
 `analyze_camera_frame_statistics_tool`, and `get_batch_status_overview_tool`):
-- [ ] Feather files discovered via `discover_camera_data_tool`
-- [ ] All expected source IDs have non-null `timestamps_file` entries
+- [ ] Feather files discovered via a `discover_camera_data_tool` call carrying `include_items=True` and `detailed=True`
+- [ ] Every expected source ID carries a `timestamps_file` in that listing
 - [ ] Processing status verified for all directories
 - [ ] Frame statistics analyzed via `analyze_camera_frame_statistics_tool` for each camera
 

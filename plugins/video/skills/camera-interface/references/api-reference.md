@@ -44,11 +44,11 @@ from ataraxis_video_system import (
 ```
 
 The top-level `__all__` also exports the orchestration layer's job and sizing assets (`JobSource`, `JobUniverse`,
-`execute_job`, `resolve_jobs`, `resolve_timestamps_path`, `estimate_archive_job_memory_mb`, and the
-`CAMERA_EXTRACTION_JOB_*` constants). Those are deliberately left undocumented here: schedule log processing through the
-MCP tools that `/log-processing` covers rather than driving jobs through those assets by hand.
-`run_log_processing_pipeline` is the one orchestration entry point this reference documents, since it is the
-whole-recording pipeline the `axvs process` CLI runs.
+`execute_job`, `resolve_jobs`, `resolve_timestamps_path`, `size_archive_job`, and the `CAMERA_EXTRACTION_JOB_*`
+constants). Those are deliberately left undocumented here, because log processing is scheduled through the MCP tools
+that `/log-processing` covers rather than driven through those assets by hand. `run_log_processing_pipeline` is the one
+orchestration entry point this reference documents, since it is the whole-recording pipeline the `axvs process` CLI
+runs.
 
 ---
 
@@ -448,7 +448,8 @@ def run_log_processing_pipeline(
 ```
 
 Orchestrates timestamp extraction for all log archives in a directory. Creates a ProcessingTracker, discovers source
-IDs, and runs extraction jobs. For MCP-based batch processing, use `/log-processing` instead.
+IDs, and runs extraction jobs one at a time. A positive `workers` reaches every job verbatim, while the `-1` default
+resolves each job's width from its own archive. For MCP-based batch processing, use `/log-processing` instead.
 
 ### extract_logged_camera_timestamps
 
@@ -465,9 +466,9 @@ def extract_logged_camera_timestamps(
 ```
 
 Extracts frame acquisition timestamps from a DataLogger `.npz` archive. Returns a contiguous numpy array of timestamps
-as microseconds since UTC epoch, in frame order. When an `executor` is provided, parallel work is submitted to the
-shared pool instead of creating a new `ProcessPoolExecutor` per call (used by MCP batch processing for worker-tier pool
-sharing).
+as microseconds since UTC epoch, in frame order. When an `executor` is provided, parallel work is submitted to that
+pool instead of a newly created `ProcessPoolExecutor`, and the caller owns its lifecycle. The library passes no
+executor of its own, so every job opens and tears down its own extraction pool.
 
 ---
 

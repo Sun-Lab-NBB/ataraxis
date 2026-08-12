@@ -122,11 +122,12 @@ path, and a failed assembly.
 | `discover_camera_data_tool` | Verifies archives, video files, and manifests exist via manifest-based discovery |
 
 `/log-processing` owns this tool's parameters and full return structure. Verification reads each source entry's
-`log_archive` to confirm the archive landed, and `video_file` to pair it with the recording. The tool requires a
-`camera_manifest.yaml` in every DataLogger output directory, which `VideoSystem.__init__()` writes automatically.
+`log_archive` to confirm the archive landed, and `video_file` to pair it with the recording. Both are detail fields, so
+every call this skill makes passes `include_items=True` and `detailed=True`. The tool requires a `camera_manifest.yaml`
+in every DataLogger output directory, which `VideoSystem.__init__()` writes automatically.
 
 **Caution:** `video_file` is resolved by a name-then-ID substring heuristic with path-proximity tie-breaking, not an
-exact path. A `None` `video_file` means "not matched", not necessarily "not on disk", so confirm with
+exact path. An absent `video_file` key means "not matched", not necessarily "not on disk", so confirm with
 `validate_video_file_tool` using the path returned by the stop tool. Beware false matches when a camera name or the
 zero-padded ID appears in an unrelated `.mp4` stem under the root. `timestamps_file` carries no such risk: it is
 resolved by exact filename (`camera_{source_id}_timestamps.feather`) inside each discovered `camera_timestamps/`
@@ -152,11 +153,13 @@ You MUST follow these steps after every recording session.
      backed by a file of only a few hundred bytes on disk, is the signal that `start_frame_saving_tool` was never
      called. The encoder process starts with the session and always creates the `.mp4` container, and that container
      holds no encoded stream
+   - An `{"error": "ffprobe failed: ..."}` response carries ffprobe's own diagnostic after the colon, so quote that
+     text when reporting the failure rather than calling the file merely unreadable
 
 3. **Verify archive assembly**: If `archives_assembled` is `true` in the stop response, call `discover_camera_data_tool`
-   with the recording root to confirm archives exist for all expected source IDs. Each source in the flat `sources` list
-   includes a `log_archive` path. If `archives_assembled` is `false`, call `assemble_log_archives_tool` with the
-   `log_directory` path, then verify with the discovery tool.
+   with the recording root, `include_items=True`, and `detailed=True` to confirm archives exist for all expected source
+   IDs. Each entry of the returned `sources` list carries a `log_archive` path. If `archives_assembled` is `false`, call
+   `assemble_log_archives_tool` with the `log_directory` path, then verify with the discovery tool.
 
 4. **Confirm archive presence for cross-referencing**: `discover_camera_data_tool` confirms that each
    source's `log_archive` exists but does not compute an archive message count. The genuine frame-count
@@ -190,9 +193,9 @@ whatever library produced it, so **one** call covers a DataLogger shared with a 
 confirm nobody has already assembled on the microcontroller side before calling it here. See `/pipeline` for the
 shared-directory rules and `/communication:log-input-format` for the archives on the other side.
 
-After calling the tool, verify the result with `discover_camera_data_tool` to confirm all expected source IDs have
-corresponding `.npz` archives. For legacy sessions without manifests, use `write_camera_manifest_tool` (see
-`/camera-setup`) to retroactively register camera sources before running discovery.
+After calling the tool, verify the result with another `include_items=True`, `detailed=True` discovery call to confirm
+all expected source IDs have corresponding `.npz` archives. For legacy sessions without manifests, use
+`write_camera_manifest_tool` (see `/camera-setup`) to retroactively register camera sources before running discovery.
 
 ---
 
@@ -210,8 +213,8 @@ corresponding `.npz` archives. For legacy sessions without manifests, use `write
 
 ### Correlating video metadata with log data
 
-- Video `frame_count` should approximate the number of frame messages in the log archive minus the onset
-  message (i.e., `archive_frame_messages - 1`).
+- Video `frame_count` should approximate the number of frame messages in the log archive. The onset is a separate
+  message type that no frame message count includes, so no adjustment is applied to either figure.
 - Video `duration_seconds` should match `(last_timestamp - first_timestamp)` from processed timestamps.
 - Processed output (feather files and tracker) is written to a `camera_timestamps/` subdirectory under the processing
   output directory, not directly into the log directory.
@@ -268,7 +271,8 @@ error surfaced by the stop tool. It means the encoder could not keep up at shutd
 ## Verification checklist
 
 ```text
-Post-Recording Verification, tool-settled (call `discover_camera_data_tool` on the recording root):
+Post-Recording Verification, tool-settled (call `discover_camera_data_tool` on the recording root, with
+`include_items=True` and `detailed=True`):
 - [ ] Log archives assembled (.npz files present in DataLogger output directory)
 - [ ] All expected source IDs have corresponding archives
 - [ ] Archive presence confirmed for all source IDs (frame-count vs message-count cross-check deferred

@@ -121,16 +121,18 @@ they have not created yet is rejected at exit code 2 before the session starts.
 | `-od` | `--output-directory` | `Path` | (required) | required   | The output root. A `camera_timestamps/` subdirectory holding every output is made |
 | `-id` | `--job-id`           | `str`  | `None`     | optional   | Runs ONLY the job whose hexadecimal identifier matches. Suppresses `-s`           |
 | `-s`  | `--specifier`        | `str`  | `()`       | repeatable | A camera source ID to process. Repeat once per camera. Ignored when `-id` is set  |
-| `-w`  | `--workers`          | `int`  | `-1`       | optional   | The ceiling on the workers ONE job receives, not a batch width. See the note      |
+| `-w`  | `--workers`          | `int`  | `-1`       | optional   | The workers ONE job receives, not a batch width. See the note                     |
 | `-np` | `--no-progress`      | flag   | `False`    | flag       | Suppresses the extraction progress bars. Bars are displayed by default            |
 
 **Note on `-s`:** when omitted, every source the recording's `camera_manifest.yaml` registers is processed. Each named
 ID must be registered in that manifest and must resolve to exactly one archive beneath `-ld`.
 
-**Note on `-w`:** a value below 1 (the `-1` default) resolves the ceiling from the host's core count, and `-w 1` makes
-every job sequential. Every job then runs at that one ceiling, because this path runs no per-archive sizing pass at all.
-An archive below the library's parallel processing threshold still falls back to a sequential run whatever the ceiling
-says. This is the sharpest divergence from the MCP batch, which sizes each job from its own archive.
+**Note on `-w`:** a positive value reaches every job verbatim, so `-w 1` makes every job sequential. An archive holding
+fewer messages than the archive reader's own parallel processing threshold still runs sequentially whatever width it
+was handed, so a higher `-w` buys a small archive nothing. The `-1` default resolves each job's width from its own
+archive instead, which is one worker for an archive below the library's parallel extraction threshold and the declared
+per-job allocation at or above it. That default is the same width rule the MCP batch applies, before the batch
+collapses it onto a core budget this path has none of, so the explicit value is the whole divergence.
 
 **Note on `-id`:** a job identifier is a deterministic function of the job name and the camera's `source_id`, so one
 camera keeps the same identifier across recordings. A user obtains it from the `job_id` key of a
