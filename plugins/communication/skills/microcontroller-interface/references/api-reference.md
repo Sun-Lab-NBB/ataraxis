@@ -6,7 +6,7 @@ Complete API reference for ataraxis-communication-interface public classes, func
 
 ## Public API
 
-The top-level `__all__` exports exactly these 39 names. Anything not listed here must be imported from a subpackage.
+The top-level `__all__` exports exactly these 41 names. Anything not listed here must be imported from a subpackage.
 
 ```python
 from ataraxis_communication_interface import (
@@ -44,7 +44,9 @@ from ataraxis_communication_interface import (
     MAXIMUM_CUSTOM_STATUS_CODE,
     MINIMUM_CUSTOM_STATUS_CODE,
     # Output path resolvers — documented in /log-processing-results
+    find_kernel_paths,
     find_module_paths,
+    parse_kernel_path,
     parse_module_path,
     resolve_kernel_path,
     resolve_module_path,
@@ -53,10 +55,10 @@ from ataraxis_communication_interface import (
     CONTROLLER_EXTRACTION_JOB_NAME,
     JobSource,
     JobUniverse,
-    estimate_archive_job_memory_mb,
     execute_job,
     resolve_jobs,
     run_log_processing_pipeline,
+    size_archive_job,
 )
 ```
 
@@ -67,13 +69,13 @@ one. Import a name through the package that exports it, never from the module fi
 
 | Import path                                        | Exports | Contents                                                                      |
 |----------------------------------------------------|---------|-------------------------------------------------------------------------------|
-| `ataraxis_communication_interface`                 | 39      | The curated public API listed above.                                          |
+| `ataraxis_communication_interface`                 | 41      | The curated public API listed above.                                          |
 | `ataraxis_communication_interface.communication`   | 17      | MQTT and serial transports, all 12 message classes, protocol/prototype enums. |
 | `ataraxis_communication_interface.microcontroller` | 30      | Interfaces, dataclasses, status-code mirrors, extraction and table access.    |
-| `ataraxis_communication_interface.orchestration`   | 38      | Job identity, sizing, discovery, the single-job runner, and the batch engine. |
-| `ataraxis_communication_interface.interfaces`      | 0       | CLI and MCP server entry points only. `__all__` is empty by design.           |
+| `ataraxis_communication_interface.orchestration`   | 41      | Job identity, sizing, discovery, the single-job runner, and the batch engine. |
+| `ataraxis_communication_interface.interfaces`      | 0       | CLI, MCP entry points, response machinery. `__all__` is empty by design.      |
 
-**Note:** all 12 names the `.orchestration` subpackage contributes are re-exported at top level, but this plugin
+**Note:** all 14 names the `.orchestration` subpackage contributes are re-exported at top level, but this plugin
 deliberately does not document the job-scheduling contract they form. Orchestration runs through the MCP tools or
 through the `axci` CLI a user invokes by hand, and there is no third path. Do not write code against these symbols. They
 are listed here only so a reader recognizes them as out of scope rather than as an omission.
@@ -374,8 +376,8 @@ Configuration controlling which data is extracted from log archives.
 | `MAXIMUM_CUSTOM_STATUS_CODE`        | `250`                             | Highest event code a module may use. |
 
 Two further top-level constants, `CONTROLLER_EXTRACTION_JOB_NAME` and `CONTROLLER_EXTRACTION_JOB_CORES`, belong to the
-orchestration layer, which this plugin does not document. `/log-processing` names the per-job core ceiling where a
-reader needs it.
+orchestration layer, which this plugin does not document. `/log-processing` names the declared per-job core allocation
+where a reader needs it.
 
 ---
 
@@ -424,11 +426,12 @@ selects the work). Prefer MCP batch tools for multi-archive processing.
 
 ### Top-level functions documented elsewhere
 
-| Function                                                                                    | Owning skill                       |
-|---------------------------------------------------------------------------------------------|------------------------------------|
-| `get_event_data`, `get_event_timestamps`, `partition_events`                                | `/log-processing-results`          |
-| `find_module_paths`, `parse_module_path`, `resolve_kernel_path`, `resolve_module_path`      | `/log-processing-results`          |
-| `execute_job`, `resolve_jobs`, `estimate_archive_job_memory_mb`, `JobSource`, `JobUniverse` | Not documented, use MCP or the CLI |
+| Function                                                                                                                         | Owning skill                       |
+|----------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `get_event_data`, `get_event_timestamps`, `partition_events`                                                                     | `/log-processing-results`          |
+| `find_kernel_paths`, `find_module_paths`, `parse_kernel_path`, `parse_module_path`, `resolve_kernel_path`, `resolve_module_path` | `/log-processing-results`          |
+| `size_archive_job`                                                                                                               | `/log-processing`                  |
+| `execute_job`, `resolve_jobs`, `JobSource`, `JobUniverse`                                                                        | Not documented, use MCP or the CLI |
 
 ---
 

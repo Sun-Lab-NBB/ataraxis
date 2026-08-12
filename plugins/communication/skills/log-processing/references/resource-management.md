@@ -11,15 +11,15 @@ the resulting figures onto the job entry, and execution resolves the session bud
 those figures from the assets below rather than recomputing them, because the sizing model is tuned per release and any
 formula reproduced in this file would drift out of agreement with the library running the batch.
 
-| Asset                                                 | Reports                                                                          |
-|-------------------------------------------------------|----------------------------------------------------------------------------------|
-| `prepare_log_processing_batch_tool` → `jobs[]`        | Per job: `core_weight`, `memory_mb`, `message_count`, `archive_bytes`, `modeled` |
-| `execute_log_processing_jobs_tool` → return value     | Resolved `core_budget`, `memory_budget_mb`, `pool_size`, and `job_allocations[]` |
-| `estimate_archive_job_memory_mb(archive_path, cores)` | `(memory_mb, modeled)` for one archive, without preparing a batch                |
+| Asset                                             | Reports                                                                          |
+|---------------------------------------------------|----------------------------------------------------------------------------------|
+| `prepare_log_processing_batch_tool` → `jobs[]`    | Per job: `core_weight`, `memory_mb`, `message_count`, `archive_bytes`, `modeled` |
+| `execute_log_processing_jobs_tool` → return value | Resolved `core_budget`, `memory_budget_mb`, `pool_size`, and `job_allocations[]` |
+| `size_archive_job(archive_path)`                  | `(cores, memory_mb, modeled)` for one archive, without preparing a batch         |
 
-Use the first to plan a batch and the second to report what the batch actually committed. The third sizes memory from
-the archive's size on disk at a core count the caller supplies. It therefore answers "how much memory would this job
-hold at N cores" rather than "how wide should this job be", and it serves planning outside the batch tools alone.
+Use the first to plan a batch and the second to report what the batch actually committed. The third reads one archive
+and answers both halves of the sizing model from that single read, so a caller planning outside the batch tools
+reproduces neither the width rule nor the memory model.
 
 ---
 
@@ -27,9 +27,14 @@ hold at N cores" rather than "how wide should this job be", and it serves planni
 
 Read the absolute figures from the assets above rather than quoting any number from this file:
 
-- Three caps bound a job's width and the narrowest of them wins: `CONTROLLER_EXTRACTION_JOB_CORES`, the ceiling the
-  budget or the caller sets, and the workers the archive's own message count repays. Read the width a job actually
-  received from its `core_weight` (prepare) and `cores` (execute), never from the budget or the ceiling requested.
+- A job's width takes one of two values with nothing between them. An archive holding fewer data messages than
+  `PARALLEL_EXTRACTION_THRESHOLD` opens no pool and takes a single core, and every archive at or above it takes the
+  declared `CONTROLLER_EXTRACTION_JOB_CORES` allocation. Execution then collapses that width onto the session's core
+  budget wherever the budget is narrower, which is the only narrowing the model applies. Read the width a job actually
+  received from its `core_weight` (prepare) and `cores` (execute), never from the budget requested.
+- `PARALLEL_EXTRACTION_THRESHOLD` decides whether a job opens a pool at all, and the `PARALLEL_PROCESSING_THRESHOLD`
+  named elsewhere decides how the archive reader batches messages inside one. They carry different values, so a claim
+  about one settles nothing about the other.
 - Execution re-derives `core_weight` and re-estimates `memory_mb` for every descriptor against this session's own
   budgets, so quote the execute figures whenever they disagree with the ones preparation stamped.
 - Both budgets auto-resolve from the host when left at `-1`, holding back a reserve for host operations. An explicit

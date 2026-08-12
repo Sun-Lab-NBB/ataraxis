@@ -54,23 +54,14 @@ default. You MUST also have a validated extraction config path, created and vali
 
 ### Discovery tools
 
-`discover_microcontroller_data_tool` takes one required parameter, `root_directory`, the absolute path to search. It
-recursively locates every `microcontroller_manifest.yaml` under that root, each of which tags one DataLogger output
-directory holding controller log archives, and returns only the sources whose log archives exist on disk.
+`discover_microcontroller_data_tool` requires `root_directory`, the absolute path to search. It recursively locates
+every `microcontroller_manifest.yaml` under that root, each of which tags one DataLogger output directory holding
+controller log archives, and returns only the sources whose log archives exist on disk.
 
-**Return structure:**
-```text
-sources[]:              Flat list of confirmed source entries:
-  recording_root:       Path to the recording root directory
-  source_id:            Source ID string (controller ID)
-  name:                 Controller name from manifest
-  log_archive:          Absolute path to the .npz archive
-  log_directory:        Absolute path to the DataLogger output directory
-  modules[]:            Module entries from manifest
-log_directories:        Flat list of log directory paths (pass directly to prepare tool)
-total_sources:          Number of confirmed source entries
-total_log_directories:  Number of log directories with archives
-```
+A bare call reports `log_directories`, `total_sources`, `total_log_directories`, and a `breakdown` naming every
+controller ID and name the scan found, which is everything the preparation step needs. It lists **no** `sources`.
+Pass `include_items=True` to list them, and `detailed=True` to add each source's archive path and module list. See
+[staged-reads.md](references/staged-reads.md) for the parameters, the return fields, and the paging rules.
 
 **Important:** Tag a legacy log directory that carries no `microcontroller_manifest.yaml` with
 `write_microcontroller_manifest_tool` (see `/microcontroller-setup`) before running discovery over it.
@@ -255,9 +246,13 @@ need no reset.
 **Note:** `source_ids` are matched against each tracker entry's specifier by exact string equality, so `"10"` does not
 select the job of controller `101`, and omitting them is the only way to reset every job in the tracker.
 
-`get_batch_status_overview_tool` takes one required parameter, `root_directory`, the absolute path under which trackers
-are searched for. `clean_log_processing_output_tool` takes one required parameter, `output_directories`, the absolute
-paths whose `microcontroller_data/` subdirectory and every file in it, feather files and tracker alike, are deleted.
+`get_batch_status_overview_tool` requires `root_directory`, the absolute path under which trackers are searched for. A
+bare call reports `total_log_directories`, an aggregate `summary`, and a `breakdown` of directories per status, and it
+lists **no** `log_directories`. Name `statuses`, or pass `include_items=True`, to list them, and `detailed=True` to add
+each directory's tracker path and per-job entries. See [staged-reads.md](references/staged-reads.md) for both.
+
+`clean_log_processing_output_tool` takes one required parameter, `output_directories`, the absolute paths whose
+`microcontroller_data/` subdirectory and every file in it, feather files and tracker alike, are deleted.
 
 **Return structure:**
 ```text
@@ -291,11 +286,13 @@ one processing wrote into.
 - **Single execution session** constraint: only one batch execution can run at a time
 - **Process model:** every job body runs in a worker of one shared, spawn-context process pool, and a job admitted at
   more than one core opens its own extraction pool of that width inside its worker. A spawned child inherits nothing and
-  re-imports the whole package, which is the cost the sizing model charges as `SPAWNED_CHILD_MEMORY_MB` for each
-  process. Every worker is pinned to a single numeric-backend thread, so no worker oversubscribes the cores its job was
-  admitted at
-- **Parallel processing** activates automatically once an archive exceeds the library's parallel-processing threshold.
-  The width a job actually receives is reported as its `core_weight` (prepare) and `cores` (execute)
+  re-imports the whole package, which is the cost the sizing model charges as `SPAWNED_CHILD_MEMORY_MB` per extraction
+  pool child. A job body carries a separate and higher baseline, because it assembles and writes the feather output a
+  child that only decodes messages never reaches. Every worker is pinned to a single numeric-backend thread, so no
+  worker oversubscribes the cores its job was admitted at
+- **Parallel processing** activates automatically once an archive reaches the library's parallel extraction threshold,
+  which is the count deciding whether a job opens a pool at all. The width a job actually receives is reported as its
+  `core_weight` (prepare) and `cores` (execute)
 - **Empty archives:** an archive with zero data messages completes as `SUCCEEDED` and produces no feather files. This is
   expected, not a failure to retry or clean
 - **ExtractionConfig** controls which modules, kernel messages, and event codes are extracted per controller
@@ -321,14 +318,16 @@ The processing workflow uses a **prepare-then-execute** model:
 ### Workflow steps
 
 0. **Orient before starting**: Whenever the root may already have been processed (the user says "resume", "finish", or
-   "re-run", or names an existing project root), call `get_batch_status_overview_tool` on that root first. It answers
-   which directories are `not_started`, in flight, or `failed` before anything is prepared, so a resumed batch
-   re-prepares only what it has to. A root reporting no tracker at all has not been processed, so step 1 starts it.
+   "re-run", or names an existing project root), call `get_batch_status_overview_tool` on that root first. Its bare
+   `breakdown` counts how many directories are `not_started`, in flight, or `failed` before anything is prepared, and
+   naming those statuses lists the directories themselves, so a resumed batch re-prepares only what it has to. A root
+   reporting no tracker at all has not been processed, so step 1 starts it.
 
 1. **Discover archives**: Call `discover_microcontroller_data_tool` with the user-provided root directory.
 
-2. **Present discovery results**: Render one table row per entry of `sources[]`, carrying its `source_id`, `name`,
-   `recording_root`, and module count, and close with the returned `total_sources` and `total_log_directories`.
+2. **Present discovery results**: Call it again with `include_items=True` and `detailed=True`, render one table row per
+   entry of `sources[]` carrying its `source_id`, `name`, `recording_root`, and module count, and close with the
+   returned `total_sources` and `total_log_directories`.
 
 3. **Confirm directories to process**: Ask the user which log directories to process. Accept all discovered directories
    or a user-selected subset. MUST confirm before proceeding.
@@ -399,7 +398,8 @@ pool. Use it to separate two failure shapes: several failed jobs sharing one `ex
 dying, while failures spread across many distinct values mean the pool itself is being killed. The second shape routes
 to the batch abandonment messages in Error routing.
 
-When using `get_batch_status_overview_tool` for multi-directory status:
+When using `get_batch_status_overview_tool` for multi-directory status, name the `statuses` that matter or pass
+`include_items=True`, since a bare call carries the counts alone:
 
 ```text
 **Batch Overview**

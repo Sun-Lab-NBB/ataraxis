@@ -47,9 +47,15 @@ schema reference, output verification, event analysis, and interpretation guidan
 
 **Parameters:**
 
-| Parameter        | Type  | Default    | Description                                             |
-|------------------|-------|------------|---------------------------------------------------------|
-| `root_directory` | `str` | (required) | Absolute path to root directory to search for manifests |
+| Parameter        | Type               | Default    | Description                                             |
+|------------------|--------------------|------------|---------------------------------------------------------|
+| `root_directory` | `str`              | (required) | Absolute path to root directory to search for manifests |
+| `source_ids`     | `list[str] / None` | `None`     | Restricts the listing to these controller IDs           |
+| `name`           | `str / None`       | `None`     | Restricts the listing to one controller name            |
+| `include_items`  | `bool`             | `False`    | Lists sources when no filter is named                   |
+| `detailed`       | `bool`             | `False`    | Adds `log_archive` and `modules` to each listed source  |
+
+It also accepts `limit` and `start_row`, which page a long listing. `/log-processing` owns the full staging contract.
 
 ### Verification tool
 
@@ -229,19 +235,21 @@ path built through them cannot drift from a rename in a future release:
 | `resolve_module_path` | One module's file path, from the data directory, source id, type, and id         |
 | `resolve_kernel_path` | One source's kernel file path, from the data directory and source id             |
 | `find_module_paths`   | Every module file in a data directory, sorted by path                            |
+| `find_kernel_paths`   | Every kernel file in a data directory, sorted by path                            |
 | `parse_module_path`   | `(source_id, module_type, module_id)` read back out of a filename, as three ints |
+| `parse_kernel_path`   | The source id read back out of a kernel filename, as one int                     |
 
-The four functions are top-level exports of `ataraxis_communication_interface`. `OutputLayout` is exported from
+The six functions are top-level exports of `ataraxis_communication_interface`. `OutputLayout` is exported from
 `ataraxis_communication_interface.orchestration` only, so importing it from the top level raises `ImportError`. Every
 resolver takes the `microcontroller_data/` directory itself, which is the `data_path` value
 `verify_processing_output_tool` returns, not the parent output directory.
 
-**Note:** A hand-rolled `controller_*.feather` glob is wrong, because it also matches the kernel files.
-`find_module_paths` globs `controller_*_module_*.feather`, which excludes them by construction, and it returns an empty
-list rather than raising when the directory does not exist. Pair it with `parse_module_path` to recover each file's
-identity from the filename instead of re-reading the manifest. `parse_module_path` raises `ValueError` naming the
-offending filename when a name does not follow the convention, where a hand-written `split("_")` would silently
-mis-index.
+**Note:** A hand-rolled `controller_*.feather` glob is wrong, because it matches the module and the kernel files
+together. The two finders separate them by construction, `find_module_paths` globbing `controller_*_module_*.feather`
+and `find_kernel_paths` globbing `controller_*_kernel.feather`, and both return an empty list rather than raising when
+the directory does not exist. Pair each finder with its parser to recover a file's identity from the filename instead
+of re-reading the manifest. Both parsers raise `ValueError` naming the offending filename when a name does not follow
+the convention, where a hand-written `split("_")` would silently mis-index.
 
 ### ProcessingTracker file
 
@@ -396,27 +404,30 @@ two-column row per fault message.
 
 ## Discovery output reference
 
-The `discover_microcontroller_data_tool` returns a flat list of confirmed source entries. Processing status can be
-determined by checking whether processed output exists in the output directories:
+A bare `discover_microcontroller_data_tool` call reports the counts and a `breakdown` naming the controller IDs and the
+controller names the scan found, and it lists no sources. Processing status can be determined by checking whether
+processed output exists in the output directories:
 
 ```text
 {
-    "sources": [
+    "log_directories": ["/path/to/session_data_log"],
+    "total_sources": 1,
+    "total_log_directories": 1,
+    "breakdown": {"source_id": {"101": 1}, "name": {"teensy_main": 1}},
+    "sources": [                                      | requested by include_items=True
         {
             "recording_root": "/path/to/session",
             "source_id": "101",
             "name": "teensy_main",
-            "log_archive": "/path/to/101_log.npz",
             "log_directory": "/path/to/session_data_log",
-            "modules": [
+            "log_archive": "/path/to/101_log.npz",    | requested by detailed=True
+            "modules": [                              | requested by detailed=True
                 {"module_type": 1, "module_id": 1, "name": "encoder"},
                 {"module_type": 2, "module_id": 1, "name": "lick_sensor"}
             ]
         }
     ],
-    "log_directories": ["/path/to/session_data_log"],
-    "total_sources": 1,
-    "total_log_directories": 1
+    "rows": 1, "matched_rows": 1, "start_row": 0, "next_start_row": null
 }
 ```
 
