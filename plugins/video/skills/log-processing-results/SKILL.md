@@ -109,7 +109,9 @@ Each feather file is a Polars DataFrame serialized in the Feather IPC format wit
 |-----------------|--------|-----------------------------------------------------------------|
 | `frame_time_us` | UInt64 | Frame acquisition timestamp in microseconds since the UTC epoch |
 
-Rows are ordered chronologically. Each row corresponds to one acquired frame.
+Rows are ordered chronologically. Each row corresponds to one **saved** frame. The producer forwards a frame to the
+saver, and therefore to the log, only while frame saving is enabled, so frames acquired between a stop and a start of
+frame saving carry no row.
 
 ### Naming convention
 
@@ -139,7 +141,7 @@ job has:
 
 | Field                | Type    | Description                                              |
 |----------------------|---------|----------------------------------------------------------|
-| `total_frames`       | `int`   | Total number of acquired frames                          |
+| `total_frames`       | `int`   | Total number of saved frames                             |
 | `first_timestamp_us` | `int`   | First frame timestamp (microseconds since the UTC epoch) |
 | `last_timestamp_us`  | `int`   | Last frame timestamp (microseconds since the UTC epoch)  |
 | `duration_us`        | `int`   | Total recording duration in microseconds                 |
@@ -199,6 +201,10 @@ no compensation.
 A gap the netting resolves to zero is jitter rather than loss. It counts under `jitter_compensated_gaps`, contributes
 nothing to `total_estimated_dropped_frames`, and still appears in `drop_locations` with an `estimated_frames_lost` of
 zero. A file whose `total_gaps_detected` and `jitter_compensated_gaps` are equal lost no frames at all.
+
+A span in which the session paused frame saving reads as one long gap here, because the log carries no row for a frame
+acquired while saving was off. Confirm with the user whether saving was toggled mid-session before reporting a single
+large gap as loss.
 
 **Edge cases:** When `total_frames == 0`, only `basic_stats.total_frames` is returned and `inter_frame_timing` /
 `frame_drop_analysis` are empty `{}`. When `total_frames == 1`, `basic_stats` is fully populated but `duration_us`,

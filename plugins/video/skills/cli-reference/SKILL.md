@@ -32,7 +32,8 @@ exempt. `/video-mcp-environment-setup` owns that exemption.
 - The MCP batch workflow, lenient sourcing, and resource sizing (see `/log-processing`)
 - Writing VideoSystem code, which no `axvs` command replaces (see `/camera-interface`)
 - Diagnosing why the MCP server is down (see `/video-mcp-environment-setup`)
-- Driving log processing from Python. Orchestration runs through MCP or this CLI only
+- Driving log processing from Python. The library exports its orchestration symbols, but they are not an agent-facing
+  surface, so never drive a batch from Python
 
 **Handoff rules:** If the user wants an operation performed rather than explained, use the MCP tools and invoke the
 owning skill. If the MCP tools are unavailable, invoke `/video-mcp-environment-setup` first and fall back to the
@@ -211,6 +212,7 @@ read the leading number as a camera index. Read `index=` instead.
 | OpenCV cameras present | Warns first that OpenCV resolves no model or serial, and recommends `axvs run` to map indices  |
 | GenICam runtime absent | Prints `Harvesters camera discovery skipped.` with the reason, and probes no GenTL device      |
 | No Harvesters cameras  | Prints a warning line. Distinct from the skipped case above, so read which of the two appeared |
+| No CTI file configured | Prints that same warning line with no note naming the cause. Ask for `axvs cti check` first    |
 
 ### `axvs check compatibility`
 
@@ -225,13 +227,17 @@ frame saving, and `s` stops it. Every other key prints a warning and re-prompts.
 The session's parameters are **fixed in the command**, and no option exposes them. This is the third parameter set in
 the plugin, alongside the MCP session defaults in `/camera-setup` and the code defaults in `/camera-interface`.
 
-| Fixed value                       | Consequence                                                                    |
-|-----------------------------------|--------------------------------------------------------------------------------|
-| `system_id=111`                   | The archive is `111_log.npz` and the video is `111.mp4`                        |
-| `name="live_camera"`              | The manifest entry is registered under that name                               |
-| `instance_name="axvs_live_run"`   | The log directory is `axvs_live_run_data_log/`, not the MCP session's          |
-| `display_frame_rate=25`           | A preview window opens on every platform except macOS                          |
-| `H264`, `FAST`, `YUV420`, `QP 15` | Compatibility-first encoding. Not the production set `/camera-interface` gives |
+| Fixed value                       | Consequence                                                                            |
+|-----------------------------------|----------------------------------------------------------------------------------------|
+| `system_id=111`                   | The archive is `111_log.npz` and the video is `111.mp4`                                |
+| `name="live_camera"`              | The manifest entry is registered under that name                                       |
+| `instance_name="axvs_live_run"`   | The log directory is `axvs_live_run_data_log/`, not the MCP session's                  |
+| `display_frame_rate=25`           | A preview opens on every platform except macOS, and any `-f` below 25 aborts the start |
+| `H264`, `FAST`, `YUV420`, `QP 15` | Compatibility-first encoding. Not the production set `/camera-interface` gives         |
+
+The display rate may not exceed the camera's acquisition rate, and that bound is validated on every platform, so
+`axvs run -f 15` raises `ValueError` during VideoSystem construction before the session starts. Hand a user a `-f`
+value of 25 or above, or expect the command to abort.
 
 Archive assembly runs in a `finally` block, so an ordinary interrupt still assembles. Only a killed process leaves raw
 `.npy` entries behind, and `/post-recording` owns the manual recovery.

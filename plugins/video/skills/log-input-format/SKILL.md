@@ -96,6 +96,8 @@ sources:
   and the read-replace-write sequence is held under a file lock so concurrent registrations are safe.
 - **MCP sessions:** `start_video_session_tool` creates a VideoSystem with `name="live_camera"`, which writes
   a manifest automatically.
+- **CLI sessions:** `axvs run` creates a VideoSystem with `system_id=111` and `name="live_camera"` against a
+  DataLogger named `axvs_live_run`, so its manifest lands in `{output_directory}/axvs_live_run_data_log/`.
 - **Manual:** Use `write_camera_manifest_tool` (see `/camera-setup`) to retroactively tag legacy log
   directories that predate the manifest system.
 

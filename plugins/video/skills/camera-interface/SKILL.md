@@ -26,7 +26,8 @@ Guides creation and configuration of VideoSystem instances.
 - Camera discovery, interactive testing, or GenICam node inspection via MCP tools (see `/camera-setup`)
 - System ID allocation, DataLogger topology, and the multi-camera lifecycle (see `/pipeline`)
 - Archive assembly and output verification after a run (see `/post-recording`)
-- Driving log processing from Python. Orchestration runs through MCP or the `axvs` CLI only
+- Driving log processing from Python. The library exports its orchestration symbols, but they are not an agent-facing
+  surface, so never drive a batch from Python
 - MCP server connectivity issues (see `/video-mcp-environment-setup`)
 - Binding class design, configuration dataclasses, or system architecture (consumer's responsibility)
 
@@ -63,7 +64,8 @@ See [api-reference.md](references/api-reference.md) for the complete API referen
 - VideoSystem constructor parameters and their exact types and defaults
 - Lifecycle methods (start, stop, start_frame_saving, stop_frame_saving)
 - Properties (video_file_path, started, system_id)
-- All enumerations (CameraInterfaces, VideoEncoders, EncoderSpeedPresets, OutputPixelFormats, InputPixelFormats)
+- All enumerations (CameraInterfaces, VideoEncoders, EncoderSpeedPresets, OutputPixelFormats, InputPixelFormats,
+  ExtractedDataColumns)
 - Discovery functions (discover_camera_ids, check_cti_file, add_cti_file)
 - GenICam configuration classes (GenicamNodeInfo, GenicamConfiguration) and the programmatic config methods
   (set_node_value, get_configuration, apply_configuration) that back the `/camera-setup` tools
@@ -260,6 +262,7 @@ log for an MCP session. Ask the user to check whichever of the two applies.
 | `video_encoder` (str)    | `video_encoder`           | `str` → `VideoEncoders` enum                                 |
 | `encoder_speed_preset`   | `encoder_speed_preset`    | `int` → `EncoderSpeedPresets` enum                           |
 | `output_pixel_format`    | `output_pixel_format`     | `str` → `OutputPixelFormats` enum                            |
+| `quantization_parameter` | `quantization_parameter`  | Same, and both default to 15                                 |
 | (fixed at 112)           | `system_id`               | Code uses 51-100, MCP uses 112                               |
 | (auto-created)           | `data_logger`             | Code must create and manage DataLogger                       |
 | (fixed: `"live_camera"`) | `name`                    | **New required param**, code must provide a descriptive name |

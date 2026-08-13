@@ -114,20 +114,23 @@ VideoSystem(
   and the library performs no software conversion, so a GenICam camera must be set to an 8-bit pixel format
   (Mono8, BGR8, RGB8) before a VideoSystem is constructed against it. Mono10, Mono12, Mono16, and other wide
   formats are rejected outright rather than down-converted
+- The same probe frame is rejected with `ValueError` when its color format falls outside the unpacked Monochrome,
+  RGB, and BGR families, so a packed or Bayer `PixelFormat` fails construction even at 8 bits per component
 
 ### Constructor failure modes
 
-| Exception             | Cause                                                                                  |
-|-----------------------|----------------------------------------------------------------------------------------|
-| `TypeError`           | An argument has the wrong type                                                         |
-| `ValueError`          | An argument is out of range, or the camera acquires frames that are not 8-bit unsigned |
-| `OverflowError`       | `system_id` falls outside the 0-255 range a uint8 supports                             |
-| `RuntimeError`        | FFMPEG is unavailable, or GPU encoding was requested without an NVIDIA GPU             |
-| `NotImplementedError` | The Harvesters interface was requested where the GenICam runtime is absent (macOS)     |
-| `FileNotFoundError`   | The Harvesters interface was requested before a .cti file was configured               |
-| `OSError`             | The configured .cti file is not a loadable GenTL Producer                              |
-| `BrokenPipeError`     | The validation frame grab from the managed camera failed                               |
-| `Timeout`             | The camera manifest's `.lock` file could not be acquired within 10 seconds             |
+| Exception             | Cause                                                                                   |
+|-----------------------|-----------------------------------------------------------------------------------------|
+| `TypeError`           | An argument has the wrong type                                                          |
+| `ValueError`          | An argument is out of range, or the camera's frame dtype or color format is unsupported |
+| `OverflowError`       | `system_id` falls outside the 0-255 range a uint8 supports                              |
+| `RuntimeError`        | FFMPEG is unavailable, or GPU encoding was requested without an NVIDIA GPU              |
+| `NotImplementedError` | The Harvesters interface was requested where the GenICam runtime is absent (macOS)      |
+| `FileNotFoundError`   | The Harvesters interface was requested before a .cti file was configured                |
+| `OSError`             | The configured .cti file is not a loadable GenTL Producer                               |
+| `IndexError`          | `camera_index` exceeds the number of cameras the configured GenTL Producer discovers    |
+| `BrokenPipeError`     | The validation frame grab from the managed camera failed                                |
+| `Timeout`             | The camera manifest's `.lock` file could not be acquired within 10 seconds              |
 
 The `Timeout` comes from the `filelock` dependency that guards the manifest write. It is the one to expect when several
 VideoSystems register against one DataLogger directory concurrently, from separate processes or from the threads
@@ -224,6 +227,16 @@ class InputPixelFormats(StrEnum):
     MONOCHROME = "gray"   # Grayscale images
     BGR = "bgr24"         # Color images (BGR channel order)
 ```
+
+### ExtractedDataColumns
+
+```python
+class ExtractedDataColumns(StrEnum):
+    FRAME_TIME = "frame_time_us"  # The only column of every extracted timestamp feather file
+```
+
+Read the column of a `camera_{source_id}_timestamps.feather` file through this member rather than through the literal
+string, since the enumeration is the name both `execute_job()` and the frame statistics tool resolve the column by.
 
 ---
 

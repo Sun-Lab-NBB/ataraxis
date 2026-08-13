@@ -120,13 +120,18 @@ authoritative.
 
 ```text
 Does the camera support GenTL (GenICam Transport Layer)?
-  YES → Harvesters (preferred interface; provides GenICam node control)
+  YES → Is the host macOS?
+    YES → OpenCV (the GenICam runtime is never installed there)
+    NO  → Harvesters (preferred interface, provides GenICam node control)
   NO  → Is the camera a USB webcam or consumer device?
     YES → OpenCV
     NO  → Is this a test or development scenario without hardware?
       YES → Mock
       NO  → Check camera vendor documentation for GenTL support
 ```
+
+VideoSystem raises `NotImplementedError` for the Harvesters interface on macOS, so the platform gate comes before the
+camera's own capability. `/camera-setup` owns the runtime detail behind it.
 
 ### MCP vs code
 

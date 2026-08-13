@@ -294,13 +294,14 @@ workflow reads the two tool assets instead, since it drives no processing from P
 How the model behaves:
 
 - A job's width takes one of two values with nothing between them. An archive holding fewer data messages than
-  `PARALLEL_EXTRACTION_THRESHOLD` opens no pool and takes a single core, and every archive at or above it takes the
+  `_PARALLEL_EXTRACTION_THRESHOLD` opens no pool and takes a single core, and every archive at or above it takes the
   declared `CAMERA_EXTRACTION_JOB_CORES` allocation. Execution then collapses that width onto the session's core
   budget wherever the budget is narrower, which is the only narrowing the model applies. Read the width a job actually
   received from its `core_weight` (prepare) and `cores` (execute), never from the budget requested.
-- `PARALLEL_EXTRACTION_THRESHOLD` decides whether a job opens a pool at all, and the `PARALLEL_PROCESSING_THRESHOLD`
+- `_PARALLEL_EXTRACTION_THRESHOLD` decides whether a job opens a pool at all, and the `PARALLEL_PROCESSING_THRESHOLD`
   that the `ataraxis-data-structures` archive reader applies decides how it batches messages inside one. They carry
-  different values, so a claim about one settles nothing about the other.
+  different values, so a claim about one settles nothing about the other. The leading underscore marks the visibility
+  split, since the first is private to `orchestration/allocation.py` and the second is a public library export.
 - Execution re-derives `core_weight` and re-estimates `memory_mb` for every descriptor against this session's own
   budgets, so quote the execute figures whenever they disagree with the ones preparation stamped. The re-derivation
   reads the figures carried in the submitted job descriptors and touches no archive.
@@ -336,6 +337,11 @@ The `get_log_processing_status_tool` response carries both an `active` flag (man
 flag, plus a `message` of `No execution session exists.` when no session ever ran. Treat `active` as the completion
 signal and `canceled` as the cancellation/draining path (active jobs finish while no new jobs start). Per-job entries
 carry the `log_directory` the job reads, and may also include an `executor_id`.
+
+A per-job entry reports a fifth status, `UNKNOWN`, when its tracker cannot be read or when the tracker holds no entry
+for the job. An `UNKNOWN` job is counted in none of the `summary` status counts while still counting toward
+`summary.total`, so the four counts can sum below the total. Treat such a job as unresolved rather than complete, and
+re-prepare the batch to regenerate the tracker.
 
 When presenting batch status to the user, format as a table:
 

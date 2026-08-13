@@ -215,7 +215,8 @@ all expected source IDs have corresponding `.npz` archives. For legacy sessions 
 
 - Video `frame_count` should approximate the number of frame messages in the log archive. The onset is a separate
   message type that no frame message count includes, so no adjustment is applied to either figure.
-- Video `duration_seconds` should match `(last_timestamp - first_timestamp)` from processed timestamps.
+- Video `duration_seconds` should match `(last_timestamp - first_timestamp) / 1e6` from processed timestamps, since
+  the extracted `frame_time_us` column stores microseconds since the UTC epoch.
 - Processed output (feather files and tracker) is written to a `camera_timestamps/` subdirectory under the processing
   output directory, not directly into the log directory.
 
@@ -276,7 +277,7 @@ Post-Recording Verification, tool-settled (call `discover_camera_data_tool` on t
 - [ ] Log archives assembled (.npz files present in DataLogger output directory)
 - [ ] All expected source IDs have corresponding archives
 - [ ] Archive presence confirmed for all source IDs (frame-count vs message-count cross-check deferred
-      to /log-processing-results)
+      to /log-processing)
 
 Post-Recording Verification, reader-judged:
 - [ ] Video session stopped via stop_video_session_tool
