@@ -77,9 +77,9 @@ called, so check it whenever the reported path is not the one you expect.
 ### GenICam platform support
 
 The GenICam (Harvesters) camera interface requires the `harvesters` and `genicam` distributions, which
-ataraxis-video-system installs on Linux and Windows only. macOS never has them, because the `genicam` distribution
-publishes no macOS wheel for some of the Python versions the library supports. The library therefore leaves the runtime
-out of the macOS installation rather than offering it on a subset of those versions. On a host without the runtime:
+ataraxis-video-system installs on Linux, Windows, and Apple Silicon Macs running Python 3.12 or 3.13. That combination
+is the only one the `genicam` distribution publishes a macOS wheel for, so an Intel Mac and any Mac running Python 3.14
+never have them. On a host without the runtime:
 
 - `check_runtime_requirements_tool` reports `CTI: Unsupported` and `get_cti_status_tool` reports `CTI: Unavailable.`
 - `list_cameras_tool` returns only the OpenCV cameras and appends `Harvesters discovery skipped.` with the reason
@@ -89,12 +89,13 @@ out of the macOS installation rather than offering it on a subset of those versi
 None of this is a wiring, driver, or configuration fault, and no camera-side change fixes it. The reason reported by the
 tools names one of two causes, so read it rather than assuming a cause:
 
-- **macOS**: the library declares no GenICam runtime there, so this is permanent. Use the `opencv` interface,
-  or drive GenICam cameras from a Linux or Windows host. Every other library feature, including video encoding
-  and log processing, works normally there.
-- **Linux or Windows**: the distributions install with the library, so an absent runtime means a damaged
-  installation. The reported reason instructs the user to reinstall the library. See
-  `/video-mcp-environment-setup`.
+- **An Intel Mac, or any Mac on Python 3.14**: the library declares no GenICam runtime there, so this is
+  permanent. Use the `opencv` interface, or drive GenICam cameras from an Apple Silicon Mac on Python 3.12 or
+  3.13, a Linux host, or a Windows host. Every other library feature, including video encoding and log
+  processing, works normally there.
+- **Linux, Windows, or an Apple Silicon Mac on Python 3.12 or 3.13**: the distributions install with the
+  library, so an absent runtime means a damaged installation. The reported reason instructs the user to
+  reinstall the library. See `/video-mcp-environment-setup`.
 
 ### Camera discovery
 
@@ -345,7 +346,7 @@ owns system ID allocation and the DataLogger topology that constrains it.
 |------------------------------------------------------|----------------------------------------------|--------------------------------------------------------------------------------------------------------|
 | `check_runtime_requirements_tool` → FFMPEG Missing   | FFMPEG not installed                         | Install FFMPEG n8.1 and ensure it is on PATH                                                           |
 | `check_runtime_requirements_tool` → GPU None         | No NVIDIA GPU or drivers                     | Install NVIDIA drivers, or use CPU encoding (gpu=-1)                                                   |
-| `check_runtime_requirements_tool` → CTI Unsupported  | GenICam runtime absent, or a damaged install | Read the reported reason: `opencv` or another host on macOS, reinstall elsewhere                       |
+| `check_runtime_requirements_tool` → CTI Unsupported  | GenICam runtime absent, or a damaged install | Read the reported reason: `opencv` or another host where no wheel exists, reinstall elsewhere          |
 | `list_cameras_tool` returns no cameras               | No cameras connected                         | Check physical connections, drivers, CTI configuration, and whether another application holds the port |
 | `list_cameras_tool` → "Harvesters discovery skipped" | GenICam runtime absent                       | Not a wiring fault, no camera-side fix exists                                                          |
 | `start_video_session_tool` → error                   | Session already active                       | Call `stop_video_session_tool` first                                                                   |

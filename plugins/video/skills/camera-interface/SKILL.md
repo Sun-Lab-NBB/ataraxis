@@ -115,9 +115,9 @@ Key constructor notes:
   decide", and a negative value raises `ValueError`. The parameter is validated only when `output_directory` is set,
   since a system that saves nothing constructs no encoder.
 - `camera_interface=CameraInterfaces.HARVESTERS` requires the GenICam runtime, which ataraxis-video-system installs on
-  Linux and Windows only. On macOS the constructor raises `NotImplementedError`, as do `add_cti_file()` and every
-  GenICam configuration call. Write code that targets GenICam cameras for a Linux or Windows host, and use
-  `CameraInterfaces.OPENCV` on macOS.
+  Linux, Windows, and Apple Silicon Macs running Python 3.12 or 3.13. On an Intel Mac, or on any Mac running Python
+  3.14, the constructor raises `NotImplementedError`, as do `add_cti_file()` and every GenICam configuration call. Use
+  `CameraInterfaces.OPENCV` there, or target a Linux or Windows host.
 - `color` is a keyword-only parameter defaulting to `None`. For OpenCV and Mock, `None` resolves to monochrome
   (`False`). A color OpenCV camera left at `None` silently records grayscale, so pass `color=True` explicitly to record
   color. Only Harvesters infers color/mono from the GenICam config.

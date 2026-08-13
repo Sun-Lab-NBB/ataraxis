@@ -125,7 +125,7 @@ VideoSystem(
 | `ValueError`          | An argument is out of range, or the camera's frame dtype or color format is unsupported |
 | `OverflowError`       | `system_id` falls outside the 0-255 range a uint8 supports                              |
 | `RuntimeError`        | FFMPEG is unavailable, or GPU encoding was requested without an NVIDIA GPU              |
-| `NotImplementedError` | The Harvesters interface was requested where the GenICam runtime is absent (macOS)      |
+| `NotImplementedError` | The Harvesters interface was requested where the GenICam runtime is absent              |
 | `FileNotFoundError`   | The Harvesters interface was requested before a .cti file was configured                |
 | `OSError`             | The configured .cti file is not a loadable GenTL Producer                               |
 | `IndexError`          | `camera_index` exceeds the number of cameras the configured GenTL Producer discovers    |
@@ -383,7 +383,7 @@ def discover_camera_ids() -> tuple[CameraInformation, ...]
 
 Discovers all cameras accessible through both OpenCV and Harvesters interfaces. OpenCV cameras are discovered first.
 Harvesters discovery is skipped if no CTI file is configured, and also wherever the GenICam runtime is absent, which is
-every macOS host. Call `genicam_runtime_available()` to distinguish the two cases.
+every Intel Mac and every Mac running Python 3.14. Call `genicam_runtime_available()` to distinguish the two cases.
 
 ### add_cti_file
 
@@ -523,8 +523,9 @@ The first log entry for each VideoSystem uses a special format:
 ### Python
 
 The package requires Python `>=3.12,<3.15`. Its `harvesters` and `genicam` dependencies carry the marker
-`sys_platform != 'darwin'`, so the GenICam camera runtime is installed on Linux and Windows only. Its absence on macOS
-is by design, not a damaged installation, and no reinstall restores it.
+`sys_platform != 'darwin' or (python_version < '3.14' and platform_machine == 'arm64')`, so the GenICam camera runtime
+is installed on Linux, Windows, and Apple Silicon Macs running Python 3.12 or 3.13. Its absence on an Intel Mac, or on
+any Mac running Python 3.14, is by design, and no reinstall restores it.
 
 ---
 

@@ -226,26 +226,28 @@ changes. The ataraxis video plugin will automatically configure the server on th
 | MCP server starts but tools are missing                  | Outdated ataraxis-video-system version | `pip install --upgrade ataraxis-video-system`                 |
 | MCP server connected but tools fail                      | Not an environment issue               | Check tool-specific error messages                            |
 | Skills available but MCP tools missing                   | Plugin installed without pip package   | `pip install ataraxis-video-system` in the active environment |
-| GenICam/CTI tools report Unsupported on macOS            | GenICam runtime never installed        | Expected, not a fault. See GenICam runtime availability below |
-| GenICam/CTI tools report Unsupported on Linux or Windows | Damaged installation                   | `pip install --force-reinstall ataraxis-video-system`         |
+| GenICam/CTI tools report Unsupported on an unclaimed Mac | GenICam runtime never installed        | Expected, not a fault. See GenICam runtime availability below |
+| GenICam/CTI tools report Unsupported where it installs   | Damaged installation                   | `pip install --force-reinstall ataraxis-video-system`         |
 
 ### GenICam runtime availability
 
 The GenICam camera runtime ships as the `harvesters` and `genicam` distributions, which ataraxis-video-system declares
-with a `sys_platform != 'darwin'` marker. They install automatically on Linux and Windows, and never on macOS, because
-the `genicam` distribution publishes no macOS wheel for some of the Python versions the library supports. The marker
-excludes the runtime on macOS rather than offering it on a subset of those versions, and the library guards the import,
-so an absent runtime produces no import error.
+with a `sys_platform != 'darwin' or (python_version < '3.14' and platform_machine == 'arm64')` marker. They install
+automatically on Linux, Windows, and Apple Silicon Macs running Python 3.12 or 3.13, which is the only combination the
+`genicam` distribution publishes a macOS wheel for. The library guards the import, so an absent runtime produces no
+import error.
 
 Branch on the host platform whenever `check_runtime_requirements_tool` reports `CTI: Unsupported` or
 `get_cti_status_tool` reports `CTI: Unavailable.`:
 
-- **macOS**: permanent and by design. Do not prescribe a reinstall. Steer the user to the `opencv` camera
-  interface, or to a Linux or Windows host for GenICam cameras. Every other feature, including video encoding
-  and log processing, works normally there. The only other macOS restriction is the live frame display, which
-  VideoSystem disables because macOS forbids GUI updates outside the main thread.
-- **Linux or Windows**: the runtime installs alongside the library there, so its absence means a damaged
-  installation. `pip install --force-reinstall ataraxis-video-system` restores it.
+- **An Intel Mac, or any Mac on Python 3.14**: permanent and by design. Do not prescribe a reinstall. Steer the
+  user to the `opencv` camera interface, or to an Apple Silicon Mac on Python 3.12 or 3.13, a Linux host, or a
+  Windows host for GenICam cameras. Every other feature, including video encoding and log processing, works
+  normally there. The only other macOS restriction is the live frame display, which VideoSystem disables on
+  every Mac because macOS forbids GUI updates outside the main thread.
+- **Linux, Windows, or an Apple Silicon Mac on Python 3.12 or 3.13**: the runtime installs alongside the library
+  there, so its absence means a damaged installation. `pip install --force-reinstall ataraxis-video-system`
+  restores it.
 
 For the tool-level consequences of an absent runtime, see `/camera-setup`.
 
