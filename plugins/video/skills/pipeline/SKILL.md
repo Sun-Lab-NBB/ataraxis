@@ -1,16 +1,16 @@
 ---
 name: pipeline
 description: >-
-  End-to-end orchestration guide for the ataraxis-video-system recording and analysis pipeline. Covers
-  canonical phase ordering with handoff conditions, multi-camera planning with system ID allocation and
-  DataLogger topology, and decision trees for interface, encoding, and processing configuration. Use when
-  planning a full recording workflow, setting up multi-camera rigs, or deciding between MCP and code.
+  Orchestrates the end-to-end ataraxis-video-system recording and analysis pipeline. Covers canonical phase
+  ordering with handoff conditions, multi-camera planning with system ID allocation and DataLogger topology,
+  and decision trees for interface, encoding, and processing configuration. Use when planning a full recording
+  workflow, setting up multi-camera rigs, or deciding between MCP and code.
 user-invocable: false
 ---
 
 # Pipeline
 
-End-to-end orchestration reference for camera recording and data analysis.
+Orchestrates the end-to-end camera recording and data analysis pipeline.
 
 ---
 
@@ -32,8 +32,8 @@ End-to-end orchestration reference for camera recording and data analysis.
 - The `axvs` command surface (see `/cli-reference`)
 - MCP server connectivity (see `/video-mcp-environment-setup`)
 
-**Handoff rules:** This skill dispatches to phase-specific skills at each stage. Always invoke the relevant skill for
-detailed tool usage, parameter reference, and troubleshooting.
+**Handoff rules:** This skill dispatches to phase-specific skills at each stage. You MUST invoke the relevant skill
+for detailed tool usage, parameter reference, and troubleshooting.
 
 ---
 
@@ -68,7 +68,7 @@ authoritative.
 | `/log-processing-results`      | `analyze_camera_frame_statistics_tool` and the feather output schema             |
 | `/log-input-format`            | The `.npz` archive layout, the manifest contract, and processing prerequisites   |
 | `/cli-reference`               | Every `axvs` command and option, and the MCP-down fallback                       |
-| `/pipeline`                    | Phase ordering, source ID allocation, DataLogger topology, cross-camera analysis |
+| `/pipeline`                    | Phase ordering, system ID allocation, DataLogger topology, cross-camera analysis |
 
 ### Phase 1: Environment setup
 
@@ -151,13 +151,13 @@ MCP supports only one active video session at a time. Multi-camera recording req
 
 There is no third path. Orchestration happens through the MCP tools or through the `axvs` CLI a user runs by hand. The
 library exports its orchestration symbols, but they are not an agent-facing surface, so never drive a batch from Python.
-Agents never invoke `axvs` either, with `--help` the sole exemption `/video-mcp-environment-setup` owns.
+You MUST never invoke `axvs` either, with `--help` the sole exemption `/video-mcp-environment-setup` owns.
 
 ### Encoding selection
 
-Do not select encoding parameters from this skill. `/camera-interface` owns the use-case table, the CPU and GPU
-trade-off, the cross-encoder quantization equivalence, and the FFMPEG error catalog, and it is the only place those
-figures are authoritative. `/camera-setup` covers what is specific to the MCP session defaults.
+`/camera-interface` owns the use-case table, the CPU and GPU trade-off, the cross-encoder quantization equivalence, and
+the FFMPEG error catalog, and it is the only place those figures are authoritative. `/camera-setup` covers what is
+specific to the MCP session defaults.
 
 The one planning fact this skill contributes is that a multi-camera rig encodes every channel concurrently, so the
 per-camera preset that works alone may not survive the rig. Plan for GPU encoding and a faster preset than a
@@ -169,9 +169,9 @@ single-camera setup would need, then confirm the choice against `/camera-interfa
 
 ### System ID allocation
 
-A camera's `system_id` IS its source ID at the DataLogger level: it is the value VideoSystem registers as the
-`source_id`, and it names the camera's `{system_id}_log.npz` archive (see `/log-input-format`). This skill uses "source
-ID" for the shared DataLogger namespace and `system_id` for the VideoSystem constructor.
+A camera's `system_id` IS its source ID at the DataLogger level. VideoSystem registers it as the `source_id`, and it
+names the camera's `{system_id}_log.npz` archive (see `/log-input-format`). This skill uses "source ID" for the shared
+DataLogger namespace and `system_id` for the VideoSystem constructor.
 
 | Range   | Assignment                         | Notes                                                |
 |---------|------------------------------------|------------------------------------------------------|
@@ -186,9 +186,9 @@ library does not check, since a duplicate ID silently replaces the earlier manif
 112 are the only values the library itself reserves, and the axvs README's own quickstart uses 101 for a camera.
 
 The 51-100 band is this plugin's allocation convention for keeping camera code clear of the reserved pair and of the
-101-150 band `/communication:pipeline` advises for microcontrollers. Confirm the rig's existing allocation with the user
-rather than assuming it follows the convention. Within the band, allocate sequentially from 51 (51, 52, 53 for a
-3-camera rig).
+101-150 band `/communication:pipeline` advises for microcontrollers. You MUST confirm the rig's existing allocation with
+the user rather than assuming it follows the convention. Within the band, allocate sequentially from 51 (51, 52, 53 for
+a 3-camera rig).
 
 Note that 111 falls inside the communication plugin's advised band, so a rig that runs `axvs run` against the same
 DataLogger a controller 111 writes to collides. This is only a concern for interactive testing, since production camera
@@ -207,16 +207,15 @@ DataLogger(instance_name="session")
 
 All cameras share one log directory, all timestamps are correlated, one `assemble_log_archives` call consolidates
 everything, and one processing batch covers all source IDs. Each VideoSystem writes an entry to `camera_manifest.yaml`
-during initialization, enabling manifest-based discovery downstream. The manifest write is idempotent per source ID:
-re-constructing a VideoSystem against an already-used output directory replaces that source's entry rather than
+during initialization, enabling manifest-based discovery downstream. The manifest write is idempotent per source ID,
+because re-constructing a VideoSystem against an already-used output directory replaces that source's entry rather than
 appending a duplicate. The read-replace-write sequence runs under a lock file beside the manifest and aborts if the lock
 cannot be taken within 10 seconds, so the concurrent registrations of several VideoSystems sharing one DataLogger are
 safe.
 
-Multiple DataLoggers should only be used if a single logger cannot handle the load, leading to excessive buffering. This
-is extremely rare in practice. When it does occur, each DataLogger creates a separate output directory that must be
-assembled and processed independently, and cross-camera timestamp comparison requires merging data from separate
-directories.
+Use multiple DataLoggers only where the user reports a single logger's buffering backing up during a run, which is rare.
+Each DataLogger then creates a separate output directory that must be assembled and processed independently, and
+cross-camera timestamp comparison requires merging data from separate directories.
 
 ### Coordinated lifecycle
 
@@ -316,8 +315,8 @@ Four rules govern the shared directory:
   directory and each prepares only its own sources. The two trackers have different filenames, so the batches do
   not contend.
 
-Shut the stack down in strict reverse order. Every VideoSystem and every MicroControllerInterface must stop before the
-shared DataLogger does.
+You MUST shut the stack down in strict reverse order. Every VideoSystem and every MicroControllerInterface must stop
+before the shared DataLogger does.
 
 ---
 
@@ -337,7 +336,7 @@ batch processing:
 
 For multi-DataLogger setups, pass each DataLogger output directory as its own entry in the `log_directories` list. One
 batch call can carry several, and each is prepared independently, so a separate batch per directory is not required.
-Passing a parent directory that spans several DataLogger outputs is rejected rather than merged: preparation fails that
+Passing a parent directory that spans several DataLogger outputs is rejected rather than merged. Preparation fails that
 entry and returns it under `invalid_paths`. The `axvs process` CLI raises the equivalent ValueError, either "Each
 DataLogger output directory must be prepared and processed on its own invocation" or a manifest-count error when the
 tree holds several `camera_manifest.yaml` files.
@@ -418,9 +417,14 @@ paths from a `discover_camera_data_tool` call carrying `include_items=True` and 
 ## Verification checklist
 
 ```text
-Pipeline Orchestration:
+Pipeline Orchestration, tool-settled (call `check_runtime_requirements_tool`, `list_cameras_tool`,
+`get_batch_status_overview_tool`, and `analyze_camera_frame_statistics_tool`):
 - [ ] Environment verified (MCP server connected, FFMPEG/GPU/CTI checked)
 - [ ] Camera(s) discovered and configuration validated
+- [ ] Log processing completed (all source IDs processed)
+- [ ] Frame statistics analyzed for all cameras
+
+Pipeline Orchestration, reader-judged:
 - [ ] Interface decision made (MCP vs code, single vs multi-camera)
 - [ ] System IDs allocated (unique per DataLogger, 51-100 by plugin convention, or the rig's existing
       allocation confirmed with the user)
@@ -429,7 +433,5 @@ Pipeline Orchestration:
 - [ ] Encoding parameters selected for use case
 - [ ] Recording session completed (all cameras started and stopped in order)
 - [ ] Post-recording verification passed (video + archives)
-- [ ] Log processing completed (all source IDs processed)
-- [ ] Frame statistics analyzed for all cameras
 - [ ] Cross-camera comparison performed (if multi-camera)
 ```

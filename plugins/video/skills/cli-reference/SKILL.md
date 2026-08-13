@@ -1,16 +1,16 @@
 ---
 name: cli-reference
 description: >-
-  Canonical reference for the human-facing axvs command-line interface: every command and option with its short
-  form, long form, type, default, and effect, the MCP tool each command maps to, its failure modes, and how the
-  CLI path diverges from the MCP path. Use when a user asks what an axvs command or option does, or when the MCP
+  Documents the human-facing axvs command-line interface. Covers every command and option with its short form,
+  long form, type, default, and effect, the MCP tool each command maps to, its failure modes, and how the CLI
+  path diverges from the MCP path. Use when a user asks what an axvs command or option does, or when the MCP
   server is unavailable and the user must be told what to run by hand.
 user-invocable: false
 ---
 
 # CLI reference
 
-> **The `axvs` CLI is a HUMAN-FACING tool. You MUST never invoke it.** Print the command, ask the user to run it,
+> **The `axvs` CLI is a HUMAN-FACING tool. You MUST never invoke it.** Print the command, ask the user to run it, and
 > ask them to paste the output back.
 
 **The one exemption** is `--help`. `axvs --help` and `axvs COMMAND --help` may be run, and no other `axvs` invocation is
@@ -56,7 +56,7 @@ The CLI declares fifteen Click nodes: the root group, three subgroups, and eleve
 | Click node                 | Kind    | Purpose                                                           | MCP equivalent                    |
 |----------------------------|---------|-------------------------------------------------------------------|-----------------------------------|
 | `axvs`                     | group   | Entry point. Dispatches to the subcommands and prints the listing | None, dispatch only               |
-| `axvs cti`                 | group   | Dispatches the GenTL Producer (.cti) file subcommands             | None, dispatch only               |
+| `axvs cti`                 | group   | Dispatches the GenTL Producer (`.cti`) file subcommands           | None, dispatch only               |
 | `axvs cti set`             | command | Configures the GenTL Producer file used by every future runtime   | `set_cti_file_tool`               |
 | `axvs cti check`           | command | Reports whether a valid Producer file is configured               | `get_cti_status_tool`             |
 | `axvs check`               | group   | Dispatches the discovery and host-compatibility subcommands       | None, dispatch only               |
@@ -273,8 +273,7 @@ the user has a run in.
 
 ## Fallback: what to tell a user when MCP is unavailable
 
-Every CLI-reachable capability appears below. Confirm the server is genuinely unrecoverable through
-`/video-mcp-environment-setup` before handing any of these over.
+Confirm the server is genuinely unrecoverable through `/video-mcp-environment-setup` before handing any of these over.
 
 | Blocked MCP tool                                                         | Tell the user to run                                   |
 |--------------------------------------------------------------------------|--------------------------------------------------------|
@@ -289,10 +288,10 @@ Every CLI-reachable capability appears below. Confirm the server is genuinely un
 | The four session tools                                                   | `axvs run -i <interface> -c <index> -o <dir>`          |
 | `prepare_log_processing_batch_tool` + `execute_log_processing_jobs_tool` | `axvs process -ld <logs> -od <out>`                    |
 
-Three caveats. `axvs run` is keypress-driven and records at fixed compatibility encoding, so it substitutes for a
-session test and never for a production recording. `axvs process` handles ONE log directory per invocation, so a batch
-spanning several becomes one invocation per directory, and it aborts at the first failing job. Neither `axvs` command
-reports its results back in a machine-readable form, so ask the user to paste the terminal output.
+Three caveats. `axvs run` records at fixed compatibility encoding, so it substitutes for a session test and never for
+a production recording. `axvs process` carries the single-directory and abort-on-first-failure limits its own section
+above states. Neither `axvs` command reports its results back in a machine-readable form, so ask the user to paste the
+terminal output.
 
 Everything else genuinely blocks until the server is back: camera manifest read and write, archive assembly, video file
 validation, camera data discovery, every batch status, timing, cancel, reset, and cleanup tool, and frame statistics
@@ -318,13 +317,15 @@ analysis. Say so plainly rather than improvising a substitute.
 ## Verification checklist
 
 ```text
-Answering a CLI question:
+Answering a CLI question, tool-settled (run `axvs COMMAND --help`, the sole sanctioned invocation):
 - [ ] Answered from this skill or from `axvs COMMAND --help`, never from memory
 - [ ] Quoted the long option form, and never presented `-h` as a help alias
+
+Answering a CLI question, reader-judged:
 - [ ] Named the MCP equivalent alongside any command the agent could have run itself
 - [ ] Invoked no `axvs` command other than `--help`
 
-Handing a user a CLI command:
+Handing a user a CLI command, reader-judged:
 - [ ] Confirmed MCP is genuinely unavailable via `/video-mcp-environment-setup` first
 - [ ] Printed the command for the user instead of running it
 - [ ] Named `-i opencv` or `-i harvesters` explicitly on any `axvs run` command, since the default is `mock`

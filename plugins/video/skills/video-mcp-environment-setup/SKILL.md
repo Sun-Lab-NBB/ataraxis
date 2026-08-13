@@ -72,8 +72,6 @@ ataraxis-video-system is installed must be active before launching the assistant
 
 ### Dual-distribution model
 
-The ataraxis video plugin's Claude integration is split across two distribution channels:
-
 | Component                          | Distributed via                   | What it provides                                                                          |
 |------------------------------------|-----------------------------------|-------------------------------------------------------------------------------------------|
 | Skills (`/camera-interface`, etc.) | ataraxis video plugin             | Skill files that guide agents through workflows                                           |
@@ -174,11 +172,11 @@ or activate an environment with a compatible version.
 axvs --help
 ```
 
-**This skill owns the one exemption to the ban on invoking `axvs`.** `axvs --help` and `axvs COMMAND --help` may be run:
-they are read-only, start no server, touch no hardware, and report the installed build rather than a documented snapshot
+**This skill owns the one exemption to the ban on invoking `axvs`.** `axvs --help` and `axvs COMMAND --help` may be run.
+They are read-only, start no server, touch no hardware, and report the installed build rather than a documented snapshot
 of it. Use them to smoke-test the install and to settle any question about a command's real options. No other `axvs`
-invocation is exempt. Always use the long form, since the CLI leaves Click's `help_option_names` at its `["--help"]`
-default, so `-h` is never a help alias, and on `axvs run` it is bound to `--height`.
+invocation is exempt. Always use the long form, because `-h` is never a help alias. `/cli-reference` owns the option
+surface and records the reason.
 
 If the command fails with an import error, a dependency is missing or broken. Run:
 
@@ -235,9 +233,9 @@ changes. The ataraxis video plugin will automatically configure the server on th
 
 The GenICam camera runtime ships as the `harvesters` and `genicam` distributions, which ataraxis-video-system declares
 with a `sys_platform != 'darwin'` marker. They install automatically on Linux and Windows, and never on macOS, because
-the `genicam` distribution publishes no macOS wheel for some of the Python versions the library supports, so the marker
-excludes the runtime there rather than offering it on a subset of them. The library guards the import, so an absent
-runtime produces no import error.
+the `genicam` distribution publishes no macOS wheel for some of the Python versions the library supports. The marker
+excludes the runtime on macOS rather than offering it on a subset of those versions, and the library guards the import,
+so an absent runtime produces no import error.
 
 Branch on the host platform whenever `check_runtime_requirements_tool` reports `CTI: Unsupported` or
 `get_cti_status_tool` reports `CTI: Unavailable.`:
@@ -295,11 +293,13 @@ You should proactively invoke this skill when:
 ## Verification checklist
 
 ```text
-MCP Environment Setup:
-- [ ] Checked MCP server connection status (ataraxis-video-system)
+MCP Environment Setup, tool-settled (run `which axvs`, `python --version`, `axvs --help`, and `pip check`):
 - [ ] Verified 'axvs' command is on PATH (which axvs)
 - [ ] Confirmed Python version matches >=3.12,<3.15
 - [ ] Identified environment type (conda, venv, system)
+
+MCP Environment Setup, reader-judged:
+- [ ] Checked MCP server connection status (ataraxis-video-system)
 - [ ] Provided environment-specific resolution steps
 - [ ] Smoke-tested a hand launch with 'axvs mcp -t streamable-http' if steps 2-5 all passed
 - [ ] Invoked no 'axvs' command other than '--help'

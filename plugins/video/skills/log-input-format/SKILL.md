@@ -92,7 +92,7 @@ sources:
 
 - **Automatic:** `VideoSystem.__init__()` writes a manifest entry to the DataLogger output directory using
   the `name` parameter. Each VideoSystem sharing a DataLogger registers into the same manifest file. The write
-  is idempotent per source ID: an entry already registered under that ID is replaced rather than duplicated,
+  is idempotent per source ID, because an entry already registered under that ID is replaced rather than duplicated,
   and the read-replace-write sequence is held under a file lock so concurrent registrations are safe.
 - **MCP sessions:** `start_video_session_tool` creates a VideoSystem with `name="live_camera"`, which writes
   a manifest automatically.
@@ -109,9 +109,9 @@ manifest when none are requested, and any requested source ID the manifest does 
 associate source IDs with human-readable names and enable the discovery tool to locate corresponding video files by
 camera name.
 
-**One manifest per tree:** exactly one `camera_manifest.yaml` may sit under the directory being processed. A tree
-holding several spans several recordings or several DataLogger instances and raises `ValueError` rather than resolving
-against the first match. Pass each DataLogger output directory individually.
+**One manifest per tree:** exactly one `camera_manifest.yaml` may sit under the tree being processed. A tree holding
+several spans several recordings or several DataLogger instances and raises `ValueError` rather than resolving against
+the first match. Pass each DataLogger output directory individually.
 
 ---
 
@@ -133,15 +133,10 @@ VideoSystem(system_id=51, data_logger=logger)
 
 ### Uniqueness constraints
 
-Source IDs have **two different uniqueness scopes**:
-
-| Scope                       | Constraint                                                              |
-|-----------------------------|-------------------------------------------------------------------------|
-| Within a single DataLogger  | Source IDs MUST be unique. Multiple VideoSystems sharing one DataLogger |
-|                             | must have different system_ids.                                         |
-| Across DataLogger instances | Source IDs MAY repeat. Two loggers in the same recording can each have  |
-|                             | a source with the same ID without conflict, because each logger writes  |
-|                             | to its own output directory.                                            |
+| Scope                       | Constraint                                                                                        |
+|-----------------------------|---------------------------------------------------------------------------------------------------|
+| Within a single DataLogger  | Source IDs MUST be unique. VideoSystems sharing one DataLogger need different `system_id` values. |
+| Across DataLogger instances | Source IDs MAY repeat, because each DataLogger writes to its own output directory.                |
 
 ### Common source ID assignments
 
@@ -175,7 +170,7 @@ VideoSystem instances sharing this logger write to the same directory, distingui
 
 ### Multi-logger recording
 
-A recording session can use multiple DataLogger instances. Each creates its own output directory:
+Each DataLogger instance creates its own output directory:
 
 ```text
 recording_root/
@@ -191,8 +186,8 @@ recording_root/
 ### Directories shared with a sibling library
 
 A DataLogger is an ataraxis-data-structures object, so a directory may hold archives from several libraries at once. A
-camera archive and a microcontroller archive are indistinguishable by filename, since both follow `{source_id}_log.npz`
-. What separates them is the manifest:
+camera archive and a microcontroller archive are indistinguishable by filename, since both follow `{source_id}_log.npz`.
+What separates them is the manifest:
 
 ```text
 session_data_log/
@@ -207,8 +202,7 @@ Discovery here reads `camera_manifest.yaml` alone and never resolves 101, so an 
 than mis-parsed. The payload layouts differ as well, and `/communication:log-input-format` documents the microcontroller
 side. `/pipeline` owns the shared-namespace rules that keep the source IDs from colliding.
 
-Each log directory is an **independent processing unit**. The discovery tool groups archives by their parent directory
-(the DataLogger output directory), and each directory is prepared and processed independently.
+The discovery tool groups archives by their parent directory, which is the DataLogger output directory.
 
 Source-ID-to-archive resolution requires exactly one matching `{source_id}_log.npz` under the recursively searched tree,
 raising `FileNotFoundError` when the archive is absent or resolves to more than one file. All resolved archives must
@@ -233,8 +227,7 @@ experiment_data/
         └── 52_log.npz
 ```
 
-Source IDs `51` and `52` appear in both sessions. This is valid because each log directory is processed independently.
-Source ID uniqueness is only required within a single log directory.
+Source IDs `51` and `52` repeat across the two sessions, which the "Uniqueness constraints" table above permits.
 
 ---
 
@@ -296,8 +289,8 @@ stage decides from a separate and higher threshold that `/log-processing` docume
 4. **Onset message present**: Each archive must contain exactly one onset message (`elapsed_us == 0`) with a valid UTC
    epoch payload. Archives missing the onset message cannot be processed.
 
-5. **Frame messages present**: Archives must contain at least one frame message (empty payload) to
-   produce output. Archives with only onset or data messages yield empty results.
+5. **Frame messages present**: Archives must contain at least one frame message (empty payload) to produce output.
+   Archives with only onset or data messages yield empty results.
 
 ---
 

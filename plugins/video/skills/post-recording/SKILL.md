@@ -48,9 +48,9 @@ session or `/camera-interface` for code. If MCP tools are unavailable, invoke `/
 |---------------------------|------------------------------------------------------------------------------------|
 | `stop_video_session_tool` | Stops the active session, returns video path and log directory, assembles archives |
 
-`/camera-setup` owns this tool's return structure. This skill reads three of its keys. `video_file` and `log_directory`
-feed the two verification steps below, and `archives_assembled` decides whether assembly already happened. When it is
-`true`, the raw `.npy` entries were consolidated into `.npz` archives and removed.
+`/camera-setup` owns this tool's return structure. `video_file` and `log_directory` feed the two verification steps
+below, and `archives_assembled` decides whether assembly already happened. When it is `true`, the raw `.npy` entries
+were consolidated into `.npz` archives and removed.
 
 A code-based session never calls this tool at all, so its archives always need the manual route.
 
@@ -129,7 +129,7 @@ in every DataLogger output directory, which `VideoSystem.__init__()` writes auto
 **Caution:** `video_file` is resolved by a name-then-ID substring heuristic with path-proximity tie-breaking, not an
 exact path. An absent `video_file` key means "not matched", not necessarily "not on disk", so confirm with
 `validate_video_file_tool` using the path returned by the stop tool. Beware false matches when a camera name or the
-zero-padded ID appears in an unrelated `.mp4` stem under the root. `timestamps_file` carries no such risk: it is
+zero-padded ID appears in an unrelated `.mp4` stem under the root. `timestamps_file` carries no such risk. It is
 resolved by exact filename (`camera_{source_id}_timestamps.feather`) inside each discovered `camera_timestamps/`
 directory, with proximity used only to choose between same-named outputs of different recordings.
 
@@ -165,7 +165,7 @@ You MUST follow these steps after every recording session.
    source's `log_archive` exists but does not compute an archive message count. The genuine frame-count
    vs. message-count cross-check (video `frame_count` from `validate_video_file_tool` against the archive
    message count) can only be performed after `/log-processing`, where the message count becomes available.
-   They should be approximately equal (within 1-2 frames due to pipeline buffering), and large discrepancies
+   The two counts should be approximately equal (within 1-2 frames due to pipeline buffering), and large discrepancies
    indicate data loss.
 
 5. **Assess readiness**: Run through the Verification checklist below. When all conditions are met, invoke
@@ -188,10 +188,10 @@ beneath it guards against this. The destructive call therefore succeeds silently
 Check for both extensions before calling. If both are present, have the user back up the existing archives and remove
 them from the log directory before retrying.
 
-Assembly is directory-wide, not camera-wide. It groups by source ID alone and consolidates every source in the directory
-whatever library produced it, so **one** call covers a DataLogger shared with a sibling library. On a mixed recording,
-confirm nobody has already assembled on the microcontroller side before calling it here. See `/pipeline` for the
-shared-directory rules and `/communication:log-input-format` for the archives on the other side.
+Assembly is directory-wide, not camera-wide. It groups by source ID alone and consolidates every source in the
+directory, whatever library produced it, so **one** call covers a DataLogger shared with a sibling library. On a mixed
+recording, confirm nobody has already assembled on the microcontroller side before calling it here. See `/pipeline` for
+the shared-directory rules and `/communication:log-input-format` for the archives on the other side.
 
 After calling the tool, verify the result with another `include_items=True`, `detailed=True` discovery call to confirm
 all expected source IDs have corresponding `.npz` archives. For legacy sessions without manifests, use
@@ -215,16 +215,12 @@ all expected source IDs have corresponding `.npz` archives. For legacy sessions 
 
 - Video `frame_count` should approximate the number of frame messages in the log archive. The onset is a separate
   message type that no frame message count includes, so no adjustment is applied to either figure.
-- Video `duration_seconds` should match `(last_timestamp - first_timestamp) / 1e6` from processed timestamps, since
-  the extracted `frame_time_us` column stores microseconds since the UTC epoch.
-- Processed output (feather files and tracker) is written to a `camera_timestamps/` subdirectory under the processing
-  output directory, not directly into the log directory.
+- Video `duration_seconds` should match `(last_timestamp - first_timestamp) / 1e6` from processed timestamps. See
+  `/log-processing-results` for the extracted column semantics and the processing output layout.
 
 ---
 
 ## Handoff to log processing
-
-All the conditions in the Verification checklist below must be true before invoking `/log-processing`.
 
 Video files are named `{system_id:03d}.mp4` (zero-padded to 3 digits, e.g. `001.mp4`, `042.mp4`), whereas log archives
 use the bare integer `{source_id}_log.npz` (`1_log.npz`, `42_log.npz`). The same source ID drives both, and only the
@@ -234,7 +230,7 @@ video name is padded.
 
 ## Troubleshooting
 
-| Symptom                                         | Likely Cause                             | Resolution                                         |
+| Symptom                                         | Likely cause                             | Resolution                                         |
 |-------------------------------------------------|------------------------------------------|----------------------------------------------------|
 | "No video stream found in file." on a tiny file | Saving was never started                 | Verify `start_frame_saving_tool` was called        |
 | No video file in video output directory         | Session ran with `output_directory=None` | Re-record with a video output directory configured |
@@ -256,16 +252,17 @@ error surfaced by the stop tool. It means the encoder could not keep up at shutd
 
 ## Related skills
 
-| Skill                          | Relationship                                                |
-|--------------------------------|-------------------------------------------------------------|
-| `/camera-setup`                | Upstream: MCP session management, and owns the stop tool    |
-| `/camera-interface`            | Upstream: VideoSystem code that produces recordings         |
-| `/cli-reference`               | Upstream: the `axvs run` session this skill recovers        |
-| `/log-input-format`            | Reference: archive format and source ID semantics           |
-| `/log-processing`              | Downstream: processes archives, and owns the discovery tool |
-| `/log-processing-results`      | Downstream: analyzes processed frame statistics             |
-| `/pipeline`                    | Context: end-to-end orchestration including this phase      |
-| `/video-mcp-environment-setup` | Prerequisite: MCP server connectivity for tool access       |
+| Skill                             | Relationship                                                |
+|-----------------------------------|-------------------------------------------------------------|
+| `/camera-setup`                   | Upstream: MCP session management, and owns the stop tool    |
+| `/camera-interface`               | Upstream: VideoSystem code that produces recordings         |
+| `/cli-reference`                  | Upstream: the `axvs run` session this skill recovers        |
+| `/log-input-format`               | Reference: archive format and source ID semantics           |
+| `/communication:log-input-format` | Reference: the sibling archives sharing the same directory  |
+| `/log-processing`                 | Downstream: processes archives, and owns the discovery tool |
+| `/log-processing-results`         | Downstream: analyzes processed frame statistics             |
+| `/pipeline`                       | Context: end-to-end orchestration including this phase      |
+| `/video-mcp-environment-setup`    | Prerequisite: MCP server connectivity for tool access       |
 
 ---
 
@@ -275,9 +272,8 @@ error surfaced by the stop tool. It means the encoder could not keep up at shutd
 Post-Recording Verification, tool-settled (call `discover_camera_data_tool` on the recording root, with
 `include_items=True` and `detailed=True`):
 - [ ] Log archives assembled (.npz files present in DataLogger output directory)
-- [ ] All expected source IDs have corresponding archives
-- [ ] Archive presence confirmed for all source IDs (frame-count vs message-count cross-check deferred
-      to /log-processing)
+- [ ] All expected source IDs have corresponding archives (frame-count vs message-count cross-check deferred to
+      /log-processing)
 
 Post-Recording Verification, reader-judged:
 - [ ] Video session stopped via stop_video_session_tool

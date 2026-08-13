@@ -253,7 +253,7 @@ class CameraInformation:
     interface: CameraInterfaces | str  # OPENCV or HARVESTERS
     frame_width: int                   # Native frame width in pixels
     frame_height: int                  # Native frame height in pixels
-    acquisition_frame_rate: int        # Native frame rate in FPS; 0 for Harvesters cameras lacking AcquisitionFrameRate
+    acquisition_frame_rate: int        # Native frame rate in FPS, 0 for Harvesters cameras lacking AcquisitionFrameRate
     serial_number: str | None = None   # Harvesters only
     model: str | None = None           # Harvesters only
 ```
@@ -333,8 +333,8 @@ def apply_configuration(self, config: GenicamConfiguration, *, strict_identity: 
 connected `HarvestersCamera` is normally obtained at configuration time via the `/camera-setup` tools (which wrap these
 calls). These methods exist for advanced in-process use.
 
-The `VideoSystem` constructor accepts **no** GenICam config object: resolution and frame rate are applied from its
-`frame_width` /`frame_height`/`frame_rate` arguments at `connect()`, while exposure, gain, and other nodes are
+The `VideoSystem` constructor accepts **no** GenICam config object. Resolution and frame rate are applied from its
+`frame_width`/`frame_height`/`frame_rate` arguments at `connect()`, while exposure, gain, and other nodes are
 configured through the methods above. Because the deterministic acquisition script does not reconfigure nodes at
 runtime, apply GenICam state at configuration time and either persist it on the camera (save a UserSet) or re-apply a
 saved `GenicamConfiguration` before starting acquisition.
@@ -557,10 +557,10 @@ if __name__ == "__main__":
     )
 
     camera.start()
-    # Preview mode - frames displayed but not saved
+    # Preview mode, frames displayed but not saved
 
     camera.start_frame_saving()
-    # Recording mode - frames saved to MP4
+    # Recording mode, frames saved to MP4
 
     # ... acquisition runs ...
 

@@ -51,9 +51,9 @@ against one another, invoke `/pipeline`. If MCP tools are unavailable, invoke `/
 | `discover_camera_data_tool` | Discovers manifests, log archives, video files, and feather files under a root dir |
 
 `/log-processing` owns this tool's parameters and full return structure. This skill covers only the one field the output
-side reads: each source entry's `timestamps_file`, which carries the path to that camera's feather file. The field is
-reported only when `detailed=True` accompanies a listing request, and a source that has not been processed carries no
-`timestamps_file` key at all. See the processing completeness section below for its interpretation.
+side reads, each source entry's `timestamps_file`, which carries the path to that camera's feather file. A source that
+has not been processed carries no `timestamps_file` key at all. See the processing completeness section below for its
+interpretation.
 
 ### Analysis tool
 
@@ -211,7 +211,7 @@ large gap as loss.
 `duration_seconds`, and `estimated_fps` are `0`, and the timing and drop sections are again empty `{}`. Whenever
 `duration_us` is zero, including a degenerate capture whose timestamps are identical, `estimated_fps` is `0.0`, which is
 a "cannot compute" sentinel rather than a measured 0 fps. Check `total_frames >= 2` before indexing into
-`inter_frame_timing` or `frame_drop_analysis` to avoid `KeyError` s.
+`inter_frame_timing` or `frame_drop_analysis` to avoid a `KeyError`.
 
 ---
 
@@ -219,16 +219,16 @@ a "cannot compute" sentinel rather than a measured 0 fps. Check `total_frames >=
 
 ### What "good" frame timing looks like
 
-- **`estimated_fps`** should be close to the configured camera frame rate. A significant shortfall
-  (e.g., configured 30fps but estimated 25fps) indicates the camera or encoder cannot keep up.
+- **`estimated_fps`** should be close to the configured camera frame rate. A significant shortfall (e.g., configured
+  30fps but estimated 25fps) indicates the camera or encoder cannot keep up.
 - **`std_us`** should be small relative to `mean_us`. A coefficient of variation (std/mean) under 5%
   indicates stable timing.
-- **`min_us`** and **`max_us`** should bracket `mean_us` tightly. A `max_us` many times larger than
-  `mean_us` signals occasional long gaps even if `std_us` appears acceptable.
+- **`min_us`** and **`max_us`** bracket `mean_us` when timing is stable. A `max_us` above three times `mean_us`
+  signals occasional long gaps even if `std_us` appears acceptable.
 
 ### Frame drop severity
 
-| Drop Rate | Severity | Typical Impact                                        |
+| Drop rate | Severity | Typical impact                                        |
 |-----------|----------|-------------------------------------------------------|
 | 0%        | None     | Perfect acquisition                                   |
 | < 0.1%    | Minimal  | Negligible impact on most analyses                    |
@@ -238,7 +238,7 @@ a "cannot compute" sentinel rather than a measured 0 fps. Check `total_frames >=
 
 ### Common frame drop patterns
 
-| Pattern                   | Characteristic                             | Likely Cause                              |
+| Pattern                   | Characteristic                             | Likely cause                              |
 |---------------------------|--------------------------------------------|-------------------------------------------|
 | Increasing gaps over time | Drops worsen as recording progresses       | Thermal throttling (camera or GPU)        |
 | Random isolated drops     | Sporadic single-frame gaps throughout      | Interface bandwidth contention (USB/GigE) |
@@ -248,25 +248,24 @@ a "cannot compute" sentinel rather than a measured 0 fps. Check `total_frames >=
 
 ### Relating results to camera settings
 
-Encoding cost depends on frame content: high-motion or high-detail frames are expensive to encode, while static or
+Encoding cost depends on frame content. High-motion or high-detail frames are expensive to encode, while static or
 low-contrast frames are cheap. Drops that correlate with scene changes (e.g., animal entering the field of view)
 indicate the encoder cannot handle peak complexity at the current preset.
 
-- If `estimated_fps` << configured frame rate: the camera or encoder cannot sustain the configured rate.
-  Reduce resolution, frame rate, or switch from CPU to GPU encoding.
-- If `std_us` is high but `estimated_fps` is close to target: jitter is present but throughput is
-  maintained. Check cable quality, hub topology (USB), or network configuration (GigE).
-- If drops appear only in GPU-encoded sessions: the NVENC encoder may be saturated. Reduce quantization
-  quality or use a faster speed preset.
-- If drops correlate with high-motion periods: use a faster `encoder_speed_preset` to handle peak
-  encoding load, or increase `quantization_parameter` to reduce per-frame encoding cost.
+- If `estimated_fps` << configured frame rate, the camera or encoder cannot sustain the configured rate. Reduce
+  resolution, frame rate, or switch from CPU to GPU encoding.
+- If `std_us` is high but `estimated_fps` is close to target, jitter is present but throughput is maintained. Check
+  cable quality, hub topology (USB), or network configuration (GigE).
+- If drops appear only in GPU-encoded sessions, the NVENC encoder may be saturated. Reduce quantization quality or use
+  a faster speed preset.
+- If drops correlate with high-motion periods, use a faster `encoder_speed_preset` to handle peak encoding load, or
+  increase `quantization_parameter` to reduce per-frame encoding cost.
 
 ---
 
 ## Processing completeness
 
-Read each source entry's `timestamps_file` from a discovery response taken with `include_items=True` and
-`detailed=True`:
+Read each source entry's `timestamps_file` from the discovery response:
 
 | `timestamps_file` state | Meaning                                                      |
 |-------------------------|--------------------------------------------------------------|
