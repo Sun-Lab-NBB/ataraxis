@@ -94,8 +94,8 @@ not, or the pip package sits in a different Python environment than the one acti
 ### MQTT broker prerequisite
 
 An MQTT broker is an external service the user installs separately. It is NOT a pip dependency, and no installation
-method pulls it in. The library is validated against a locally running
-[mosquitto](https://mosquitto.org/) broker, version **2.1.2**.
+method pulls it in. The library is validated against a locally running [mosquitto](https://mosquitto.org/) broker,
+version **2.1.2**.
 
 The broker is required only for sending and receiving data over MQTT. The MCP server starts without one, and every
 non-MQTT tool works without one. `check_mqtt_broker_tool` defaults to `127.0.0.1:1883`.
@@ -129,7 +129,7 @@ stop. Development and contribution workflows are outside this skill's scope.
 ### Step 1: Check MCP server status
 
 Use the `/mcp` slash command or inspect available tools to determine whether the ataraxis-communication-interface MCP
-server is connected. If connected, the issue is not environmental, investigate tool-specific errors instead.
+server is connected. If connected, the issue is not environmental, so investigate tool-specific errors instead.
 
 ### Step 2: Verify command availability
 
@@ -154,8 +154,7 @@ Based on the output, guide the user through the appropriate resolution:
 
 **Conda environment (CONDA_PREFIX is set but ataraxis-communication-interface is missing):**
 
-The user has an active conda environment but ataraxis-communication-interface is not installed in it. Instruct the user
-to install ataraxis-communication-interface into the active environment:
+Instruct the user to install ataraxis-communication-interface into the active environment:
 
 ```bash
 pip install ataraxis-communication-interface
@@ -177,8 +176,8 @@ mamba activate <environment-name>
 claude
 ```
 
-You MUST explain that the Claude assistant inherits the shell environment at launch time. Activating a conda environment
-after the assistant has started does not make the `axci` command available to MCP server subprocesses.
+You MUST explain that activating a conda environment after the assistant has started leaves the `axci` command
+unavailable to MCP server subprocesses.
 
 **Virtual environment (VIRTUAL_ENV is set but ataraxis-communication-interface is missing):**
 
@@ -198,9 +197,8 @@ an accessible location.
 python --version
 ```
 
-ataraxis-communication-interface requires Python `>=3.12,<3.15`. If the Python version does not match, inform the user
-that their environment has an incompatible Python version, and they need to create or activate an environment with a
-compatible version.
+ataraxis-communication-interface requires Python `>=3.12,<3.15`. If the version does not match, tell the user to create
+or activate an environment carrying a compatible version.
 
 ### Step 5: Verify package integrity
 
@@ -208,7 +206,7 @@ compatible version.
 axci --help
 ```
 
-**Note:** the sibling skills forbid agents from invoking `axci`. `--help` is the ONE exemption to that rule. It is
+**Note:** `/cli-reference` forbids agents from invoking `axci`. `--help` is the ONE exemption to that rule. It is
 read-only, it starts no server and touches no hardware, and it reports the installed build rather than a documented
 snapshot of it, so it never drifts. Use it to smoke-test the install and to settle any question about a command's real
 options. The exemption covers `axci --help` and `axci COMMAND --help` only, and no other `axci` invocation. Always use
@@ -222,8 +220,8 @@ pip check 2>&1 | head -20
 ```
 
 `pip check` accepts no package argument and reports the whole environment, so ignore lines about unrelated packages.
-Report any missing or incompatible dependency involving ataraxis-communication-interface or one of its dependencies to
-the user.
+Report to the user any missing or incompatible dependency involving ataraxis-communication-interface or the packages
+it requires.
 
 ### Step 6: Hand-launch the server as a smoke test
 
@@ -234,9 +232,7 @@ tools are still unavailable, have the user launch the server by hand:
 axci mcp -t streamable-http
 ```
 
-Use `streamable-http`, NOT the `stdio` default. Under `stdio` the server calls `console.disable()` and prints absolutely
-nothing, so a healthy server is indistinguishable from a hung one. Under `streamable-http` a healthy server echoes
-`Starting AXCI MCP server with streamable-http transport...` and then blocks, serving HTTP until interrupted.
+Use `streamable-http`, NOT the `stdio` default, because a silent `stdio` server is indistinguishable from a hung one.
 
 | Observed                              | Meaning                                                                   |
 |---------------------------------------|---------------------------------------------------------------------------|
@@ -270,17 +266,17 @@ command to hand the user for each one, and the tools that stay blocked until the
 
 ## Common issues and resolutions
 
-| Symptom                                 | Resolved by                                              |
-|-----------------------------------------|----------------------------------------------------------|
-| `axci: command not found`               | Steps 2 and 3                                            |
-| Skills available but MCP tools missing  | Step 3, under the dual-distribution model                |
-| Python version mismatch                 | Step 4                                                   |
-| Import error on `axci mcp`              | Step 5                                                   |
-| `axci mcp` prints nothing, appears hung | Step 6                                                   |
-| MCP server connected but tools fail     | Step 1                                                   |
-| MCP server starts but tools are missing | `pip install --upgrade ataraxis-communication-interface` |
-| MQTT broker reported unreachable        | The MQTT broker prerequisite section above               |
-| Stale code served from a source clone   | The checkout guard at the top of the workflow            |
+| Symptom                                  | Resolved by                                              |
+|------------------------------------------|----------------------------------------------------------|
+| `axci: command not found`                | Steps 2 and 3                                            |
+| Skills available but MCP tools missing   | Step 3, under the dual-distribution model                |
+| Python version mismatch                  | Step 4                                                   |
+| Import error on `axci mcp`               | Step 5                                                   |
+| `axci mcp` prints nothing, appears hung  | Step 6                                                   |
+| MCP server connected but tools fail      | Step 1                                                   |
+| MCP server starts but tools are missing  | `pip install --upgrade ataraxis-communication-interface` |
+| MQTT broker reported unreachable         | The MQTT broker prerequisite section above               |
+| Stale code served from a source checkout | The checkout guard at the top of the workflow            |
 
 ---
 

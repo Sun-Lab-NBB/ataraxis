@@ -30,8 +30,7 @@ explicitly whenever you intend to render one.
   filter matches before the page cap, so a `rows` below it means the page was capped.
 - Walk a long result by following `next_start_row` until it reads null. A page that fills its own limit exactly may
   still end the matches, so the null is the terminator rather than a short page.
-- `limit` defaults to 200, or to 50 under `detailed`. A value at or below zero lifts the cap and returns every match
-  from the requested start.
+- A `limit` at or below zero lifts the page cap and returns every match from the requested start.
 - The counts and the `breakdown` span every discovered item whatever the filters name, so narrowing what is listed
   never distorts what is reported.
 - A filter naming a value the scan did not find returns an error dictionary naming what is available, rather than an

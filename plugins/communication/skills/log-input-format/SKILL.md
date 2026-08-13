@@ -114,7 +114,7 @@ requested controller it does not register yields no job, and neither the manifes
 controller the config omits.
 
 **The failure model is not uniform:** what happens to a requested controller that clears neither gate depends on the
-entry point, the local library path fails the whole call, the MCP path records the controller and prepares the rest.
+entry point. The local library path fails the whole call, and the MCP path records the controller and prepares the rest.
 `/log-processing` is authoritative for that lenient-sourcing model, for the per-reason remedies, and for the
 `skipped_sources` key that reports them. Read it before diagnosing a batch that prepared fewer jobs than requested.
 
@@ -186,9 +186,9 @@ This means source IDs are unique **per log directory**, not globally across a re
 
 ### Common source ID assignments
 
-Runtime MicroControllerInterface instances are advised to use IDs in the range **101-150**. This convention is advised
-but not enforced. Any `np.uint8` value (1-255) is valid as long as source IDs are unique across **all** sources within
-each DataLogger instance, including sources from other libraries (e.g., ataraxis-video-system). The 101-150 range avoids
+Runtime MicroControllerInterface instances are advised to use IDs in the range **101-150**, a convention that nothing
+enforces. Any `np.uint8` value (1-255) is valid as long as source IDs are unique across **all** sources within each
+DataLogger instance, including sources from other libraries (e.g., ataraxis-video-system). The 101-150 range avoids
 collisions with other libraries' advised ranges.
 
 ---
@@ -359,8 +359,8 @@ a `uint16`. These messages carry no event code, so no extraction config can sele
 - **event**: The event code identifying the message type. The processing pipeline filters on the event code alone (the
   command is recorded but not used to select messages), and firmware guarantees event codes are unique within each
   module/kernel. See `/extraction-configuration`.
-- **prototype_code**: Identifies the numpy dtype and size of the data bytes (auto-resolved at compile time by the
-  firmware library. Data messages only)
+- **prototype_code**: Identifies the numpy dtype and size of the data bytes, auto-resolved at compile time by the
+  firmware library (data messages only)
 - **data**: The serialized data value (data messages only)
 
 ### Timestamp resolution
@@ -377,30 +377,26 @@ absolute_timestamp_us = onset_us + elapsed_us
 
 Before running the log processing pipeline, verify these conditions:
 
-1. **Microcontroller manifest present**: Log directories contain a `microcontroller_manifest.yaml` file.
-
-2. **Archives assembled**: Log directories contain `.npz` files, not just raw `.npy` files.
-
-3. **Archive naming valid**: Files match the `{source_id}_log.npz` pattern.
+1. **Archive naming valid**: Files match the `{source_id}_log.npz` pattern.
 
    - **One archive per source ID**: Exactly one `{source_id}_log.npz` may exist anywhere under the search root.
      `resolve_jobs()` indexes the archive names with `index_marker_files()`, and a source ID resolving to zero files or
-     to several is left unresolved, duplicates never resolve first-wins. The unresolved source then either fails the
+     to several is left unresolved. Duplicates never resolve first-wins. The unresolved source then either fails the
      call or is reported as a skip, on the entry-point split described under "Manifest gates, config selects" above and
      owned by `/log-processing`.
    - **Single parent directory per invocation**: All source IDs processed in one invocation must resolve to the same
      parent directory. If the resolved archives span more than one directory, job preparation raises a `ValueError`
      ("The resolved log archives sit in N different directories ... Each DataLogger output directory must be prepared
-     and processed on its own invocation"). Unlike the two gates above, this check is not subject to the
-     lenient-versus-strict split and raises on both entry points. Point the pipeline at each logger directory
+     and processed on its own invocation"). Unlike the manifest and archive gates above, this check is not subject to
+     the lenient-versus-strict split and raises on both entry points. Point the pipeline at each logger directory
      separately.
    - **One manifest per invocation**: A search root holding more than one `microcontroller_manifest.yaml` spans several
      recordings and raises a `ValueError` before any archive is indexed, on both entry points.
 
-4. **Onset message present**: Each archive contains exactly one onset message (elapsed_us=0) with a valid UTC epoch
+2. **Onset message present**: Each archive contains exactly one onset message (elapsed_us=0) with a valid UTC epoch
    payload.
 
-5. **Extraction config valid**: A validated `ExtractionConfig` YAML file must exist with event codes matching the
+3. **Extraction config valid**: A validated `ExtractionConfig` YAML file must exist with event codes matching the
    firmware's data/state message events. See `/extraction-configuration`.
 
 ---

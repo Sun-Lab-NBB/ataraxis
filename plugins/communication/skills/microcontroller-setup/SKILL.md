@@ -10,8 +10,7 @@ user-invocable: false
 # Microcontroller setup
 
 Guides the use of the ataraxis-communication-interface MCP tools for hardware discovery, MQTT verification, manifest
-management, and log archive assembly. This skill covers all MCP tool interactions, for writing code that integrates
-MicroControllerInterface into an acquisition system, use `/microcontroller-interface` instead.
+management, and log archive assembly.
 
 ---
 
@@ -34,9 +33,8 @@ MicroControllerInterface into an acquisition system, use `/microcontroller-inter
 
 ## MCP tool reference
 
-The ataraxis-communication-interface MCP server exposes 19 tools. This skill covers the 6 tools most relevant to
-hardware setup and data management. Log processing and analysis tools are documented in `/log-processing` and
-`/log-processing-results`. Configuration tools are documented in `/extraction-configuration`.
+The ataraxis-communication-interface MCP server exposes 19 tools, and the 6 below are the ones this skill covers.
+`/log-processing`, `/log-processing-results`, and `/extraction-configuration` document the remaining 13.
 
 ### Hardware discovery
 
@@ -135,11 +133,10 @@ on. `/log-input-format` carries the full source ID type rule.
 dictionary must have keys: `module_type` (int), `module_id` (int), `name` (str).
 
 Creates a new manifest if none exists. Otherwise replaces the entry already registered under the same `controller_id`,
-or appends a new entry when the manifest carries none.
+or appends a new entry when the manifest carries none, so a corrected call replaces a wrong entry in place.
 
-Re-registering the same `controller_id` overwrites that controller's entry rather than duplicating it, so a corrected
-call replaces a wrong entry in place. `discover_microcontroller_data_tool` also collapses repeated controller IDs, so a
-legacy manifest that still holds several rows for one ID reports a single source.
+`discover_microcontroller_data_tool` also collapses repeated controller IDs, so a legacy manifest that still holds
+several rows for one ID reports a single source.
 
 **`discover_microcontroller_data_tool` parameters:**
 
@@ -173,11 +170,11 @@ sources[]:              Present under a filter, under `include_items`, and on a 
 needs each source's own row. `/log-processing` owns the paging fields that accompany a listed page.
 
 **Important:** This tool requires `microcontroller_manifest.yaml` files in DataLogger output directories. These
-manifests are written automatically by `MicroControllerInterface.__init__()`. For legacy sessions without manifests, use
-`write_microcontroller_manifest_tool` to retroactively tag log directories before running discovery. It also returns
-only those sources whose log archive (`{source_id}_log.npz`) already exists in that directory, a manifest entry with no
-archive beside it is skipped, so assemble archives with `assemble_log_archives_tool` before running discovery on a
-legacy directory.
+manifests are written automatically by `MicroControllerInterface.__init__()`. For legacy recordings without manifests,
+use `write_microcontroller_manifest_tool` to retroactively tag log directories before running discovery. Discovery
+returns only those sources whose log archive (`{source_id}_log.npz`) already exists in that directory, so a manifest
+entry with no archive beside it is skipped. Assemble archives with `assemble_log_archives_tool` before running discovery
+on a legacy directory.
 
 ### Archive assembly
 
@@ -251,22 +248,21 @@ confirm a real change, list the .npy entries in the directory before calling the
 1. Call `read_microcontroller_manifest_tool` with the manifest path
 2. Review the controller and module entries
 
-**Retroactively tag a legacy session:**
+**Retroactively tag a legacy recording:**
 1. Call `write_microcontroller_manifest_tool` with the log directory, controller ID, controller name, and module list
-   (re-registering the same `controller_id` replaces that entry rather than duplicating it)
 2. Verify by calling `read_microcontroller_manifest_tool` on the created manifest
-3. Run `discover_microcontroller_data_tool` to confirm the session is now discoverable
+3. Run `discover_microcontroller_data_tool` to confirm the recording is now discoverable
 
 **Warning:** the manifest bounds the set of jobs a recording can hold, and `prepare_log_processing_batch_tool` DELETES
 every tracker entry that falls outside it. Editing or regenerating a manifest so it stops registering a controller, then
 re-preparing that directory, silently erases the completed-job history of the dropped controllers. Correct entries in
-place with `write_microcontroller_manifest_tool`, which replaces the entry under the same `controller_id`. Never
-hand-edit or rewrite a manifest to drop a controller whose jobs already ran.
+place with `write_microcontroller_manifest_tool`. Never hand-edit or rewrite a manifest to drop a controller whose jobs
+already ran.
 
 ### Post-session archive assembly
 
-Assembly is a step of its own that runs once per recording, not something a shutdown call performs. axci exposes no tool
-that starts or stops a runtime, and neither `MicroControllerInterface.stop()` nor `DataLogger.stop()` assembles
+Assembly is a step of its own that runs once per recording, not something a shutdown call performs. `axci` exposes no
+tool that starts or stops a runtime, and neither `MicroControllerInterface.stop()` nor `DataLogger.stop()` assembles
 anything. One log directory holds every source the recording wrote, so a system recording alongside a microcontroller
 writes into the same directory and is assembled by the same pass.
 
@@ -288,9 +284,9 @@ already, which is exactly the half-assembled state above. `/video:post-recording
 `/video:pipeline` owns the shared-directory rules.
 
 Nothing downstream errors when this transition is skipped. `discover_microcontroller_data_tool` returns no source for an
-unassembled directory, and a directory reached without discovery has each of its sources recorded under prepare's
-`skipped_sources` while the call still reports `success: True`. A skipped assembly reads as an empty recording, never as
-a failure.
+unassembled directory, and a directory reached without discovery has each of its sources recorded in the
+`skipped_sources` list of `prepare_log_processing_batch_tool` while the call still reports `success: True`. A skipped
+assembly reads as an empty recording, never as a failure.
 
 ---
 
@@ -303,7 +299,7 @@ a failure.
 
 ## Troubleshooting
 
-| Symptom                                                | Likely Cause                          | Resolution                                                                                   |
+| Symptom                                                | Likely cause                          | Resolution                                                                                   |
 |--------------------------------------------------------|---------------------------------------|----------------------------------------------------------------------------------------------|
 | `list_microcontrollers_tool` → "No valid serial ports" | No USB devices connected              | Check physical connections and USB cables                                                    |
 | Port shows "No microcontroller"                        | Firmware not loaded or wrong baudrate | Verify firmware, then retry at the board's own rate (see `/microcontroller:firmware-module`) |
@@ -311,7 +307,7 @@ a failure.
 | MQTT broker unreachable                                | Broker not running                    | Start the broker service                                                                     |
 | Assembly returns an `error` key                        | Missing path, or assembly raised      | Read the `error` message. See the assemble error table                                       |
 | Assembly returns "assembled" but no new .npz           | Directory held no .npy entries        | Confirm the DataLogger wrote here, then stopped and flushed                                  |
-| Discovery finds no sources                             | Missing manifest files                | Use `write_microcontroller_manifest_tool` to tag sessions                                    |
+| Discovery finds no sources                             | Missing manifest files                | Use `write_microcontroller_manifest_tool` to tag recordings                                  |
 | Discovery errors with "Unable to search"               | Root or a subdirectory is unreadable  | Fix directory permissions or remount. Not a manifest gap                                     |
 | MCP tools unavailable                                  | Server not running                    | Use `/communication-mcp-environment-setup` to diagnose                                       |
 
@@ -319,22 +315,19 @@ a failure.
 
 ## CLI reference (human-facing, do not invoke)
 
-> **CLI reference, for answering user questions only.** The `axci` command-line interface is a
-> **human-facing** tool. **Agents must never invoke `axci` commands**, every agent-driven operation has an
-> equivalent MCP tool (noted in the table). This section exists solely so the agent can answer user
-> questions about the CLI.
+> The `axci` command-line interface is a human-facing tool. **You MUST never invoke an `axci` command.** Every
+> agent-driven operation has an equivalent MCP tool, noted in the table below, so answer a user's CLI question from
+> this table and call the MCP tool to do the work.
 >
-> `/cli-reference` is the canonical reference for the whole `axci` command surface. The table below is the
-> discovery subset. Invoke `/cli-reference` for anything it does not answer.
+> `/cli-reference` is the canonical reference for the whole `axci` command surface. The table below is the discovery
+> subset. Invoke `/cli-reference` for anything it does not answer.
 
 | Command     | Key options                                                     | Purpose                                             | MCP equivalent               |
 |-------------|-----------------------------------------------------------------|-----------------------------------------------------|------------------------------|
 | `axci id`   | `-b`/`--baudrate` (default 115200)                              | Discovers connected Arduino/Teensy microcontrollers | `list_microcontrollers_tool` |
 | `axci mqtt` | `-h`/`--host` (default 127.0.0.1), `-p`/`--port` (default 1883) | Checks whether an MQTT broker is reachable          | `check_mqtt_broker_tool`     |
 
-**Note:** `axci mqtt` binds `-h` to `--host`, and the CLI registers no `-h` help alias on any command, so `-h` consumes
-the next token as a host instead of printing help. `--help` is the only help form. Tell a user who wants the option list
-to run `axci mqtt --help`.
+**Note:** `/cli-reference` owns the `-h` binding on `axci mqtt` and the help form each command accepts.
 
 ---
 
@@ -352,6 +345,7 @@ to run `axci mqtt --help`.
 | `/pipeline`                            | Context: end-to-end orchestration and multi-controller planning                 |
 | `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for all tool interactions                 |
 | `/video:post-recording`                | Peer: the camera side of assembly over a shared log directory                   |
+| `/video:pipeline`                      | Reference: the shared-directory rules for a DataLogger written by two systems   |
 
 ---
 

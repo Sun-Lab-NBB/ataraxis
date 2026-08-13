@@ -51,9 +51,9 @@ Phase 6  Results analysis    →  /log-processing-results
 - **Handoff condition:** The board answers the identification query with its controller ID
 - **Skip condition:** The board was flashed earlier and a previous discovery run already reported its ID
 - **Note:** Firmware is a hard prerequisite for phase 2, not an optional preliminary. `list_microcontrollers_tool`
-  prints `[No microcontroller]` for a port it opened successfully but that returned no identification response, which is
-  what an unflashed board, a board running non-ataraxis firmware, and a UART board queried at the wrong baudrate all
-  look like. Treat that string as "check phase 0 and the baudrate", never as "no device attached".
+  prints `[No microcontroller]` for a port that it opened successfully but that returned no identification response.
+  That is what an unflashed board, a board running non-ataraxis firmware, and a UART board queried at the wrong
+  baudrate all look like. Treat that string as "check phase 0 and the baudrate", never as "no device attached".
 
 ### Phase 1: Environment setup
 
@@ -68,8 +68,8 @@ Phase 6  Results analysis    →  /log-processing-results
 - **Actions:** `list_microcontrollers_tool`, `check_mqtt_broker_tool`, inspect existing manifests
 - **Handoff condition:** Microcontrollers identified, MQTT verified (if needed), device paths recorded
 - **Decision point:** Single controller vs multi-controller (see multi-controller planning below)
-- **Blocked by:** Phase 0. A port reported as `[No microcontroller]` has no firmware answer to work with, so return to
-  `/microcontroller:firmware-module` rather than continuing into phase 3.
+- **Blocked by:** Phase 0. Return to `/microcontroller:firmware-module` for any port the discovery run reports as
+  `[No microcontroller]`.
 
 ### Phase 3: Extraction configuration
 
@@ -105,8 +105,8 @@ Phase 6  Results analysis    →  /log-processing-results
 
 - **Skill:** `/log-processing-results`
 - **Actions:** Verify output, analyze event distributions, interpret timing statistics
-- **Caveat:** Per-message loss is not measurable post-hoc (the wire format has no sequence field). Never report
-  inter-event gaps as lost messages. See `/log-processing-results`.
+- **Caveat:** `/log-processing-results`, "Message loss is not measurable post-hoc", owns the rule governing how an
+  inter-event gap may be reported.
 
 ---
 
@@ -125,8 +125,8 @@ Is the microcontroller connected via USB?
 `keepalive_interval` is a `MicroControllerInterface` constructor argument in milliseconds, and `0` disables the
 mechanism, leaving no watchdog reset when the link drops. Pick the value during phase 4 planning, because the workable
 band depends on the board and link speed fixed in phases 0 and 2, not on anything this phase controls. Read the
-starting bands from `/microcontroller:firmware-module`, "Kernel constructor" in `references/api-reference.md`. They
-follow the link speed and CPU frequency rather than the board name, so do not plan against a restatement of them here.
+starting bands from `/microcontroller:firmware-module`, "Kernel constructor". They follow the link speed and CPU
+frequency rather than the board name, so do not plan against a restatement of them here.
 
 Both ends must be configured. The PC sends the keepalive command at this interval, and the firmware runs its own
 watchdog off the interval its Kernel was built with. Setting the PC interval while the firmware has keepalive disabled
@@ -150,14 +150,14 @@ timeout status event.
 | Process log archives                    | MCP via `/log-processing`                   |
 | Analyze processing results              | MCP via `/log-processing-results`           |
 
-The firmware and recording rows are code-only for structural reasons, not by preference. Firmware is C++ built and
+The firmware and recording rows are code-only for structural reasons, not by preference. Firmware is C++, built and
 flashed outside `axci` entirely, so no MCP tool can reach it. `axci` provides no MCP tool for running a recording
 session, so all data acquisition requires Python code that creates MicroControllerInterface and ModuleInterface
 instances.
 
-There is no third path. Orchestration happens through the MCP tools or through the `axci` CLI a user runs by hand, and
-the library's orchestration Python symbols are not an agent-facing surface even though they are exported. See
-`/cli-reference` for the command-line side.
+Orchestration happens through the MCP tools or through the `axci` CLI a user runs by hand, and the library's
+orchestration Python symbols are not an agent-facing surface even though they are exported. See `/cli-reference` for the
+command-line side.
 
 ---
 
@@ -181,8 +181,8 @@ ataraxis-video-system). The 101-150 range avoids collisions with other libraries
 
 When cameras record into the same DataLogger, invoke `/video:pipeline` for the camera side. It advises the 51-100 band
 for VideoSystem instances, and it owns the rules for a directory holding both libraries' manifests and archives. One
-value overlaps: the axvs interactive CLI is fixed at 111, which falls inside this band, so keep 111 free on any logger
-a user may run `axvs run` against.
+value overlaps: the axvs interactive CLI is fixed at 111, which falls inside the 101-150 range above, so keep 111 free
+on any logger a user may run `axvs run` against.
 
 ### DataLogger topology
 
@@ -198,7 +198,7 @@ All controllers share one log directory, all timestamps are correlated, one `ass
 everything, and one processing batch covers all source IDs. Each MicroControllerInterface writes an entry to
 `microcontroller_manifest.yaml` during initialization.
 
-Multiple DataLoggers should only be used if a single logger cannot handle the message throughput.
+Use multiple DataLoggers only when a single logger cannot handle the message throughput.
 
 ### Coordinated lifecycle
 
@@ -217,9 +217,9 @@ Shutdown (reverse order):
 - MicroControllerInterface must be stopped BEFORE its DataLogger
 - Assembly must run AFTER `DataLogger.stop()`
 
-This section fixes the ordering a multi-controller plan must honor. `/microcontroller-interface` owns the code that
-implements it, and `/microcontroller-setup` owns running the assembly and the discovery that follows it, including the
-case where assembly must be run separately against an already-stopped directory.
+`/microcontroller-interface` owns the code that implements this ordering, and `/microcontroller-setup` owns running the
+assembly and the discovery that follows it, including the case where assembly must be run separately against an
+already-stopped directory.
 
 ---
 
@@ -318,17 +318,20 @@ and 2 together instead of editing one side alone.
 ## Verification checklist
 
 ```text
-Pipeline Orchestration:
+Pipeline Orchestration, tool-settled (run `list_microcontrollers_tool`, `validate_extraction_config_tool`,
+`discover_microcontroller_data_tool`, `get_batch_status_overview_tool`, `query_extracted_events_tool`):
 - [ ] Firmware flashed and each board reports its controller ID (no [No microcontroller] ports in scope)
 - [ ] Environment verified (MCP server connected)
 - [ ] Microcontroller(s) discovered and device paths recorded
+- [ ] Extraction configuration created and validated
+- [ ] Post-runtime completed (archives assembled, one archive per expected source)
+- [ ] Log processing completed (all source IDs processed, skipped_sources read and explained)
+- [ ] Event analysis performed for all controllers
+
+Pipeline Orchestration, reader-judged:
 - [ ] Controller IDs allocated (unique per controller, 101-150 advised range)
 - [ ] DataLogger topology decided (single vs multiple)
 - [ ] Keepalive interval chosen for the board and link, or deliberately left at 0
-- [ ] Extraction configuration created and validated
 - [ ] Recording session completed (all controllers started and stopped in order)
-- [ ] Post-runtime completed (archives assembled, one archive per expected source)
 - [ ] Batch scoped per DataLogger output directory, never at their shared parent
-- [ ] Log processing completed (all source IDs processed, skipped_sources read and explained)
-- [ ] Event analysis performed for all controllers
 ```

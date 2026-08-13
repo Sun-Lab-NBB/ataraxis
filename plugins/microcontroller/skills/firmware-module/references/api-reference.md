@@ -223,9 +223,8 @@ Sends a ModuleData message (protocol 6) with event code and typed data object. T
 is resolved automatically at compile time from ObjectType. Supports all 11 scalar types and C-style arrays at
 type-specific element counts. `uint8_t` arrays have the densest count support and can be used as a generic bytes buffer.
 
-The following table lists all supported data types and element counts. An element count of 1 is a scalar, and counts
-greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`). Unsupported (type, count) combinations
-trigger a compile-time `static_assert` error.
+An element count of 1 is a scalar, and counts greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`).
+Unsupported (type, count) combinations trigger a compile-time `static_assert` error.
 
 | C++ type   | Size    | Numpy equivalent | Supported element counts                                                         |
 |------------|---------|------------------|----------------------------------------------------------------------------------|
@@ -334,9 +333,9 @@ follows from the doubling above.
 
 ### kKernelCommands
 
-The kernel command codes. The PC addresses codes 2 through 5 in a KernelCommand message (protocol 4), while codes 0 and
-1 mark internal Kernel states, which the Kernel reports as kernel status 8 when a PC message carries either of them.
-Firmware authors implement none of the six, as the Kernel handles them all internally.
+The PC addresses codes 2 through 5 in a KernelCommand message (protocol 4), while codes 0 and 1 mark internal Kernel
+states, which the Kernel reports as kernel status 8 when a PC message carries either of them. Firmware authors implement
+none of the six, as the Kernel handles them all internally.
 
 | Code | Constant              | Description                                                      |
 |------|-----------------------|------------------------------------------------------------------|
@@ -488,8 +487,6 @@ the Communication layer.
 
 ### Immediate command
 
-For commands that complete in a single step:
-
 ```cpp
 void Echo()
 {
@@ -499,8 +496,6 @@ void Echo()
 ```
 
 ### Multi-stage command with non-blocking delay
-
-For commands requiring timed steps:
 
 ```cpp
 void Pulse()
@@ -537,8 +532,6 @@ void Pulse()
 - The `default` case should call `AbortCommand()` to handle unexpected stages
 
 ### Sensor polling command
-
-For repeated sensor readings:
 
 ```cpp
 void ReadSensor()

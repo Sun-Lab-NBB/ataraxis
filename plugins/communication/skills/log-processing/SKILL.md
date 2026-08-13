@@ -100,7 +100,7 @@ raising, so a directory with no matching archives returns `jobs: []` and `source
 **Return structure:**
 ```text
 success:                Boolean flag. False only when `log_directories` is empty AND at least one directory
-                        raised; a run whose every path was merely invalid still reports true with no jobs
+                        raised. A run whose every path was merely invalid still reports true with no jobs
 log_directories{}:      Dict keyed by the input path string, one entry per directory that resolved without
                         raising, including a directory that produced no job at all:
   tracker_path:         Absolute path to that directory's ProcessingTracker YAML file
@@ -141,7 +141,7 @@ with "Missing or unreadable sizing keys from the prepared manifest."
 **Return structure:**
 ```text
 started:            Boolean flag, true when the session was claimed and the manager thread started
-total_jobs:         Valid job descriptors the session accepted; admission against the budgets happens later
+total_jobs:         Valid job descriptors the session accepted, with admission against the budgets happening later
 core_budget:        Cores the session may commit across all concurrently running jobs
 memory_budget_mb:   Memory in MB the session may commit across all concurrently running jobs
 pool_size:          Job slots the shared pool opened
@@ -233,7 +233,7 @@ final_state:               Present whenever a session is stored:
 **Note:** Cancellation clears the pending queue and stops new admissions. Jobs already running are left to finish. The
 session therefore stays alive while they drain, and an `execute_log_processing_jobs_tool` call made during the drain
 still returns "An execution session is already active". Poll `get_log_processing_status_tool` until `active` reads
-`False` before executing or resetting anything. Cleared queued jobs stay `SCHEDULED` and are re-runnable directly, they
+`False` before executing or resetting anything. Cleared queued jobs stay `SCHEDULED` and are re-runnable directly. They
 need no reset.
 
 **`reset_log_processing_jobs_tool` parameters:**
@@ -241,7 +241,7 @@ need no reset.
 | Parameter      | Type               | Default    | Description                                         |
 |----------------|--------------------|------------|-----------------------------------------------------|
 | `tracker_path` | `str`              | (required) | Absolute path to ProcessingTracker YAML file        |
-| `source_ids`   | `list[str] / None` | `None`     | Source IDs to reset, if omitted, all jobs are reset |
+| `source_ids`   | `list[str] / None` | `None`     | Source IDs to reset. Omitting them resets every job |
 
 **Note:** `source_ids` are matched against each tracker entry's specifier by exact string equality, so `"10"` does not
 select the job of controller `101`, and omitting them is the only way to reset every job in the tracker.
@@ -259,7 +259,7 @@ each directory's tracker path and per-job entries. See [staged-reads.md](referen
 results[]:            One entry per requested directory:
   output_directory:   The requested path, echoed back
   cleaned:            Boolean flag, true both for a real deletion and for a directory that had nothing to delete
-  data_path:          The deleted `microcontroller_data/` path; present on a real deletion and on a failed one
+  data_path:          The deleted `microcontroller_data/` path, present on a real deletion and on a failed one
   message:            "Nothing to clean." when the directory held no `microcontroller_data/` subdirectory
   error:              "Directory does not exist.", "Path is not a directory.", or "Unable to delete: ..."
 total_cleaned:        Entries whose `cleaned` flag reads true
@@ -283,7 +283,6 @@ one processing wrote into.
 - **Job identity:** every job is registered under the tracker job name `CONTROLLER_EXTRACTION_JOB_NAME`, and its
   `job_id` is that name hashed together with the `source_id`. One controller therefore keeps the same `job_id` in every
   recording, and a job is only unique batch-wide as the `(tracker_path, job_id)` pair
-- **Single execution session** constraint: only one batch execution can run at a time
 - **Process model:** every job body runs in a worker of one shared, spawn-context process pool, and a job admitted at
   more than one core opens its own extraction pool of that width inside its worker. A spawned child inherits nothing and
   re-imports the whole package, which is the cost the sizing model charges as `SPAWNED_CHILD_MEMORY_MB` per extraction
@@ -305,8 +304,6 @@ filename.
 ## Processing workflow
 
 ### Execution model
-
-The processing workflow uses a **prepare-then-execute** model:
 
 1. **Prepare** creates an execution manifest (tracker files, job lists) without starting any computation. Calling it
    again on the same directories returns the existing execution manifest with current job statuses. See the idempotence
@@ -332,11 +329,10 @@ The processing workflow uses a **prepare-then-execute** model:
 3. **Confirm directories to process**: Ask the user which log directories to process. Accept all discovered directories
    or a user-selected subset. MUST confirm before proceeding.
 
-4. **Confirm output directories**: Ask the user for the output directory paths (one per log directory). There is no
-   default, output directories must be explicitly provided. MUST confirm before proceeding.
+4. **Confirm output directories**: Ask the user for the output directory paths, one per log directory. MUST confirm
+   before proceeding.
 
-5. **Validate extraction config**: Ensure the user has a validated extraction config. If not, invoke
-   `/extraction-configuration` to create one. The config path is required for batch preparation.
+5. **Validate extraction config**: Invoke `/extraction-configuration` when the user has no validated config.
 
 6. **Prepare batch**: Call `prepare_log_processing_batch_tool` with the confirmed log directories, source IDs, output
    directories, and config path. Then verify the returned `source_ids` against the set you requested, read
@@ -347,7 +343,8 @@ The processing workflow uses a **prepare-then-execute** model:
 7. **Confirm resource allocation**: Read the per-job `core_weight` and `memory_mb` the preparation stamped onto each job
    entry, and present those figures alongside the default budgets (`core_budget=-1` and `memory_budget_mb=-1`, both
    auto-resolving from the host). Ask whether the user wants to override, and quote what an explicit budget costs from
-   Resource management. Never estimate the cost yourself, the preparation already sized every job from its archive.
+   Resource management. Never estimate the cost yourself, because the preparation already sized every job from its
+   archive.
 
 8. **Execute jobs**: Call `execute_log_processing_jobs_tool` with the job descriptors from the execution manifest and
    confirmed resource settings. Read the returned `core_budget`, `memory_budget_mb`, `pool_size`, and
@@ -368,10 +365,8 @@ The processing workflow uses a **prepare-then-execute** model:
 
 ## Resource management
 
-Every job is sized by the library, never by the agent. Read `core_weight` and `memory_mb` from the job entries the
-preparation returns, and `core_budget`, `memory_budget_mb`, `pool_size`, and `job_allocations[]` from the execute
-return, rather than computing a figure of your own. See [resource-management.md](references/resource-management.md) for
-the assets that report each figure, and for how the model widens, admits, and refuses jobs.
+See [resource-management.md](references/resource-management.md) for the assets that report each sizing figure, and for
+how the model widens, admits, and refuses jobs.
 
 ---
 
@@ -398,16 +393,15 @@ pool. Use it to separate two failure shapes: several failed jobs sharing one `ex
 dying, while failures spread across many distinct values mean the pool itself is being killed. The second shape routes
 to the batch abandonment messages in Error routing.
 
-When using `get_batch_status_overview_tool` for multi-directory status, name the `statuses` that matter or pass
-`include_items=True`, since a bare call carries the counts alone:
+For multi-directory status from `get_batch_status_overview_tool`, present the listed directories as a table:
 
 ```text
 **Batch Overview**
 
-| Log Directory         | Status    | Succeeded | Failed | Total |
-|-----------------------|-----------|-----------|--------|-------|
-| /data/session1/logs/  | completed | 3         | 0      | 3     |
-| /data/session2/logs/  | failed    | 1         | 1      | 2     |
+| Log Directory        | Status    | Succeeded | Failed | Total |
+|----------------------|-----------|-----------|--------|-------|
+| /data/session1/logs/ | completed | 3         | 0      | 3     |
+| /data/session2/logs/ | failed    | 1         | 1      | 2     |
 ```
 
 Each entry's `status` is one of six labels. The first five are resolved from that tracker's own counts by a fixed
@@ -457,9 +451,9 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 Only `invalid_paths` and `skipped_sources` are soft. A missing config path, an unreadable config, and a length mismatch
 between `log_directories` and `output_directories` each return a bare `{error}` dictionary and nothing else. Every other
 preparation failure places its directory in `failed_directories` and leaves the rest of the batch prepared, so read all
-three lists before executing. See
-[error-routing.md](references/error-routing.md) for every skip reason and its remedy, every preparation and execution
-error, the extraction-config faults that arrive as `FAILED` jobs, and the batch abandonment messages.
+three lists before executing. See [error-routing.md](references/error-routing.md) for every skip reason and its remedy,
+every preparation and execution error, the extraction-config faults that arrive as `FAILED` jobs, and the batch
+abandonment messages.
 
 ---
 

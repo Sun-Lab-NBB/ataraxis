@@ -317,9 +317,8 @@ archive is missing or ambiguous is **dropped and reported, not raised**, on the 
 lands in that directory's `skipped_sources` list while the batch still reports success.
 
 `/log-processing` is authoritative for this model. Its `references/error-routing.md` carries the "Lenient sourcing"
-section naming the three skip reasons and the remedy each one routes to. Leniency is a property of the MCP path alone, which opts out explicitly. Every direct Python
-caller of `prepare_jobs` gets strict sourcing by default, including the `axci process` CLI, and raises
-`FileNotFoundError` or `ValueError` instead. Do not expect an exception on the MCP path.
+section naming the three skip reasons and the remedy each one routes to. Leniency belongs to the MCP path alone, so do
+not expect an exception there when a controller is dropped.
 
 The consequence here: `validate_extraction_config_tool` never inspects the log directory, so a structurally valid config
 can silently extract nothing. The manifest cross-reference in step 6 catches the registration half of that before
@@ -351,7 +350,7 @@ problem surfaces.
 
 ## CLI reference (human-facing, do not invoke)
 
-> **The `axci` CLI is a HUMAN-FACING tool. Agents must never invoke it.** Every agent-driven configuration operation has
+> **The `axci` CLI is a HUMAN-FACING tool. You MUST never invoke it.** Every agent-driven configuration operation has
 > an equivalent MCP tool. `/cli-reference` is canonical for the whole `axci` command surface, including the options of
 > the `axci config create` command step 3 hands to a user.
 
@@ -380,7 +379,8 @@ Extraction Configuration:
 - [ ] MCP server connected (if not, invoke `/communication-mcp-environment-setup`)
 - [ ] Existing config, if any, read via `read_extraction_config_tool` before regenerating
 - [ ] Manifest inspected to identify controllers and modules
-- [ ] Custom module event codes (51-250) obtained from user; kernel codes selected from the fixed menu
+- [ ] Custom module event codes (51-250) obtained from the user
+- [ ] Kernel event codes selected from the fixed menu
 - [ ] Config written via `write_extraction_config_tool`
 - [ ] Written config read back via `read_extraction_config_tool` to confirm the round trip
 - [ ] Config validated via `validate_extraction_config_tool` with `manifest_path` supplied

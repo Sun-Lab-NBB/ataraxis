@@ -1,18 +1,18 @@
 ---
 name: microcontroller-interface
 description: >-
-  Guides creation and configuration of MicroControllerInterface, ModuleInterface, and
-  MQTTCommunication instances for microcontroller communication. Covers interface initialization
-  and lifecycle, ModuleInterface subclassing with command and parameter sending, MQTTCommunication
-  setup, controller ID allocation, and DataLogger integration. Use when writing code that creates
-  MicroControllerInterface or MQTTCommunication instances or needs the ataraxis-communication-interface API.
+  Guides creation and configuration of MicroControllerInterface, ModuleInterface, and MQTTCommunication instances for
+  microcontroller communication. Covers interface initialization and lifecycle, ModuleInterface subclassing with command
+  and parameter sending, MQTTCommunication setup, controller ID allocation, and DataLogger integration. Use when writing
+  code that creates MicroControllerInterface or MQTTCommunication instances or needs the
+  ataraxis-communication-interface API.
 user-invocable: false
 ---
 
 # Microcontroller interface
 
 Guides creation and configuration of MicroControllerInterface, ModuleInterface, and MQTTCommunication instances. This
-skill covers the PC-side Python API, for the firmware-side C++ Module counterpart, use
+skill covers the PC-side Python API. For the firmware-side C++ Module counterpart, use
 `/microcontroller:firmware-module` instead. For interactive hardware discovery and MQTT broker testing via MCP tools,
 use `/microcontroller-setup` instead. Overall system architecture (binding classes, configuration dataclasses, startup
 orchestration) is the responsibility of the consuming library or application.
@@ -79,7 +79,7 @@ The current version is **7.0.0**. If a version mismatch exists, ask the user how
 
 ### Step 2: API verification
 
-| File                                                                                                    | What to Check                                    |
+| File                                                                                                    | What to check                                    |
 |---------------------------------------------------------------------------------------------------------|--------------------------------------------------|
 | `../ataraxis-communication-interface/src/ataraxis_communication_interface/__init__.py`                  | Exported classes, functions, and public API      |
 | `../ataraxis-communication-interface/src/ataraxis_communication_interface/microcontroller/interface.py` | MicroControllerInterface constructor and methods |
@@ -88,8 +88,8 @@ The current version is **7.0.0**. If a version mismatch exists, ask the user how
 
 ### Step 3: Firmware-side verification
 
-The PC side cannot be verified alone, three constructor arguments are copies of firmware build settings. Read these two
-files in the ataraxis-micro-controller checkout the target board was flashed from:
+The PC side cannot be verified alone, because three constructor arguments are copies of firmware build settings. Read
+these two files in the ataraxis-micro-controller checkout the target board was flashed from:
 
 | File             | What to check                                                                                         |
 |------------------|-------------------------------------------------------------------------------------------------------|
@@ -123,8 +123,8 @@ See [references/api-reference.md](references/api-reference.md) for the complete 
 - Constants, utility functions, the message protocol, data payload types, the keepalive mechanism, DataLogger topology,
   and the MCP-to-code parameter bridge
 
-**Import before transcribing.** The error tables in this file are hand-written subsets. The api-reference names the
-`IntEnum` that carries the complete set. Prefer `KernelStatusCodes.KEEPALIVE_TIMEOUT` over the literal 10.
+**Import before transcribing.** The error tables in this file are hand-written subsets. The api-reference.md file names
+the `IntEnum` that carries the complete set. Prefer `KernelStatusCodes.KEEPALIVE_TIMEOUT` over the literal 10.
 
 ---
 
@@ -222,10 +222,10 @@ class EncoderInterface(ModuleInterface):
 `data_codes` is a plain set. The two containers are deliberately different, and passing a set for `error_codes` raises
 `TypeError` at construction.
 
-Both `error_codes` and `data_codes` MUST be in the user range 51-250 (`MINIMUM_CUSTOM_STATUS_CODE` through
-`MAXIMUM_CUSTOM_STATUS_CODE`, both inclusive). A declared code outside that range raises `ValueError` at construction.
-Event codes 0-50 are intercepted as system service messages before per-module routing, so codes in that range never
-reach the custom error or data paths.
+Every `error_codes` key and every `data_codes` member MUST be in the user range 51-250 (`MINIMUM_CUSTOM_STATUS_CODE`
+through `MAXIMUM_CUSTOM_STATUS_CODE`, both inclusive). A declared code outside that range raises `ValueError` at
+construction. Event codes 0-50 are intercepted as system service messages before per-module routing, so codes in that
+range never reach the custom error or data paths.
 
 | Parameter     | Type                          | Default    | Description                                                |
 |---------------|-------------------------------|------------|------------------------------------------------------------|
@@ -253,7 +253,7 @@ process and the main process can never read it. Create in `__init__()`, connect 
 ### Runtime script structure
 
 **Guard the whole runtime with `if __name__ == "__main__":`.** MicroControllerInterface spawns a process, and under the
-spawn and forkserver start methods the child re-imports the entry module, without the guard it re-executes the runtime
+spawn and forkserver start methods the child re-imports the entry module. Without the guard it re-executes the runtime
 instead of only defining it. `example_runtime.py` places the guard near the top of the file and keeps everything below
 it. Wrap the started interface in `try` / `finally` and put `stop()`, `DataLogger.stop()`, and `assemble_log_archives()`
 in the `finally` block, in that order, so the failure path also drains the logger queue before the archive is assembled.
@@ -319,12 +319,12 @@ sibling module stalls, PC messages go unread, and the keepalive check is deferre
 trips KEEPALIVE_TIMEOUT (error code 10) and forces an emergency reset. Pass `np.bool_(True)` unless the command must
 hold the controller for its whole duration. See `/microcontroller:firmware-module` for the blocking-mode contract.
 
-**The firmware holds exactly one pending command per module.** A module has a single pending slot, so a second
-`send_command()` arriving before the module activates the first overwrites it and the first never runs, silently, on
-both sides. The currently *active* command still finishes. It is the pending slot that is lost.
+**The firmware holds exactly one pending command per module.** A second `send_command()` arriving before the module
+activates the first overwrites it, and the first never runs, silently, on both sides. The currently *active* command
+still finishes.
 
 There is no online completion signal to wait on: the firmware's `kCommandCompleted` is module event code 2, inside the
-system-reserved 0-50 range, so it is logged but never reaches `process_received_data()`. Either express repetition with
+system-reserved 0-50 range, so it is logged but never reaches `process_received_data()`. Express repetition with
 `repetition_delay` instead of a burst of one-off sends. The alternative is to have the firmware emit a custom event code
 in the 51-250 range at the end of the handler and declare that code in `data_codes`, which gives the PC a completion
 callback it can pace against. `/microcontroller:firmware-module` documents the queue's priority chain.
@@ -445,6 +445,7 @@ advise. The convention is not enforced.
 | `/cli-reference`                       | Reference: the `axci` command surface, the only orchestration path besides MCP                                                                                    |
 | `/pipeline`                            | Context: end-to-end orchestration and multi-controller planning                                                                                                   |
 | `/communication-mcp-environment-setup` | Prerequisite: MCP server connectivity for API verification                                                                                                        |
+| `/python-style`                        | Reference: the comment and docstring wrap-width rule the checklist applies                                                                                        |
 
 ---
 
@@ -462,7 +463,7 @@ Microcontroller Interface, reader-judged:
 - [ ] ModuleInterface subclasses implement all three abstract methods
 - [ ] Module type/id codes match firmware configuration (verify via /microcontroller:firmware-module)
 - [ ] Command codes, event codes, and parameter layout match firmware counterpart
-- [ ] Custom command codes start at 1; code 0 is reserved and is rejected before it is queued
+- [ ] Custom command codes start at 1, because code 0 is reserved and is rejected before it is queued
 - [ ] Every SendData() payload prototype (numpy dtype and element count) is supported on the target board
 - [ ] Remote assets are created in __init__() and only connected in initialize_remote_assets()
 - [ ] Runtime script body is inside an `if __name__ == "__main__":` guard
