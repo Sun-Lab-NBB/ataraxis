@@ -1,16 +1,16 @@
 ---
 name: cli-reference
 description: >-
-  Canonical reference for the human-facing axci command-line interface: every command and option with its short
-  form, long form, type, default, and effect, the MCP tool each command maps to, its failure modes, and how the
-  CLI path diverges from the MCP path. Use when a user asks what an axci command or option does, or when the MCP
-  server is unavailable and the user must be told what to run by hand.
+  Canonical reference for the human-facing axci command-line interface. Covers every command and option with its short
+  form, long form, type, default, and effect, the MCP tool each command maps to, its failure modes, and how the CLI path
+  diverges from the MCP path. Use when a user asks what an axci command or option does, or when the MCP server is
+  unavailable and the user must be told what to run by hand.
 user-invocable: false
 ---
 
 # CLI reference
 
-> **The `axci` CLI is a HUMAN-FACING tool. Agents must never invoke it.** Print the command, ask the user to run it,
+> **The `axci` CLI is a HUMAN-FACING tool. You MUST never invoke it.** Print the command, ask the user to run it, and
 > ask them to paste the output back.
 
 **The one exemption** is `--help`. `axci --help` and `axci COMMAND --help` may be run, and no other `axci` invocation is
@@ -81,8 +81,8 @@ code 2). Path options carry Click `click.Path` constraints, listed under Effect.
 | `-b`  | `--baudrate` | `int` | `115200` | optional | Identification baudrate. Used only by UART controllers. Ignored by USB controllers |
 
 **Note:** 115200 is the option default, not a universal board default. A UART board flashed at another speed reports
-`[No microcontroller]` at the wrong baudrate rather than failing. The per-board rates live in
-`/microcontroller:firmware-module`, "Serial speed per board environment".
+`[No microcontroller]` at the wrong baudrate rather than failing. `/microcontroller:firmware-module`, "Serial speed",
+owns the contract these rates form with the PC, and `/platformio-config` owns the per-board `monitor_speed` values.
 
 ### `axci mqtt`
 
@@ -148,14 +148,14 @@ extraction config, not against the archives on disk, so a missing sibling archiv
 
 Lists valid serial ports, evaluates each in its own worker process, and prints one numbered line per port. Ports whose
 USB PID is `None` are filtered out before evaluation, which mainly affects Linux hosts. Each line renders one of three
-`evaluate_port` outcomes: `Microcontroller ID: N`, `No microcontroller`, or `Connection Failed: ...`.
+`evaluate_port` outcomes: `[Microcontroller ID: N]`, `[No microcontroller]`, or `[Connection Failed: ...]`.
 
 | Condition                     | Behavior                                                                                                         |
 |-------------------------------|------------------------------------------------------------------------------------------------------------------|
 | No valid ports                | Prints "No valid serial ports detected." and exits normally. Not an error                                        |
 | One port unreachable          | `evaluate_port` catches every exception and returns an error string, so the sweep over the other ports continues |
-| Permission denied on the port | Renders as `Connection Failed`. Check `/dev/ttyACM*` group membership                                            |
-| Wrong UART baudrate           | Renders as `No microcontroller`. Retry at the board's own speed before concluding anything                       |
+| Permission denied on the port | Renders as `[Connection Failed]`. Check `/dev/ttyACM*` group membership                                          |
+| Wrong UART baudrate           | Renders as `[No microcontroller]`. Retry at the board's own speed before concluding anything                     |
 
 ### `axci mqtt`
 
@@ -166,8 +166,8 @@ Constructs an `MQTTCommunication` client, connects, reports, and disconnects.
 | Broker reachable   | Prints a SUCCESS line naming host and port                                                                                          |
 | Broker unreachable | Catches the `ConnectionError` and prints an ERROR line. **The command still exits 0**, so a script cannot branch on its exit status |
 
-**Note:** the unreachable message covers every socket-level failure, refused connection, timeout, and a hostname that
-could not be resolved. Have the user verify the host string as well as the broker service.
+**Note:** the unreachable message covers every socket-level failure, including a refused connection, a timeout, and a
+hostname that could not be resolved. Have the user verify the host string as well as the broker service.
 
 ### `axci config create`
 
@@ -191,11 +191,11 @@ wanted, before `axci process` can use it. `/extraction-configuration` owns the e
 Prints the config path, then each controller ID, each module as `(module_type, module_id): events=[...]`, and the kernel
 line as either its event codes or `Kernel: not configured`.
 
-| Condition                                    | Behavior                                           |
-|----------------------------------------------|----------------------------------------------------|
-| `-c` missing or not a readable file          | Click rejects the invocation (exit 2)              |
-| `-c` does not end in `.yaml`/`.yml`          | `ValueError` from the YAML reader                  |
-| `controllers` key present but empty of value | `ValueError` from `ExtractionConfig.__post_init__` |
+| Condition                           | Behavior                                           |
+|-------------------------------------|----------------------------------------------------|
+| `-c` missing or not a readable file | Click rejects the invocation (exit 2)              |
+| `-c` does not end in `.yaml`/`.yml` | `ValueError` from the YAML reader                  |
+| `controllers` key present but empty | `ValueError` from `ExtractionConfig.__post_init__` |
 
 **Note:** `show` is a printer, not a validator. It reports an empty `events=[]` without complaint, and it checks nothing
 against a manifest. Only `validate_extraction_config_tool` performs the real checks.
@@ -207,9 +207,9 @@ echoes the resolved controller IDs, opens the tracker, and runs the jobs **one a
 
 | Exception                     | Trigger                                                                                                                                                                                                                                                                                                           |
 |-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `FileNotFoundError`           | The log directory or the config file does not exist. A requested controller's archive is absent or resolves to more than one file. The log directory resolves no job at all                                                                                                                                       |
+| `FileNotFoundError`           | A requested controller's archive is absent or resolves to more than one file. The log directory resolves no job at all. A nonexistent `-ld` or `-c` never reaches this path, because Click rejects it with exit code 2                                                                                            |
 | `ValueError`                  | The tree holds more than one `microcontroller_manifest.yaml`. A manifest registers no controllers. The config declares no controllers. A requested controller is unregistered in the manifest or absent from the config. `-id` matches no configured controller. The resolved archives sit in several directories |
-| `ValueError` (at job runtime) | A configured module or the kernel declares empty event codes. A controller declares no extraction target at all. A logged message's payload size disagrees with its prototype code                                                                                                                                |
+| `ValueError` (at job runtime) | A configured module or the kernel declares empty event codes. A controller declares no extraction target at all. The archive carries no onset timestamp message. A logged message's payload size disagrees with its prototype code                                                                                |
 | `OSError`                     | A directory beneath the log directory cannot be read                                                                                                                                                                                                                                                              |
 | `TimeoutError`                | The tracker's `.LOCK` file cannot be acquired within the timeout, most often a concurrent MCP batch over the same output directory                                                                                                                                                                                |
 
@@ -290,11 +290,11 @@ verification, query, and cleanup tool. Say so plainly rather than improvising a 
 | `/log-processing`                      | Owns the MCP batch workflow and the authoritative lenient sourcing model             |
 | `/extraction-configuration`            | Owns config authoring, validation, and event-code semantics behind `axci config`     |
 | `/microcontroller-setup`               | Owns manifests, archive assembly, and the discovery behind `axci id` and `axci mqtt` |
-| `/communication-mcp-environment-setup` | Owns the `--help` exemption, the `axci mcp` transports, and MCP recovery             |
+| `/communication-mcp-environment-setup` | Owns the `--help` exemption, the hand-launch smoke test, and MCP recovery            |
 | `/log-processing-results`              | Downstream: the feather output both paths write                                      |
 | `/log-input-format`                    | Reference: the assembled archives `axci process` reads under `-ld`                   |
 | `/microcontroller-interface`           | Context: the PC-side recording code, which no `axci` command replaces                |
-| `/microcontroller:firmware-module`     | Reference: the per-board serial rates behind the `axci id` baudrate                  |
+| `/microcontroller:firmware-module`     | Reference: the serial speed contract behind the `axci id` baudrate                   |
 | `/pipeline`                            | Context: where each CLI command sits in the end-to-end pipeline                      |
 
 ---
@@ -304,7 +304,7 @@ verification, query, and cleanup tool. Say so plainly rather than improvising a 
 ```text
 Answering a CLI question:
 - [ ] Answered from this skill or from `axci COMMAND --help`, never from memory
-- [ ] Quoted the long option form; never presented `-h` as a help alias
+- [ ] Quoted the long option form and never presented `-h` as a help alias
 - [ ] Named the MCP equivalent alongside any command the agent could have run itself
 - [ ] Invoked no `axci` command other than `--help`
 

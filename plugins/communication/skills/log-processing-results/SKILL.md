@@ -84,7 +84,8 @@ files[]:            Per-file verification results:
   missing_columns:  Expected columns absent from the file (only when valid is false)
   extra_columns:    Unexpected columns present in the file (only when valid is false)
 total_files:        Number of feather files found
-output_directory:   Absolute path to the output (parent) directory that was passed in (contains the microcontroller_data/ subdirectory)
+output_directory:   Absolute path to the output (parent) directory that was passed in (contains the
+                    microcontroller_data/ subdirectory)
 data_path:          Absolute path to the microcontroller_data/ directory
 tracker:            ProcessingTracker status summary. {} when the directory holds no tracker file, and
                     {error: "Unable to read tracker file."} when a tracker exists but cannot be parsed
@@ -196,13 +197,13 @@ provided by the user:
 
 Each feather file is a Polars DataFrame serialized as Feather IPC format with five columns:
 
-| Column         | Dtype    | Description                                                        |
-|----------------|----------|--------------------------------------------------------------------|
-| `timestamp_us` | `UInt64` | Message timestamp in microseconds since UTC epoch                  |
-| `command`      | `UInt8`  | Command code the module/kernel was executing when message was sent |
-| `event`        | `UInt8`  | Event code identifying the message type                            |
-| `dtype`        | `String` | Numpy dtype string for the data payload (or null if no data)       |
-| `data`         | `Binary` | Serialized binary data payload (or null if no data)                |
+| Column         | Dtype    | Description                                                            |
+|----------------|----------|------------------------------------------------------------------------|
+| `timestamp_us` | `UInt64` | Message timestamp in microseconds since UTC epoch                      |
+| `command`      | `UInt8`  | Command code the module/kernel was executing when the message was sent |
+| `event`        | `UInt8`  | Event code identifying the message type                                |
+| `dtype`        | `String` | Numpy dtype string for the data payload (or null if no data)           |
+| `data`         | `Binary` | Serialized binary data payload (or null if no data)                    |
 
 Rows are ordered chronologically. Each row corresponds to one extracted message matching the extraction config's event
 codes.
@@ -258,6 +259,7 @@ The `microcontroller_processing_tracker.yaml` file tracks job lifecycle per outp
 - **job_name:** Always `microcontroller_data_extraction`
 - **specifier:** The source ID string
 - **status:** `SCHEDULED`, `RUNNING`, `SUCCEEDED`, or `FAILED`
+- **executor_id:** The executor that ran the job, `pid:<process id>` locally or `<scheme>:<id>` under a scheduler
 - **started_at / completed_at:** Microsecond UTC timestamps (when available)
 - **error_message:** Error details (when status is `FAILED`)
 
@@ -309,7 +311,7 @@ field, so there is no expected-vs-received count, and extraction keeps only the 
 "lost messages": a long gap is a timing observation, not a quantified loss.
 
 The only after-the-fact signal of a communication interruption is the Kernel keepalive-timeout status event
-(`kKeepAliveTimeout`, kernel status code 10), emitted when the Kernel stops receiving keepalive messages from the PC. It
+(`KEEPALIVE_TIMEOUT`, kernel status code 10), emitted when the Kernel stops receiving keepalive messages from the PC. It
 appears in the kernel feather **only if that kernel event code was included in the extraction config**. If a run needs
 guaranteed-delivery accounting, that guarantee comes from the transport layer's runtime CRC/COBS verification during
 acquisition, not from post-hoc log analysis.
@@ -322,7 +324,7 @@ Read the payloads through the library's exported primitives rather than looping 
 import numpy as np
 import polars as pl
 from ataraxis_communication_interface import (
-    ExtractedDataColumns,  # StrEnum of the five column names; indexes a frame and names a series
+    ExtractedDataColumns,  # StrEnum of the five column names, indexes a frame and names a series
     partition_events,      # One pass over a frame -> {event_code: sub-frame}
     get_event_timestamps,  # (partition, event_code) -> timestamps, for a state-only event
     get_event_data,        # (partition, event_code, values_dtype) -> (timestamps, decoded values)
@@ -355,8 +357,7 @@ A mixed-dtype event code marks a table this library did not write, or a firmware
 `get_event_timestamps` for the state-only case the first row names.
 
 **Note:** `build_message_dataframe` is exported from `ataraxis_communication_interface.microcontroller` but not from the
-top level, so importing it alongside the four names above raises `ImportError`. It is a writer, not a reader. Nothing in
-the analysis path needs it.
+top level, so importing it alongside the four names above raises `ImportError`. It is a writer, not a reader.
 
 The `dtype` column contains the numpy dtype string that was used to serialize the data on the microcontroller side.
 Common dtypes include `uint8`, `uint16`, `uint32`, `int32`, `float32`.
@@ -405,8 +406,8 @@ two-column row per fault message.
 ## Discovery output reference
 
 A bare `discover_microcontroller_data_tool` call reports the counts and a `breakdown` naming the controller IDs and the
-controller names the scan found, and it lists no sources. Processing status can be determined by checking whether
-processed output exists in the output directories:
+controller names the scan found, and it lists no sources. Run `verify_processing_output_tool` to learn whether a
+directory already holds processed output. A bare discovery call returns:
 
 ```text
 {
@@ -463,6 +464,7 @@ Log Processing Output Completeness, tool-settled (run `verify_processing_output_
 Log Processing Output Completeness, reader-judged:
 - [ ] All expected module and kernel files present, cross-referenced with the extraction config
 - [ ] Event distribution matches expected firmware event codes
-- [ ] Inter-event timing is within acceptable range for the experiment
+- [ ] Inter-event timing compared against a known-good run of the same configuration, with any widened std_us or
+      min_us to max_us spread explained
 - [ ] Data payloads reconstructable (dtype + data columns present where expected)
 ```

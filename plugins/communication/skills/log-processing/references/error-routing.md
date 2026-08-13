@@ -22,9 +22,8 @@ three conditions raise instead of being recorded: the first two raise `ValueErro
 `FileNotFoundError`. A user reporting a hard CLI failure and an agent reporting a silent skip are looking at the same
 misconfiguration.
 
-**Note:** Two sourcing problems are never skips. A tree holding several `microcontroller_manifest.yaml` files, and
-prepared archives that resolve into several different directories, both raise on the MCP path too and land that
-directory in `failed_directories` (see Preparation errors).
+**Note:** Two sourcing problems are never skips, and the Preparation errors table below carries both of them with the
+remedy each one takes.
 
 ---
 
@@ -44,7 +43,7 @@ directory in `failed_directories` (see Preparation errors).
 | A timeout acquiring the tracker lock                             | Another process holds that output directory's tracker, most often a user's own `axci process` run. Wait for it to finish, or prepare a different directory                                                                 |
 
 **Note:** Only `invalid_paths` and `skipped_sources` are soft. Every row above that names a directory-level failure
-places that directory in `failed_directories` and leaves the rest of the batch prepared, so always read both lists
+places that directory in `failed_directories` and leaves the rest of the batch prepared, so always read all three lists
 before executing.
 
 ---
@@ -56,6 +55,8 @@ before executing.
 | "An execution session is already active" | Wait for current session or cancel first         |
 | "No valid jobs to execute"               | Verify job descriptors have all required keys    |
 | "Tracker file not found"                 | Re-prepare the batch to regenerate tracker files |
+| "Missing or unreadable sizing keys"      | Pass the prepared job dicts through unchanged    |
+| "Unable to read a ... job descriptor"    | Re-prepare and pass the emitted dicts verbatim   |
 
 ---
 

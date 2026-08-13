@@ -43,14 +43,14 @@ from ataraxis_communication_interface import (
     MICROCONTROLLER_MANIFEST_FILENAME,
     MAXIMUM_CUSTOM_STATUS_CODE,
     MINIMUM_CUSTOM_STATUS_CODE,
-    # Output path resolvers — documented in /log-processing-results
+    # Output path resolvers, documented in /log-processing-results
     find_kernel_paths,
     find_module_paths,
     parse_kernel_path,
     parse_module_path,
     resolve_kernel_path,
     resolve_module_path,
-    # Orchestration — exported, but deliberately not an agent-facing surface
+    # Orchestration, driven through the MCP tools and the axci CLI
     CONTROLLER_EXTRACTION_JOB_CORES,
     CONTROLLER_EXTRACTION_JOB_NAME,
     JobSource,
@@ -77,12 +77,11 @@ one. Import a name through the package that exports it, never from the module fi
 
 **Note:** all 14 names the `.orchestration` subpackage contributes are re-exported at top level, but this plugin
 deliberately does not document the job-scheduling contract they form. Orchestration runs through the MCP tools or
-through the `axci` CLI a user invokes by hand, and there is no third path. Do not write code against these symbols. They
-are listed here only so a reader recognizes them as out of scope rather than as an omission.
+through the `axci` CLI a user invokes by hand, and there is no third path. Do not write code against these symbols.
 
 Names a caller reaches for by symmetry that are **not** top level: `build_message_dataframe`, `evaluate_port`,
 `extract_logged_microcontroller_data`, `ExtractedMessages`, `ExtractedModuleData`, and `ExtractedControllerData` (all
-`.microcontroller`). `prepare_jobs`, `JobDescriptor`, `JobSet`, `size_job`, and `JobSizing` (all `.orchestration`).
+`.microcontroller`), plus `prepare_jobs`, `JobDescriptor`, `JobSet`, `size_job`, and `JobSizing` (all `.orchestration`).
 Importing any of them from the top level raises `ImportError`.
 
 ---
@@ -175,8 +174,8 @@ below defines. A code outside that range raises `ValueError` at construction, an
 | Method                           | Args                        | Description                                                    |
 |----------------------------------|-----------------------------|----------------------------------------------------------------|
 | `initialize_remote_assets()`     | `None`                      | Initializes non-picklable resources for communication process. |
-| `terminate_remote_assets()`      | `None`                      | Releases resources from `initialize_remote_assets`.            |
-| `process_received_data(message)` | `ModuleData \| ModuleState` | Handles `data_codes` messages. Must return quickly.            |
+| `terminate_remote_assets()`      | `None`                      | Releases resources from `initialize_remote_assets()`.          |
+| `process_received_data(message)` | `ModuleData \| ModuleState` | Handles `data_codes` messages. Must not sleep or block on I/O. |
 
 ### Command methods
 
@@ -215,10 +214,10 @@ idle between repetitions.
 
 ## MQTTCommunication
 
-Extends serial microcontroller communication by connecting remote producers and consumers to the microcontroller
-ecosystem over TCP. Designed for tight integration with `MicroControllerInterface`, which allows separate processes or
-machines to send commands to or receive data from microcontrollers via MQTT topics. Can be used standalone, but the
-library was designed with integrated usage in mind.
+Provides bidirectional publish and subscribe messaging with the other clients connected to the same MQTT broker over
+TCP. It is independent of `MicroControllerInterface`, which neither accepts nor constructs an instance, so routing MQTT
+traffic to or from a microcontroller is the consuming application's work. Inside this library, only the `axci mqtt`
+health check and the MQTT discovery tool construct it.
 
 ### Constructor
 
@@ -266,7 +265,7 @@ afterwards. When the broker cannot be reached, confirm it is running on the expe
 | `connect()` after a link loss | Not a no-op. It early-returns only while the tracked state says connected, so it reconnects.               |
 
 The QoS choice assumes a loopback or LAN TCP socket. Never use `MQTTCommunication` as the sole transport for a command
-that must not be lost, acknowledge it over a second topic, or send it over the serial path instead.
+that must not be lost. Acknowledge such a command over a second topic, or send it over the serial path instead.
 
 ---
 
@@ -472,9 +471,9 @@ RECEPTION_ERROR (3) and TRANSMISSION_ERROR (4) message and every module TRANSMIS
 **axci 7.0.0 already decodes both bytes into the `RuntimeError` text it raises.** Read the raised message first. The two
 enumerations are the decoder for the other path: the raw pair the extraction pipeline writes undecoded into the `data`
 column of a processed kernel or module feather. Index byte 1 into `CommunicationStatusCodes` (51-62) and byte 2 into
-`TransportStatusCodes` (11-29), which mirrors the microcontroller's own TransportLayer rather than the PC's, instead of
-transcribing either code as a literal. For the firmware-side meaning of every member, and the corrective action each
-byte pair points at, see `/microcontroller:firmware-module`.
+`TransportStatusCodes` (11-29), which mirrors the microcontroller's own TransportLayer rather than the PC's. For the
+firmware-side meaning of every member, and the corrective action each byte pair points at, see
+`/microcontroller:firmware-module`.
 
 ---
 
@@ -504,8 +503,8 @@ byte pair points at, see `/microcontroller:firmware-module`.
 
 ### Protocol and prototype enums
 
-The codes above are not literals to retype, `.communication` exports them as enums, plus the decoders that turn a
-prototype code into a concrete numpy description.
+The `.communication` subpackage exports the codes above as enums, plus the decoders that turn a prototype code into a
+concrete numpy description.
 
 ```python
 from ataraxis_communication_interface.communication import PrototypeType, SerialProtocols, SerialPrototypes
@@ -536,25 +535,23 @@ as read-only and never write into it.
 `process_received_data()` implementation annotates against. The other ten, `ControllerIdentification`,
 `DequeueModuleCommand`, `KernelCommand`, `KernelData`, `KernelState`, `ModuleIdentification`, `ModuleParameters`,
 `OneOffModuleCommand`, `ReceptionCode`, `RepeatedModuleCommand`, plus `SerialCommunication`, `SerialProtocols`,
-`SerialPrototypes`, and `PrototypeType` import from `.communication` only.
+`SerialPrototypes`, and `PrototypeType`, are importable from `.communication` only.
 
-`SerialCommunication` is internal: its own docstring states it is designed for other library assets and should not be
-used directly. `MicroControllerInterface` owns the one instance, inside the spawned communication process. If you read
-it anyway, note that `receive_message()` parses into a **reused instance attribute** and returns a reference to it, so
-each call overwrites the previous message. Finish with a message before receiving the next one, and copy anything you
-intend to keep.
+`SerialCommunication` is internal: `MicroControllerInterface` owns the one instance, inside the spawned communication
+process. If you read it anyway, note that `receive_message()` parses into a **reused instance attribute** and returns a
+reference to it, so each call overwrites the previous message. Finish with a message before receiving the next one, and
+copy anything you intend to keep.
 
 ### Event code ranges
 
 | Range  | Owner  | Description                                                                    |
 |--------|--------|--------------------------------------------------------------------------------|
-| 1-50   | System | Reserved service codes for internal module status (errors, command completion) |
+| 0-50   | System | Reserved service codes for internal module status (errors, command completion) |
 | 51-250 | User   | User-defined event codes for application-specific data and state messages      |
 
-Event codes are unique within each module and within the kernel, the same code always carries the same semantic meaning
-regardless of which command was executing when the message was sent. This means event codes identify the *type* of
-event, not a command-specific response. The extraction pipeline and `process_received_data()` both rely on this
-invariant.
+Event codes are unique within each module and within the kernel, so the same code always carries the same semantic
+meaning regardless of which command was executing when the message was sent. The extraction pipeline and
+`process_received_data()` both rely on this invariant.
 
 Messages with event codes in the user range and matching a module's `data_codes` set are routed to
 `process_received_data()`. Messages with event codes matching `error_codes` raise `RuntimeError` and abort the runtime.
@@ -611,7 +608,7 @@ optional and controlled by the `keepalive_interval` constructor parameter.
 4. In the other direction, if the microcontroller does not return the keepalive acknowledgement (a ReceptionCode message
    with reception_code 255) within one `keepalive_interval`, the PC communication process issues a reset command and
    raises `RuntimeError`, terminating the interface. This PC-side failure is distinct from and additional to the
-   Microcontroller-reported error code 10
+   microcontroller-reported error code 10
 
 **The two sides do not use the same deadline.** The PC allows one `keepalive_interval` for the acknowledgement, while
 the firmware Kernel **doubles** the interval it was constructed with to derive its own timeout, deliberately tolerating
@@ -663,7 +660,7 @@ ctrl1 = MicroControllerInterface(controller_id=np.uint8(101), data_logger=logger
 ctrl2 = MicroControllerInterface(controller_id=np.uint8(102), data_logger=logger, ...)
 ```
 
-All controllers sharing one logger: correlated timestamps, single archive assembly, single processing batch.
+All controllers sharing one logger get correlated timestamps, one archive assembly, and one processing batch.
 
 ### Coordinated lifecycle ordering
 

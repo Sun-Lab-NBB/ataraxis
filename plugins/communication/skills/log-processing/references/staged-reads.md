@@ -15,9 +15,10 @@ Both tools widen in the same three steps, and a caller pays for only the stage i
 | Semi-detail | Any filter, or `include_items=True` | A page of items carrying their identity, plus paging fields   |
 | Detail      | `detailed=True`                     | The per-item field that grows a whole-project read fastest    |
 
-**A bare call lists nothing.** It returns no item list and no paging fields at all, so an agent that reads `sources` or
-`log_directories` straight out of a bare response reads a key that is absent. Ask for the listing explicitly whenever
-you intend to render one.
+**A bare call lists nothing.** It returns no item list and no paging fields at all, so an agent that reads `sources`
+straight out of a bare discovery response, or `log_directories` out of a bare overview response, reads a key that is
+absent. `discover_microcontroller_data_tool` reports its own `log_directories` unconditionally. Ask for the listing
+explicitly whenever you intend to render one.
 
 ---
 
@@ -29,8 +30,7 @@ you intend to render one.
   filter matches before the page cap, so a `rows` below it means the page was capped.
 - Walk a long result by following `next_start_row` until it reads null. A page that fills its own limit exactly may
   still end the matches, so the null is the terminator rather than a short page.
-- `limit` defaults to 200, or to 50 under `detailed`. A value at or below zero lifts the cap and returns every match
-  from the requested start.
+- A `limit` at or below zero lifts the page cap and returns every match from the requested start.
 - The counts and the `breakdown` span every discovered item whatever the filters name, so narrowing what is listed
   never distorts what is reported.
 - A filter naming a value the scan did not find returns an error dictionary naming what is available, rather than an

@@ -105,7 +105,7 @@ payload with the two enumerations that fill it, and the optional implementation 
 
 Modules are header-only classes that inherit from `Module`, are marked `final`, and override three pure virtual methods.
 A template parameter list such as `template <const uint8_t kPin>` carries the compile-time hardware configuration, which
-is the recommended pattern. `/cpp-style` owns the surrounding header file, which is the include guard, the include form
+is the recommended pattern. `/cpp-style` owns the surrounding header file, covering the include guard, the include form
 and ordering, the leaf class layout, and static-assertion placement.
 
 ### Constructor
@@ -223,7 +223,7 @@ bool SetupModule() override
 }
 ```
 
-Return `true` on success and `false` on failure, where a failure bricks the controller until the firmware is reset.
+Return `true` on success and `false` on failure.
 
 ### Design requirements
 
@@ -328,7 +328,7 @@ queues next.
 See [references/api-reference.md](references/api-reference.md) for the immediate, multi-stage non-blocking delay, and
 sensor polling command handler patterns with full code examples.
 
-### Recurrent vs one-off commands
+### Recurrent vs. one-off commands
 
 The PC queues each command as either **one-off** (`kOneOffModuleCommand`) or **recurrent** (`kRepeatedModuleCommand`,
 carrying a `cycle_delay`). Write handlers identically for both, always calling `CompleteCommand()` when the work is
@@ -419,7 +419,7 @@ void loop()
   again, so the controller never times out before the PC starts pinging it
 - Module constructor arguments: `(module_type, module_id, communication)`
 - The `modules[]` array must contain at least one element (enforced by `static_assert`)
-- `Serial.begin()` baudrate must match both the target board environment's `monitor_speed` and the PC-side `baudrate`
+- `Serial.begin()` baud rate must match both the target board environment's `monitor_speed` and the PC-side `baudrate`
   parameter, so keep it in a named constant rather than a literal
 - Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`. AVR boards have a fixed
   10-bit ADC and no `analogReadResolution()`, so the call must be guarded with `#if !defined(__AVR__)`

@@ -223,9 +223,8 @@ Sends a ModuleData message (protocol 6) with event code and typed data object. T
 is resolved automatically at compile time from ObjectType. Supports all 11 scalar types and C-style arrays at
 type-specific element counts. `uint8_t` arrays have the densest count support and can be used as a generic bytes buffer.
 
-The following table lists all supported data types and element counts. An element count of 1 is a scalar, and counts
-greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`). Unsupported (type, count) combinations
-trigger a compile-time `static_assert` error.
+An element count of 1 is a scalar, and counts greater than 1 require a C-style array declaration (e.g., `uint16_t[24]`).
+Unsupported (type, count) combinations trigger a compile-time `static_assert` error.
 
 | C++ type   | Size    | Numpy equivalent | Supported element counts                                                         |
 |------------|---------|------------------|----------------------------------------------------------------------------------|
@@ -334,9 +333,9 @@ follows from the doubling above.
 
 ### kKernelCommands
 
-The kernel command codes. The PC addresses codes 2 through 5 in a KernelCommand message (protocol 4), while codes 0 and
-1 mark internal Kernel states, which the Kernel reports as kernel status 8 when a PC message carries either of them.
-Firmware authors implement none of the six, as the Kernel handles them all internally.
+The PC addresses codes 2 through 5 in a KernelCommand message (protocol 4), while codes 0 and 1 mark internal Kernel
+states, which the Kernel reports as kernel status 8 when a PC message carries either of them. Firmware authors implement
+none of the six, as the Kernel handles them all internally.
 
 | Code | Constant              | Description                                                      |
 |------|-----------------------|------------------------------------------------------------------|
@@ -412,8 +411,9 @@ what the two tables below add.
 ### kCommunicationStatusCodes
 
 Defined in `axmc_shared_assets.h` and returned by `Communication::get_communication_status()`. Fills the first byte of
-the error payload. "A sender" below means any of `SendDataMessage()`, `SendStateMessage()`, and `SendServiceMessage()`,
-all three of which set codes 54, 55, and 62 identically.
+the error payload, which in practice carries only 52, 53, 54, and 62, because every call site snapshots the status after
+a failed send or receive has already overwritten it. "A sender" below means any of `SendDataMessage()`,
+`SendStateMessage()`, and `SendServiceMessage()`, all three of which set codes 54, 55, and 62 identically.
 
 | Code | Constant               | Firmware meaning, with the method that sets the code                                       |
 |------|------------------------|--------------------------------------------------------------------------------------------|
@@ -470,20 +470,22 @@ cannot configure.
 {53, 23}  A header or parameter read ran past the payload. The message layout and the firmware disagree.
 {54, 21}  The outgoing object does not fit the payload. Shrink the data object or split it across messages.
 {62, 29}  The port accepted only part of the packet. The host is not draining the link, or the link dropped.
-{59, ..}  Parameter size mismatch. Align the PACKED_STRUCT with the PC-side send_parameters() tuple.
-{61, ..}  ExtractParameters() ran outside SetCustomParameters().
 ```
 
+Codes 59 and 61 never appear in this payload. `SendCommunicationErrorMessage()` snapshots the status on entry, and
+every call site reaches it after a failed send or receive has already replaced a parameter code with 52, 53, 54, or 62.
+A parameter fault reports instead as kernel status 7, `kModuleParametersError`, carrying `{module_type, module_id}`.
+Align the `PACKED_STRUCT` with the PC-side `send_parameters()` tuple, and call `ExtractParameters()` only from
+`SetCustomParameters()`.
+
 A second byte that reports success (18, 20, 22, or 24) means the packet layer was healthy and the fault lies entirely in
-the Communication layer, which is the normal shape of the 59 and 61 parameter faults.
+the Communication layer.
 
 ---
 
 ## Command handler patterns
 
 ### Immediate command
-
-For commands that complete in a single step:
 
 ```cpp
 void Echo()
@@ -494,8 +496,6 @@ void Echo()
 ```
 
 ### Multi-stage command with non-blocking delay
-
-For commands requiring timed steps:
 
 ```cpp
 void Pulse()
@@ -532,8 +532,6 @@ void Pulse()
 - The `default` case should call `AbortCommand()` to handle unexpected stages
 
 ### Sensor polling command
-
-For repeated sensor readings:
 
 ```cpp
 void ReadSensor()
