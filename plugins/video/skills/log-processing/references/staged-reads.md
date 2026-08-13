@@ -34,7 +34,9 @@ absent. Ask for the listing explicitly whenever you intend to render one.
 - The counts and the `breakdown` span every discovered item whatever the filters name, so narrowing what is listed
   never distorts what is reported.
 - A filter naming a value the scan did not find returns an error dictionary naming what is available, rather than an
-  empty page. An empty page therefore means the filters matched nothing that also survived paging, never a typo.
+  empty page. The one exception is `discover_camera_data_tool` over a root that confirms no source at all, which
+  returns an empty `sources` list and an empty `breakdown` whatever the filters name. Outside that case an empty page
+  means the filters matched nothing that also survived paging, never a typo.
 - A listed item omits any field holding nothing, so an unmatched video file and an unprocessed source carry no
   `video_file` and no `timestamps_file` key even under `detailed`. Read an absent key as the field holding nothing.
 - `detailed` widens the fields a listed item carries and never asks for the listing itself, so it is passed alongside a

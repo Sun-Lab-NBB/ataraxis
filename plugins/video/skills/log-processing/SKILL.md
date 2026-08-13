@@ -88,8 +88,8 @@ discovery.
 | `output_directories` | `list[str]` | (required) | Absolute paths for per-directory output. Must match `log_directories` length. |
 
 Passing an empty `source_ids` list prepares every source the log directory's `camera_manifest.yaml` registers. Sourcing
-is lenient: a requested source the manifest does not register, or one whose archive is absent or resolves to more than
-one file, is recorded under `skipped_sources` with its reason instead of failing the whole batch.
+is lenient, so a requested source the manifest does not register, or one whose archive is absent or resolves to more
+than one file, is recorded under `skipped_sources` with its reason instead of failing the whole batch.
 
 **`prepare_log_processing_batch_tool` return structure:**
 
@@ -188,8 +188,8 @@ Requires `root_directory`, the absolute path under which trackers are searched f
 `total_output_directories`, an aggregate `summary`, and a `breakdown` of directories per status, and it lists **no**
 `output_directories`. Name `statuses`, or pass `include_items=True`, to list them, and `detailed=True` to add each
 directory's tracker path and per-job entries. See [staged-reads.md](references/staged-reads.md) for both. The
-`output_directory` value names the `camera_timestamps/` subdirectory holding the tracker, not the DataLogger directory
-the archives came from.
+`output_directory` value names the `camera_timestamps/` subdirectory holding the tracker, not the DataLogger output
+directory the archives came from.
 
 **`clean_log_processing_output_tool` parameters:**
 
@@ -198,8 +198,7 @@ the archives came from.
 | `output_directories` | `list[str]` | (required) | Absolute paths to output directories containing `camera_timestamps/` to delete |
 
 Deletes the `camera_timestamps/` subdirectory and all contents (feather files, tracker) under each output directory.
-Returns a `results` list with per-directory outcomes plus `total_cleaned` and `total_directories` counts. After cleanup,
-the output directories can be passed to `prepare_log_processing_batch_tool` to reinitialize from scratch.
+Returns a `results` list with per-directory outcomes plus `total_cleaned` and `total_directories` counts.
 
 Each `results` entry carries `output_directory` and a `cleaned` flag. A successful delete adds `timestamps_path`. A
 directory that had no `camera_timestamps/` to remove adds `message: "Nothing to clean."` and still reports
@@ -218,7 +217,6 @@ Single-phase timestamp extraction pipeline:
 .npz log archives → extract_logged_camera_timestamps → Polars DataFrame → .feather IPC files
 ```
 
-Key architectural facts:
 - **ProcessingTracker** manages job lifecycle: `SCHEDULED` → `RUNNING` → `SUCCEEDED` / `FAILED` via YAML state files
 - **Single execution session** constraint: only one batch execution can run at a time
 - **Parallel processing** activates automatically once an archive reaches the library's parallel extraction threshold
@@ -253,8 +251,8 @@ The processing workflow uses a **prepare-then-execute** model:
 3. **Confirm directories to process**: Ask the user which log directories to process. Accept all
    discovered directories or a user-selected subset. You MUST confirm before proceeding.
 
-4. **Confirm output directories**: Ask the user for the output directory paths (one per log directory).
-   There is no default. Output directories must be explicitly provided. You MUST confirm before proceeding.
+4. **Confirm output directories**: Ask the user for the output directory paths, one per log directory. You MUST
+   confirm before proceeding.
 
 5. **Prepare batch**: Call `prepare_log_processing_batch_tool` with the confirmed log directories,
    source IDs, and output directories. All three parameters are required.
@@ -267,10 +265,10 @@ The processing workflow uses a **prepare-then-execute** model:
 
 8. **Monitor progress**: Use `get_log_processing_status_tool` to check per-job progress. Optionally use
    `get_log_processing_timing_tool` for elapsed time and throughput metrics. Present status as a
-   formatted table (see Status Formatting section).
+   formatted table (see the Status formatting section).
 
 9. **Handle completion**: When all jobs finish, check for failures. On success, invoke
-   `/log-processing-results` to discover and analyze the output. On failure, see Error Routing section.
+   `/log-processing-results` to discover and analyze the output. On failure, see the Error routing section.
 
 ---
 
@@ -294,13 +292,14 @@ workflow reads the two tool assets instead, since it drives no processing from P
 How the model behaves:
 
 - A job's width takes one of two values with nothing between them. An archive holding fewer data messages than
-  `PARALLEL_EXTRACTION_THRESHOLD` opens no pool and takes a single core, and every archive at or above it takes the
+  `_PARALLEL_EXTRACTION_THRESHOLD` opens no pool and takes a single core, and every archive at or above it takes the
   declared `CAMERA_EXTRACTION_JOB_CORES` allocation. Execution then collapses that width onto the session's core
   budget wherever the budget is narrower, which is the only narrowing the model applies. Read the width a job actually
   received from its `core_weight` (prepare) and `cores` (execute), never from the budget requested.
-- `PARALLEL_EXTRACTION_THRESHOLD` decides whether a job opens a pool at all, and the `PARALLEL_PROCESSING_THRESHOLD`
+- `_PARALLEL_EXTRACTION_THRESHOLD` decides whether a job opens a pool at all, and the `PARALLEL_PROCESSING_THRESHOLD`
   that the `ataraxis-data-structures` archive reader applies decides how it batches messages inside one. They carry
-  different values, so a claim about one settles nothing about the other.
+  different values, so a claim about one settles nothing about the other. The leading underscore marks the visibility
+  split, since the first is private to `orchestration/allocation.py` and the second is a public library export.
 - Execution re-derives `core_weight` and re-estimates `memory_mb` for every descriptor against this session's own
   budgets, so quote the execute figures whenever they disagree with the ones preparation stamped. The re-derivation
   reads the figures carried in the submitted job descriptors and touches no archive.
@@ -334,8 +333,13 @@ receives, and `memory_budget_mb` to narrow the concurrent set alone.
 
 The `get_log_processing_status_tool` response carries both an `active` flag (manager thread alive) and a `canceled`
 flag, plus a `message` of `No execution session exists.` when no session ever ran. Treat `active` as the completion
-signal and `canceled` as the cancellation/draining path (active jobs finish while no new jobs start). Per-job entries
-carry the `log_directory` the job reads, and may also include an `executor_id`.
+signal and `canceled` as the cancellation path. Per-job entries carry the `log_directory` the job reads, and may also
+include an `executor_id`.
+
+A per-job entry reports a fifth status, `UNKNOWN`, when its tracker cannot be read or when the tracker holds no entry
+for the job. An `UNKNOWN` job is counted in none of the `summary` status counts while still counting toward
+`summary.total`, so the four counts can sum below the total. Treat such a job as unresolved rather than complete, and
+re-prepare the batch to regenerate the tracker.
 
 When presenting batch status to the user, format as a table:
 
@@ -349,7 +353,7 @@ Summary: 5/8 jobs complete | 1 running | 2 queued | 0 failed
 | 051       | SUCCEEDED | 12.5s    |
 | 052       | SUCCEEDED | 8.3s     |
 | 053       | RUNNING   | 6.1s     |
-| 054       | SCHEDULED | —        |
+| 054       | SCHEDULED | n/a      |
 ```
 
 When using `get_batch_status_overview_tool` for multi-directory status:
@@ -357,7 +361,7 @@ When using `get_batch_status_overview_tool` for multi-directory status:
 ```text
 **Batch Overview**
 
-| Output Directory                        | Status    | Succeeded | Failed | Total |
+| Output directory                        | Status    | Succeeded | Failed | Total |
 |-----------------------------------------|-----------|-----------|--------|-------|
 | /data/session1/out/camera_timestamps/   | completed | 3         | 0      | 3     |
 | /data/session2/out/camera_timestamps/   | failed    | 1         | 1      | 2     |
@@ -387,7 +391,7 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 | Signal                                | Resolution                                                              |
 |---------------------------------------|-------------------------------------------------------------------------|
-| "Length mismatch"                     | Ensure `output_directories` matches `log_directories` length            |
+| `Length mismatch`                     | Ensure `output_directories` matches `log_directories` length            |
 | Path listed under `invalid_paths`     | Path is absent, is not a directory, or spans several DataLogger outputs |
 | Source listed under `skipped_sources` | Read its `reason`: unregistered source, or absent/ambiguous archive     |
 
@@ -398,13 +402,13 @@ under `invalid_paths`, and every per-source failure under that directory's `skip
 
 | Error                                    | Resolution                                       |
 |------------------------------------------|--------------------------------------------------|
-| "An execution session is already active" | Wait for current session or cancel first         |
-| "No valid jobs to execute"               | Verify job descriptors have all required keys    |
-| "Tracker file not found"                 | Re-prepare the batch to regenerate tracker files |
+| `An execution session is already active` | Wait for current session or cancel first         |
+| `No valid jobs to execute`               | Verify job descriptors have all required keys    |
+| `Tracker file not found`                 | Re-prepare the batch to regenerate tracker files |
 
 ### Processing failure routing
 
-| Error Pattern                        | Action                                                   |
+| Error pattern                        | Action                                                   |
 |--------------------------------------|----------------------------------------------------------|
 | Archive not found / file read errors | Verify `.npz` archives exist in the log directory        |
 | MCP tools unavailable                | Invoke `/video-mcp-environment-setup`                    |
@@ -448,16 +452,19 @@ Both paths lock the same `camera_processing_tracker.yaml`, so never prepare or e
 ## Verification checklist
 
 ```text
-Log Processing Workflow:
-- [ ] MCP server connected (if not, invoke `/video-mcp-environment-setup`)
+Log Processing Workflow, tool-settled (call `discover_camera_data_tool`, `prepare_log_processing_batch_tool`,
+`execute_log_processing_jobs_tool`, and `get_log_processing_status_tool`):
 - [ ] Archives discovered via `discover_camera_data_tool`
-- [ ] Log directories confirmed with user
-- [ ] Output directories provided by user (required, no default)
 - [ ] Batch prepared via `prepare_log_processing_batch_tool`
-- [ ] Output written to `camera_timestamps/` subdirectory under each output directory
-- [ ] Resource allocation confirmed with user
 - [ ] Jobs executed via `execute_log_processing_jobs_tool`
 - [ ] Status monitored until all jobs complete or fail
+- [ ] Output written to `camera_timestamps/` subdirectory under each output directory
+
+Log Processing Workflow, reader-judged:
+- [ ] MCP server connected (if not, invoke `/video-mcp-environment-setup`)
+- [ ] Log directories confirmed with user
+- [ ] Output directories provided by user (required, no default)
+- [ ] Resource allocation confirmed with user
 - [ ] Failed jobs investigated and retried if needed (use `clean_log_processing_output_tool` for full reset)
 - [ ] Successful output verified via `/log-processing-results`
 ```

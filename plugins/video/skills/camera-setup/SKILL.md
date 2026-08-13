@@ -39,6 +39,10 @@ The ataraxis-video-system MCP server exposes 27 tools. This skill covers the 15 
 organized into five groups. Log processing and analysis tools are documented in `/log-processing` and
 `/log-processing-results`.
 
+Every tool in this skill returns a plain string or a dictionary and never raises. A failure arrives as a string
+beginning `Error:` or as a dictionary carrying an `error` key, so check every return for that marker before treating
+the call as successful.
+
 ### System verification
 
 | Tool                              | Purpose                                                    |
@@ -49,8 +53,7 @@ organized into five groups. Log processing and analysis tools are documented in 
 
 `set_cti_file_tool` takes one parameter, `file_path` (`str`, required): the absolute path to the vendor-supplied `.cti`
 GenTL Producer file. **Always ask the user** for it. It returns `CTI configured: {path}` on success, or a string
-beginning `Error:` when the path is missing, is not a file, or the library rejects the Producer. The tool never raises,
-so inspect the returned string.
+beginning `Error:` when the path is missing, is not a file, or the library rejects the Producer.
 
 `check_runtime_requirements_tool` returns a pipe-separated status line:
 ```text
@@ -63,9 +66,9 @@ FFMPEG: OK | GPU: OK | CTI: OK
 - **CTI: Unsupported** means the GenICam camera runtime is absent, so Harvesters cameras cannot be used at all. See the
   GenICam platform support section below.
 
-`get_cti_status_tool` returns one of three lines: `CTI: {path}` when a valid Producer is configured,
-`CTI: Not configured` when none is set or the stored path no longer resolves, and `CTI: Unavailable.` followed by the
-reason when the GenICam runtime is absent. Treat `Unavailable` the same way as `Unsupported` above.
+`get_cti_status_tool` returns one of three lines. `CTI: {path}` reports a valid configured Producer, while
+`CTI: Not configured` reports that none is set or that the stored path no longer resolves. `CTI: Unavailable.`
+followed by the reason reports an absent GenICam runtime, so treat `Unavailable` the same way as `Unsupported` above.
 
 The `AXVS_CTI_PATH` environment variable supplies the Producer path for a single runtime and takes precedence over the
 path `set_cti_file_tool` persists. A host with that variable set reports a configured CTI without the tool having been
@@ -74,24 +77,25 @@ called, so check it whenever the reported path is not the one you expect.
 ### GenICam platform support
 
 The GenICam (Harvesters) camera interface requires the `harvesters` and `genicam` distributions, which
-ataraxis-video-system installs on Linux and Windows only. macOS never has them, because the `genicam` distribution
-publishes no macOS wheel for any Python version the library supports. On a host without the runtime:
+ataraxis-video-system installs on Linux, Windows, and Apple Silicon Macs running Python 3.12 or 3.13. That combination
+is the only one the `genicam` distribution publishes a macOS wheel for, so an Intel Mac and any Mac running Python 3.14
+never have them. On a host without the runtime:
 
 - `check_runtime_requirements_tool` reports `CTI: Unsupported` and `get_cti_status_tool` reports `CTI: Unavailable.`
 - `list_cameras_tool` returns only the OpenCV cameras and appends `Harvesters discovery skipped.` with the reason
 - `set_cti_file_tool` and all four GenICam configuration tools return an error naming the limitation
 - Starting a session with `interface="harvesters"` fails for the same reason
 
-None of this is a wiring, driver, or configuration fault, and no camera-side change fixes it. The reason the tools
-report names one of two causes, so read it rather than assuming:
+None of this is a wiring, driver, or configuration fault, and no camera-side change fixes it. The reason reported by the
+tools names one of two causes, so read it rather than assuming a cause:
 
-- **macOS**: the wheel does not exist, so this is permanent. Use the `opencv` interface, or drive GenICam
-  cameras from a Linux or Windows host. Every other library feature, including video encoding and log
-  processing, works normally there. The only other macOS restriction is the preview window, which is always
-  disabled.
-- **Linux or Windows**: the distributions install with the library, so an absent runtime means a damaged
-  installation. The reported reason instructs the user to reinstall the library. See
-  `/video-mcp-environment-setup`.
+- **An Intel Mac, or any Mac on Python 3.14**: the library declares no GenICam runtime there, so this is
+  permanent. Use the `opencv` interface, or drive GenICam cameras from an Apple Silicon Mac on Python 3.12 or
+  3.13, a Linux host, or a Windows host. Every other library feature, including video encoding and log
+  processing, works normally there.
+- **Linux, Windows, or an Apple Silicon Mac on Python 3.12 or 3.13**: the distributions install with the
+  library, so an absent runtime means a damaged installation. The reported reason instructs the user to
+  reinstall the library. See `/video-mcp-environment-setup`.
 
 ### Camera discovery
 
@@ -113,6 +117,10 @@ When nothing is found, the tool returns `No cameras discovered on the system.` i
 carries a trailing `Harvesters discovery skipped.` note with the reason when the GenICam runtime is absent, which means
 the host cannot enumerate GenICam hardware at all rather than that none is attached.
 
+Harvesters discovery is skipped a second way, when no GenTL Producer (.cti) file has been configured, and that skip
+carries no note. An OpenCV-only listing with no skip note therefore still warrants a `get_cti_status_tool` call before
+concluding that no GenICam camera is attached.
+
 ### Video session management
 
 | Tool                       | Purpose                                                                    |
@@ -130,10 +138,9 @@ finalized only when the session stops. `stop_frame_saving_tool` clears a flag ra
 `start_frame_saving_tool` call resumes appending to the same file. Several save/stop cycles in one session therefore
 produce one video, not several. To get separate files, stop the session and start a new one.
 
-`start_video_session_tool`, `start_frame_saving_tool`, and `stop_frame_saving_tool` return plain strings and never
-raise. Success reads `Session started: ...`, `Recording started`, and `Recording stopped` respectively, while every
-failure is a string beginning `Error:`. Check that prefix on every call, since a failed start returns a value rather
-than an exception and a subsequent recording call would otherwise look successful.
+`start_video_session_tool`, `start_frame_saving_tool`, and `stop_frame_saving_tool` report success as
+`Session started: ...`, `Recording started`, and `Recording stopped` respectively. A failed start returns a value
+rather than an exception, so an unchecked failure leaves a later recording call looking successful.
 
 **`start_video_session_tool` parameter details:**
 
@@ -160,8 +167,9 @@ than an exception and a subsequent recording call would otherwise look successfu
 - `monochrome` applies to the `"opencv"` and `"mock"` interfaces only. The `"harvesters"` interface takes its
   color mode from the camera's own GenICam configuration, so the flag has no effect there.
 - `display_frame_rate`: on macOS, preview display is automatically disabled regardless of this value, so the
-  absence of a preview window on macOS is expected and not a session failure. On other platforms it must not
-  exceed `frame_rate`.
+  absence of a preview window on macOS is expected and not a session failure. On every platform, macOS
+  included, the value must be None or a positive integer that does not exceed `frame_rate`. The bound is
+  validated before the macOS branch disables the preview, so an out-of-range value fails the start there too.
 - `quantization_parameter` must be between 0 and 51 inclusive. There is no sentinel value.
 
 **`stop_video_session_tool` return structure:**
@@ -189,9 +197,6 @@ disconnect.
 | `write_genicam_node_tool`  | `camera_index`, `node_name`, `value`                                  | Sets a GenICam node value                       |
 | `dump_genicam_config_tool` | `camera_index`, `output_file`, `blacklisted_nodes`                    | Exports full camera config to YAML              |
 | `load_genicam_config_tool` | `camera_index`, `config_file`, `strict_identity`, `blacklisted_nodes` | Applies config from YAML to camera              |
-
-All four tools return plain strings and never raise. Every failure comes back as a string beginning `Error:`, so check
-that prefix on every call.
 
 **`read_genicam_node_tool` behavior:**
 - `camera_index` defaults to `0` and `node_name` defaults to `""`
@@ -255,7 +260,7 @@ when the write fails. Confirm `status` is `success` before running discovery aga
 ### Pre-implementation system check
 
 1. Call `check_runtime_requirements_tool`
-2. If FFMPEG is missing, instruct the user to install FFMPEG n8.1
+2. If FFMPEG is missing, instruct the user to install FFMPEG n9.0.1
 3. If GPU is None and hardware encoding is desired, verify NVIDIA drivers
 4. If CTI is None and Harvesters cameras are needed, call `set_cti_file_tool` with the user's CTI path. If the
    user reports a CTI path you did not configure, check whether `AXVS_CTI_PATH` is set in their environment
@@ -271,8 +276,6 @@ when the write fails. Confirm `status` is `success` before running discovery aga
 
 ### Interactive camera testing
 
-Use this workflow to verify a camera works before writing integration code:
-
 1. Ask the user for an output directory
 2. Call `start_video_session_tool` with the camera index from discovery
 3. Verify the session starts (check `get_session_status_tool` returns "running")
@@ -283,16 +286,13 @@ Use this workflow to verify a camera works before writing integration code:
 
 ### GenICam camera configuration
 
-Use this workflow to inspect or modify Harvesters camera settings:
-
 **Inspect current configuration:**
 1. Call `read_genicam_node_tool` with empty `node_name` to list all writable nodes
 2. Call `read_genicam_node_tool` with a specific `node_name` for detailed metadata
 
 **Modify a single setting:**
 1. Call `read_genicam_node_tool` to check the current value and valid range/entries
-2. Call `write_genicam_node_tool` with the new value. Success returns `Node '{node_name}' set to {value}`, so
-   confirm the string does not begin `Error:` before treating the write as applied
+2. Call `write_genicam_node_tool` with the new value. Success returns `Node '{node_name}' set to {value}`
 3. Call `read_genicam_node_tool` again to confirm the change took effect
 
 Set `PixelFormat` to an 8-bit format (Mono8, BGR8, RGB8) before recording. The VideoSystem constructor grabs a probe
@@ -308,9 +308,8 @@ to start rather than being down-converted.
 
 ## Encoding parameter guidance
 
-This section covers only what is specific to an MCP session. `/camera-interface` owns the use-case encoding table, the
-encoder and pixel format trade-offs, the H264-to-H265 quantization equivalence, and the FFMPEG error catalog. Read those
-from there rather than from a restatement here.
+`/camera-interface` owns the use-case encoding table, the encoder and pixel format trade-offs, the H264-to-H265
+quantization equivalence, and the FFMPEG error catalog. Read those from there rather than from a restatement here.
 
 The MCP defaults (`H264`, preset `3`, `yuv420p`, QP `15`) are tuned for a quick compatibility-first test, not for
 production. Two of them deserve attention while testing:
@@ -325,7 +324,7 @@ production. Two of them deserve attention while testing:
 
 ## Bridge to code integration
 
-Testing through MCP is the intended way to settle a camera's parameters before writing code. Once the session works:
+Once an MCP session records the camera correctly, carry its settled parameters into code:
 
 1. Use `list_cameras_tool` to discover camera indices and native resolution and frame rate
 2. Use `start_video_session_tool` to confirm the camera works at the desired parameters
@@ -343,35 +342,35 @@ owns system ID allocation and the DataLogger topology that constrains it.
 
 ## Troubleshooting
 
-| Symptom                                              | Likely Cause                            | Resolution                                                                                             |
-|------------------------------------------------------|-----------------------------------------|--------------------------------------------------------------------------------------------------------|
-| `check_runtime_requirements_tool` → FFMPEG Missing   | FFMPEG not installed                    | Install FFMPEG n8.1 and ensure it is on PATH                                                           |
-| `check_runtime_requirements_tool` → GPU None         | No NVIDIA GPU or drivers                | Install NVIDIA drivers, or use CPU encoding (gpu=-1)                                                   |
-| `check_runtime_requirements_tool` → CTI Unsupported  | GenICam runtime absent (macOS)          | Use the `opencv` interface or a Linux/Windows host                                                     |
-| `list_cameras_tool` returns no cameras               | No cameras connected                    | Check physical connections, drivers, CTI configuration, and whether another application holds the port |
-| `list_cameras_tool` → "Harvesters discovery skipped" | GenICam runtime absent                  | Not a wiring fault, no camera-side fix exists                                                          |
-| `start_video_session_tool` → error                   | Session already active                  | Call `stop_video_session_tool` first                                                                   |
-| `start_video_session_tool` → directory error         | Output directory does not exist         | Create the directory or provide a valid path                                                           |
-| GenICam tool errors                                  | Camera not Harvesters-compatible        | GenICam tools only work with Harvesters cameras                                                        |
-| GenICam error naming the interface as unsupported    | GenICam runtime absent                  | Host limitation, see the GenICam platform support section                                              |
-| Session start fails on frame data type               | Camera set to a wider-than-8-bit format | Write `PixelFormat` to Mono8, BGR8, or RGB8                                                            |
-| `write_genicam_node_tool` fails                      | Node is read-only or value invalid      | Use `read_genicam_node_tool` to check access mode and range                                            |
-| MCP tools unavailable                                | Server not running                      | Use `/video-mcp-environment-setup` to diagnose                                                         |
+| Symptom                                              | Likely cause                                 | Resolution                                                                                             |
+|------------------------------------------------------|----------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| `check_runtime_requirements_tool` → FFMPEG Missing   | FFMPEG not installed                         | Install FFMPEG n9.0.1 and ensure it is on PATH                                                         |
+| `check_runtime_requirements_tool` → GPU None         | No NVIDIA GPU or drivers                     | Install NVIDIA drivers, or use CPU encoding (gpu=-1)                                                   |
+| `check_runtime_requirements_tool` → CTI Unsupported  | GenICam runtime absent, or a damaged install | Read the reported reason: `opencv` or another host where no wheel exists, reinstall elsewhere          |
+| `list_cameras_tool` returns no cameras               | No cameras connected                         | Check physical connections, drivers, CTI configuration, and whether another application holds the port |
+| `list_cameras_tool` → "Harvesters discovery skipped" | GenICam runtime absent                       | Not a wiring fault, no camera-side fix exists                                                          |
+| `start_video_session_tool` → error                   | Session already active                       | Call `stop_video_session_tool` first                                                                   |
+| `start_video_session_tool` → directory error         | Output directory does not exist              | Create the directory or provide a valid path                                                           |
+| GenICam tool errors                                  | Camera not Harvesters-compatible             | GenICam tools only work with Harvesters cameras                                                        |
+| GenICam error naming the interface as unsupported    | GenICam runtime absent                       | Host limitation, see the GenICam platform support section                                              |
+| Session start fails on frame data type               | Camera set to a wider-than-8-bit format      | Write `PixelFormat` to Mono8, BGR8, or RGB8                                                            |
+| `write_genicam_node_tool` fails                      | Node is read-only or value invalid           | Use `read_genicam_node_tool` to check access mode and range                                            |
+| MCP tools unavailable                                | Server not running                           | Use `/video-mcp-environment-setup` to diagnose                                                         |
 
 ---
 
 ## CLI equivalents
 
-Every tool in this skill has an `axvs` command a user can run by hand, and `/cli-reference` is canonical for all of
-them. **You MUST never invoke `axvs` commands.** Invoke `/cli-reference` when the user asks what a command does, or when
-`/video-mcp-environment-setup` has established that the server cannot be restored and the work must move to the
-terminal.
+Every tool group in this skill except camera manifest management has an `axvs` command a user can run by hand, and
+`/cli-reference` is canonical for all of them. **You MUST never invoke `axvs` commands.** Invoke `/cli-reference` when
+the user asks what a command does, or when `/video-mcp-environment-setup` has established that the server cannot be
+restored and the work must move to the terminal.
 
 | Tool group                 | User-facing command                                                            |
 |----------------------------|--------------------------------------------------------------------------------|
 | CTI configuration          | `axvs cti set`, `axvs cti check`                                               |
 | Runtime and discovery      | `axvs check compatibility`, `axvs check devices`                               |
-| Video session              | `axvs run`, which is keypress-driven and records at fixed encoding             |
+| Video session              | `axvs run`                                                                     |
 | GenICam configuration      | `axvs configure read`, `write`, `dump`, `load`                                 |
 | Camera manifest management | No CLI path. `read_camera_manifest_tool` and `write_camera_manifest_tool` only |
 
@@ -395,10 +394,12 @@ terminal.
 ## Verification checklist
 
 ```text
-Camera Setup:
+Camera Setup, tool-settled (call `check_runtime_requirements_tool` and `list_cameras_tool`):
 - [ ] Verified runtime requirements (FFMPEG, GPU, CTI) via check_runtime_requirements_tool
-- [ ] Configured CTI file if Harvesters cameras are needed
 - [ ] Discovered cameras and recorded indices via list_cameras_tool
+
+Camera Setup, reader-judged:
+- [ ] Configured CTI file if Harvesters cameras are needed
 - [ ] Tested camera with interactive video session
 - [ ] Verified recording produces valid MP4 output
 - [ ] Configured GenICam nodes if using Harvesters cameras (optional)

@@ -114,20 +114,23 @@ VideoSystem(
   and the library performs no software conversion, so a GenICam camera must be set to an 8-bit pixel format
   (Mono8, BGR8, RGB8) before a VideoSystem is constructed against it. Mono10, Mono12, Mono16, and other wide
   formats are rejected outright rather than down-converted
+- The same probe frame is rejected with `ValueError` when its color format falls outside the unpacked Monochrome,
+  RGB, and BGR families, so a packed or Bayer `PixelFormat` fails construction even at 8 bits per component
 
 ### Constructor failure modes
 
-| Exception             | Cause                                                                                  |
-|-----------------------|----------------------------------------------------------------------------------------|
-| `TypeError`           | An argument has the wrong type                                                         |
-| `ValueError`          | An argument is out of range, or the camera acquires frames that are not 8-bit unsigned |
-| `OverflowError`       | `system_id` falls outside the 0-255 range a uint8 supports                             |
-| `RuntimeError`        | FFMPEG is unavailable, or GPU encoding was requested without an NVIDIA GPU             |
-| `NotImplementedError` | The Harvesters interface was requested where the GenICam runtime is absent (macOS)     |
-| `FileNotFoundError`   | The Harvesters interface was requested before a .cti file was configured               |
-| `OSError`             | The configured .cti file is not a loadable GenTL Producer                              |
-| `BrokenPipeError`     | The validation frame grab from the managed camera failed                               |
-| `Timeout`             | The camera manifest's `.lock` file could not be acquired within 10 seconds             |
+| Exception             | Cause                                                                                   |
+|-----------------------|-----------------------------------------------------------------------------------------|
+| `TypeError`           | An argument has the wrong type                                                          |
+| `ValueError`          | An argument is out of range, or the camera's frame dtype or color format is unsupported |
+| `OverflowError`       | `system_id` falls outside the 0-255 range a uint8 supports                              |
+| `RuntimeError`        | FFMPEG is unavailable, or GPU encoding was requested without an NVIDIA GPU              |
+| `NotImplementedError` | The Harvesters interface was requested where the GenICam runtime is absent              |
+| `FileNotFoundError`   | The Harvesters interface was requested before a .cti file was configured                |
+| `OSError`             | The configured .cti file is not a loadable GenTL Producer                               |
+| `IndexError`          | `camera_index` exceeds the number of cameras the configured GenTL Producer discovers    |
+| `BrokenPipeError`     | The validation frame grab from the managed camera failed                                |
+| `Timeout`             | The camera manifest's `.lock` file could not be acquired within 10 seconds              |
 
 The `Timeout` comes from the `filelock` dependency that guards the manifest write. It is the one to expect when several
 VideoSystems register against one DataLogger directory concurrently, from separate processes or from the threads
@@ -225,6 +228,16 @@ class InputPixelFormats(StrEnum):
     BGR = "bgr24"         # Color images (BGR channel order)
 ```
 
+### ExtractedDataColumns
+
+```python
+class ExtractedDataColumns(StrEnum):
+    FRAME_TIME = "frame_time_us"  # The only column of every extracted timestamp feather file
+```
+
+Read the column of a `camera_{source_id}_timestamps.feather` file through this member rather than through the literal
+string, since the enumeration is the name both `execute_job()` and the frame statistics tool resolve the column by.
+
 ---
 
 ## Data classes
@@ -240,7 +253,7 @@ class CameraInformation:
     interface: CameraInterfaces | str  # OPENCV or HARVESTERS
     frame_width: int                   # Native frame width in pixels
     frame_height: int                  # Native frame height in pixels
-    acquisition_frame_rate: int        # Native frame rate in FPS; 0 for Harvesters cameras lacking AcquisitionFrameRate
+    acquisition_frame_rate: int        # Native frame rate in FPS, 0 for Harvesters cameras lacking AcquisitionFrameRate
     serial_number: str | None = None   # Harvesters only
     model: str | None = None           # Harvesters only
 ```
@@ -320,8 +333,8 @@ def apply_configuration(self, config: GenicamConfiguration, *, strict_identity: 
 connected `HarvestersCamera` is normally obtained at configuration time via the `/camera-setup` tools (which wrap these
 calls). These methods exist for advanced in-process use.
 
-The `VideoSystem` constructor accepts **no** GenICam config object: resolution and frame rate are applied from its
-`frame_width` /`frame_height`/`frame_rate` arguments at `connect()`, while exposure, gain, and other nodes are
+The `VideoSystem` constructor accepts **no** GenICam config object. Resolution and frame rate are applied from its
+`frame_width`/`frame_height`/`frame_rate` arguments at `connect()`, while exposure, gain, and other nodes are
 configured through the methods above. Because the deterministic acquisition script does not reconfigure nodes at
 runtime, apply GenICam state at configuration time and either persist it on the camera (save a UserSet) or re-apply a
 saved `GenicamConfiguration` before starting acquisition.
@@ -370,7 +383,7 @@ def discover_camera_ids() -> tuple[CameraInformation, ...]
 
 Discovers all cameras accessible through both OpenCV and Harvesters interfaces. OpenCV cameras are discovered first.
 Harvesters discovery is skipped if no CTI file is configured, and also wherever the GenICam runtime is absent, which is
-every macOS host. Call `genicam_runtime_available()` to distinguish the two cases.
+every Intel Mac and every Mac running Python 3.14. Call `genicam_runtime_available()` to distinguish the two cases.
 
 ### add_cti_file
 
@@ -510,8 +523,9 @@ The first log entry for each VideoSystem uses a special format:
 ### Python
 
 The package requires Python `>=3.12,<3.15`. Its `harvesters` and `genicam` dependencies carry the marker
-`sys_platform != 'darwin'`, so the GenICam camera runtime is installed on Linux and Windows only. Its absence on macOS
-is by design, not a damaged installation, and no reinstall restores it.
+`sys_platform != 'darwin' or (python_version < '3.14' and platform_machine == 'arm64')`, so the GenICam camera runtime
+is installed on Linux, Windows, and Apple Silicon Macs running Python 3.12 or 3.13. Its absence on an Intel Mac, or on
+any Mac running Python 3.14, is by design, and no reinstall restores it.
 
 ---
 
@@ -544,10 +558,10 @@ if __name__ == "__main__":
     )
 
     camera.start()
-    # Preview mode - frames displayed but not saved
+    # Preview mode, frames displayed but not saved
 
     camera.start_frame_saving()
-    # Recording mode - frames saved to MP4
+    # Recording mode, frames saved to MP4
 
     # ... acquisition runs ...
 
