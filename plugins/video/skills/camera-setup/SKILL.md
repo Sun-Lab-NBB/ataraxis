@@ -260,7 +260,7 @@ when the write fails. Confirm `status` is `success` before running discovery aga
 ### Pre-implementation system check
 
 1. Call `check_runtime_requirements_tool`
-2. If FFMPEG is missing, instruct the user to install FFMPEG n8.1
+2. If FFMPEG is missing, instruct the user to install FFMPEG n9.0.1
 3. If GPU is None and hardware encoding is desired, verify NVIDIA drivers
 4. If CTI is None and Harvesters cameras are needed, call `set_cti_file_tool` with the user's CTI path. If the
    user reports a CTI path you did not configure, check whether `AXVS_CTI_PATH` is set in their environment
@@ -344,7 +344,7 @@ owns system ID allocation and the DataLogger topology that constrains it.
 
 | Symptom                                              | Likely cause                                 | Resolution                                                                                             |
 |------------------------------------------------------|----------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| `check_runtime_requirements_tool` → FFMPEG Missing   | FFMPEG not installed                         | Install FFMPEG n8.1 and ensure it is on PATH                                                           |
+| `check_runtime_requirements_tool` → FFMPEG Missing   | FFMPEG not installed                         | Install FFMPEG n9.0.1 and ensure it is on PATH                                                         |
 | `check_runtime_requirements_tool` → GPU None         | No NVIDIA GPU or drivers                     | Install NVIDIA drivers, or use CPU encoding (gpu=-1)                                                   |
 | `check_runtime_requirements_tool` → CTI Unsupported  | GenICam runtime absent, or a damaged install | Read the reported reason: `opencv` or another host where no wheel exists, reinstall elsewhere          |
 | `list_cameras_tool` returns no cameras               | No cameras connected                         | Check physical connections, drivers, CTI configuration, and whether another application holds the port |
