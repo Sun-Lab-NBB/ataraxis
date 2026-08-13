@@ -112,7 +112,7 @@ surfaces at runtime rather than at build time. See `/microcontroller:firmware-mo
 
 See [references/api-reference.md](references/api-reference.md) for the complete API reference including:
 
-- The full 39-name top-level `__all__`, the per-subpackage export map, and which names are subpackage-only
+- The full 41-name top-level `__all__`, the per-subpackage export map, and which names are subpackage-only
 - MicroControllerInterface constructor parameters and their exact types and defaults
 - ModuleInterface constructor parameters, abstract methods, and `set_input_queue()`
 - MQTTCommunication constructor, lifecycle methods, and its delivery and connection semantics
@@ -224,7 +224,7 @@ class EncoderInterface(ModuleInterface):
 
 Both `error_codes` and `data_codes` MUST be in the user range 51-250 (`MINIMUM_CUSTOM_STATUS_CODE` through
 `MAXIMUM_CUSTOM_STATUS_CODE`, both inclusive). A declared code outside that range raises `ValueError` at construction.
-Event codes 1-50 are intercepted as system service messages before per-module routing, so codes in that range never
+Event codes 0-50 are intercepted as system service messages before per-module routing, so codes in that range never
 reach the custom error or data paths.
 
 | Parameter     | Type                          | Default    | Description                                                |
@@ -324,7 +324,7 @@ hold the controller for its whole duration. See `/microcontroller:firmware-modul
 both sides. The currently *active* command still finishes. It is the pending slot that is lost.
 
 There is no online completion signal to wait on: the firmware's `kCommandCompleted` is module event code 2, inside the
-system-reserved 1-50 range, so it is logged but never reaches `process_received_data()`. Either express repetition with
+system-reserved 0-50 range, so it is logged but never reaches `process_received_data()`. Either express repetition with
 `repetition_delay` instead of a burst of one-off sends. The alternative is to have the firmware emit a custom event code
 in the 51-250 range at the end of the handler and declare that code in `data_codes`, which gives the PC a completion
 callback it can pace against. `/microcontroller:firmware-module` documents the queue's priority chain.
@@ -361,10 +361,11 @@ These are sent as KernelState or KernelData messages with the following event co
 
 ### Module service errors
 
-Module messages with event codes 1-50 are system-reserved service messages:
+Module messages with event codes 0-50 are system-reserved service messages:
 
 | Event Code | Name                   | Meaning                                                                      | Data Payload                           |
 |------------|------------------------|------------------------------------------------------------------------------|----------------------------------------|
+| 0          | STANDBY                | Reserved placeholder. Never transmitted. An arriving 0 aborts the runtime    | (none)                                 |
 | 1          | TRANSMISSION_ERROR     | Module failed to send data to the PC                                         | communication_status, transport_status |
 | 2          | COMMAND_COMPLETED      | Module finished executing its last active command (informational, not error) | (none)                                 |
 | 3          | COMMAND_NOT_RECOGNIZED | Module received an unknown command code                                      | (none)                                 |

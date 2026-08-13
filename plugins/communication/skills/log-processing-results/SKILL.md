@@ -258,6 +258,7 @@ The `microcontroller_processing_tracker.yaml` file tracks job lifecycle per outp
 - **job_name:** Always `microcontroller_data_extraction`
 - **specifier:** The source ID string
 - **status:** `SCHEDULED`, `RUNNING`, `SUCCEEDED`, or `FAILED`
+- **executor_id:** The executor that ran the job, `pid:<process id>` locally or `<scheme>:<id>` under a scheduler
 - **started_at / completed_at:** Microsecond UTC timestamps (when available)
 - **error_message:** Error details (when status is `FAILED`)
 

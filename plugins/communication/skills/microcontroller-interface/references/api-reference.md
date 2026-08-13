@@ -215,10 +215,10 @@ idle between repetitions.
 
 ## MQTTCommunication
 
-Extends serial microcontroller communication by connecting remote producers and consumers to the microcontroller
-ecosystem over TCP. Designed for tight integration with `MicroControllerInterface`, which allows separate processes or
-machines to send commands to or receive data from microcontrollers via MQTT topics. Can be used standalone, but the
-library was designed with integrated usage in mind.
+Provides bidirectional publish and subscribe messaging with the other clients connected to the same MQTT broker over
+TCP. It is independent of `MicroControllerInterface`, which neither accepts nor constructs an instance, so routing MQTT
+traffic to or from a microcontroller is the consuming application's work. Inside this library, only the `axci mqtt`
+health check and the MQTT discovery tool construct it.
 
 ### Constructor
 
@@ -538,17 +538,16 @@ as read-only and never write into it.
 `OneOffModuleCommand`, `ReceptionCode`, `RepeatedModuleCommand`, plus `SerialCommunication`, `SerialProtocols`,
 `SerialPrototypes`, and `PrototypeType` import from `.communication` only.
 
-`SerialCommunication` is internal: its own docstring states it is designed for other library assets and should not be
-used directly. `MicroControllerInterface` owns the one instance, inside the spawned communication process. If you read
-it anyway, note that `receive_message()` parses into a **reused instance attribute** and returns a reference to it, so
-each call overwrites the previous message. Finish with a message before receiving the next one, and copy anything you
-intend to keep.
+`SerialCommunication` is internal: `MicroControllerInterface` owns the one instance, inside the spawned communication
+process. If you read it anyway, note that `receive_message()` parses into a **reused instance attribute** and returns a
+reference to it, so each call overwrites the previous message. Finish with a message before receiving the next one, and
+copy anything you intend to keep.
 
 ### Event code ranges
 
 | Range  | Owner  | Description                                                                    |
 |--------|--------|--------------------------------------------------------------------------------|
-| 1-50   | System | Reserved service codes for internal module status (errors, command completion) |
+| 0-50   | System | Reserved service codes for internal module status (errors, command completion) |
 | 51-250 | User   | User-defined event codes for application-specific data and state messages      |
 
 Event codes are unique within each module and within the kernel, the same code always carries the same semantic meaning

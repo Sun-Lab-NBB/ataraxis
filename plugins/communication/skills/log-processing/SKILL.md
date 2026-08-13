@@ -183,7 +183,7 @@ never held one reads `active: False` with a `message` and no `jobs` key at all. 
 **`get_log_processing_status_tool` return structure:**
 ```text
 active:           True while the session's manager thread is alive
-canceled:         True once `cancel_log_processing_tool` cleared this session's pending queue
+canceled:         True once this session's pending queue was cleared, by the cancel tool or by batch abandonment
 jobs[]:           One entry per job the session tracks, read from the trackers on disk:
   job_id:         Canonical hexadecimal job identifier
   source_id:      Controller ID the job reads
@@ -222,9 +222,9 @@ never change is stuck, whereas a batch that is merely slow moves `pending_count`
 
 **`cancel_log_processing_tool` return structure:**
 ```text
-canceled:                  True when a live session was canceled, False when none was active
+canceled:                  True whenever a session is stored, including a finished one, False when none is stored
 message:                   Names the pending jobs cleared and the jobs still completing
-final_state:               Present only when a session was canceled:
+final_state:               Present whenever a session is stored:
   succeeded_jobs:          This session's jobs that had already succeeded
   failed_jobs:             This session's jobs that had already failed
   active_jobs_at_cancel:   Jobs still running when the pending queue was cleared
@@ -420,7 +420,7 @@ priority, so they are not mutually exclusive descriptions of the directory:
 | `processing`  | At least one job is currently running                                                               |
 | `not_started` | Every job is still scheduled                                                                        |
 | `in_progress` | Mixed outcomes with nothing running and nothing failed. Also a tracker holding no jobs at all       |
-| `error`       | The tracker itself could not be read. The entry carries an `error` key instead of job details       |
+| `error`       | The tracker could not be read. Under `detailed`, the entry carries an `error` key, not job details  |
 
 Never report `failed` as "the directory failed". Read its `summary` and name the succeeded count too.
 
@@ -454,8 +454,10 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 
 ## Error routing
 
-Only `invalid_paths` and `skipped_sources` are soft. Every other preparation failure places its directory in
-`failed_directories` and leaves the rest of the batch prepared, so read all three lists before executing. See
+Only `invalid_paths` and `skipped_sources` are soft. A missing config path, an unreadable config, and a length mismatch
+between `log_directories` and `output_directories` each return a bare `{error}` dictionary and nothing else. Every other
+preparation failure places its directory in `failed_directories` and leaves the rest of the batch prepared, so read all
+three lists before executing. See
 [error-routing.md](references/error-routing.md) for every skip reason and its remedy, every preparation and execution
 error, the extraction-config faults that arrive as `FAILED` jobs, and the batch abandonment messages.
 

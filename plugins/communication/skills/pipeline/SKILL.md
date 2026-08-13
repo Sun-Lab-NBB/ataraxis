@@ -19,10 +19,9 @@ phase ordering, handoff conditions, and decision guidance.
 
 **Covers:**
 - Canonical pipeline phase ordering with handoff conditions
-- Decision trees for hardware interface, keepalive interval, and processing configuration
+- Decision trees for hardware interface, keepalive interval, and MCP versus code
 - Multi-controller planning: controller ID allocation, DataLogger topology, coordinated lifecycle
 - Multi-controller log processing
-- MCP vs code decision guidance
 - Quick-start references for common scenarios
 
 **Does not cover:**
@@ -126,8 +125,8 @@ Is the microcontroller connected via USB?
 `keepalive_interval` is a `MicroControllerInterface` constructor argument in milliseconds, and `0` disables the
 mechanism, leaving no watchdog reset when the link drops. Pick the value during phase 4 planning, because the workable
 band depends on the board and link speed fixed in phases 0 and 2, not on anything this phase controls. Read the
-per-board starting bands from `/microcontroller:firmware-module`, "Keepalive interval", rather than planning against a
-restatement of them here.
+starting bands from `/microcontroller:firmware-module`, "Kernel constructor" in `references/api-reference.md`. They
+follow the link speed and CPU frequency rather than the board name, so do not plan against a restatement of them here.
 
 Both ends must be configured. The PC sends the keepalive command at this interval, and the firmware runs its own
 watchdog off the interval its Kernel was built with. Setting the PC interval while the firmware has keepalive disabled
@@ -229,7 +228,7 @@ case where assembly must be run separately against an already-stopped directory.
 All controllers sharing a DataLogger write to the same log directory and the same `microcontroller_manifest.yaml`.
 
 1. `discover_microcontroller_data_tool` finds the manifest and names every confirmed source and controller name through
-   its `breakdown`, with `detailed=True` adding the module listings
+   its `breakdown`, with `include_items=True` listing the sources and `detailed=True` adding each source's modules
 2. Create and validate extraction config covering all controllers (see `/extraction-configuration`)
 3. `prepare_log_processing_batch_tool` creates one job per source ID with the config path
 4. Process all source IDs in a single batch for efficiency
@@ -239,10 +238,12 @@ To process every controller, list every controller's ID in the extraction config
 the sourcing model that decides which requested IDs become jobs. Do not plan against a restatement of it here.
 
 For multi-DataLogger setups, pass each DataLogger output directory to the preparation tool separately. Passing their
-shared parent is a hard `ValueError`, not merely inefficient: a tree holding more than one
-`microcontroller_manifest.yaml` spans several recordings or several DataLogger instances, and exactly one manifest is
-supported per invocation. `discover_microcontroller_data_tool` does tolerate the parent: run it there and pass its flat
-`log_directories` list to preparation, which is exactly the per-directory split preparation needs.
+shared parent fails that directory outright rather than merely processing it inefficiently: a tree holding more than
+one `microcontroller_manifest.yaml` spans several recordings or several DataLogger instances, and exactly one manifest
+is supported per invocation. The preparation tool reports the failure under `failed_directories` and prepares the rest
+of the batch, while the CLI and the library path raise `ValueError`. `discover_microcontroller_data_tool` does tolerate
+the parent: run it there and pass its flat `log_directories` list to preparation, which is exactly the per-directory
+split preparation needs.
 
 ---
 

@@ -81,8 +81,8 @@ code 2). Path options carry Click `click.Path` constraints, listed under Effect.
 | `-b`  | `--baudrate` | `int` | `115200` | optional | Identification baudrate. Used only by UART controllers. Ignored by USB controllers |
 
 **Note:** 115200 is the option default, not a universal board default. A UART board flashed at another speed reports
-`[No microcontroller]` at the wrong baudrate rather than failing. The per-board rates live in
-`/microcontroller:firmware-module`, "Serial speed per board environment".
+`[No microcontroller]` at the wrong baudrate rather than failing. `/microcontroller:firmware-module`, "Serial speed",
+owns the contract these rates form with the PC, and `/platformio-config` owns the per-board `monitor_speed` values.
 
 ### `axci mqtt`
 
@@ -207,9 +207,9 @@ echoes the resolved controller IDs, opens the tracker, and runs the jobs **one a
 
 | Exception                     | Trigger                                                                                                                                                                                                                                                                                                           |
 |-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `FileNotFoundError`           | The log directory or the config file does not exist. A requested controller's archive is absent or resolves to more than one file. The log directory resolves no job at all                                                                                                                                       |
+| `FileNotFoundError`           | A requested controller's archive is absent or resolves to more than one file. The log directory resolves no job at all. A nonexistent `-ld` or `-c` never reaches this path, because Click rejects it with exit code 2                                                                                            |
 | `ValueError`                  | The tree holds more than one `microcontroller_manifest.yaml`. A manifest registers no controllers. The config declares no controllers. A requested controller is unregistered in the manifest or absent from the config. `-id` matches no configured controller. The resolved archives sit in several directories |
-| `ValueError` (at job runtime) | A configured module or the kernel declares empty event codes. A controller declares no extraction target at all. A logged message's payload size disagrees with its prototype code                                                                                                                                |
+| `ValueError` (at job runtime) | A configured module or the kernel declares empty event codes. A controller declares no extraction target at all. The archive carries no onset timestamp message. A logged message's payload size disagrees with its prototype code                                                                                |
 | `OSError`                     | A directory beneath the log directory cannot be read                                                                                                                                                                                                                                                              |
 | `TimeoutError`                | The tracker's `.LOCK` file cannot be acquired within the timeout, most often a concurrent MCP batch over the same output directory                                                                                                                                                                                |
 
@@ -294,7 +294,7 @@ verification, query, and cleanup tool. Say so plainly rather than improvising a 
 | `/log-processing-results`              | Downstream: the feather output both paths write                                      |
 | `/log-input-format`                    | Reference: the assembled archives `axci process` reads under `-ld`                   |
 | `/microcontroller-interface`           | Context: the PC-side recording code, which no `axci` command replaces                |
-| `/microcontroller:firmware-module`     | Reference: the per-board serial rates behind the `axci id` baudrate                  |
+| `/microcontroller:firmware-module`     | Reference: the serial speed contract behind the `axci id` baudrate                   |
 | `/pipeline`                            | Context: where each CLI command sits in the end-to-end pipeline                      |
 
 ---

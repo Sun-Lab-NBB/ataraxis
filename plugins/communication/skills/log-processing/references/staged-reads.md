@@ -15,9 +15,10 @@ Both tools widen in the same three steps, and a caller pays for only the stage i
 | Semi-detail | Any filter, or `include_items=True` | A page of items carrying their identity, plus paging fields   |
 | Detail      | `detailed=True`                     | The per-item field that grows a whole-project read fastest    |
 
-**A bare call lists nothing.** It returns no item list and no paging fields at all, so an agent that reads `sources` or
-`log_directories` straight out of a bare response reads a key that is absent. Ask for the listing explicitly whenever
-you intend to render one.
+**A bare call lists nothing.** It returns no item list and no paging fields at all, so an agent that reads `sources`
+straight out of a bare discovery response, or `log_directories` out of a bare overview response, reads a key that is
+absent. `discover_microcontroller_data_tool` reports its own `log_directories` unconditionally. Ask for the listing
+explicitly whenever you intend to render one.
 
 ---
 

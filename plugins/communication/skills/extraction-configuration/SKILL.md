@@ -309,7 +309,7 @@ controllers:
 A `manifest_path` that does not exist, is not a file, or cannot be parsed is reported through `errors` (so `valid` reads
 false), not as a tool-level error dictionary.
 
-### Runtime enforcement (not covered by the validate tool)
+### Enforcement beyond validation
 
 The config may list only a subset of the manifest's controllers and modules, because extraction is selective. A
 requested `controller_id` that the manifest does not register, that this config does not declare, or whose `.npz`
@@ -325,23 +325,27 @@ The consequence here: `validate_extraction_config_tool` never inspects the log d
 can silently extract nothing. The manifest cross-reference in step 6 catches the registration half of that before
 processing. The archive half is only visible in `skipped_sources` after preparing.
 
-The empty-`event_codes` rule is enforced at job runtime rather than at validation. A module or kernel entry with an
-empty `event_codes` list, and a controller entry declaring neither modules nor kernel, each fail that controller's job
-with a `ValueError` instead of failing preparation.
+The empty-`event_codes` rule is checked by `validate_extraction_config_tool` but not by preparation. A module or kernel
+entry with an empty `event_codes` list, and a controller entry declaring neither modules nor kernel, each fail that
+controller's job with a `ValueError` at runtime. A config that skipped step 6 therefore reaches execution before the
+problem surfaces.
 
 ---
 
 ## Troubleshooting
 
-| Issue                              | Resolution                                                       |
-|------------------------------------|------------------------------------------------------------------|
-| "Config file not found"            | Verify the config path exists                                    |
-| "Unable to read extraction config" | Check YAML syntax. Regenerate if corrupted                       |
-| "Invalid controller data"          | Ensure each module has `module_type`, `module_id`, `event_codes` |
-| Validation errors after write      | Fix the reported issues and re-validate                          |
-| Controller ID not in manifest      | Verify the controller ID matches the manifest exactly            |
-| Module not in manifest             | Check module_type and module_id match the manifest entries       |
-| Valid config extracts nothing      | Re-validate with `manifest_path`, then read `skipped_sources`    |
+| Issue                               | Resolution                                                       |
+|-------------------------------------|------------------------------------------------------------------|
+| "Config file not found"             | Verify the config path exists                                    |
+| "Path is not a file"                | Point `config_path` at the .yaml file, not its directory         |
+| "Unable to read extraction config"  | Check YAML syntax. Regenerate if corrupted                       |
+| "Unable to parse extraction config" | Validation could not load the YAML. Check syntax                 |
+| "Unable to write extraction config" | Check that the parent directory is writable                      |
+| "Invalid controller data"           | Ensure each module has `module_type`, `module_id`, `event_codes` |
+| Validation errors after write       | Fix the reported issues and re-validate                          |
+| Controller ID not in manifest       | Verify the controller ID matches the manifest exactly            |
+| Module not in manifest              | Check module_type and module_id match the manifest entries       |
+| Valid config extracts nothing       | Re-validate with `manifest_path`, then read `skipped_sources`    |
 
 ---
 

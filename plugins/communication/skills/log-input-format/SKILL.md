@@ -301,11 +301,11 @@ event-code filter narrows the extracted set further. Do not read that gap as dat
 
 ### Message types
 
-| Type  | Identifier        | Payload                                      | Purpose                     |
-|-------|-------------------|----------------------------------------------|-----------------------------|
-| Onset | `elapsed_us == 0` | 8 bytes: uint64 UTC epoch microseconds       | Absolute time reference     |
-| Data  | `elapsed_us > 0`  | Protocol byte + command + event + typed data | Module/kernel data message  |
-| State | `elapsed_us > 0`  | Protocol byte + command + event              | Module/kernel state message |
+| Type  | Identifier        | Payload                                                                                              | Purpose                     |
+|-------|-------------------|------------------------------------------------------------------------------------------------------|-----------------------------|
+| Onset | `elapsed_us == 0` | 8 bytes: uint64 UTC epoch microseconds                                                               | Absolute time reference     |
+| Data  | `elapsed_us > 0`  | Protocol byte + module type and ID (module messages) + command + event + prototype code + typed data | Module/kernel data message  |
+| State | `elapsed_us > 0`  | Protocol byte + module type and ID (module messages) + command + event                               | Module/kernel state message |
 
 **Onset message:** The first message in every archive has `elapsed_us=0`. Its payload contains the UTC epoch timestamp
 (microseconds since epoch) that serves as the absolute time reference. All other timestamps in the archive are relative

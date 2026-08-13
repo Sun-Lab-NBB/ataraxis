@@ -412,8 +412,9 @@ what the two tables below add.
 ### kCommunicationStatusCodes
 
 Defined in `axmc_shared_assets.h` and returned by `Communication::get_communication_status()`. Fills the first byte of
-the error payload. "A sender" below means any of `SendDataMessage()`, `SendStateMessage()`, and `SendServiceMessage()`,
-all three of which set codes 54, 55, and 62 identically.
+the error payload, which in practice carries only 52, 53, 54, and 62, because every call site snapshots the status after
+a failed send or receive has already overwritten it. "A sender" below means any of `SendDataMessage()`,
+`SendStateMessage()`, and `SendServiceMessage()`, all three of which set codes 54, 55, and 62 identically.
 
 | Code | Constant               | Firmware meaning, with the method that sets the code                                       |
 |------|------------------------|--------------------------------------------------------------------------------------------|
@@ -470,12 +471,16 @@ cannot configure.
 {53, 23}  A header or parameter read ran past the payload. The message layout and the firmware disagree.
 {54, 21}  The outgoing object does not fit the payload. Shrink the data object or split it across messages.
 {62, 29}  The port accepted only part of the packet. The host is not draining the link, or the link dropped.
-{59, ..}  Parameter size mismatch. Align the PACKED_STRUCT with the PC-side send_parameters() tuple.
-{61, ..}  ExtractParameters() ran outside SetCustomParameters().
 ```
 
+Codes 59 and 61 never appear in this payload. `SendCommunicationErrorMessage()` snapshots the status on entry, and
+every call site reaches it after a failed send or receive has already replaced a parameter code with 52, 53, 54, or 62.
+A parameter fault reports instead as kernel status 7, `kModuleParametersError`, carrying `{module_type, module_id}`.
+Align the `PACKED_STRUCT` with the PC-side `send_parameters()` tuple, and call `ExtractParameters()` only from
+`SetCustomParameters()`.
+
 A second byte that reports success (18, 20, 22, or 24) means the packet layer was healthy and the fault lies entirely in
-the Communication layer, which is the normal shape of the 59 and 61 parameter faults.
+the Communication layer.
 
 ---
 
