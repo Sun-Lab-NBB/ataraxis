@@ -1,13 +1,13 @@
 # CSharpier configuration for C# Unity projects
 # Provides C# formatting similar to the clang-format style used in the C++ firmware projects.
 #
-# Installation:
-#   dotnet tool install -g csharpier
+# Installation, pinned to the 1.x line so a major release cannot change the output or the command surface:
+#   dotnet tool install -g csharpier --version "1.*"
 #
 # Usage:
-#   csharpier .                    # Formats all files
-#   csharpier --check .            # Reports formatting violations without writing (CI mode)
-#   csharpier Assets/              # Formats a specific directory
+#   csharpier format .             # Formats all files
+#   csharpier check .              # Reports formatting violations without writing (CI mode)
+#   csharpier format Assets/       # Formats a specific directory
 
 printWidth: 120
 useTabs: false
