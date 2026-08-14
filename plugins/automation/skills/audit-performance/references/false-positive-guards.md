@@ -70,8 +70,8 @@ whose only call sites live in `tests/` is COLD unless that same export makes it 
 An exported symbol is a public API entry point, so Guard 1 exempts it from the cold-path gate and it is analyzed rather
 than discarded. The exemption licenses analysis of the entry point's own body and of the work that body performs per
 call. It licenses no claim about the caller, so "called in a loop downstream", "every session parses thousands of
-these", and any other downstream-frequency assertion stays disqualifying, and a finding that leans on one is rejected
-here exactly as a finding leaning on an internal hot-path guess is.
+these", and any other downstream-frequency assertion stays disqualifying. A finding that leans on one is rejected here
+exactly as a finding leaning on an internal hot-path guess is.
 
 ---
 

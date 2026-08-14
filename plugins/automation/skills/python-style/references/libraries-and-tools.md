@@ -29,6 +29,13 @@ mapping lives in `/explore-dependencies`, which is authoritative for the current
 | YAML configuration          | `ataraxis-data-structures` | `YamlConfig`                                                     |
 | Shared memory               | `ataraxis-data-structures` | `SharedMemoryArray`                                              |
 | High-throughput logging     | `ataraxis-data-structures` | `DataLogger`, `LogPackage`                                       |
+| Atomic and direct writing   | `ataraxis-data-structures` | `atomic_write()`, `direct_write()`                               |
+| Directory transfer/removal  | `ataraxis-data-structures` | `transfer_directory()`, `delete_directory()`                     |
+| Checksums                   | `ataraxis-data-structures` | `calculate_directory_checksum()`                                 |
+| Data interpolation          | `ataraxis-data-structures` | `interpolate_data()`                                             |
+| Worker thread limiting      | `ataraxis-data-structures` | `limit_worker_threads()`, `initialize_worker_threads()`          |
+| Job state tracking          | `ataraxis-data-structures` | `ProcessingTracker`                                              |
+| Log archive reading         | `ataraxis-data-structures` | `LogArchiveReader`, `assemble_log_archives()`                    |
 
 ### Console and error handling notes
 
@@ -252,7 +259,7 @@ def calculate_threshold(self, value: float) -> float:
 When suppressing a warning, always include the specific error code:
 
 ```python
-if mode == 3:  # noqa: PLR2004 - LICK_TRAINING mode value from VisualizerMode enum.
+if mode == 0:  # noqa: PLR2004 - LICK_TRAINING mode value from VisualizerMode enum.
     ...
 ```
 

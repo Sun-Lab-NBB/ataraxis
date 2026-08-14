@@ -11,6 +11,7 @@ C# files only.
 
 ## Contents
 
+- One traversal, nine questions
 - Pass 1: Hot-path census
 - Pass 2: Numeric width trace, and the DTYPE TRACE and WIDTH TRACE procedures
 - Pass 3: Allocation, copy, and footprint census

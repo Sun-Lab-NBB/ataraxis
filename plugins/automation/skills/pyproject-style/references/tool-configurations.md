@@ -29,8 +29,7 @@ packages = ["src/package_name"]
 Additional directories may be included when they are part of the distributed package:
 
 ```toml
-packages = ["src/package_name", "notebooks"]
-packages = ["src/ataraxis_video_system", "examples"]
+packages = ["src/ataraxis_communication_interface", "examples"]
 ```
 
 ---
@@ -100,8 +99,7 @@ import rules and takes no project-specific section.
 Test code is linted, and it is held to the wider of the two lists. Tests assert, reach into private members, inline
 expected values, and omit annotations and docstrings, all of which library code is forbidden to do. The shared test
 corpus waives exactly the rules that report those patterns, so a rule may be required in one corpus and forbidden in the
-other. `SLF001` is the clearest case: it stays out of the shared block of the universal `lint.ignore` corpus and is a
-member of the shared test corpus.
+other. `SLF001` is the clearest case, which the "Project-specific Ruff ignores" section below states in full.
 
 ### Ruff per-file ignores
 
@@ -115,8 +113,11 @@ member of the shared test corpus.
 ```
 
 When a `tests/` directory exists, add a second per-file-ignores key for test files. Spell the glob as `tests/**/*.py`,
-which matches both direct children of `tests/` and files nested in its subdirectories. The shared test corpus below is
-present in every project, followed by any project-specific entries:
+anchored at the project root, which matches both direct children of `tests/` and files nested in its subdirectories. The
+`**/tests/**/*.py` variant reaches the same test files and additionally waives the whole corpus for any `tests`
+directory nested anywhere under `src/`, so library code placed there is linted as test code. Rewrite the prefixed form
+to the anchored one wherever it appears. The shared test corpus below is present in every project, followed by any
+project-specific entries:
 
 ```toml
 "tests/**/*.py" = [
@@ -135,10 +136,6 @@ present in every project, followed by any project-specific entries:
     "S106",    # Token arguments in tests carry fake values
 ]
 ```
-
-`tests/**/*.py` is the spelling, anchored at the project root. The `**/tests/**/*.py` variant reaches the same test
-files and additionally waives the whole corpus for any `tests` directory nested anywhere under `src/`, so library code
-placed there is linted as test code. Rewrite the prefixed form to the anchored one wherever it appears.
 
 `D` and `ANN` are family prefixes rather than individual codes. Test files trip a wide and shifting set of members of
 both families, so the prefixes keep the list stable as tests are added.
@@ -216,9 +213,9 @@ below the shared block:
 | `W293`   | Whitespace in UI formatting is needed                       |
 | `TRY301` | Raising inside a helper is needed to build a full traceback |
 
-Keep the security rules `S602` and `S607`, together with `SLF001`, out of the shared block of the universal
-`lint.ignore` corpus. Each reports a genuine risk in a project that has no reason to trip it, and each is added to the
-project-specific section only by a project whose library code needs it.
+Keep the security rules `S602` and `S607` out of the shared block of the universal `lint.ignore` corpus. Each reports a
+genuine risk in a project that has no reason to trip it, and each is added to the project-specific section only by a
+project whose library code needs it.
 
 `SLF001` carries opposite status in the two corpora, so read the requirement for the one being judged. It stays out of
 the shared block of the universal `lint.ignore` corpus, where it enforces the rule that private members stay inside the
@@ -338,8 +335,8 @@ only for a project that spawns such workers, and state the reason in the comment
 ## Coverage configuration
 
 The test suite MUST cover 100% of the measured statements. The `[tool.coverage.report]` section declares that gate, and
-the `[tool.coverage.run]` section lists the files that stay outside the measured corpus. These settings are identical
-across all projects, apart from the project-specific `omit` entries:
+the `[tool.coverage.run]` section lists the files that stay outside the measured corpus. The `omit` entries are
+project-specific, and the remaining settings are shared:
 
 ```toml
 # Lists the source files excluded from coverage measurement in full. Interface modules, such as the CLI, are covered
@@ -378,9 +375,15 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
-    "pass",
+    '^\s*pass$',
 ]
 ```
+
+Every `exclude_lines` entry is a REGEX, matched with `re.search` against the raw text of each line. An unanchored entry
+therefore matches any line containing it as a substring, and a match on a `def` or `if` header excludes that whole
+block. `'^\s*pass$'` is anchored so it matches a bare `pass` statement alone, where a bare `"pass"` would also match
+`password`, `bypass`, and `passed`, silently dropping real statements from the measured corpus while the gate still
+reports success. Anchor any entry added to this list unless it is a comment directive such as `pragma: no cover`.
 
 `fail_under` applies to every command that renders a report, so `pytest --cov`, `coverage report`, `coverage xml`, and
 `coverage html` all fail once the measured total drops below 100. See `/tox-config` for the `coverage` environment
@@ -446,9 +449,13 @@ For projects using scikit-build-core (e.g., ataraxis-time):
 ```toml
 [tool.scikit-build]
 sdist.exclude = [".github", "recipe"]
-minimum-version = "0.9"
+minimum-version = "1.0"
 build-dir = "build/{wheel_tag}"
 ```
+
+A project that cross-compiles adds `[[tool.scikit-build.overrides]]` blocks beneath the table, each selecting on an
+environment variable and setting a CMake define. ataraxis-time uses one to force the ARM64 generator platform for
+Windows ARM64 wheels.
 
 ### cibuildwheel configuration
 
@@ -465,3 +472,8 @@ test-requires = ["pytest", "pytest-xdist"]
 
 Platform-specific architecture settings use `[tool.cibuildwheel.linux]`, `[tool.cibuildwheel.windows]`, and
 `[tool.cibuildwheel.macos]` sub-tables.
+
+Two further tables cover the cases the base configuration cannot express. `[[tool.cibuildwheel.overrides]]` selects a
+wheel tag and replaces one command for it, which is how ataraxis-time points Windows ARM64 wheels at its own
+`tools/repair_windows_wheel.py` script. `[tool.cibuildwheel.macos.environment]` sets the environment the macOS builds
+run under, which is where `MACOSX_DEPLOYMENT_TARGET` is pinned.

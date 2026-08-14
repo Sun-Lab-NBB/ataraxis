@@ -110,6 +110,11 @@ pyproject.toml files use the following section order. This order is mandatory fo
 14. `[tool.coverage.html]`
 15. `[tool.coverage.report]`
 
+Two further tables have optional positions. `[tool.hatch.build.targets.wheel.sources]` follows position 7, and is
+present where a wheel remaps a packaged directory onto a different import name. `[tool.importlinter]` and its
+`[[tool.importlinter.contracts]]` entries follow position 15, and are present where a project enforces import
+boundaries.
+
 `[tool.ruff.format]` comes first, then the `[tool.ruff.lint.*]` sub-tables run `pycodestyle`, `pydocstyle`,
 `per-file-ignores`, `isort`, and then the optional `flake8-unused-arguments`.
 
@@ -166,7 +171,7 @@ Group related items within dependency and classifier arrays using category comme
 dependencies = [
     # Automation Logic
     "click>=8,<9",
-    "tomli>=2,<3",
+    "platformdirs>=4,<5",
 
     # Testing
     "pytest>=9,<10",
@@ -260,7 +265,7 @@ C-extension projects use scikit-build-core with nanobind:
 
 ```toml
 [build-system]
-requires = ["scikit-build-core>=0,<1", "nanobind>=2,<3"]
+requires = ["scikit-build-core>=1,<2", "nanobind>=2,<3"]
 build-backend = "scikit_build_core.build"
 ```
 
@@ -291,8 +296,8 @@ minor release when the project calls an API that first appeared in that release:
 Use environment markers for platform-conditional dependencies:
 
 ```toml
-"intel-cmplr-lib-rt>=2025,<2026; sys_platform != 'darwin'"
-"tbb4py>=2022,<2023; sys_platform != 'darwin'"
+"intel-cmplr-lib-rt>=2026,<2027; sys_platform != 'darwin'"
+"tbb4py>=2023,<2024; sys_platform != 'darwin'"
 ```
 
 ---

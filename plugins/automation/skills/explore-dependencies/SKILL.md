@@ -49,7 +49,8 @@ mappings, and import names.
 Read the project's `pyproject.toml` and extract all ataraxis dependencies from the `dependencies` array in `[project]`,
 `[project.optional-dependencies]`, and `[dependency-groups]` (PEP 735). Ataraxis projects place dev dependencies such as
 `ataraxis-automation` in `[dependency-groups]`, not under `[project.optional-dependencies]` (see `/pyproject-style`).
-Match package names that start with `ataraxis-` (or the project's own first-party namespace prefix).
+Match package names that start with `ataraxis-`, that start with the project's own first-party namespace prefix, or
+that the catalog names outright, which is how `cindra` is reached.
 
 If `pyproject.toml` is not found, check for `setup.cfg`, `setup.py`, or `requirements.txt` as fallbacks.
 
@@ -86,9 +87,10 @@ gh api repos/<owner>/<repo>/releases/latest --jq .tag_name
 Flag any drift between the local checkout and the latest release before treating the local API as authoritative.
 
 For C++ ataraxis libraries (ataraxis-transport-layer-mc, ataraxis-micro-controller), the `python -c "import ..."`
-resolution does not apply. Locate the source under `.pio/libdeps/<lib>/src`, read the library version from the `version`
-field of the library's `library.json` (not `importlib.metadata`), and enumerate public classes from the library's header
-files rather than from `__all__` (see Step 4).
+resolution does not apply. Locate the source under `.pio/libdeps/<env>/<lib>/src`, where `<env>` is the PlatformIO
+environment name from `platformio.ini`. Read the library version from the `version` field of the library's
+`library.json` (not `importlib.metadata`). Enumerate public classes from the library's header files rather than from
+`__all__` (see Step 4).
 
 If a package is not installed, note it as unavailable and skip to the next dependency.
 
@@ -102,7 +104,8 @@ For each installed Python dependency:
 4. Group exports by category (classes, functions, constants/enums)
 
 For C++ dependencies there is no `__init__.py` or `__all__`. Instead, read the public header files under
-`.pio/libdeps/<lib>/src` and enumerate the public classes, structs, and enums they declare, grouping them the same way.
+`.pio/libdeps/<env>/<lib>/src` and enumerate the public classes, structs, and enums they declare, grouping them the
+same way.
 
 ### Step 5: Read API details
 
@@ -186,7 +189,8 @@ Organize the snapshot by library, with sections for each dependency.
 ```
 
 For C++ libraries, replace the `**Import:**` line with an `**Include:**` line naming the header (e.g. `#include
-"transport_layer.h"`) and set `**Source:**` to the `.pio/libdeps/<lib>/src` location.
+"transport_layer.h"`) and set `**Source:**` to the `.pio/libdeps/<env>/<lib>/src` location, so a project building
+for several boards carries one tree per environment.
 
 ### Replacement opportunities section
 

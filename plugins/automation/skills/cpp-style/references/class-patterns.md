@@ -112,11 +112,14 @@ template parameters, enabling compile-time specialization.
 Use `const` with value template parameters and descriptive `kPascalCase` names:
 
 ```cpp
+/// Sentinel marking the tone pin as unused, so the module skips tone playback entirely.
+static constexpr uint8_t kUnusedTonePin = 255;
+
 template <
     const uint8_t kValvePin,
     const bool kNormallyClosed,
     const bool kStartClosed = true,
-    const uint8_t kTonePin  = 255,
+    const uint8_t kTonePin  = kUnusedTonePin,
     const bool kNormallyOff = true,
     const bool kStartOff    = true>
 class ValveModule final : public Module
@@ -243,7 +246,7 @@ Shared enums that span multiple classes belong in a dedicated shared asset names
 ```cpp
 namespace axmc_shared_assets
 {
-    enum class kCoreStatusCodes : uint8_t { /* ... */ };
+    enum class kCommunicationStatusCodes : uint8_t { /* ... */ };
 }
 ```
 
@@ -270,9 +273,8 @@ The `PACKED_STRUCT` macro is defined in shared assets headers to ensure cross-co
 ```cpp
 #if defined(__GNUC__) || defined(__clang__)
     #define PACKED_STRUCT __attribute__((packed))
-#elif defined(_MSC_VER)
+#else
     #define PACKED_STRUCT
-    #pragma pack(push, 1)
 #endif
 ```
 
@@ -363,7 +365,7 @@ multiple modules within a single loop iteration:
 ```cpp
 void Pulse()
 {
-    switch (execution_parameters.stage)
+    switch (get_command_stage())
     {
         // Stage 1: Opens the valve
         case 1:
@@ -411,10 +413,15 @@ bool RunActiveCommand() override
 {
     switch (static_cast<kModuleCommands>(get_active_command()))
     {
+        // Opens the valve and re-closes it after the configured pulse duration.
         case kModuleCommands::kSendPulse: Pulse(); return true;
+        // Opens the valve and holds it open until a further command closes it.
         case kModuleCommands::kToggleOn: Open(); return true;
+        // Closes the valve and holds it closed.
         case kModuleCommands::kToggleOff: Close(); return true;
+        // Cycles the valve a fixed number of times to measure its delivery volume.
         case kModuleCommands::kCalibrate: Calibrate(); return true;
+        // Reports an unrecognized command code back to the caller.
         default: return false;
     }
 }
@@ -460,7 +467,7 @@ Classes and structs follow different rules for data member visibility:
   methods beyond simple initialization.
 
 ```cpp
-// Class — all data members private
+// Class, all data members private
 class TransportLayer
 {
     public:
@@ -476,7 +483,7 @@ class TransportLayer
         uint8_t _runtime_status = 0;
 };
 
-// Struct — public members for passive data
+// Struct, public members for passive data
 /// Stores the instance's addressable runtime parameters.
 struct CustomRuntimeParameters
 {
@@ -501,7 +508,7 @@ uint8_t get_module_type() const { return _module_type; }
 
 // Good - PascalCase method for operations with side effects
 /// Sends the specified data to the connected PC via the serial port.
-bool SendData(uint8_t status_code, const ObjectType& object);
+void SendData(const uint8_t event_code, const ObjectType& object);
 
 // Avoid - accessor name for a method that does real work
 /// Computes and returns the CRC checksum of the current buffer.
@@ -610,8 +617,8 @@ CompleteCommand();
 Consecutive assignments and macros are aligned for readability:
 
 ```cpp
-_custom_parameters.report_CCW      = true;
-_custom_parameters.report_CW       = true;
+_custom_parameters.report_ccw      = true;
+_custom_parameters.report_cw       = true;
 _custom_parameters.delta_threshold = 15;
 ```
 
@@ -620,7 +627,7 @@ _custom_parameters.delta_threshold = 15;
 Template declarations always appear on a separate line:
 
 ```cpp
-template <const uint8_t kPinA, const uint8_t kPinB, const bool kInvertDirection = false>
+template <const uint8_t kPinA, const uint8_t kPinB, const uint8_t kPinX, const bool kInvertDirection = false>
 class EncoderModule final : public Module
 ```
 
@@ -634,7 +641,7 @@ case kModuleCommands::kCheckState: CheckState(); return true;
 case kModuleCommands::kReset: ResetEncoder(); return true;
 default: return false;
 
-if (kTonePin == 255) _custom_parameters.tone_duration = 0;
+if (kTonePin == kUnusedTonePin) _custom_parameters.tone_duration = 0;
 ```
 
 ---

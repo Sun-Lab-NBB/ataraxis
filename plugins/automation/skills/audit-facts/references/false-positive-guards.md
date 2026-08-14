@@ -35,7 +35,7 @@ Facts the audited repository cannot derive from its own source are AUTHORITATIVE
 toolchain version floors, installer requirements, cross-repository version pins, environment prerequisites, hardware
 specifications, and vendor documentation the file cites.
 
-Report such a claim only when the file contradicts itself about it, and set the Suggested fix to "leave as-is,
+Report such a claim only when the file contradicts itself about it, and set the Fix bullet to "leave as-is,
 authoritative external requirement" rather than a removal or a change. `/readme-style` is the source of the canonical
 install-section requirements, so a claim matching those is settled there rather than here.
 
@@ -117,12 +117,12 @@ than reporting both.
 
 ## Guard 9: The code is the wrong side
 
-The implementation is authoritative over the documentation, so the Suggested fix edits the DOCUMENTATION by default.
+The implementation is authoritative over the documentation, so the Fix bullet edits the DOCUMENTATION by default.
 
 Before reporting a mismatch where the code looks like the side to fix, run the ownership ladder in `/audit-correctness`.
 A caller, a test, or an external schema that is correct only under the documented reading, an independently enforced
 guard, and an observable failure for a documented-supported input each move the finding to that skill. Report it here
-only when the implementation is self-consistent and every caller already matches it, and say so in the Suggested fix
+only when the implementation is self-consistent and every caller already matches it, and say so in the Fix bullet
 when the code still looks wrong.
 
 ---

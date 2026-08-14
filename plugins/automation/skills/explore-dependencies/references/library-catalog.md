@@ -26,10 +26,10 @@ Core libraries maintained under the Sun-Lab-NBB GitHub organization.
 These are PlatformIO dependencies for Arduino/Teensy firmware projects, not Python packages. They cannot be explored
 with `python -c "import ..."`. Instead, locate them in the PlatformIO `.pio/libdeps/` directory.
 
-| Library                     | PlatformIO name                           | Abbr   |
-|-----------------------------|-------------------------------------------|--------|
-| ataraxis-transport-layer-mc | `inkaros/ataraxis-transport-layer-mc`     | axtlmc |
-| ataraxis-micro-controller   | `inkaros/ataraxis-micro-controller`       | axmc   |
+| Library                     | PlatformIO name                       | Abbr   |
+|-----------------------------|---------------------------------------|--------|
+| ataraxis-transport-layer-mc | `inkaros/ataraxis-transport-layer-mc` | axtlmc |
+| ataraxis-micro-controller   | `inkaros/ataraxis-micro-controller`   | axmc   |
 
 ### Python + C++ extension
 
@@ -53,6 +53,10 @@ All repositories are under `https://github.com/Sun-Lab-NBB/`:
 | ataraxis-communication-interface | https://github.com/Sun-Lab-NBB/ataraxis-communication-interface |
 | ataraxis-micro-controller        | https://github.com/Sun-Lab-NBB/ataraxis-micro-controller        |
 | ataraxis-automation              | https://github.com/Sun-Lab-NBB/ataraxis-automation              |
+| sollertia-shared-assets          | https://github.com/Sun-Lab-NBB/sollertia-shared-assets          |
+| sollertia-forgery                | https://github.com/Sun-Lab-NBB/sollertia-forgery                |
+| sollertia-experiment             | https://github.com/Sun-Lab-NBB/sollertia-experiment             |
+| cindra                           | https://github.com/Sun-Lab-NBB/cindra                           |
 
 ---
 
@@ -61,8 +65,16 @@ All repositories are under `https://github.com/Sun-Lab-NBB/`:
 A project may also depend on its own first-party application libraries, higher-level packages built on top of the
 ataraxis infrastructure for specific workflows such as experiment orchestration, data analysis, or acquisition tooling.
 
-These follow the same exploration workflow as the ataraxis libraries: match the project's first-party package prefix in
-`pyproject.toml`, resolve each with `python -c "import ..."`, and read their `__all__` exports.
+| Library                 | PyPI package            | Import name                | Abbr   |
+|-------------------------|-------------------------|----------------------------|--------|
+| sollertia-shared-assets | sollertia-shared-assets | `sollertia_shared_assets`  | slsa   |
+| sollertia-forgery       | sollertia-forgery       | `sollertia_forgery`        | slf    |
+| sollertia-experiment    | sollertia-experiment    | `sollertia_experiment`     | sle    |
+| cindra                  | cindra                  | `cindra`                   | cindra |
+
+These follow the same exploration workflow as the ataraxis libraries: resolve each with `python -c "import ..."` and
+read their `__all__` exports. Match a dependency by NAME against this catalog rather than by prefix alone, because
+`cindra` shares no prefix with any first-party namespace and a prefix rule never reaches it.
 
 ---
 
@@ -81,7 +93,13 @@ Use this table to determine which library to explore when the task involves a sp
 | Timestamps, conversion      | ataraxis-time                    | `ataraxis_time`                    | axt    |
 | YAML config, shared memory  | ataraxis-data-structures         | `ataraxis_data_structures`         | axds   |
 | Data logging                | ataraxis-data-structures         | `ataraxis_data_structures`         | axds   |
+| Atomic writes, checksums    | ataraxis-data-structures         | `ataraxis_data_structures`         | axds   |
+| Directory transfer, removal | ataraxis-data-structures         | `ataraxis_data_structures`         | axds   |
+| Marker-file discovery       | ataraxis-data-structures         | `ataraxis_data_structures`         | axds   |
+| Job and processing trackers | ataraxis-data-structures         | `ataraxis_data_structures`         | axds   |
 | Camera interfaces           | ataraxis-video-system            | `ataraxis_video_system`            | axvs   |
+| Camera log processing       | ataraxis-video-system            | `ataraxis_video_system`            | axvs   |
 | Serial communication (PC)   | ataraxis-transport-layer-pc      | `ataraxis_transport_layer_pc`      | axtlpc |
 | MC communication            | ataraxis-communication-interface | `ataraxis_communication_interface` | axci   |
+| MC log processing, jobs     | ataraxis-communication-interface | `ataraxis_communication_interface` | axci   |
 | Dev automation              | ataraxis-automation              | `ataraxis_automation`              | axa    |

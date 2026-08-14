@@ -8,9 +8,8 @@ Every entry inherits the skill's evidence floor. A finding needs a concrete trig
 expression, a numbered call sequence, or a line-numbered interleaving, and a concrete result, written as a value, an
 exception, a corruption, or a hang.
 
-Detection is performed by the sweep passes in [detection-passes.md](detection-passes.md), which the workflow loads at
-Step 3 and Step 4. Each **Detection** paragraph below therefore names the pass that finds its category, where one
-carries it, and states the work specific to that category.
+Detection is performed by the sweep passes the workflow loads at Step 3 and Step 4. Each **Detection** paragraph below
+therefore names the pass that finds its category, where one carries it, and states the work specific to that category.
 
 ---
 
@@ -196,8 +195,9 @@ a later read loudly. MEDIUM when the only loss is a cache or a regenerable inter
 ## CONCURRENCY_DEFECT
 
 **Definition.** A defect requiring two execution contexts to manifest. Covers a data race, a non-atomic
-read-modify-write, unsynchronized shared mutable state across threads or processes, inconsistent lock ordering, a
-callback mutating state the main path reads, and interrupt or signal handler unsafety.
+read-modify-write, unsynchronized shared mutable state across threads or processes, and inconsistent lock ordering. Also
+covers a callback mutating state the main path reads, a cross-iteration race between the Numba `prange` worker threads
+an `@njit(parallel=True)` kernel spawns, and interrupt or signal handler unsafety.
 
 **Detection.** Run Pass 6. Enumerate the contexts that actually exist first, and proceed only when at least two reach
 the same state.

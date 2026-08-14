@@ -126,8 +126,9 @@ For each aspect of the skill's behavior, decide the appropriate freedom level us
 
 ### Step 4: Create the directory structure
 
-In this repo every skill lives under `plugins/<plugin-name>/skills/<skill-name>/`. The plugin's
-`.claude-plugin/plugin.json` with `"skills": "./skills/"` is what registers the skills directory:
+In this repo every skill lives under `plugins/<plugin-name>/skills/<skill-name>/`. A plugin's `skills/` directory is
+scanned automatically, and the `"skills"` key in `.claude-plugin/plugin.json` declares ADDITIONAL skill directories
+outside it:
 
 ```text
 plugins/<plugin-name>/skills/skill-name/
@@ -158,10 +159,9 @@ Run through the verification checklist at the end of this skill. Then invoke the
 verify it produces correct behavior. Test with both explicit invocation (`/skill-name`) and contextual descriptions to
 confirm the trigger conditions work.
 
-A new skill under an existing plugin needs no manual registration, because the plugin.json `"skills": "./skills/"` glob
-auto-discovers it. If the new skill introduces a new plugin, add that plugin to the repo's
-`.claude-plugin/marketplace.json` `plugins` array. Adding or materially changing a plugin's skills should bump `version`
-in that plugin's `.claude-plugin/plugin.json`.
+A new skill under an existing plugin needs no manual registration, because the default `skills/` scan discovers it. If
+the new skill introduces a new plugin, add that plugin to the repo's `.claude-plugin/marketplace.json` `plugins` array.
+Adding or materially changing a plugin's skills should bump `version` in that plugin's `.claude-plugin/plugin.json`.
 
 Bump that `version` EXACTLY ONCE per branch, relative to `main`. Read the branch's version and the `main` version before
 editing, with `git show main:plugins/{plugin}/.claude-plugin/plugin.json`, and leave the version untouched wherever the
@@ -177,7 +177,7 @@ because the version names the release the branch produces rather than the edits 
 Every SKILL.md requires YAML frontmatter with `name` and `description`. For the complete field reference including all
 optional fields, see [frontmatter-reference.md](references/frontmatter-reference.md).
 
-**Required fields:**
+**Minimum frontmatter:**
 
 ```yaml
 ---

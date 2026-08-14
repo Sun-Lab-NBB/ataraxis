@@ -84,7 +84,7 @@ These rules apply only when working with Python files in the src/ or tests/ dire
 
 ## Personal preferences
 
-`.claude.local.md` (auto-gitignored) stores personal project-specific preferences that should not be shared with the
+`CLAUDE.local.md` (auto-gitignored) stores personal project-specific preferences that should not be shared with the
 team:
 
 ```markdown

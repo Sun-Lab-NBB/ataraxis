@@ -44,7 +44,7 @@ struct is_same<T, T>
 
 /// Helper variable template for is_same.
 template <typename T, typename U>
-inline constexpr bool is_same_v = is_same<T, U>::value;
+constexpr bool is_same_v = is_same<T, U>::value;  // NOLINT(*-dynamic-static-initializers)
 ```
 
 ### Memory model
@@ -204,12 +204,12 @@ position rather than widening a pattern.
 
 Where an enabled check forbids a construct this skill PRESCRIBES, the check is removed from the `Checks` list and the
 reason is recorded in the configuration file header. Do NOT suppress such a check with per-site `// NOLINT` comments,
-because the construct is correct everywhere the skill calls for it, so a suppression would have to be repeated at every
-occurrence and would read as an exception to a rule the project actually follows.
+because the construct is correct everywhere the skill calls for it. A suppression would then repeat at every occurrence,
+and it would read as an exception to a rule the project actually follows.
 
-Two checks are absent for this reason, and both concern the file-scope `using namespace` directive that the "Using
-namespace directives" section of [class-patterns.md](class-patterns.md) prescribes for project-internal shared asset
-namespaces, and that the nanobind pattern above prescribes for the literals and chrono namespaces:
+Two checks are absent for this reason. Both concern the file-scope `using namespace` directive that the "Using namespace
+directives" section of [class-patterns.md](class-patterns.md) prescribes for project-internal shared asset namespaces,
+and that the nanobind pattern above prescribes for the literals and chrono namespaces:
 
 | Check                             | What it forbids                                            |
 |-----------------------------------|------------------------------------------------------------|
@@ -460,7 +460,10 @@ Serial.begin(115200);  // The baudrate is ignored for teensy boards.
 Set ADC resolution explicitly at startup:
 
 ```cpp
+// AVR boards have a fixed 10-bit ADC and provide no analogReadResolution(), so guard the call.
+#if !defined(__AVR__)
 analogReadResolution(12);  // 12-bit resolution (0-4095)
+#endif
 ```
 
 ### Non-blocking patterns
@@ -527,7 +530,7 @@ NB_MODULE(precision_timer_ext, m)
             "block"_a = false,
             "Delays for the requested period of time."
         )
-        .def("GetPrecision", &CPrecisionTimer::GetPrecision, "Returns the current precision.");
+        .def("get_precision", &CPrecisionTimer::get_precision, "Returns the current precision of the timer.");
 }
 ```
 
@@ -559,7 +562,7 @@ When C++ code performs blocking operations (delays, I/O waits), release the Pyth
 run:
 
 ```cpp
-void Delay(const int64_t duration, const bool block = false) const
+void Delay(const int64_t duration, const bool allow_sleep = false, const bool block = false) const
 {
     auto perform_delay = [&]() {
         // ... blocking operation ...
@@ -614,7 +617,7 @@ The build system section declares scikit-build-core and nanobind as build depend
 
 ```toml
 [build-system]
-requires = ["scikit-build-core>=0,<1", "nanobind>=2,<3"]
+requires = ["scikit-build-core>=1,<2", "nanobind>=2,<3"]
 build-backend = "scikit_build_core.build"
 ```
 
@@ -631,7 +634,7 @@ Extension classes that are exposed to Python via nanobind should provide a `__re
 /// Returns a string representation of the timer instance.
 std::string Repr() const
 {
-    return "CPrecisionTimer(precision=" + _precision + ")";
+    return "CPrecisionTimer(precision=" + get_precision() + ")";
 }
 ```
 

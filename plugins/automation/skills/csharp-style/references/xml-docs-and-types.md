@@ -405,8 +405,8 @@ using UnityEngine;
 ## Enum member documentation
 
 Document every enum member with an XML summary. For enums with explicit integer values (status codes, protocol
-identifiers), include the value context in the documentation. For enum declaration examples, see
-[class-patterns.md](class-patterns.md).
+identifiers), include the value context in the documentation. For enum declaration examples, load `class-patterns.md`
+from SKILL.md.
 
 ---
 
@@ -414,7 +414,7 @@ identifiers), include the value context in the documentation. For enum declarati
 
 Property summaries should ideally be a single sentence, even if it spans multiple lines. Do not split a property summary
 into a one-line `<summary>` plus a `<remarks>` block. Keep it as one continuous sentence, the same shape `/python-style`
-requires of a property docstring. For property declaration examples, see [class-patterns.md](class-patterns.md).
+requires of a property docstring. For property declaration examples, load `class-patterns.md` from SKILL.md.
 
 For properties with backing fields, document both the field and the property:
 
@@ -462,7 +462,10 @@ This matches the EditorConfig settings:
 
 ### Nullable types
 
-Use nullable reference types (`T?`) when a value may legitimately be null:
+Nullable reference type annotations require an enabled nullable annotation context. Turn it on per file with
+`#nullable enable`, or project-wide by adding `-nullable:enable` to `Assets/csc.rsp`. Without it the compiler raises
+CS8632 on every `T?` annotation. Once the context is on, use nullable reference types (`T?`) when a value may
+legitimately be null:
 
 ```csharp
 /// <summary>The optional occupancy zone component attached to this trigger zone.</summary>
@@ -512,14 +515,14 @@ public TaskTemplate GetValidatedTemplate()
 
 Common attributes:
 
-| Attribute                  | Meaning                                                       |
-|----------------------------|---------------------------------------------------------------|
-| `[NotNull]`                | Output is never null (on return or out parameter)             |
-| `[NotNullWhen(true)]`      | Output is non-null when method returns true                   |
-| `[NotNullWhen(false)]`     | Output is non-null when method returns false                  |
-| `[MaybeNullWhen(false)]`   | Output may be null when method returns false                  |
-| `[DoesNotReturn]`          | Method never returns (always throws)                          |
-| `[MemberNotNull]`          | Specified member is non-null after method returns             |
+| Attribute                | Meaning                                           |
+|--------------------------|---------------------------------------------------|
+| `[NotNull]`              | Output is never null (on return or out parameter) |
+| `[NotNullWhen(true)]`    | Output is non-null when method returns true       |
+| `[NotNullWhen(false)]`   | Output is non-null when method returns false      |
+| `[MaybeNullWhen(false)]` | Output may be null when method returns false      |
+| `[DoesNotReturn]`        | Method never returns (always throws)              |
+| `[MemberNotNull]`        | Specified member is non-null after method returns |
 
 Use these attributes only when they convey information the compiler cannot determine from the method body. Do not add
 them speculatively.
@@ -553,7 +556,7 @@ Dictionary<string, byte> cueIdentifiers = new Dictionary<string, byte>();
 
 ```csharp
 // Measures actual prefab lengths and compares with configuration.
-float[] measuredSegmentLengths = Utility.GetSegmentLengths(segmentPrefabs);
+float measuredSegmentLength = Utility.GetPrefabLength(segmentPrefab);
 ```
 
 ### What to avoid

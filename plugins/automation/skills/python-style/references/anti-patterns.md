@@ -121,6 +121,12 @@ Transform code to match project style:
 | Manual YAML dump/load                 | No type safety                    | Subclass `YamlConfig`                                            |
 | `multiprocessing.Array`               | Limited dtype support             | `SharedMemoryArray`                                              |
 | Direct file writes in loops           | Blocks acquisition                | `DataLogger` with `LogPackage`                                   |
+| `open(path, "w")` for a config write  | Truncates on a crash mid-write    | `atomic_write()`                                                 |
+| `shutil.copytree()` / `rmtree()`      | No verification, no progress      | `transfer_directory()` / `delete_directory()`                    |
+| Hand-rolled `hashlib` directory walk  | Inconsistent ordering, no caching | `calculate_directory_checksum()`                                 |
+| Manual `np.interp()` wrapper          | Duplicated edge-case handling     | `interpolate_data()`                                             |
+| `os.environ["OMP_NUM_THREADS"] = ...` | Misses sibling BLAS variables     | `limit_worker_threads()` / `initialize_worker_threads()`         |
+| Ad-hoc JSON job-state files           | No atomicity, no schema           | `ProcessingTracker`                                              |
 | Manual `isinstance()` for list check  | Verbose, error-prone              | `ensure_list()`                                                  |
 | Manual slice batching                 | Verbose, doesn't preserve dtype   | `chunk_iterable()`                                               |
 | `os.cpu_count() - N` for workers      | No None guard, fragile            | `resolve_worker_count()`                                         |
@@ -148,13 +154,13 @@ Transform code to match project style:
 
 These anti-patterns drift toward C++ or C# conventions that do not apply in Python:
 
-| Wrong (C++/C# drift)                       | Correct (Python convention)                   | Rule                                |
-|--------------------------------------------|-----------------------------------------------|-------------------------------------|
-| `def SendData(self):`                      | `def send_data(self):`                        | snake_case methods, not PascalCase  |
-| `kTimeout = 100`                           | `_TIMEOUT: int = 100`                         | _UPPER_SNAKE constants, not kPrefix |
-| `static constexpr` style `TIMEOUT = 100`   | `_TIMEOUT: int = 100` with inline docstring   | Module-level constant with type     |
-| `enum class` style `class Status(Enum):`   | `class Status(StrEnum):` or `(IntEnum):`      | Use StrEnum/IntEnum, not bare Enum  |
-| `/// Doxygen @brief comment`               | `"""Google-style docstring."""`               | Docstrings, not Doxygen             |
-| `// NOLINT` style bare `# type: ignore`    | `# type: ignore[code]` with the error code    | Specific suppression codes          |
-| `_camelCase` for private members           | `_snake_case` for private members             | snake_case, not camelCase           |
-| `self.publicField` (C# camelCase)          | `self._private_field` or public via property  | Private with `_` prefix             |
+| Wrong (C++/C# drift)                     | Correct (Python convention)                  | Rule                                |
+|------------------------------------------|----------------------------------------------|-------------------------------------|
+| `def SendData(self):`                    | `def send_data(self):`                       | snake_case methods, not PascalCase  |
+| `kTimeout = 100`                         | `_TIMEOUT: int = 100`                        | _UPPER_SNAKE constants, not kPrefix |
+| `static constexpr` style `TIMEOUT = 100` | `_TIMEOUT: int = 100` with inline docstring  | Module-level constant with type     |
+| `enum class` style `class Status(Enum):` | `class Status(StrEnum):` or `(IntEnum):`     | Use StrEnum/IntEnum, not bare Enum  |
+| `/// Doxygen @brief comment`             | `"""Google-style docstring."""`              | Docstrings, not Doxygen             |
+| `// NOLINT` style bare `# type: ignore`  | `# type: ignore[code]` with the error code   | Specific suppression codes          |
+| `_camelCase` for private members         | `_snake_case` for private members            | snake_case, not camelCase           |
+| `self.publicField` (C# camelCase)        | `self._private_field` or public via property | Private with `_` prefix             |

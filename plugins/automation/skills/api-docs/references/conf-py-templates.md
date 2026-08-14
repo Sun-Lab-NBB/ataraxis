@@ -59,11 +59,11 @@ html_theme = 'furo'
 
 ### Placeholders
 
-| Placeholder      | Description                                  | Example                            |
-|------------------|----------------------------------------------|------------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-automation`              |
-| `<YEAR>`         | Current copyright year                       | `2026`                             |
-| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |
+| Placeholder      | Description                                  | Example                          |
+|------------------|----------------------------------------------|----------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-automation`            |
+| `<YEAR>`         | Current copyright year                       | `2026`                           |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung` |
 
 **Note:** `author` is the only author key Sphinx defines and it holds a string, so a multi-author project joins the
 names into that one string. A plural `authors` key and a list value both parse without error and reach no template,
@@ -99,30 +99,18 @@ breathe_default_project = "<PROJECT_NAME>"
 html_theme = 'furo'
 ```
 
-### Optional: preprocessor macros
-
-If the C++ project uses macros that Doxygen needs to expand, add Breathe preprocessor configuration after
-`breathe_default_project`:
-
-```python
-breathe_doxygen_config_options = {
-    'ENABLE_PREPROCESSING': 'YES',
-    'MACRO_EXPANSION': 'YES',
-    'EXPAND_ONLY_PREDEF': 'NO',
-    'PREDEFINED': 'MACRO_NAME='
-}
-```
-
-Replace `MACRO_NAME=` with the actual macro definitions needed. Multiple macros can be space-separated.
+Macros that Doxygen needs to expand are declared in the Doxyfile, under `ENABLE_PREPROCESSING`, `MACRO_EXPANSION`,
+`EXPAND_ONLY_PREDEF`, and `PREDEFINED`. Do NOT add `breathe_doxygen_config_options` to `conf.py`, because Breathe
+applies it only when generating XML itself and every project here feeds it pre-generated XML.
 
 ### Placeholders
 
-| Placeholder      | Description                                  | Example                            |
-|------------------|----------------------------------------------|------------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-micro-controller`        |
-| `<YEAR>`         | Current copyright year                       | `2026`                             |
-| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |
-| `<VERSION>`      | Hardcoded version string                     | `2.0.0`                            |
+| Placeholder      | Description                                  | Example                          |
+|------------------|----------------------------------------------|----------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-micro-controller`      |
+| `<YEAR>`         | Current copyright year                       | `2026`                           |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung` |
+| `<VERSION>`      | Hardcoded version string                     | `2.0.0`                          |
 
 ---
 
@@ -186,8 +174,8 @@ html_theme = 'furo'
 
 ### Placeholders
 
-| Placeholder      | Description                                  | Example                            |
-|------------------|----------------------------------------------|------------------------------------|
-| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-time`                    |
-| `<YEAR>`         | Current copyright year                       | `2026`                             |
-| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung`   |
+| Placeholder      | Description                                  | Example                          |
+|------------------|----------------------------------------------|----------------------------------|
+| `<PROJECT_NAME>` | Project name matching pyproject.toml         | `ataraxis-time`                  |
+| `<YEAR>`         | Current copyright year                       | `2026`                           |
+| `<AUTHOR>`       | Every author name in one comma-joined string | `Ivan Kondratyev, Natalie Yeung` |

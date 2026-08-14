@@ -1,7 +1,6 @@
 # EditorConfig for C# Unity projects
 # Provides C# formatting based on the Google style guide principles used in the C++ firmware projects.
-# This results in a visual style that is largely similar between C++, C#, and Python code,
-# improving cross-language developer experience.
+# Yields a visual style largely similar between C++, C#, and Python code, improving cross-language developer experience.
 
 root = true
 
@@ -120,14 +119,15 @@ csharp_prefer_simple_using_statement = true:suggestion
 # 'using' directive preferences
 csharp_using_directive_placement = outside_namespace:suggestion
 
-# Modifier preferences
+# Modifier preferences. EditorConfig cannot continue a value across lines, so the modifier order below is the file's one
+# accepted overflow past 120 characters.
 csharp_prefer_static_local_function = true:suggestion
 csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async:suggestion
 
 # Naming conventions (matching C++ conventions where applicable)
-# Roslyn applies the FIRST matching rule in file order, so the modifier-qualified rules are declared
-# ahead of the accessibility-based field rules, which would otherwise shadow them and rename every
-# `private const` and `private static readonly` field to the underscore form.
+# Roslyn applies the FIRST matching rule in file order, so the modifier-qualified rules are declared ahead of the
+# accessibility-based field rules, which would otherwise shadow them and rename every `private const` and
+# `private static readonly` field to the underscore form.
 
 # Constants with PascalCase (C# convention, differs from C++ k prefix)
 dotnet_naming_rule.constants_should_be_pascal_case.severity = suggestion
@@ -137,8 +137,8 @@ dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
 dotnet_naming_symbols.constants.applicable_kinds = field, local
 dotnet_naming_symbols.constants.required_modifiers = const
 
-# static readonly fields with PascalCase. Unity never serializes a static field, so the Inspector
-# rationale behind the camelCase public-field rule does not reach them.
+# static readonly fields with PascalCase. Unity never serializes a static field, so the Inspector rationale behind the
+# camelCase public-field rule does not reach them.
 dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.symbols = static_readonly_fields
 dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.style = pascal_case
@@ -161,11 +161,11 @@ dotnet_naming_style.underscore_prefix.capitalization = camel_case
 
 # Public members should be PascalCase
 dotnet_naming_rule.public_members_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.public_members_should_be_pascal_case.symbols = public_symbols
+dotnet_naming_rule.public_members_should_be_pascal_case.symbols = public_names
 dotnet_naming_rule.public_members_should_be_pascal_case.style = pascal_case
 
-dotnet_naming_symbols.public_symbols.applicable_kinds = namespace, class, struct, enum, property, method, event, delegate
-dotnet_naming_symbols.public_symbols.applicable_accessibilities = public
+dotnet_naming_symbols.public_names.applicable_kinds = namespace, class, struct, enum, property, method, event, delegate
+dotnet_naming_symbols.public_names.applicable_accessibilities = public
 
 # Public fields with camelCase, the name Unity serializes and displays in the Inspector
 dotnet_naming_rule.public_fields_should_be_camel_case.severity = suggestion

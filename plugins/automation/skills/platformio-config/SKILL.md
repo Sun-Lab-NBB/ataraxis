@@ -13,7 +13,6 @@ user-invocable: false
 
 Applies conventions for the PlatformIO configuration files a C++ microcontroller project ships: `platformio.ini` (local
 build, test, and upload configuration) and, for a library, `library.json` (the published PlatformIO registry manifest).
-This is the C++ PlatformIO analogue of `/pyproject-style` and `/tox-config`.
 
 You MUST read this skill and load the reference templates before creating or modifying either file. You MUST verify your
 changes against the checklist before submitting.
@@ -64,7 +63,6 @@ Complete the verification checklist at the end of this file. Every item must pas
 ## platformio.ini conventions
 
 `platformio.ini` declares one build environment per supported board. It governs local builds, unit tests, and uploads.
-It carries no version field, because the library version lives only in `library.json`.
 
 ### Environment sections
 
@@ -93,17 +91,17 @@ effect.
 
 ### Board / platform mapping
 
-| Board id          | platform   |
-|-------------------|------------|
-| `teensy41`        | `teensy`   |
-| `due`             | `atmelsam` |
-| `megaatmega2560`  | `atmelavr` |
+| Board id         | platform   |
+|------------------|------------|
+| `teensy41`       | `teensy`   |
+| `due`            | `atmelsam` |
+| `megaatmega2560` | `atmelavr` |
 
 ### lib_deps pinning
 
 List each dependency as `registry_owner/name@^MAJOR.MINOR.PATCH`. The registry owner is the lowercase PlatformIO
 registry account, NOT the GitHub org, so ataraxis libraries are published under `inkaros` (e.g.
-`inkaros/ataraxis-transport-layer-mc@^3.0.1`). Third-party deps use their own owners (`arminjo/digitalWriteFast@^1.3.1`,
+`inkaros/ataraxis-transport-layer-mc@^4.0.1`). Third-party deps use their own owners (`arminjo/digitalWriteFast@^1.3.1`,
 `pfeerick/elapsedMillis@^1.0.6`). Use the caret (`^`) range so patch/minor updates are accepted. List a dependency only
 under the boards that need it.
 
@@ -155,13 +153,12 @@ it lives under `src/`.
 A `platformio.ini` key states its own name and value, so a comment beside it is justified only by a question the key
 leaves open. Such a question is the reason a dependency is pinned to an exact version, the hardware constraint behind a
 build flag, or a coupling to `library.json` that a reader would otherwise break. Do not comment a key by restating it.
-The `description` field stays at the single sentence its row above prescribes, matching the README and repository
-description rather than expanding on them. Comments describe the configuration as it currently stands, never the edit
-that produced it. A comment's claim must be true of the key and value it sits beside and of the effect the tool actually
-produces, so a value change rewrites or deletes its comment in the same edit. Comments must not carry stale references
-to closed issues, removed keys, sections, environments, boards, or dependencies, superseded tool versions, or outdated
-TODOs, and a comment whose referent is removed is removed or rewritten with it. Align inline comments vertically within
-a section, so a run of commented settings shares one comment column.
+Comments describe the configuration as it currently stands, never the edit that produced it. A comment's claim must be
+true of the key and value it sits beside and of the effect the tool actually produces, so a value change rewrites or
+deletes its comment in the same edit. Comments must not carry stale references to closed issues, removed keys, sections,
+environments, boards, or dependencies, superseded tool versions, or outdated TODOs, and a comment whose referent is
+removed is removed or rewritten with it. Align inline comments vertically within a section, so a run of commented
+settings shares one comment column.
 
 ### Line width
 
@@ -206,9 +203,8 @@ sections list it in `lib_deps`:
 
 ## Versioning
 
-`library.json` `version` is the SINGLE source of truth for the C++ library version. Releases are cut from it, and there
-is no Python-style single-sourcing helper. `platformio.ini` carries no version field. When releasing, bump
-`library.json` `version` (see `/release`).
+`library.json` `version` is the SINGLE source of truth for the C++ library version. Releases are cut from it.
+`platformio.ini` carries no version field. When releasing, bump `library.json` `version` (see `/release`).
 
 ---
 
@@ -265,16 +261,19 @@ wrote. Only parse validity, the library.json $schema, and what pio check and pio
 - [ ] Each env sets platform, board, framework=arduino, monitor_speed, test_framework=unity, build_flags=-std=c++17
 - [ ] library.json carries every required field ($schema, name, version, description, repository, authors, license,
       frameworks, platforms, headers, export, build)
-- [ ] build_unflags=-std=gnu++11 present on AVR/SAM boards that need it; upload_protocol set where required
+- [ ] build_unflags=-std=gnu++11 present on AVR/SAM boards that need it
+- [ ] upload_protocol set where required
 - [ ] [env:<board>] sections follow the board-table order, and keys inside each section follow the field-table order
       (build_unflags before build_flags)
 - [ ] lib_deps entries are pinned as registry_owner/name@^X.Y.Z (ataraxis libs under the inkaros owner)
 - [ ] library.json pins $schema and orders fields per the template
 - [ ] headers lists only the public consumer-facing header(s)
-- [ ] export.include ships ./examples/* and ./src/*; export.exclude lists ./src/main.cpp
+- [ ] export.include ships ./examples/* and ./src/*
+- [ ] export.exclude lists ./src/main.cpp
 - [ ] library.json dependencies mirror platformio.ini lib_deps (same owner/name/version)
 - [ ] each library.json dependency's platforms array matches the boards that list it in lib_deps
-- [ ] library.json version is set (the single source of the C++ library version); platformio.ini has no version
+- [ ] library.json version is set (the single source of the C++ library version)
+- [ ] platformio.ini has no version field
 - [ ] description is the single sentence matching the README and repository description
 - [ ] Every description field opens with a bare third-person imperative verb (no name prefix, no
       "This environment/library..." opener)

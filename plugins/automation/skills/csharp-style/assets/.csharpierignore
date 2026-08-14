@@ -1,7 +1,7 @@
 # CSharpier ignore file for C# projects
 # Excludes Unity-generated files and third-party packages from formatting
 
-# Unity generated directories
+# Unity-generated directories
 Library/
 Temp/
 Logs/
@@ -9,6 +9,9 @@ obj/
 Build/
 Builds/
 
-# Third-party packages (format manually if needed)
+# Embedded packages under Packages/ (registry packages resolve into Library/PackageCache, excluded above)
 Packages/com.unity.*
-Packages/com.google.*
+
+# Auto-generated Unity InputSystem code
+Packages/gimbl/Scripts/Controllers/SimulatedInput.cs
+Assets/Gimbl/Scripts/Controllers/SimulatedInput.cs

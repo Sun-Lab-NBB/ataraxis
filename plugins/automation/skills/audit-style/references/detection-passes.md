@@ -354,7 +354,8 @@ alongside its findings.
 
 **3. Resolve the actual tier of every symbol** by reading its reference rows: `none`, `module-local`, `package-local`,
 or `cross-package`. Discount every row the guards exclude before resolving, which is the work Guard 15 of
-`false-positive-guards.md` defines.
+`false-positive-guards.md` defines. Guard 15 counts four classes as consumed even where the reference table holds no
+row, the curated public API, runtime registration, interface conformance, and generated or vendored declarations.
 
 **4. Compare the actual tier against the declared one.** Every mismatch is one of five findings:
 
@@ -369,13 +370,13 @@ or `cross-package`. Discount every row the guards exclude before resolving, whic
 Report each finding in the skill's shared shape, and close its Wrong bullet with the consumer evidence, which is every
 referencing path and line, or NONE, together with the search that established it.
 
-The location line and the verbatim quote cite the DECLARATION site, because that is what the fix edits.
-MISSING_EXPORT and UNWARRANTED_EXPORT instead cite the `__init__.py` and quote its `__all__` block. Keeping
-The verbatim quote is what lets Check 1 verify these findings unchanged, and the consumer evidence carries the one claim
-no reading of a single file can settle.
+The location line and the verbatim quote cite the DECLARATION site, because that is what the fix edits. MISSING_EXPORT
+and UNWARRANTED_EXPORT instead cite the `__init__.py` and quote its `__all__` block. Keeping the verbatim quote is what
+lets Check 1 verify these findings unchanged, and the consumer evidence carries the one claim no reading of a single
+file can settle.
 
 Every one of the five is a claim about ABSENCE, which is the shape of claim a partial reading gets wrong most often, so
-The consumer evidence names the search that established it rather than asserting it. Confirm each candidate with a
+the consumer evidence names the search that established it rather than asserting it. Confirm each candidate with a
 repository-wide search for the symbol's name across `src/`, `tests/`, and the configuration files carrying runtime
 registrations, then quote what the search returned. Where the repository holds a `.codegraph/` index, `codegraph
 explore` answers the same question directly and is the cheaper confirmation. A candidate whose search never ran, and a

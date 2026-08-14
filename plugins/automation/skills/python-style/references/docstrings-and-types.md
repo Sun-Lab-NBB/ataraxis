@@ -50,9 +50,6 @@ not include Examples sections or in-code examples in docstrings.
 
 ### Documentation quality
 
-Beyond structural rules, every comment and docstring must meet quality criteria that govern information density,
-readability, and accuracy.
-
 **Necessary minimalism**: Documentation exists to convey information the reader cannot infer from the code itself. Each
 docstring and comment must be as short as possible while still conveying every necessary fact. Do not pad with
 restatements, motivational prose, or implementation trivia.
@@ -385,16 +382,16 @@ covers module docstrings, class docstrings, non-MCP function and method docstrin
 and inline comments. Refer to classes, functions, and methods by name in double backticks without a specifier prefix.
 
 ```python
-# Good — MCP tool docstring (specifiers allowed)
+# Good - MCP tool docstring (specifiers allowed)
 @mcp.tool()
 def prepare_batch_tool(session_paths: list[str]) -> dict[str, Any]:
     """Prepares a batch using :func:`discover_jobs` and initializes a :class:`ProcessingTracker`."""
 
-# Good — non-MCP docstring (prose with backticks)
+# Good - non-MCP docstring (prose with backticks)
 class ActiveJob:
     """Tracks a pending job currently executing as a ``Future`` on the shared process pool."""
 
-# Bad — non-MCP docstring using specifiers
+# Bad - non-MCP docstring using specifiers
 class ActiveJob:
     """Tracks a pending job currently executing as a :class:`Future` on the shared process pool."""
 ```

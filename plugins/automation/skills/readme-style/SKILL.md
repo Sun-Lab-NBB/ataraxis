@@ -37,9 +37,11 @@ You MUST verify your changes against the verification checklist before submittin
 
 Three parts of a README duplicate content that lives elsewhere. The H1 title carries the project name, the one-line
 description immediately after it carries the description, and the Authors section carries the author list. Each of the
-three is also stated in `pyproject.toml`, in the documentation, and on the repository and package pages, so you MUST
-obtain explicit user approval before changing any of them. `/pyproject-style` owns the wording and lists every location
-that would need the same edit.
+three is also stated in the project's metadata manifest, in the documentation, and on the repository and package pages,
+so you MUST obtain explicit user approval before changing any of them. The canonical-locations table in
+[section-templates.md](references/section-templates.md) names the manifest for each archetype, since a C++ PlatformIO
+library states it in `library.json` and a C# Unity project states it in the README alone. `/pyproject-style` owns the
+wording for Python projects and `/platformio-config` for C++ PlatformIO libraries.
 
 Every other part of the README follows the normal rules in this skill, so a usage example, a section you are adding, or
 a technical correction inside Detailed Description needs no approval.
@@ -180,15 +182,14 @@ at natural clause boundaries.
 before breaking. Prose wrapped at a narrower width reads as a rigid block and re-wraps badly at any other viewport. The
 test is mechanical: a wrapped line that ends before column 100 while its next word would still fit under 120 is
 re-flowed. A line ending early because the sentence or the paragraph ends, or because it holds a table row, a badge, a
-heading, or a code span, is already correct.
+heading, or a code span, is already correct. A table row and a code block may PASS 120 characters where the excess buys
+clarity, since neither wraps without breaking what it renders, and a badge URL is exempt for the same reason.
 
 **Typo-free and grammatical**: Every section of the README must be free of typos and grammatical errors, with the
 `Acknowledgments` spelling the one named exception the rule cannot settle on its own, because both spellings are correct
 English.
 
-**Notes and warnings**: Use `***Note,***` for important information. Use `***Warning!***` or `***Critical!***` for
-dangerous operations or essential requirements. Do not use GitHub-specific alert syntax (`> [!NOTE]`) as it does not
-render on PyPI.
+**Notes and warnings**: Use the callout markers the [PyPI compatibility](#pypi-compatibility) section defines.
 
 ### Prose punctuation and positive description
 
@@ -290,9 +291,10 @@ levels (do not jump from H2 to H4).
 
 A badge URL is written in full or through a URL shortener, and both forms are correct. Most badge targets are static
 shields identical across every repository, so a shortener resolves to the same image and keeps a very long URL out of
-the README source. A per-package badge, such as a PyPI or a PlatformIO Registry badge, carries a shortener minted for
-its own repository. The permission covers badge URLs alone, so a prose link keeps the link text rule above, where the
-text must name the page or document the link opens.
+the README source. The PlatformIO Registry badge encodes the package name, so its shortener is minted per repository and
+copied from the repository that owns it. PyPI badges are written in full, as the badge block below shows. The permission
+covers badge URLs alone, so a prose link keeps the link text rule above, where the text must name the page or document
+the link opens.
 
 ---
 
@@ -306,7 +308,8 @@ on PyPI:
 - Do not use `<picture>` elements for dark/light mode images
 - Do not use task lists (`- [x]`, `- [ ]`)
 
-Use `***Note,***` and `***Warning!***` for callouts instead.
+Use these callouts instead: `***Note,***` for important information, and `***Warning!***` or `***Critical!***` for
+dangerous operations or essential requirements.
 
 ---
 
@@ -374,13 +377,12 @@ Structure:
 - [ ] Correct badge set for project type, umbrella READMEs carrying the license badge alone
 - [ ] Badge URLs accepted in either form, full or shortened, with a shortened badge URL never reported as a finding
 - [ ] Blank line between description and badges
-- [ ] Horizontal rule uses `___` (not `---`) after badges
+- [ ] Horizontal rules use `___` throughout, including after badges (not `---`)
 - [ ] Detailed Description heading present (library) or unheaded framework description present (umbrella)
 - [ ] Features section ends with license type bullet (library, if Features present)
 - [ ] Table of contents with lowercase Markdown anchors (library order only, umbrella READMEs omit it)
 - [ ] Spelling: "Acknowledgments" (not "Acknowledgements") everywhere
 - [ ] Heading hierarchy: single H1, H2 for sections, H3 for subsections, no skips
-- [ ] Horizontal rules use `___` consistently throughout (not `---`)
 
 Content:
 - [ ] All sections required by the selected order are present (library Installation, umbrella Libraries)
@@ -402,16 +404,16 @@ Style:
 - [ ] No GitHub-specific features (alerts, details/summary, picture, task lists)
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)
-- [ ] README lines under 120 characters, with wrapped prose filled to that limit rather than broken at a narrower
-      width
+- [ ] README prose lines under 120 characters and filled to that limit rather than broken at a narrower width, with
+      table rows, code blocks, and badge URLs exempt
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] README prose free of typos and grammar errors
 
 Quality:
 - [ ] Sentences in README prose stay under 40 words
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, description, and heading)
-- [ ] Generated reference material is linked rather than reproduced (no per-parameter or per-method
-      signature listings; worked usage examples are not reference material and are never flagged here)
+- [ ] Generated reference material is linked rather than reproduced (no per-parameter or per-method signature listings,
+      and worked usage examples are not reference material and are never flagged here)
 - [ ] No marketing adjectives (powerful, flexible, seamless, robust, comprehensive, easy to use)
 - [ ] No section preamble restating the heading above it
 - [ ] README records the library as it currently stands, never the edit that produced it

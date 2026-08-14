@@ -6,26 +6,26 @@ Common C++ style violations and their corrections. Use this reference when revie
 
 ## Naming violations
 
-| Wrong                          | Correct                                          | Rule                            |
-|--------------------------------|--------------------------------------------------|---------------------------------|
-| `int pos`                      | `int32_t position`                               | Full words, fixed-width types   |
-| `uint8_t idx`                  | `uint8_t index`                                  | Full words                      |
-| `float val`                    | `float value`                                    | Full words                      |
-| `char* buf`                    | `char* buffer`                                   | Full words                      |
-| `int cnt`                      | `int32_t count`                                  | Full words, fixed-width types   |
-| `void sendData()`              | `void SendData()`                                | Methods use PascalCase          |
-| `void setup_module()`          | `void SetupModule()`                             | Methods use PascalCase          |
-| `int _myVar`                   | `int32_t _my_var`                                | Private members use _snake_case |
-| `int _myCounter`               | `int32_t _my_counter`                            | Private members use _snake_case |
-| `const int TIMEOUT = 100`      | `static constexpr int32_t kTimeout = 100`        | Constants use kPascalCase       |
-| `const int MAX_SIZE = 256`     | `static constexpr uint16_t kMaxSize = 256`       | Constants use kPascalCase       |
-| `#define TIMEOUT 100`          | `static constexpr int32_t kTimeout = 100`        | Prefer constexpr over define    |
-| `enum StatusCodes { Standby }` | `enum class kStatusCodes : uint8_t { kStandby }` | kPascalCase enums               |
-| `enum class Codes { Open }`    | `enum class kCodes : uint8_t { kOpen }`          | kPascalCase prefix on both      |
-| `namespace MyAssets {}`        | `namespace my_assets {}`                         | Namespaces use snake_case       |
-| `int* ptr`                     | `int32_t* pointer`                               | Full words, fixed-width types   |
-| `uint8_t GetBufferSize()`      | `uint8_t get_buffer_size()`                      | Accessors use get_/set_ snake   |
-| `void SetBaudRate(uint32_t v)` | `void set_baud_rate(uint32_t baud_rate)`         | Accessors use get_/set_ snake   |
+| Wrong                          | Correct                                          | Rule                               |
+|--------------------------------|--------------------------------------------------|------------------------------------|
+| `int pos`                      | `int32_t position`                               | Full words, fixed-width types      |
+| `uint8_t idx`                  | `uint8_t index`                                  | Full words                         |
+| `float val`                    | `float value`                                    | Full words                         |
+| `char* buf`                    | `char* buffer`                                   | Full words                         |
+| `int cnt`                      | `int32_t count`                                  | Full words, fixed-width types      |
+| `void sendData()`              | `void SendData()`                                | Methods use PascalCase             |
+| `void setup_module()`          | `void SetupModule()`                             | Methods use PascalCase             |
+| `int _myVar`                   | `int32_t _my_var`                                | Private members use _snake_case    |
+| `int _myCounter`               | `int32_t _my_counter`                            | Private members use _snake_case    |
+| `const int TIMEOUT = 100`      | `static constexpr int32_t kTimeout = 100`        | Constants use kPascalCase          |
+| `const int MAX_SIZE = 256`     | `static constexpr uint16_t kMaxSize = 256`       | Constants use kPascalCase          |
+| `#define TIMEOUT 100`          | `static constexpr int32_t kTimeout = 100`        | Prefer constexpr over define       |
+| `enum StatusCodes { Standby }` | `enum class kStatusCodes : uint8_t { kStandby }` | kPascalCase enums                  |
+| `enum class Codes { Open }`    | `enum class kCodes : uint8_t { kOpen }`          | kPascalCase prefix on both         |
+| `namespace MyAssets {}`        | `namespace my_assets {}`                         | Namespaces use snake_case          |
+| `int* ptr`                     | `int32_t* pointer`                               | Full words, fixed-width types      |
+| `uint8_t GetBufferSize()`      | `uint8_t get_buffer_size()`                      | Accessors use get_/set_ snake_case |
+| `void SetBaudRate(uint32_t v)` | `void set_baud_rate(uint32_t baud_rate)`         | Accessors use get_/set_ snake_case |
 
 ---
 
@@ -129,16 +129,16 @@ Each Rule label below names a documentation-quality rule defined in [doxygen-and
 
 ## Embedded-specific violations
 
-| Wrong                                         | Correct                                     | Rule                          |
-|-----------------------------------------------|---------------------------------------------|-------------------------------|
-| `delay(1000)` in `loop()`                     | `WaitForMicros()` with state machine        | Non-blocking runtime          |
-| Blocking `while()` in runtime command         | Stage-based state machine pattern           | Non-blocking runtime          |
-| Missing `CompleteCommand()` at end of command | Always call `CompleteCommand()` or `return` | Command lifecycle             |
-| Missing `default: AbortCommand()` in switch   | Always include default abort                | Catch invalid commands/stages |
-| Missing `// NOLINT` on global init            | `// NOLINT(*-interfaces-global-init)`       | Suppress known false positive |
-| Blanket `// NOLINT` without pattern           | `// NOLINT(*-specific-check)`               | Use specific suppression      |
-| `float` for microsecond timing                | `uint32_t` for microsecond values           | Integer microsecond timing    |
-| Missing `analogReadResolution()` call         | Set in `setup()` before any analog reads    | Explicit ADC configuration    |
+| Wrong                                         | Correct                                      | Rule                          |
+|-----------------------------------------------|----------------------------------------------|-------------------------------|
+| `delay(1000)` in `loop()`                     | `WaitForMicros()` with state machine         | Non-blocking runtime          |
+| Blocking `while()` in runtime command         | Stage-based state machine pattern            | Non-blocking runtime          |
+| Missing `CompleteCommand()` at end of command | Always call `CompleteCommand()` or `return`  | Command lifecycle             |
+| Missing `default: AbortCommand()` in switch   | Always include default abort                 | Catch invalid commands/stages |
+| Missing `// NOLINT` on global init            | `// NOLINT(*-interfaces-global-init)`        | Suppress known false positive |
+| Blanket `// NOLINT` without pattern           | `// NOLINT(*-specific-check)`                | Use specific suppression      |
+| `float` for microsecond timing                | `uint32_t` for microsecond values            | Integer microsecond timing    |
+| Unguarded `analogReadResolution()` call       | Wrap in `#if !defined(__AVR__)` in `setup()` | AVR has a fixed 10-bit ADC    |
 
 ---
 

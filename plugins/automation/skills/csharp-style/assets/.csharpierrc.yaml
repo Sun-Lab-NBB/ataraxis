@@ -5,9 +5,9 @@
 #   dotnet tool install -g csharpier
 #
 # Usage:
-#   csharpier .                    # Format all files
-#   csharpier --check .            # Check without modifying (CI mode)
-#   csharpier Assets/              # Format specific directory
+#   csharpier .                    # Formats all files
+#   csharpier --check .            # Reports formatting violations without writing (CI mode)
+#   csharpier Assets/              # Formats a specific directory
 
 printWidth: 120
 useTabs: false

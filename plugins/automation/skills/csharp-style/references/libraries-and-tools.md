@@ -185,23 +185,14 @@ public async Task<TaskTemplate> LoadConfigAsync(string configPath)
 
 ### Unity-specific
 
-In Unity, prefer coroutines (`IEnumerator` + `StartCoroutine`) for frame-based async operations. Use `async/await` with
-`UniTask` or standard `Task` for true async I/O:
-
-```csharp
-// Unity coroutine for frame-based waiting
-private IEnumerator WaitAndReset()
-{
-    yield return new WaitForSeconds(2f);
-    ResetState();
-}
-```
+For Unity's frame-based async work, see the Coroutine conventions section below.
 
 ---
 
 ## Coroutine conventions
 
-Unity coroutines (`IEnumerator` + `StartCoroutine`) are the standard approach for frame-based async operations.
+Unity coroutines (`IEnumerator` + `StartCoroutine`) are the standard approach for frame-based async operations. Use
+`async/await` with `UniTask` or standard `Task` for true async I/O.
 
 ### Naming
 
@@ -233,11 +224,11 @@ private IEnumerator FadeStimulus(float duration)
 
 ### When to use coroutines vs alternatives
 
-| Approach                       | Use when                                                  |
-|--------------------------------|-----------------------------------------------------------|
-| Coroutine                      | Frame-based waiting, timed sequences, animation staging   |
-| `async/await`                  | True async I/O (file reads, network requests)             |
-| State tracking in `Update`     | Simple state that changes every frame without waiting     |
+| Approach                   | Use when                                                |
+|----------------------------|---------------------------------------------------------|
+| Coroutine                  | Frame-based waiting, timed sequences, animation staging |
+| `async/await`              | True async I/O (file reads, network requests)           |
+| State tracking in `Update` | Simple state that changes every frame without waiting   |
 
 ### Guidelines
 
@@ -292,9 +283,9 @@ public void LoadTemplate_InvalidPath_ReturnsNull()
     Assert.IsNull(result);
 }
 
-/// <summary>Verifies that GetSegmentLengths returns correct lengths for valid prefabs.</summary>
+/// <summary>Verifies that GetPrefabLength returns the correct length for a valid prefab.</summary>
 [Test]
-public void GetSegmentLengths_ValidPrefabs_ReturnsCorrectLengths()
+public void GetPrefabLength_ValidPrefab_ReturnsCorrectLength()
 {
     // Arrange, Act, Assert
 }
@@ -326,7 +317,11 @@ dotnet_diagnostic.CA1051.severity = suggestion   # Do not declare visible instan
 ### Key analyzers
 
 Roslyn analyzers configured through EditorConfig carry the automated enforcement in C# projects. The `/cpp-style` skill
-owns the matching clang-tidy configuration for C++ projects:
+owns the matching clang-tidy configuration for C++ projects.
+
+The `CA*` severities take effect only where the project references Microsoft.CodeAnalysis.NetAnalyzers. A stock Unity
+project does not, so its `CA*` keys sit inert until the package is added, and they cost nothing meanwhile. The `IDE*`
+rules ship with the compiler platform and surface through Rider and Visual Studio rather than through a Unity build:
 
 | Roslyn analyzer | Description                  |
 |-----------------|------------------------------|
@@ -452,14 +447,14 @@ if (string.Equals(input, "yes", StringComparison.OrdinalIgnoreCase))
 }
 
 // Good - ordinal for Contains, StartsWith, EndsWith
-if (topicName.StartsWith("Gimbl/", StringComparison.Ordinal))
+if (topicName.StartsWith("Session", StringComparison.Ordinal))
 {
     // Prefix check
 }
 
 // Avoid - default comparison uses CurrentCulture (locale-dependent)
 if (segmentName == "Segment_A")  // Acceptable for simple equality in non-critical paths
-if (topicName.Contains("Gimbl"))  // Uses CurrentCulture on some .NET versions
+if (topicName.Contains("Session"))  // Uses CurrentCulture on some .NET versions
 ```
 
 ### Guidelines
@@ -583,8 +578,10 @@ Canonical configs are stored in [../assets/](../assets/). When working in a C# p
 - [../assets/.editorconfig](../assets/.editorconfig)
 - [../assets/.csharpierignore](../assets/.csharpierignore)
 
-The `.csharpierignore` contains generic entries only. Individual projects may need additional project-specific entries
-(e.g., paths to auto-generated scripts).
+The `.csharpierignore` carries the generic build and cache directories every Unity project excludes, plus the
+auto-generated sources the framework writes into the project tree, such as the InputSystem `SimulatedInput.cs` file.
+A generated source belongs in the canonical asset because the generator writes the same path into every project that
+uses it. Individual projects add their own entries below those, for paths only that project holds.
 
 ---
 
@@ -597,10 +594,7 @@ Prefer early returns (guard clauses) over deeply nested conditionals. Use explic
 /// <summary>Checks if the occupancy duration has been met while the animal is in the zone.</summary>
 private void Update()
 {
-    if (!isActive || boundaryDisarmed)
-        return;
-
-    if (string.IsNullOrEmpty(_zoneName))
+    if (!isActive || occupancyMet)
         return;
 
     if (_occupancyTimer.IsRunning && inZone)

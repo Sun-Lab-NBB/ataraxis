@@ -95,7 +95,7 @@ Findings: <total> reported
 Discarded by the false-positive guards: <n>
 Re-anchored by citation verification: <n> of <n> checked
 Deleted by citation verification: <n> of <n> checked
-Refuted by adversarial verification: <n> of <n> checked
+Refuted by adversarial refutation: <n> of <n> checked
 ```
 
 These counts are the audit's own precision record. A run that discards nothing at any stage has either found an

@@ -143,20 +143,20 @@ public class Task : MonoBehaviour { }
 
 ## Documentation quality violations
 
-| Wrong                                      | Correct                                   | Rule                         |
-|--------------------------------------------|-------------------------------------------|------------------------------|
-| Sentences over 40 words in prose           | Split into shorter sentences              | Sentence length cap          |
-| XML doc length driven by method length     | Match length to conceptual difficulty     | Length proportionality       |
-| XML doc explains where it is called        | Describe what the member does             | Behavioral scope             |
-| `<param>` restates parameter type          | Describe semantics, not types             | No type-signature restating  |
-| XML doc contradicts method behavior        | Update XML doc to match implementation    | Implementation accuracy      |
-| Stale issue numbers in comments            | Remove or update with current reference   | No stale references          |
-| Typos and grammar errors in comments       | Proofread before submission               | Typo-free and grammatical    |
-| Comments narrate what code obviously does  | Remove or explain why                     | No narrate-the-code comments |
-| `<remarks>` on a self-evident method       | Single-line `<summary>` alone             | Summary line is the default  |
-| `// Now also skips disabled zones`         | State current behavior only               | No change narration          |
-| XML doc grown on every edit                | Rewrite in place, delete what is moot     | No documentation ratchet     |
-| Comment prose wrapped short of column 120  | Fill each line before breaking it         | Wrap width                   |
+| Wrong                                     | Correct                                 | Rule                         |
+|-------------------------------------------|-----------------------------------------|------------------------------|
+| Sentences over 40 words in prose          | Split into shorter sentences            | Sentence length cap          |
+| XML doc length driven by method length    | Match length to conceptual difficulty   | Length proportionality       |
+| XML doc explains where it is called       | Describe what the member does           | Behavioral scope             |
+| `<param>` restates parameter type         | Describe semantics, not types           | No type-signature restating  |
+| XML doc contradicts method behavior       | Update XML doc to match implementation  | Implementation accuracy      |
+| Stale issue numbers in comments           | Remove or update with current reference | No stale references          |
+| Typos and grammar errors in comments      | Proofread before submission             | Typo-free and grammatical    |
+| Comments narrate what code obviously does | Remove or explain why                   | No narrate-the-code comments |
+| `<remarks>` on a self-evident method      | Single-line `<summary>` alone           | Summary line is the default  |
+| `// Now also skips disabled zones`        | State current behavior only             | No change narration          |
+| XML doc grown on every edit               | Rewrite in place, delete what is moot   | No documentation ratchet     |
+| Comment prose wrapped short of column 120 | Fill each line before breaking it       | Wrap width                   |
 
 ---
 
@@ -330,7 +330,7 @@ private void Update()
 {
     if (isActive)
     {
-        if (!boundaryDisarmed)
+        if (!occupancyMet)
         {
             if (_occupancyTimer.IsRunning)
             {
@@ -349,7 +349,7 @@ private void Update()
 // Correct - guard clauses reduce nesting
 private void Update()
 {
-    if (!isActive || boundaryDisarmed)
+    if (!isActive || occupancyMet)
         return;
 
     if (_occupancyTimer.IsRunning && inZone)

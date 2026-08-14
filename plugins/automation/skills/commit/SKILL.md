@@ -78,8 +78,7 @@ Using the branch information from Step 1:
 
 Before staging anything, run `git status --porcelain -uall` and read every line marked `??`. The `-uall` flag matters,
 because the default output collapses an untracked directory into a single entry and never names the files inside it. An
-untracked file is the one
-way a working artifact enters the repository, and `git add -A` admits it silently.
+untracked file is the one way a working artifact enters the repository, and `git add -A` admits it silently.
 
 For each untracked file, ask whether it occupies a slot the archetype tree defines, which is the test
 `/project-layout` states. A new module under `src/`, a new test under `tests/`, and a new page under `docs/source/`
@@ -128,8 +127,6 @@ Stop there. Pushing is the supervising user's decision.
 - References to tools, agents, or AI assistance unless the user explicitly requests it
 - Metadata unrelated to the changes (timestamps, ticket numbers, etc. unless requested)
 - Commentary on the process used to make the changes
-
-The message is a record of *what changed in the code*, not *how or by whom the changes were produced*.
 
 **The header names the change, not its origin.** Cover the header and ask what it tells a reader about the code. A
 header naming the activity that produced the change, such as an audit, a review, a ticket, or a user request, describes

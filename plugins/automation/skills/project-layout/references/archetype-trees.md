@@ -1,7 +1,8 @@
 # Archetype directory trees
 
-Annotated directory trees for each project archetype. Each tree is verified against the canonical example repository
-listed in its section heading.
+Annotated directory trees for each project archetype. A tree whose section heading names a canonical example repository
+is verified against that repository. The firmware and Unity headings name none, because no repository exemplifies either
+archetype in its modernized form yet, so those two trees state the target layout rather than a verified one.
 
 ---
 
@@ -27,8 +28,8 @@ project-root/
 │   └── Makefile                      # Unix Sphinx wrapper (delegates to tox)
 ├── envs/
 │   ├── {abbr}_dev_lin.yml            # Linux conda environment specification
-│   ├── {abbr}_dev_osx.yml            # macOS conda environment specification
-│   └── {abbr}_dev_win.yml            # Windows conda environment specification
+│   ├── {abbr}_dev_osx.yml            # (optional) macOS specification, for projects supporting macOS
+│   └── {abbr}_dev_win.yml            # (optional) Windows specification, for projects supporting Windows
 ├── examples/                         # (optional) Runnable usage examples for library consumers
 │   └── example_usage.py              # Standalone script demonstrating the public API
 ├── src/
@@ -40,15 +41,16 @@ project-root/
 │       ├── __init__.pyi              # Generated stub for re-exports (present in releases only)
 │       ├── module.py                 # Source modules
 │       └── py.typed                  # PEP 561 marker for typed packages
-├── tests/
+├── tests/                            # Present for projects defining a test environment
 │   ├── submodule/                    # (optional) Mirrors src/ subpackage structure
 │   │   └── module_test.py
+│   ├── fixtures/                     # (optional) Non-Python test data and vendored binary test doubles
 │   ├── conftest.py                   # (optional) Fixtures pytest discovers for the whole test directory
 │   ├── module_test.py                # Test files use _test.py suffix
 │   └── shared_builders.py            # (optional) Test-support module, named for what it provides
 ├── .gitattributes                    # (optional) Line-ending normalization for tracked text files
 ├── .gitignore
-├── .netlify-site                  # Netlify site identifier read by the deploy task
+├── .netlify-site                  # (optional) Netlify site identifier, present with the deploy environment
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── LICENSE                           # Apache-2.0 license
 ├── pyproject.toml                    # Build config, metadata, tool settings
@@ -100,8 +102,8 @@ project-root/
 │   └── Makefile                      # Unix Sphinx wrapper
 ├── envs/
 │   ├── {abbr}_dev_lin.yml            # Linux conda environment specification
-│   ├── {abbr}_dev_osx.yml            # macOS conda environment specification
-│   └── {abbr}_dev_win.yml            # Windows conda environment specification
+│   ├── {abbr}_dev_osx.yml            # (optional) macOS specification, for projects supporting macOS
+│   └── {abbr}_dev_win.yml            # (optional) Windows specification, for projects supporting Windows
 ├── examples/                         # (optional) Runnable usage examples for library consumers
 │   └── example_usage.py              # Standalone script demonstrating the public API
 ├── src/
@@ -125,11 +127,14 @@ project-root/
 │   │   └── module_test.py
 │   ├── conftest.py                   # (optional) Fixtures pytest discovers for the whole test directory
 │   └── shared_builders.py            # (optional) Test-support module, named for what it provides
+├── tools/                            # Build-support scripts called by CMake and the wheel repair step
+│   ├── check_build_env.py            # Verifies the toolchain before a build starts
+│   └── repair_windows_wheel.py       # Repairs Windows wheels cibuildwheel cannot repair natively
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitattributes                    # (optional) Line-ending normalization for tracked text files
 ├── .gitignore
-├── .netlify-site                  # Netlify site identifier read by the deploy task
+├── .netlify-site                  # (optional) Netlify site identifier, present with the deploy environment
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── CMakeLists.txt                    # CMake build config for nanobind extension
 ├── Doxyfile                          # Doxygen documentation configuration
@@ -144,13 +149,9 @@ project-root/
 - The `src/` layout uses a flat namespace: `c_extensions/`, wrapper subpackages, and pure Python subpackages are all
   direct children of `src/`.
 - C++ extension stubs (`module_ext.pyi`) live at the `src/` top level alongside `py.typed`.
-- The `tests/` directory carries test-support modules alongside its test modules, holding the fixtures, builders, and
-  fakes shared across them. Each one is named for what it provides rather than with the `_test.py` suffix, and
-  `conftest.py` is the support module pytest discovers fixtures from automatically.
-- The `examples/` directory is optional and holds runnable scripts that demonstrate the public API for library
-  consumers. It is source-distribution content. A project that also ships it in the wheel maps it to a
-  distribution-qualified package name. A bare top-level `examples` package installs into a shared
-  `site-packages/examples/` namespace that every distribution shipping that directory name would share.
+- The `tests/` directory carries test-support modules alongside its test modules, under the rule the Python-only notes
+  above state.
+- The `examples/` directory is optional and follows the rule the Python-only notes above state.
 - The `CMakeLists.txt` at the project root drives the nanobind build via scikit-build-core.
 - Build artifacts (`build/`) contain per-Python-version subdirectories and are gitignored.
 
@@ -184,14 +185,14 @@ project-root/
 │   ├── main.cpp                      # Development entry point (excluded from library)
 │   ├── primary_header.h              # Primary library header
 │   ├── supporting_header.h           # Supporting module headers
-│   └── shared_assets.h              # Shared types and constants
+│   └── {abbr}_shared_assets.h       # Shared types and constants, abbreviation-prefixed
 ├── test/                             # PlatformIO native tests
 │   └── test_component.cpp            # Unity framework test files
 ├── .clang-format                     # C++ formatting configuration
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitattributes                    # (optional) Line-ending normalization for tracked text files
 ├── .gitignore
-├── .netlify-site                  # Netlify site identifier read by the deploy task
+├── .netlify-site                  # (optional) Netlify site identifier, present with the deploy environment
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
 ├── library.json                      # PlatformIO library manifest
@@ -243,7 +244,7 @@ project-root/
 ├── .clang-tidy                       # C++ linting configuration
 ├── .gitattributes                    # (optional) Line-ending normalization for tracked text files
 ├── .gitignore
-├── .netlify-site                  # Netlify site identifier read by the deploy task
+├── .netlify-site                  # (optional) Netlify site identifier, present with the deploy environment
 ├── CLAUDE.md                         # Claude Code project instructions
 ├── Doxyfile                          # Doxygen documentation configuration
 ├── LICENSE                           # Apache-2.0 license
@@ -258,8 +259,7 @@ project-root/
 - All custom modules are header-only `.h` files in `src/` alongside `main.cpp`.
 - The `main.cpp` is the actual firmware entry point (not a development stub like in library projects).
 - Uses `#define` / `#ifdef` conditional compilation for hardware variant selection.
-- No `envs/` directory, because PlatformIO manages its own toolchain environment.
-- No `pyproject.toml`, because this is a pure C++ project.
+- No `envs/` directory and no `pyproject.toml`, for the reasons the C++ PlatformIO library notes above state.
 
 ---
 
@@ -289,9 +289,11 @@ project-root/
 │   ├── Plugins/                      # Third-party Unity plugins
 │   ├── Scenes/                       # Unity scene files
 │   ├── Textures/                     # Shared textures
+│   ├── VRSettings/                   # Actor and display scriptable-object settings
 │   └── UI-*/                         # UI-related asset folders
 ├── Packages/                         # Unity Package Manager configuration
 │   └── manifest.json                 # Package dependencies
+├── imgs/                             # (optional) Screenshots referenced by the README
 ├── ProjectSettings/                  # Unity project configuration
 │   ├── ProjectSettings.asset         # Core project settings
 │   ├── QualitySettings.asset         # Graphics quality tiers

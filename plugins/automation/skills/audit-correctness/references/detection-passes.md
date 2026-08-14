@@ -9,6 +9,7 @@ agent.
 ## Contents
 
 - The coverage tiers
+- One traversal, ten questions
 - Pass 1: Contract, state, and callgraph harvest
 - Pass 2: Adversarial instantiation, and the CEAI procedure
 - Pass 3: Domain boundary sweep
@@ -45,13 +46,12 @@ Pass 9 ranks the sweep by these tiers, and the skill's Step 2 assigns one to eve
 | T3   | A branch outcome the report cannot see, which is every branch arm while branch coverage is off |
 
 Where `branch` is unset or false, T3 is the richest hunting ground this skill has, and the gate reports success
-throughout. Five outcomes go unmeasured there:
+throughout. Four outcomes go unmeasured there:
 
 - Every `if` without an `else`
 - Every short-circuit operand
 - Every ternary arm
 - Every loop that can run zero times
-- Every `except` whose `try` never actually raised
 
 Where `branch = true`, those same outcomes are measured, so the unexercised ones surface as T2 and T3 stays empty.
 
@@ -242,8 +242,9 @@ interleaving with its line, and the result is the concrete on-disk state a later
 
 Enumerate the execution contexts that ACTUALLY exist before anything else, and proceed only when at least two of them
 reach the same state. Contexts to look for are threads, processes, futures, asyncio tasks, signal handlers, exit hooks,
-camera and serial callbacks, interrupt service routines, Unity main-thread callbacks, and the pytest-xdist workers
-implied by a distributed test run.
+camera and serial callbacks, interrupt service routines, and Unity main-thread callbacks. The list also includes the
+Numba `prange` worker threads an `@njit(parallel=True)` kernel spawns, and the pytest-xdist workers implied by a
+distributed test run.
 
 Build the shared-state set from module-level mutables, class attributes, shared-memory arrays and values, queues, and
 the files and directories written by more than one context. For every item, list every read and write with its owning
@@ -321,7 +322,7 @@ those is real logic made invisible to the coverage gate, and that alone is worth
 For every T1 region, confirm the exclusion annotates the narrowest construct that covers the excluded code, then hunt
 inside it with the ordinary category procedures.
 
-For every T3 region, name the specific branch outcome that never runs and trace what happens when it does. The five
+For every T3 region, name the specific branch outcome that never runs and trace what happens when it does. The four
 unmeasured outcomes the coverage tiers section lists all belong here.
 
 An unexercised region is a place to look rather than a finding. It becomes a finding only when the ordinary category

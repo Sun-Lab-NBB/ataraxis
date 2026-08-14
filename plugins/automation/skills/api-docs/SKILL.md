@@ -27,8 +27,7 @@ Napoleon, and optionally Breathe/Doxygen for C++ code.
 - Documentation dependency management via ataraxis-automation
 
 **Does not cover:**
-- MCP server modules or shared asset libraries. These serve AI agents rather than end-users, so they MUST NOT be
-  included in API documentation
+- MCP server modules or shared asset libraries, which api.rst excludes (see the api.rst rules below)
 - Writing Python docstrings or type annotations (see `/python-style`)
 - README file conventions (see `/readme-style`)
 - pyproject.toml dependency sections (see `/pyproject-style`)
@@ -39,9 +38,10 @@ Napoleon, and optionally Breathe/Doxygen for C++ code.
 ## Mirrored identity content requires explicit approval
 
 The first paragraph of `docs/source/welcome.rst` restates the project description, which is also stated in
-`pyproject.toml`, in the top-level `__init__.py` docstring, and in the README. You MUST obtain explicit user approval
-before changing it, because the edit obligates the same change in every other location. `/pyproject-style` owns the
-wording and lists every location that would need the same edit.
+`pyproject.toml`, in the top-level `__init__.py` docstring, and in the README. A C++-only project has none of those
+three, and states it in `library.json` instead. You MUST obtain explicit user approval before changing it, because the
+edit obligates the same change in every other location. `/pyproject-style` owns the wording and lists every location
+that would need the same edit.
 
 Every other file under `docs/` follows the normal rules in this skill, so an api.rst directive, a conf.py setting, or a
 correction to page prose needs no approval.
@@ -184,7 +184,8 @@ MUST NOT add Sphinx or documentation dependencies directly to downstream project
   and `version` is such a key, so the `from importlib.metadata import version` form would make Sphinx adopt the function
   object as the project version.
 - `importlib.metadata` has been in the standard library since Python 3.8, and every project the framework supports
-  declares `requires-python = ">=3.12"`, so the module is always importable and no project declares a dependency for it.
+  declares a `requires-python` floor of 3.12 or higher, so the module is always importable and no project declares a
+  dependency for it.
 - Copyright format: `'YEAR, Sun (NeuroAI) lab'` where YEAR is the current year.
 - `author` is the only author key Sphinx defines and it holds a string, so a multi-author project joins the names into
   that one string. A plural `authors` key and a list value both parse without error and reach no template, leaving the
@@ -207,9 +208,15 @@ MUST NOT add Sphinx or documentation dependencies directly to downstream project
 - Python modules use `automodule` with `:members:`, `:undoc-members:`, and `:show-inheritance:`.
 - Click CLI groups use `click` with `:prog:` set to the CLI entry point name and `:nested: full`.
 - C++ files use `doxygenfile` with `:project:` set to the project name.
+- A package constant that `automodule` skips uses `autodata`. `automodule` discovers module-level data through the
+  source of the module it documents, so a constant the package re-exports is dropped from the rendered page. The
+  `autodata` directive names the DEFINING module rather than the re-exporting package, because autodoc reads the
+  attribute docstring from that module's source and otherwise falls back to the docstring of the value's own type. A
+  rationale comment precedes the block, as in `ataraxis-communication-interface`.
 - Section headings MUST be descriptive names, not module paths (e.g., "Precision Timer" not
   "ataraxis_time.precision_timer.timer_class").
-- You MUST NOT add `automodule` directives for MCP server modules or shared asset modules.
+- You MUST NOT add `automodule` directives for MCP server modules or shared asset modules, because those serve AI agents
+  rather than end-users.
 
 ### welcome.rst rules
 
@@ -292,12 +299,13 @@ Documentation is hosted on Netlify with standardized URLs:
 https://PROJECT_NAME-api-docs.netlify.app/
 ```
 
-This URL is declared in `pyproject.toml` under `[project.urls]` as the `Documentation` key.
+This URL is declared in `pyproject.toml` under `[project.urls]` as the `Documentation` key, or in `library.json` under
+the `homepage` key for a C++-only project.
 
 ### Makefile and make.bat
 
-These are standard Sphinx wrapper files. They are rarely used directly since builds are invoked via tox (`tox -e docs`).
-Use the exact templates from [rst-templates.md](references/rst-templates.md) when creating new projects.
+The Makefile and make.bat wrappers are rarely used directly since builds are invoked via tox (`tox -e docs`). Use the
+exact templates from [rst-templates.md](references/rst-templates.md) when creating new projects.
 
 ---
 
@@ -335,7 +343,6 @@ API Documentation Compliance:
 
 Settled by `tox -e docs`. A build surfaces each of these as an error or a warning, so run the
 command rather than hand-checking them. They stay listed for reviews performed without a build.
-- [ ] Explicit user approval obtained before changing the welcome.rst first paragraph
 - [ ] conf.py uses correct extension ordering
 - [ ] Breathe configuration present and correct (C++/hybrid)
 - [ ] index.rst includes welcome.rst and has toctree with api
@@ -345,6 +352,7 @@ command rather than hand-checking them. They stay listed for reviews performed w
 
 Settled by reading. No command inspects these, so this checklist is their only enforcement. Walk
 every one against the files you wrote.
+- [ ] Explicit user approval obtained before changing the welcome.rst first paragraph
 - [ ] Documentation archetype correctly identified (Python-only, C++-only, or hybrid)
 - [ ] Directory structure matches convention (docs/source/ with conf.py, index.rst, welcome.rst, api.rst)
 - [ ] conf.py uses correct extension stack for the archetype
@@ -362,6 +370,8 @@ every one against the files you wrote.
 - [ ] api.rst uses click directive with :prog: and :nested: full (Click CLIs)
 - [ ] api.rst uses doxygenfile with :project: (C++ files)
 - [ ] api.rst section headings are descriptive, not module paths
+- [ ] api.rst uses autodata for re-exported package constants, naming the defining module and carrying a rationale
+      comment
 - [ ] No MCP server or shared asset modules included in api.rst
 - [ ] tox.ini [testenv:docs] taken from /tox-config, not copied or paraphrased into this skill's notes
 - [ ] Makefile and make.bat present in docs/
