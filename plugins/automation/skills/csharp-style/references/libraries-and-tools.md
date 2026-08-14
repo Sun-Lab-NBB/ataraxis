@@ -543,10 +543,14 @@ if (!isActive)
 CSharpier is the primary formatter. Install and use it before committing:
 
 ```bash
-dotnet tool install -g csharpier    # Install globally
-csharpier .                          # Format all files
-csharpier --check .                  # Check without modifying (CI mode)
+dotnet tool install -g csharpier --version "1.*"    # Install globally, pinned to the 1.x line
+csharpier format .                                  # Format all files
+csharpier check .                                   # Check without modifying (CI mode)
 ```
+
+The `1.*` pin resolves to the highest release inside major version 1. A major release changes both the command surface
+and the formatting output, so an unpinned install reformats an entire repository the first time it crosses a major
+boundary. Verify the installed major with `csharpier --version` when a documented command is rejected as unrecognized.
 
 Configuration lives in `.csharpierrc.yaml`:
 

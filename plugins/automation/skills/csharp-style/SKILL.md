@@ -468,7 +468,7 @@ against the code you wrote.
 - [ ] Switch expressions used for pure value mapping, and switch statements for side effects
 
 Tooling-enforced items. CSharpier and the EditorConfig-configured Roslyn analyzers settle each of
-these, so run `csharpier --check .` and read the analyzer output rather than hand-checking them.
+these, so run `csharpier check .` and read the analyzer output rather than hand-checking them.
 They stay listed for reviews performed without the tooling.
 - [ ] All lines <= 120 characters
 - [ ] 4-space indentation, no tabs
