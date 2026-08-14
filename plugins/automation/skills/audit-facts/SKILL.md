@@ -226,8 +226,8 @@ Sub-agents return findings in the output format defined below. The main agent sy
 Cite each source as `<path>:<line>` or `<path>:<line>-<line>`. For an in-source finding, the file location and the
 source location commonly sit in the same file a few lines apart, and both are still required.
 
-Categorize every claim with one of these seven verdicts. This step assigns the first five, and the omission and
-contradiction passes in Steps 4 and 6 assign the last two:
+Categorize every claim with one of these seven verdicts. This step assigns EXACT, SEMANTIC, DRIFT, WRONG, and
+UNVERIFIABLE, and the omission and contradiction passes in Steps 4 and 6 assign OMISSION and CONTRADICTION:
 
 | Verdict       | Meaning                                                                    |
 |---------------|----------------------------------------------------------------------------|

@@ -104,7 +104,9 @@ commands =
 
 **Parameterization:**
 - `basepython`: Set to the earliest Python version in the supported range.
-- `dependency_groups`: Always `dev`. Installs the project's dev dependency group (tox, uv, tox-uv, and type stubs).
+- `dependency_groups`: Always `dev`. Installs the project's dev dependency group (tox, uv, tox-uv, ataraxis-automation,
+  and type stubs). The `ataraxis-automation` entry is what puts `automation-cli`, `ruff`, `mypy`, and `stubgen` on the
+  path of the lint and stubs environments, so omitting it breaks both on their first run.
 - `ruff check` paths: `./src ./tests` for a project that has a `tests/` directory, which is every archetype except
   Reduced Python. A project without a test directory passes `./src` alone. Ruff reports `E902 No such file or directory`
   and exits non-zero when a path on its command line does not exist, so a blanket `./tests` breaks the lint task of a
@@ -279,7 +281,6 @@ description =
     Builds the project's source code distribution (sdist) and binary distribution (wheel), clearing the 'dist'
     directory beforehand so that artifacts built for an earlier version cannot be carried into the upload task.
 deps = ataraxis-automation=={version}
-allowlist_externals = docker
 commands =
     python -c "import shutil; shutil.rmtree('dist', ignore_errors=True)"
     python -m build . --sdist
@@ -484,13 +485,27 @@ allowlist_externals = doxygen
 commands =
     doxygen Doxyfile
     sphinx-build -b html -d docs/build/doctrees docs/source docs/build/html -j auto -v
+
+# Note: use 'tox -e deploy -- --replace-token' command to replace the token stored in the shared .netlifyrc file, and
+# 'tox -e deploy -- --replace-site' to replace the site identifier stored in the project's .netlify-site file, before
+# deploying the documentation.
+[testenv:deploy]
+skip_install = true
+description =
+    Uploads the API documentation built by the 'docs' task to the project's Netlify site. Build the documentation with
+    'tox -e docs' before calling this task.
+deps = ataraxis-automation=={version}
+commands =
+    automation-cli acquire-netlify-token {posargs:}
+    automation-cli deploy-docs
 ```
 
 **Key differences from the Python pipeline:**
-- `envlist = docs`, a single environment.
+- `envlist = docs`, a single environment. `deploy` stays out of `envlist`, as it does in every archetype.
 - `skip_install = true`, since there is no Python package to install.
 - Always runs `doxygen Doxyfile` before `sphinx-build`.
 - No lint, stubs, test, coverage, build, upload, or environment management environments.
+- `deploy` is present wherever the project hosts its documentation, paired with a `.netlify-site` file.
 
 ---
 

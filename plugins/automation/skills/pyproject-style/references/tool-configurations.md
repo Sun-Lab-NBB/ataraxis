@@ -29,8 +29,7 @@ packages = ["src/package_name"]
 Additional directories may be included when they are part of the distributed package:
 
 ```toml
-packages = ["src/package_name", "notebooks"]
-packages = ["src/ataraxis_video_system", "examples"]
+packages = ["src/ataraxis_communication_interface", "examples"]
 ```
 
 ---
@@ -338,8 +337,8 @@ only for a project that spawns such workers, and state the reason in the comment
 ## Coverage configuration
 
 The test suite MUST cover 100% of the measured statements. The `[tool.coverage.report]` section declares that gate, and
-the `[tool.coverage.run]` section lists the files that stay outside the measured corpus. These settings are identical
-across all projects, apart from the project-specific `omit` entries:
+the `[tool.coverage.run]` section lists the files that stay outside the measured corpus. The `omit` entries are
+project-specific, and the remaining settings are shared:
 
 ```toml
 # Lists the source files excluded from coverage measurement in full. Interface modules, such as the CLI, are covered
@@ -378,9 +377,15 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
-    "pass",
+    '^\s*pass$',
 ]
 ```
+
+Every `exclude_lines` entry is a REGEX, matched with `re.search` against the raw text of each line. An unanchored entry
+therefore matches any line containing it as a substring, and a match on a `def` or `if` header excludes that whole
+block. `'^\s*pass$'` is anchored so it matches a bare `pass` statement alone, where a bare `"pass"` would also match
+`password`, `bypass`, and `passed`, silently dropping real statements from the measured corpus while the gate still
+reports success. Anchor any entry added to this list unless it is a comment directive such as `pragma: no cover`.
 
 `fail_under` applies to every command that renders a report, so `pytest --cov`, `coverage report`, `coverage xml`, and
 `coverage html` all fail once the measured total drops below 100. See `/tox-config` for the `coverage` environment
@@ -446,9 +451,13 @@ For projects using scikit-build-core (e.g., ataraxis-time):
 ```toml
 [tool.scikit-build]
 sdist.exclude = [".github", "recipe"]
-minimum-version = "0.9"
+minimum-version = "1.0"
 build-dir = "build/{wheel_tag}"
 ```
+
+A project that cross-compiles adds `[[tool.scikit-build.overrides]]` blocks beneath the table, each selecting on an
+environment variable and setting a CMake define. ataraxis-time uses one to force the ARM64 generator platform for
+Windows ARM64 wheels.
 
 ### cibuildwheel configuration
 
@@ -465,3 +474,8 @@ test-requires = ["pytest", "pytest-xdist"]
 
 Platform-specific architecture settings use `[tool.cibuildwheel.linux]`, `[tool.cibuildwheel.windows]`, and
 `[tool.cibuildwheel.macos]` sub-tables.
+
+Two further tables cover the cases the base configuration cannot express. `[[tool.cibuildwheel.overrides]]` selects a
+wheel tag and replaces one command for it, which is how ataraxis-time points Windows ARM64 wheels at its own
+`tools/repair_windows_wheel.py` script. `[tool.cibuildwheel.macos.environment]` sets the environment the macOS builds
+run under, which is where `MACOSX_DEPLOYMENT_TARGET` is pinned.

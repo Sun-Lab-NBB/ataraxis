@@ -138,7 +138,7 @@ Each Rule label below names a documentation-quality rule defined in [doxygen-and
 | Missing `// NOLINT` on global init            | `// NOLINT(*-interfaces-global-init)`       | Suppress known false positive |
 | Blanket `// NOLINT` without pattern           | `// NOLINT(*-specific-check)`               | Use specific suppression      |
 | `float` for microsecond timing                | `uint32_t` for microsecond values           | Integer microsecond timing    |
-| Missing `analogReadResolution()` call         | Set in `setup()` before any analog reads    | Explicit ADC configuration    |
+| Unguarded `analogReadResolution()` call       | Wrap in `#if !defined(__AVR__)` in `setup()`| AVR has a fixed 10-bit ADC    |
 
 ---
 

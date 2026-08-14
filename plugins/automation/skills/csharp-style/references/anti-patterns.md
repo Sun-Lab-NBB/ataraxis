@@ -330,7 +330,7 @@ private void Update()
 {
     if (isActive)
     {
-        if (!boundaryDisarmed)
+        if (!occupancyMet)
         {
             if (_occupancyTimer.IsRunning)
             {
@@ -349,7 +349,7 @@ private void Update()
 // Correct - guard clauses reduce nesting
 private void Update()
 {
-    if (!isActive || boundaryDisarmed)
+    if (!isActive || occupancyMet)
         return;
 
     if (_occupancyTimer.IsRunning && inZone)

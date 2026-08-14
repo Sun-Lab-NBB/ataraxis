@@ -237,7 +237,8 @@ tools instead.
 - `skip_install = true`, since the build runs from source rather than from the installed package.
 - Standard projects: `python -m build . --sdist` + `python -m build . --wheel`.
 - C++ extension projects: `python -m build . --sdist` + `cibuildwheel --output-dir dist --platform auto`.
-- `allowlist_externals = docker` for container-based builds.
+- `allowlist_externals = docker` belongs to the cibuildwheel build alone, which reaches docker to build the manylinux
+  wheels. A standard project's build calls no external tool and carries no such key.
 
 ### upload and deploy
 
@@ -267,9 +268,11 @@ tools instead.
 ## Environment naming conventions
 
 The mamba environment name follows the pattern `{abbr}_dev`. For a multi-repository project component, `{abbr}` is the
-project abbreviation plus the initial of each remaining word (`ataraxis-base-utilities` becomes `axbu`). For a
-standalone project, `{abbr}` is the project name used as-is (`harvester` becomes `harvester`). `automation-cli` appends
-the OS suffix (`_lin`, `_osx`, `_win`) at runtime, so the suffix stays out of tox.ini.
+project abbreviation plus the initial of each remaining word (`ataraxis-base-utilities` becomes `axbu`). A trailing
+token that is already an abbreviation is kept whole rather than reduced to its initial, so `ataraxis-transport-layer-pc`
+becomes `axtlpc`. For a standalone project, `{abbr}` is the project name used as-is (`harvester` becomes
+`harvester`). `automation-cli` appends the OS suffix (`_lin`, `_osx`, `_win`) at runtime, so the suffix stays out of
+tox.ini.
 
 ---
 
@@ -463,8 +466,8 @@ Environment Management:
 
 Formatting:
 - [ ] Every environment has a description field
-- [ ] Every description opens with a bare third-person imperative verb and states what the environment does in one or
-      three sentences (no name restatement, no "This environment..." opener, no command narration)
+- [ ] Every description opens with a bare third-person imperative verb and states what the environment does in one,
+      two, or three sentences (no name restatement, no "This environment..." opener, no command narration)
 - [ ] Every inline comment answers a question its setting leaves open
 - [ ] Inline comments aligned vertically within their section
 - [ ] Comments and descriptions record current configuration only, never the edit that produced it

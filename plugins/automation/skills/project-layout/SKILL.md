@@ -111,7 +111,7 @@ These files appear at the root of all (or most) projects:
 | `.gitignore`     | Yes                | Git ignore patterns                                           |
 | `CLAUDE.md`      | Yes                | Claude Code project instructions                              |
 | `tox.ini`        | Python + C++       | Automation orchestration (lint, type, test, docs)             |
-| `.netlify-site`  | Projects with docs | Netlify site identifier used by the `deploy` task             |
+| `.netlify-site`  | Projects with a `deploy` environment | Netlify site identifier used by the `deploy` task |
 | `.codegraph/`    | Optional           | CodeGraph index, present when the repository has been indexed |
 | `.gitattributes` | Optional           | Line-ending normalization applied to every tracked text file  |
 
@@ -199,7 +199,8 @@ PlatformIO and Unity projects do NOT have `envs/` directories.
 ### Python test structure
 
 The `tests/` directory mirrors the `src/package_name/` subpackage structure and holds the test-support modules the test
-modules share:
+modules share. A project whose suite needs non-Python test data adds a fixture directory alongside the mirror, holding
+data files or vendored binary test doubles rather than importable modules:
 
 ```text
 tests/
@@ -263,7 +264,7 @@ substitution, because the environment a maintainer needs to reproduce a bug diff
 | Python-only                         | `OS: Ubuntu 24.04`, `Python: 3.13`                                    |
 | Python + C++ extension              | `OS: Ubuntu 24.04`, `Python: 3.13`, `CPU: AMD Ryzen 9 5900X`          |
 | C++ PlatformIO library and firmware | `OS: Ubuntu 24.04`, `PlatformIO: 6.1.15`, `Board: Teensy 4.1`         |
-| C# Unity                            | `OS: Windows 11`, `Unity: 2022.3.4f1`, `Platform: Windows Standalone` |
+| C# Unity                            | `OS: Windows 11`, `Unity: 6000.3.15f1`, `Platform: Windows Standalone` |
 
 A Python project whose subject is a physical device adds one more line naming that device, as `Hardware: Teensy 4.1`. A
 maintainer cannot reproduce a bug in code that drives hardware without knowing which hardware it drove. The condition is
@@ -275,7 +276,9 @@ values are illustrative. They show the shape of a useful answer rather than the 
 version and reproduction examples stay as the asset spells them.
 
 `config.yml` carries a single substitution. Replace the `{project}` placeholder in the API documentation link with the
-repository name, which produces the Netlify address that serves the project's API documentation:
+site identifier the project's `.netlify-site` file holds, which is the address that actually serves its API
+documentation. That identifier is usually the repository name followed by `-api-docs`, and
+`ataraxis-communication-interface` is the standing exception, serving from `-api` instead:
 
 ```yaml
 url: https://{project}-api-docs.netlify.app/    # https://ataraxis-automation-api-docs.netlify.app/
@@ -329,7 +332,7 @@ missing `.pyi` is not a layout violation. See `/python-style` for the stub-file 
 src/
 ├── main.cpp                  # Development entry point (excluded from library)
 ├── primary_header.h
-└── shared_assets.h
+└── {abbr}_shared_assets.h
 ```
 
 ### PlatformIO firmware (`src/`)
@@ -407,11 +410,12 @@ them rather than recalling the layout.
 - [ ] Python+C++ extension uses flat namespace under src/ (c_extensions/, wrapper/, etc.)
 - [ ] PlatformIO projects use src/ with header-only .h files
 - [ ] Unity projects use Assets/ with task-specific subdirectories
-- [ ] Python projects have envs/ with 3 files, one .yml per supported platform
+- [ ] Python projects have envs/ with one .yml per supported platform
 - [ ] envs/ holds .yml files alone, with any _spec.txt exports removed
 - [ ] envs/ file names use correct abbreviation prefix
 - [ ] PlatformIO and Unity projects do NOT have envs/
-- [ ] Python projects use tests/ (plural) with _test.py suffix, mirroring the src/package_name/ subpackage structure
+- [ ] Python projects that define a test environment use tests/ (plural) with _test.py suffix, mirroring the
+      src/package_name/ subpackage structure
 - [ ] Every non-test module under tests/ is conftest.py or a test-support module named without the _test.py suffix
 - [ ] PlatformIO library projects use test/ (singular) with test_ prefix
 - [ ] PlatformIO firmware and Unity projects have no dedicated test directory

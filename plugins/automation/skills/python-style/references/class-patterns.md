@@ -166,9 +166,9 @@ class ProcessingState:
 - Use `frozen=True` for configuration objects that should not be modified after creation
 - Omit `frozen=True` for dataclasses that require mutation (state trackers, caches, builders)
 - Use `slots=True` by default on all dataclasses. Slotted dataclasses use less memory, have faster attribute access, and
-  prevent accidental attribute creation. Omit `slots=True` only when the dataclass subclasses a base that relies on
-  `__dict__` for serialization or deserialization (e.g., `YamlConfig`), or when the class otherwise requires dynamic
-  attribute assignment
+  prevent accidental attribute creation. Omit `slots=True` when the dataclass subclasses a non-slotted base, such as
+  `YamlConfig`, because the subclass still inherits that base's `__dict__` and the key therefore buys nothing. Omit it
+  as well when the class requires dynamic attribute assignment
 - Use `field(default_factory=...)` for mutable default values (lists, dicts, sets)
 - Use `field(repr=False)` for internal fields that should not appear in string representation
 - Document each field with inline docstrings using triple-quoted strings
@@ -179,7 +179,7 @@ class ProcessingState:
 Use `__post_init__` for validation, type conversion, and computed field initialization:
 
 ```python
-# YamlConfig subclasses must NOT use slots=True (YamlConfig relies on __dict__ for serialization)
+# YamlConfig subclasses omit slots=True, since YamlConfig is not slotted and the subclass inherits its __dict__
 @dataclass
 class SessionConfig(YamlConfig):
     """Defines session configuration parameters."""
@@ -250,11 +250,14 @@ class CameraLogIds(IntEnum):
 - **Custom methods**: Add utility methods for type conversion when needed:
 
 ```python
-class SerialProtocols(IntEnum):
+class TransmissionProtocols(IntEnum):
     """Defines supported serial communication protocols."""
 
-    COBS = 1
-    """Consistent Overhead Byte Stuffing encoding."""
+    UNDEFINED = 0
+    """Placeholder value for an unset protocol."""
+
+    REPEATED_MODULE_COMMAND = 1
+    """Command repeated by the microcontroller until it is cancelled."""
 
     def as_uint8(self) -> np.uint8:
         """Returns the protocol code as a numpy uint8 value."""

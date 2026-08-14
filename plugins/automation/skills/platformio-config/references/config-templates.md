@@ -22,7 +22,7 @@ upload_protocol = teensy-cli
 build_flags = -std=c++17
 lib_deps =
     arminjo/digitalWriteFast@^1.3.1
-    inkaros/ataraxis-transport-layer-mc@^3.0.1
+    inkaros/ataraxis-transport-layer-mc@^4.0.1
 
 [env:due]
 platform = atmelsam
@@ -35,7 +35,7 @@ build_flags = -std=c++17
 lib_deps =
     pfeerick/elapsedMillis@^1.0.6
     arminjo/digitalWriteFast@^1.3.1
-    inkaros/ataraxis-transport-layer-mc@^3.0.1
+    inkaros/ataraxis-transport-layer-mc@^4.0.1
 
 [env:mega]
 platform = atmelavr
@@ -48,7 +48,7 @@ build_flags = -std=c++17
 lib_deps =
     pfeerick/elapsedMillis@^1.0.6
     arminjo/digitalWriteFast@^1.3.1
-    inkaros/ataraxis-transport-layer-mc@^3.0.1
+    inkaros/ataraxis-transport-layer-mc@^4.0.1
 ```
 
 ---
@@ -65,7 +65,7 @@ single-header library.
 {
   "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
   "name": "ataraxis-micro-controller",
-  "version": "3.0.1",
+  "version": "4.0.2",
   "description": "Provides the framework for integrating custom hardware modules with a centralized PC control interface.",
   "keywords": "arduino, teensy, ataraxis, communication, serial, integration, hardware modules",
   "repository": {
@@ -103,7 +103,7 @@ single-header library.
     {
       "owner": "inkaros",
       "name": "ataraxis-transport-layer-mc",
-      "version": "^3.0.1",
+      "version": "^4.0.1",
       "platforms": ["atmelsam", "atmelavr", "teensy"]
     }
   ],

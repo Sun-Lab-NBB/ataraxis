@@ -71,8 +71,9 @@ GitHub repository for installation instructions and library usage examples:
 - The second paragraph also names, and links to, the component the project is built to interoperate with, such as the
   companion library implementing the other end of its protocol or the hardware it drives. The test is whether the named
   component sits on the other side of an interface this project implements, and a component that passes that test
-  belongs on the page. Context that fails it, such as an adjacent project, a funding source, or a comparison with
-  another library, is omitted.
+  belongs on the page. A predecessor also belongs, meaning a library this project reimplements or supersedes, because
+  it tells a reader arriving from that library what changed. Context that fails both tests, such as an adjacent
+  project, a funding source, or an unrelated comparison with another library, is omitted.
 - The third paragraph is the standard disclaimer that the site carries API documentation only, with a link to the
   project GitHub repository.
 - The footer declares an explicit RST link target for every inline link the page uses.
@@ -128,6 +129,22 @@ Section Name
    :members:
    :undoc-members:
    :show-inheritance:
+```
+
+### Module constant directive
+
+Use this where a package re-exports a module-level constant. The `automodule` directive above discovers module-level
+data through the source of the module it documents, so it skips a constant the package re-exports, and the constant
+never reaches the rendered page. Name the DEFINING module rather than the re-exporting package, because autodoc reads
+the attribute docstring from that module's source and otherwise falls back to the docstring of the value's own type.
+Precede the block with a comment stating both reasons:
+
+```rst
+.. Documents the package constants explicitly, since the automodule directive above discovers module-level data through
+   the source of the module it documents and therefore skips a constant this package re-exports. The directive names
+   the defining module rather than the package, because autodoc reads the attribute docstring from that module's
+   source and falls back to the docstring of the value's own type when it is pointed at the re-exporting package.
+.. autodata:: package_name.submodule.dataclasses.CONSTANT_NAME
 ```
 
 ### Click CLI directive

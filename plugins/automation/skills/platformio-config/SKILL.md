@@ -103,7 +103,7 @@ effect.
 
 List each dependency as `registry_owner/name@^MAJOR.MINOR.PATCH`. The registry owner is the lowercase PlatformIO
 registry account, NOT the GitHub org, so ataraxis libraries are published under `inkaros` (e.g.
-`inkaros/ataraxis-transport-layer-mc@^3.0.1`). Third-party deps use their own owners (`arminjo/digitalWriteFast@^1.3.1`,
+`inkaros/ataraxis-transport-layer-mc@^4.0.1`). Third-party deps use their own owners (`arminjo/digitalWriteFast@^1.3.1`,
 `pfeerick/elapsedMillis@^1.0.6`). Use the caret (`^`) range so patch/minor updates are accepted. List a dependency only
 under the boards that need it.
 

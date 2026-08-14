@@ -99,21 +99,9 @@ breathe_default_project = "<PROJECT_NAME>"
 html_theme = 'furo'
 ```
 
-### Optional: preprocessor macros
-
-If the C++ project uses macros that Doxygen needs to expand, add Breathe preprocessor configuration after
-`breathe_default_project`:
-
-```python
-breathe_doxygen_config_options = {
-    'ENABLE_PREPROCESSING': 'YES',
-    'MACRO_EXPANSION': 'YES',
-    'EXPAND_ONLY_PREDEF': 'NO',
-    'PREDEFINED': 'MACRO_NAME='
-}
-```
-
-Replace `MACRO_NAME=` with the actual macro definitions needed. Multiple macros can be space-separated.
+Macros that Doxygen needs to expand are declared in the Doxyfile, under `ENABLE_PREPROCESSING`, `MACRO_EXPANSION`,
+`EXPAND_ONLY_PREDEF`, and `PREDEFINED`. Do NOT add `breathe_doxygen_config_options` to `conf.py`, because Breathe
+applies it only when generating XML itself and every project here feeds it pre-generated XML.
 
 ### Placeholders
 

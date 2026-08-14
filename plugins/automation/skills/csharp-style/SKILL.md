@@ -139,7 +139,7 @@ Use **full words**, not abbreviations:
 | Element           | Convention    | Example                                   |
 |-------------------|---------------|-------------------------------------------|
 | Classes           | PascalCase    | `StimulusTriggerZone`, `TaskTemplate`     |
-| Methods           | PascalCase    | `ResetState`, `GetSegmentLengths`         |
+| Methods           | PascalCase    | `ResetState`, `GetPrefabLength`           |
 | Public fields     | camelCase     | `trackLength`, `requireLick`, `isActive`  |
 | Public properties | PascalCase    | `IsOccupancyMode`, `CorridorSpacingUnity` |
 | Private fields    | `_camelCase`  | `_currentSegmentIndex`, `_occupancyTimer` |
@@ -220,8 +220,8 @@ libraries that do not inherit from MonoBehaviour raise standard C# exceptions in
 | Context                          | Error mechanism           | Example                                  |
 |----------------------------------|---------------------------|------------------------------------------|
 | MonoBehaviour lifecycle methods  | `Debug.LogError` + return | `Task.Start()`, `OccupancyZone.Update()` |
-| Editor tools and menu commands   | Exceptions                | `CreateTask.NewTask()`                   |
-| Static utility methods           | Exceptions                | `Utility.GetSegmentLengths()`            |
+| Editor tools and menu commands   | Exceptions                | `CreateTask.CreateNewTask()`             |
+| Static utility methods           | Exceptions                | `Utility.GetPrefabLength()`              |
 | Pure C# classes (non-Unity)      | Exceptions                | `ConfigParser.Parse()`                   |
 | MonoBehaviour constructors/Awake | `Debug.LogError` + return | Field validation in `Awake()`            |
 | Plain C# class constructors      | Exceptions                | `Communication(portName, baudRate)`      |
@@ -262,16 +262,18 @@ because it holds a list item or a code span, is already correct.
 ## Using directives
 
 - All `using` directives must be at the **top of the file**, outside the namespace
-- System directives first, then third-party, then project-local
-- Sorting is enforced by EditorConfig (`dotnet_sort_system_directives_first = true`)
+- System directives first, then every remaining directive in alphabetical order
+- `dotnet_sort_system_directives_first = true` settles the System-first placement alone. Roslyn has no notion of
+  third-party versus project-local, so no EditorConfig key can express a tiered order, and the codebase sorts
+  alphabetically after the System block
 
 ```csharp
 using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 using Gimbl;
-using Project.Config;
+using SL.Config;
+using UnityEngine;
 ```
 
 ### `using static` directives

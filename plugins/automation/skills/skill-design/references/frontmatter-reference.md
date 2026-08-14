@@ -13,9 +13,9 @@ The skill's identifier. You MUST ensure it matches the parent directory name.
 | Property   | Value                                                            |
 |------------|------------------------------------------------------------------|
 | Type       | String                                                           |
-| Required   | Yes                                                              |
-| Max length | 64 characters                                                    |
-| Format     | Lowercase letters, digits, and hyphens only, no consecutive `--` |
+| Required   | No by schema, which defaults to the filename. Required by ataraxis convention |
+| Max length | 64 characters, by ataraxis convention                            |
+| Format | Lowercase letters, digits, and hyphens only, no consecutive `--`, by convention |
 | Convention | Must match parent directory name: `explore-codebase`, `commit`   |
 
 ### `description`
@@ -26,8 +26,8 @@ skill descriptions at session start to decide when to invoke each skill.
 | Property     | Value                                                  |
 |--------------|--------------------------------------------------------|
 | Type         | String (use YAML `>-` for multi-line)                  |
-| Required     | Strongly recommended                                   |
-| Max length   | 1024 characters                                        |
+| Required     | Yes, by ataraxis convention                            |
+| Max length   | 1024 characters, an ataraxis budget rather than a schema cap |
 | Max lines    | 5 wrapped lines in the folded block                    |
 | Voice        | Third person                                           |
 | Must include | What the skill does AND when to use it ("Use when...") |
@@ -53,7 +53,7 @@ Controls whether the skill appears in the `/` slash command menu.
 |----------|-----------------------------------------------------------------|
 | Type     | Boolean                                                         |
 | Default  | `true`                                                          |
-| Usage    | Set to `false` for skills that are only invoked by other skills |
+| Usage    | Set to `false` for a skill the model invokes through the Skill tool, hiding its slash command  |
 
 ### `disable-model-invocation`
 
@@ -115,7 +115,7 @@ main conversation context clean.
 | Property | Value  |
 |----------|--------|
 | Type     | String |
-| Values   | `fork` |
+| Values   | `inline`, `fork` |
 
 ### `agent`
 
@@ -124,16 +124,68 @@ Specifies which sub-agent type to use when `context: fork` is set.
 | Property | Value                           |
 |----------|---------------------------------|
 | Type     | String                          |
-| Values   | `Explore`, `Plan`, `Bash`, etc. |
+| Values   | `Explore`, `Plan`, `general-purpose`, etc. |
 
 ### `hooks`
 
-Hooks scoped to the skill's lifecycle. Allows running shell commands when the skill is invoked or completed.
+Hooks registered while the skill is active, using the same shape as the `hooks` block in settings.json.
 
 | Property | Value                                              |
 |----------|----------------------------------------------------|
 | Type     | Object                                             |
 | Usage    | Advanced pattern for validation or post-processing |
+
+### `when_to_use`
+
+Guidance for when the model should reach for this skill. It becomes part of the tool description, so a trigger stated
+here does not need to be packed into `description`.
+
+| Property | Value  |
+|----------|--------|
+| Type     | String |
+
+### `paths`
+
+Glob patterns this skill applies to. The skill loads only when the model touches a matching file.
+
+| Property | Value           |
+|----------|-----------------|
+| Type     | Array of string |
+
+### `effort`
+
+Thinking effort the model applies while the skill is active.
+
+| Property | Value                                          |
+|----------|------------------------------------------------|
+| Values   | `low`, `medium`, `high`, `max`, or an integer  |
+
+### `shell`
+
+Shell used for `` !`command` `` blocks. Defaults to bash on every platform, so set it only for a Windows-only skill.
+
+| Property | Value              |
+|----------|--------------------|
+| Values   | `bash`, `powershell` |
+
+### `background`
+
+Applies to `context: fork` alone. A fork runs as a background agent reporting through a task notification, and setting
+this to `false` keeps the caller waiting for the result in-line.
+
+| Property | Value   |
+|----------|---------|
+| Type     | Boolean |
+| Default  | `true`  |
+
+### `metadata`
+
+Free-form map for the skill author's own use, such as entitlement or catalog fields. It is preserved on the loaded
+skill and reaches nothing in the harness.
+
+| Property | Value  |
+|----------|--------|
+| Type     | Object |
 
 ---
 
@@ -146,6 +198,9 @@ SKILL.md content can include variables that are replaced at runtime.
 | `$ARGUMENTS`           | All arguments passed after the skill name |
 | `$ARGUMENTS[N]` / `$N` | Positional argument at index N (0-based)  |
 | `${CLAUDE_SESSION_ID}` | Unique identifier for the current session |
+| `${CLAUDE_SKILL_DIR}`  | Directory holding this SKILL.md, for pointing a Read or Bash call at its own references/ |
+| `${CLAUDE_PROJECT_DIR}`| Root directory of the active project                                                     |
+| `${CLAUDE_EFFORT}`     | Thinking effort currently in force                                                       |
 
 ### Dynamic context injection
 
@@ -167,4 +222,4 @@ Current git branch: !`git branch --show-current`
 | Character set          | Lowercase letters, digits, and hyphens only            |
 | No consecutive hyphens | `my--skill` is invalid                                 |
 | Must match directory   | Skill in `skills/my-skill/` must have `name: my-skill` |
-| Max length             | 64 characters                                          |
+| Max length             | 64 characters, by ataraxis convention                  |

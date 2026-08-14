@@ -197,7 +197,8 @@ a later read loudly. MEDIUM when the only loss is a cache or a regenerable inter
 
 **Definition.** A defect requiring two execution contexts to manifest. Covers a data race, a non-atomic
 read-modify-write, unsynchronized shared mutable state across threads or processes, inconsistent lock ordering, a
-callback mutating state the main path reads, and interrupt or signal handler unsafety.
+callback mutating state the main path reads, a cross-iteration race between the Numba `prange` worker threads an
+`@njit(parallel=True)` kernel spawns, and interrupt or signal handler unsafety.
 
 **Detection.** Run Pass 6. Enumerate the contexts that actually exist first, and proceed only when at least two reach
 the same state.

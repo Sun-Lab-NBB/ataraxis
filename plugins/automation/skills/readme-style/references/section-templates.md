@@ -114,6 +114,12 @@ For Ataraxis ecosystem libraries, end the detailed description with a sentence l
 library is part of the [Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework for AI-assisted scientific hardware
 control."
 
+For Sollertia platform libraries, OPEN the detailed description with a sentence naming both the platform and the
+framework it builds on: "This library is part of the [Sollertia](https://github.com/Sun-Lab-NBB/sollertia) AI-assisted
+scientific data acquisition and processing platform, built on the
+[Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework and developed in the Sun (NeuroAI) lab at Cornell
+University."
+
 ```markdown
 ___
 
@@ -248,19 +254,20 @@ Platformio subsection declares the dependency via `lib_deps`:
 
 1. Download this repository to the local machine using the preferred method, such as git-cloning. Use one of the
    [stable releases](https://github.com/Sun-Lab-NBB/PROJECT-NAME/tags).
-2. Unpack the downloaded tarball and move all 'src' contents into the appropriate destination ('include,' 'src,' or
-   'libs') directory of the project that needs to use this library.
+2. Unpack the downloaded tarball and move the 'src' header files (do not copy 'src/main.cpp', which is a
+   development-only entry point) into the appropriate destination ('include,' 'src,' or 'libs') directory of the
+   project that needs to use this library.
 3. Add the project's `#include` directives at the top of the main.cpp file and each consuming header file.
 
 ### Platformio
 
 1. Navigate to the project's platformio.ini file and add the following line to the target environment specification:
-   `lib_deps = inkaros/PACKAGE-NAME@^MAJOR.0.0`.
+   `lib_deps = inkaros/PACKAGE-NAME@^MAJOR.MINOR.PATCH`.
 2. Add the project's `#include` directives at the top of the main.cpp file and each consuming header file.
 ```
 
-Replace `PROJECT-NAME` with the repository name, `PACKAGE-NAME` with the PlatformIO registry package name, and `MAJOR`
-with the current major version.
+Replace `PROJECT-NAME` with the repository name, `PACKAGE-NAME` with the PlatformIO registry package name, and
+`MAJOR.MINOR.PATCH` with the current `library.json` version.
 
 ---
 
@@ -328,13 +335,14 @@ COMMAND mcp
 #### Client Registration
 
 MCP server registration and Claude Code skill assets for this library are distributed through the
-[ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) marketplace as part of the **PLUGIN-NAME** plugin. Install the
-plugin from the marketplace to automatically register the MCP server with compatible clients and make all associated
-skills available.
+[MARKETPLACE-NAME](https://github.com/Sun-Lab-NBB/MARKETPLACE-NAME) marketplace as part of the **PLUGIN-NAME** plugin.
+Install the plugin from the marketplace to automatically register the MCP server with compatible clients and make all
+associated skills available.
 ````
 
-Always use a table for the Available Tools section (not a bullet list). Replace `COMMAND` with the actual CLI command
-and `PLUGIN-NAME` with the name of the ataraxis marketplace plugin that distributes the assets for this library.
+Always use a table for the Available Tools section (not a bullet list). Replace `COMMAND` with the actual CLI command,
+`MARKETPLACE-NAME` with `ataraxis` for an Ataraxis library or `sollertia` for a Sollertia platform library, and
+`PLUGIN-NAME` with the name of the plugin in that marketplace that distributes the assets for this library.
 
 ---
 
@@ -433,6 +441,11 @@ Claude Code skills and other AI development assets for this project are distribu
 [ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) marketplace as part of the **automation** plugin. Install the
 plugin from the marketplace to make all associated skills and development tools available to compatible AI coding
 agents.
+
+A project whose assets span several plugins names them as a bulleted list instead, one bullet per plugin stating what
+that plugin provides, introduced as "distributed through the [ataraxis](...) marketplace across two plugins:". A
+project whose assets span both marketplaces groups the bullets under each, introduced as "distributed through two
+marketplaces:".
 
 ### Automation Troubleshooting
 

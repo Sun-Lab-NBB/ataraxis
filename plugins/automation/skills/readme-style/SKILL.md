@@ -37,9 +37,11 @@ You MUST verify your changes against the verification checklist before submittin
 
 Three parts of a README duplicate content that lives elsewhere. The H1 title carries the project name, the one-line
 description immediately after it carries the description, and the Authors section carries the author list. Each of the
-three is also stated in `pyproject.toml`, in the documentation, and on the repository and package pages, so you MUST
-obtain explicit user approval before changing any of them. `/pyproject-style` owns the wording and lists every location
-that would need the same edit.
+three is also stated in the project's metadata manifest, in the documentation, and on the repository and package pages,
+so you MUST obtain explicit user approval before changing any of them. The canonical-locations table in
+[section-templates.md](references/section-templates.md) names the manifest for each archetype, since a C++ PlatformIO
+library states it in `library.json` and a C# Unity project states it in the README alone. `/pyproject-style` owns the
+wording for Python projects and `/platformio-config` for C++ PlatformIO libraries.
 
 Every other part of the README follows the normal rules in this skill, so a usage example, a section you are adding, or
 a technical correction inside Detailed Description needs no approval.
@@ -290,8 +292,9 @@ levels (do not jump from H2 to H4).
 
 A badge URL is written in full or through a URL shortener, and both forms are correct. Most badge targets are static
 shields identical across every repository, so a shortener resolves to the same image and keeps a very long URL out of
-the README source. A per-package badge, such as a PyPI or a PlatformIO Registry badge, carries a shortener minted for
-its own repository. The permission covers badge URLs alone, so a prose link keeps the link text rule above, where the
+the README source. The PlatformIO Registry badge encodes the package name, so its shortener is
+minted per repository and copied from the repository that owns it. PyPI badges are written in full, as the badge block
+below shows. The permission covers badge URLs alone, so a prose link keeps the link text rule above, where the
 text must name the page or document the link opens.
 
 ---

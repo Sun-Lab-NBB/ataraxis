@@ -426,7 +426,7 @@ belongs to. In embedded firmware this covers blocking waits in runtime code, hea
 containers, `<iostream>`, virtual inheritance, floating-point microsecond timing, and platform-dependent integer widths.
 In nanobind extension code it covers by-value parameter copies, blocking calls holding the GIL, and Python-object access
 with the GIL released. In both it covers non-`const` members and methods, stateless methods left non-`static`, and
-missing `final` or `override` that block devirtualization.
+a missing `final` on a leaf class or a leaf override, which blocks devirtualization.
 
 **Detection.** Follow the C++ half of Pass 9 in `detection-passes.md`. Establish the archetype first, because the
 constraint sets differ and misapplying them is the primary source of C++ false positives.
@@ -434,9 +434,10 @@ constraint sets differ and misapplying them is the primary source of C++ false p
 **Evidence.** STATIC. State the file's archetype with the evidence establishing it, which is the presence of
 `platformio.ini`, the includes, and the base class. Cite the construct and quote it verbatim, name the enclosing method,
 which decides the setup and calibration exemption for blocking waits, and quote the style rule with its skill and
-reference file. For a missing `override`, cite the base class's virtual method proving an override was intended.
+reference file. For a missing `final`, cite the leaf class or leaf override declaration proving no further
+override exists.
 
-**Impact.** HIGH for blocking waits in embedded runtime code, heap allocation in firmware, missing `override`, and a GIL
+**Impact.** HIGH for blocking waits in embedded runtime code, heap allocation in firmware, a missing `final`, and a GIL
 held across a blocking extension call. MEDIUM for bare integer types and for floating-point microsecond timing.
 
 ---

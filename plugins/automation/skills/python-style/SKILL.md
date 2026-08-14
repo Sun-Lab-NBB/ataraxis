@@ -470,7 +470,7 @@ against the code you wrote.
 - [ ] Click options use lowercase short and hyphenated long flags, with click.Path() carrying explicit validation,
       and command decorators stacked bottom-up with options closest to `def`
 - [ ] Dataclasses use frozen=True for immutable configs (omit for mutable state)
-- [ ] Dataclasses use slots=True by default (omit for YamlConfig subclasses or classes needing __dict__)
+- [ ] Dataclasses use slots=True by default (omit when subclassing a non-slotted base such as YamlConfig)
 - [ ] Enum members have inline docstrings; StrEnum for strings, IntEnum for codes
 - [ ] __repr__ uses ClassName(key=value) format; no __str__
 - [ ] Boolean checks use truthiness (not == True); None checks use `is None`

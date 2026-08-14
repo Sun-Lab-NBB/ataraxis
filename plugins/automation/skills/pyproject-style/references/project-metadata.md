@@ -236,7 +236,7 @@ Group dependencies by category with comments. Common categories:
 dependencies = [
     # Automation Logic
     "click>=8,<9",
-    "tomli>=2,<3",
+    "platformdirs>=4,<5",
 
     # Testing
     "pytest>=9,<10",
@@ -244,11 +244,11 @@ dependencies = [
     "pytest-xdist>=3,<4",
 
     # Documentation
-    "sphinx>=8,<9",
-    "furo>=2024,<2027",
+    "sphinx>=9,<10",
+    "furo>=2025,<2026",
 
     # Linting and Stub Generation
-    "mypy>=1,<2",
+    "mypy>=2,<3",
     "ruff>=0,<1",
 ]
 ```
@@ -258,9 +258,9 @@ dependencies = [
 Projects depending on other libraries use the same range constraint pattern:
 
 ```toml
-"ataraxis-time>=5,<6",
-"ataraxis-base-utilities>=5,<6",
-"ataraxis-data-structures>=5,<6",
+"ataraxis-time>=7,<8",
+"ataraxis-base-utilities>=7,<8",
+"ataraxis-data-structures>=7,<8",
 ```
 
 ### Platform-specific dependencies
@@ -268,8 +268,8 @@ Projects depending on other libraries use the same range constraint pattern:
 Use `sys_platform` markers for platform-conditional dependencies:
 
 ```toml
-"intel-cmplr-lib-rt>=2025,<2026; sys_platform != 'darwin'",
-"tbb4py>=2022,<2023; sys_platform != 'darwin'",
+"intel-cmplr-lib-rt>=2026,<2027; sys_platform != 'darwin'",
+"tbb4py>=2023,<2024; sys_platform != 'darwin'",
 ```
 
 ---
@@ -309,17 +309,19 @@ Install via: `uv sync --group dev` or `pip install --group dev`
 The type stub packages vary by project. Include stubs for any dependency that does not ship inline types. Common type
 stubs:
 
-| Stub package                     | For dependency |
-|----------------------------------|----------------|
-| `types-tqdm`                     | tqdm           |
-| `types-paho-mqtt`                | paho-mqtt      |
-| `types-pyserial`                 | pyserial       |
-| `types-pyyaml`                   | PyYAML         |
-| `types-appdirs`                  | appdirs        |
-| `types-tabulate`                 | tabulate       |
-| `types-filelock`                 | filelock       |
-| `scipy-stubs`                    | scipy          |
-| `google-api-python-client-stubs` | google-api     |
+| Stub package                     | For dependency  |
+|----------------------------------|-----------------|
+| `types-pyyaml`                   | PyYAML          |
+| `types-psutil`                   | psutil          |
+| `types-tqdm`                     | tqdm            |
+| `types-tabulate`                 | tabulate        |
+| `types-pyserial`                 | pyserial        |
+| `scipy-stubs`                    | scipy           |
+| `pandas-stubs`                   | pandas          |
+| `types-python-dateutil`          | python-dateutil |
+| `types-paramiko`                 | paramiko        |
+| `types-filelock`                 | filelock        |
+| `google-api-python-client-stubs` | google-api      |
 
 The `ataraxis-automation` project itself omits the `ataraxis-automation` dependency from its dev group since it is
 self-referential.

@@ -163,8 +163,9 @@ wants them names the module, and that naming is the scoping those two audits wer
 
 Recommend what the routing table selects in change mode, because a change set is already that scoping.
 
-Ask nothing where the target holds no `source` file. Step 2's bound-file-set rule already drops both wave 2 members
-there, so the election has nothing to decide.
+Ask nothing where the target holds neither a `source` nor a `test` file. Step 2's bound-file-set rule already drops
+both wave 2 members there, so the election has nothing to decide. A target holding tests alone still keeps
+`/audit-correctness` bound for its Pass 10, so the election runs.
 
 ### Step 1: Build the shared context
 

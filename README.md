@@ -30,7 +30,7 @@ ___
   capabilities without manual debugging loops.
 
 ### Optimized Hardware Interfaces
-- **High-speed camera acquisition**: Support for OpenCV and GeniCam cameras with real-time FFMPEG
+- **High-speed camera acquisition**: Support for OpenCV and GenICam cameras with real-time FFMPEG
   encoding (CPU/GPU).
 - **Microcontroller communication**: Bidirectional serial communication with Arduino and Teensy
   boards at microsecond speeds.
@@ -39,7 +39,6 @@ ___
 
 ### AI-Assisted Development
 - **Code generation**: AI agents generate hardware interface code following established patterns.
-- **Configuration management**: Interactive experiment configuration using task templates.
 - **Domain-specific skills**: Reusable workflows for camera interfaces, microcontroller modules,
   and system health checks.
 - **Cross-repository coordination**: Skills encode knowledge spanning multiple interdependent
@@ -118,7 +117,7 @@ and Communication classes with concurrent command execution.
 ### Data Acquisition & Processing
 
 **[ataraxis-video-system](https://github.com/Sun-Lab-NBB/ataraxis-video-system)** (Python)
-Camera interface library supporting OpenCV and GeniCam cameras with real-time FFMPEG video
+Camera interface library supporting OpenCV and GenICam cameras with real-time FFMPEG video
 encoding. Includes MCP server and CLI tools for camera management.
 
 **[ataraxis-time](https://github.com/Sun-Lab-NBB/ataraxis-time)** (Python/C++)
@@ -135,12 +134,15 @@ ___
 
 ### Installation
 
-Core libraries are available via PyPI:
+Core libraries are available via PyPI. They require Python `>=3.12,<3.15`:
 
 ```bash
 pip install ataraxis-video-system ataraxis-communication-interface ataraxis-time
 pip install ataraxis-data-structures
 ```
+
+The remaining Python libraries arrive as transitive dependencies of the packages above. Install
+`ataraxis-automation` separately when setting up a project's `tox` development pipeline.
 
 C++ microcontroller libraries are available via PlatformIO:
 
@@ -191,6 +193,8 @@ interactively.
 ***Note,*** installing the `communication` or `video` plugin automatically registers its bundled MCP
 server (started via `axci mcp` and `axvs mcp`, respectively). No manual edits to `~/.claude.json` are
 required. When a plugin is enabled mid-session, run `/reload-plugins` to connect its MCP server.
+The matching pip package must also be installed in the Python environment active when Claude Code
+starts, since the server launches through the `axci` or `axvs` command and fails to start without it.
 
 Each plugin can be installed at a different scope, depending on the intended use:
 - **user** (default): available across all projects for the current user.
@@ -204,8 +208,8 @@ To select a scope during installation, use the CLI form:
 
 Most skills are deliberately **not** user-invocable. They encode background conventions and workflow
 knowledge that AI coding agents pick up and apply automatically whenever a task matches the skill's
-description — there is nothing to type. The per-plugin tables below enumerate these skills for
-reference.
+description — there is nothing to type. The per-plugin tables below enumerate every skill each
+plugin provides.
 
 A small subset of skills is user-invocable: they perform discrete, on-demand actions and can be
 typed directly as slash commands. All of them are provided by the `automation` plugin.
@@ -219,7 +223,7 @@ typed directly as slash commands. All of them are provided by the `automation` p
 | `/audit-style`          | Audits files against applicable style skill checklists for compliance  |
 | `/audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
 | `/audit-performance`    | Audits source code for optimization and dtype predictability findings  |
-| `/commit`               | Drafts style-compliant git commit messages                             |
+| `/commit`               | Stages all changes and creates a style-compliant commit, stopping before push                             |
 | `/pr`                   | Drafts a style-compliant pull request summary for the active branch    |
 | `/release`              | Drafts style-compliant release notes summarizing merged pull requests  |
 
@@ -246,7 +250,7 @@ provide an MCP server.
 | `audit-style`          | Audits files against applicable style skill checklists for compliance  |
 | `audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
 | `audit-performance`    | Audits source code for optimization and dtype predictability findings  |
-| `commit`               | Drafts style-compliant git commit messages                             |
+| `commit`               | Stages all changes and creates a style-compliant commit, stopping before push                             |
 | `pr`                   | Drafts a style-compliant pull request summary for the active branch    |
 | `release`              | Drafts style-compliant release notes summarizing merged pull requests  |
 | `skill-design`         | Generates, updates, and verifies skill files and CLAUDE.md             |
@@ -316,7 +320,7 @@ ___
 ```
 User: Is the system ready for today's imaging session?
 
-[AI invokes MCP tools: list_microcontrollers, list_cameras, check_mqtt_broker]
+[AI invokes MCP tools: list_microcontrollers_tool, list_cameras_tool, check_mqtt_broker_tool]
 
 AI: Pre-flight check complete:
     Microcontrollers:

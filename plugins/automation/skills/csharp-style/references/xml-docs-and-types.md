@@ -462,7 +462,10 @@ This matches the EditorConfig settings:
 
 ### Nullable types
 
-Use nullable reference types (`T?`) when a value may legitimately be null:
+Nullable reference type annotations require an enabled nullable annotation context. Turn it on per file with
+`#nullable enable`, or project-wide by adding `-nullable:enable` to `Assets/csc.rsp`. Without it the compiler raises
+CS8632 on every `T?` annotation. Once the context is on, use nullable reference types (`T?`) when a value may
+legitimately be null:
 
 ```csharp
 /// <summary>The optional occupancy zone component attached to this trigger zone.</summary>
@@ -553,7 +556,7 @@ Dictionary<string, byte> cueIdentifiers = new Dictionary<string, byte>();
 
 ```csharp
 // Measures actual prefab lengths and compares with configuration.
-float[] measuredSegmentLengths = Utility.GetSegmentLengths(segmentPrefabs);
+float measuredSegmentLength = Utility.GetPrefabLength(segmentPrefab);
 ```
 
 ### What to avoid

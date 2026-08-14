@@ -113,6 +113,7 @@ Round: <n> of 3                                                     (change mode
 Adjudicated away by the collision rules: <n>
 Suppressed as cross-audit duplicates: <n>
 Discarded by the false-positive guards: <n> across all audits
+Re-anchored by citation verification: <n> of <n> checked   (/audit-correctness only)
 Deleted by citation verification: <n> of <n> checked
 Refuted by adversarial verification: <n> of <n> checked
 ```
@@ -138,7 +139,7 @@ audits count different things.
 ```text
 | Audit               | Files in scope | Files audited | Files skipped | Notes                             |
 |---------------------|----------------|---------------|---------------|-----------------------------------|
-| /audit-facts        | <n>            | <n>           | <n>           | metadata <n>, in-source <n>       |
+| /audit-facts        | <n>            | <n>           | <n>           | metadata <n>, in-source <n>, tests <n or authority> |
 | /audit-style        | <n>            | <n>           | <n>           | gates: <tools>, layout: <status>  |
 | /audit-correctness  | <n>            | <n>           | <n>           | tiers swept T0-T3                 |
 | /audit-performance  | <n>            | <n>           | <n>           | passes as its ledger reports them |

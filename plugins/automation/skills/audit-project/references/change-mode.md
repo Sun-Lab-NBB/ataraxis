@@ -115,7 +115,8 @@ Findings split into two classes, and the split decides whether the work is done.
 | Verdict      | Findings in the class                                                                |
 |--------------|--------------------------------------------------------------------------------------|
 | **BLOCKING** | Correctness CRITICAL and HIGH, every CONTRACT_VIOLATION, facts WRONG, style BLOCKING |
-| **ADVISORY** | Everything else, meaning every MEDIUM and LOW finding and every performance one      |
+| **ADVISORY** | Everything else: correctness MEDIUM and LOW, style STANDARD, INCONSISTENCY, and    |
+|              | CONFLICT, every facts verdict, and every performance finding                      |
 
 Every performance finding is advisory. Cost is a judgment call the user makes with the numbers in front of them, and a
 slow implementation is finished work while a wrong one is not.

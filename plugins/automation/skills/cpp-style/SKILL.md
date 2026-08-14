@@ -159,7 +159,7 @@ Use **full words**, not abbreviations:
 | Classes               | PascalCase               | `TransportLayer`, `EncoderModule`, `COBSProcessor`   |
 | Methods               | PascalCase               | `SendData`, `ReceiveData`, `SetupModule`             |
 | Accessors             | `get_`/`set_` snake_case | `get_buffer_size`, `set_baud_rate`                   |
-| Private members       | `_snake_case`            | `_port`, `_cobs_processor`, `_custom_parameters`     |
+| Private members       | `_snake_case`            | `_port`, `_crc_processor`, `_custom_parameters`     |
 | Local variables       | snake_case               | `start_index`, `payload_size`, `new_motion`          |
 | Parameters            | snake_case               | `module_type`, `module_id`, `baud_rate`              |
 | Constants             | `kPascalCase`            | `kTimeout`, `kSerialBufferSize`, `kCalibrationDelay` |
@@ -221,7 +221,7 @@ Extension code may throw exceptions for error propagation to Python. nanobind au
 Python exceptions:
 
 ```cpp
-throw std::invalid_argument("Unsupported precision. Use 'ns', 'us', 'ms', or 's'.");
+throw std::invalid_argument("Unable to set precision. Must be 'ns', 'us', 'ms', or 's', but received '" + p + "'.");
 ```
 
 ### Compile-time validation
@@ -452,8 +452,8 @@ against the code you wrote.
 - [ ] Linting warnings resolved (not suppressed) unless resolution adds unnecessary complexity
 - [ ] NOLINT comments for legitimate clang-tidy false positives only
 - [ ] No IDE inspection directives (CLion/ReSharper // noinspection etc.); only clang-tidy // NOLINT suppressions kept
-- [ ] .clang-tidy Checks list names every check explicitly, carrying no globs and no entry the installed
-      clang-tidy no longer ships
+- [ ] .clang-tidy Checks list names every enabled check explicitly, with no wildcard enabling entry beyond the leading
+      `-*` disable-all prefix, and no entry the installed clang-tidy no longer ships
 - [ ] A check contradicting a construct this skill prescribes is removed from the Checks list with its reason
       recorded in the file header, rather than suppressed per-site with NOLINT
 

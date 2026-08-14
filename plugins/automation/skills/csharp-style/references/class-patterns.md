@@ -70,7 +70,7 @@ private DisplayObject _display;
 
 /// <summary>Determines whether the boundary has been disarmed. Not visible in Inspector.</summary>
 [HideInInspector]
-public bool boundaryDisarmed = false;
+public bool occupancyMet = false;
 ```
 
 ### Component access
@@ -116,13 +116,13 @@ private MQTTChannel _lickChannel;
 /// <summary>Subscribes to MQTT lick events when the component becomes active.</summary>
 private void OnEnable()
 {
-    _lickChannel.Event.AddListener(OnLickDetected);
+    _lickChannel.receivedEvent.AddListener(OnLickDetected);
 }
 
 /// <summary>Unsubscribes from MQTT lick events when the component becomes inactive.</summary>
 private void OnDisable()
 {
-    _lickChannel.Event.RemoveListener(OnLickDetected);
+    _lickChannel.receivedEvent.RemoveListener(OnLickDetected);
 }
 ```
 
@@ -168,11 +168,8 @@ namespace Gimbl
     [System.Serializable]
     public class DisplaySettings : ScriptableObject
     {
-        /// <summary>Determines whether this display is active.</summary>
-        public bool isActive = true;
-
         /// <summary>The display brightness as a percentage (0-100).</summary>
-        public float brightness = 100f;
+        public float brightness = 50f;
 
         /// <summary>The height of the display in VR world units.</summary>
         public float heightInVR = 0.2f;
@@ -251,7 +248,7 @@ Use expression-bodied syntax for simple, single-expression properties:
 public bool IsOccupancyMode => _occupancyZone != null;
 
 /// <summary>Returns the corridor spacing in Unity units, converted from centimeters.</summary>
-public float CorridorSpacingUnity => corridorSpacingCm / CmPerUnityUnit;
+public float CorridorSpacingUnity => corridorSpacingCm / cmPerUnityUnit;
 ```
 
 ### Full property syntax
@@ -283,15 +280,14 @@ public DisplayObject Display
 Use abstract classes for base types that define a shared interface:
 
 ```csharp
-/// <summary>Base class for all VR input controllers.</summary>
-public abstract class ControllerObject : MonoBehaviour
+/// <summary>Base class for all VR stimulus presenters. Illustrative, not a project type.</summary>
+public abstract class StimulusPresenter : MonoBehaviour
 {
-    /// <summary>Renders the controller's editor menu in the Inspector.</summary>
-    public abstract void EditMenu();
+    /// <summary>Presents the stimulus this presenter manages.</summary>
+    public abstract void Present();
 
-    /// <summary>Links the controller settings from the specified asset path.</summary>
-    /// <param name="assetPath">The path to the settings asset. Defaults to empty string.</param>
-    public abstract void LinkSettings(string assetPath = "");
+    /// <summary>Returns the stimulus to its idle state.</summary>
+    public abstract void Reset();
 }
 ```
 
@@ -316,7 +312,7 @@ public class MQTTChannel<TMessage> : MQTTChannel
     public class ChannelEvent : UnityEvent<TMessage> { }
 
     /// <summary>The event subscribers can listen to for incoming messages.</summary>
-    public new ChannelEvent Event = new ChannelEvent();
+    public new readonly ChannelEvent receivedEvent = new ChannelEvent();
 
     /// <summary>Creates a new typed MQTT channel with the specified topic.</summary>
     /// <param name="topicString">The MQTT topic string to subscribe to.</param>
@@ -324,7 +320,7 @@ public class MQTTChannel<TMessage> : MQTTChannel
     public MQTTChannel(
         string topicString,
         bool isListener = true,
-        byte qosLevel = MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE
+        byte qosLevel = 2
     ) : base(topicString, isListener, qosLevel) { }
 
     /// <summary>Deserializes the received JSON string and invokes the typed event.</summary>
@@ -332,7 +328,7 @@ public class MQTTChannel<TMessage> : MQTTChannel
     public override void ReceivedMessage(string messageString)
     {
         TMessage message = JsonUtility.FromJson<TMessage>(messageString);
-        Event.Invoke(message);
+        receivedEvent.Invoke(message);
     }
 }
 ```
@@ -354,11 +350,11 @@ Use nested classes for types that are tightly coupled to the enclosing class:
 /// <summary>Manages the VR task execution and corridor transitions.</summary>
 public class Task : MonoBehaviour
 {
-    /// <summary>Wraps the segment sequence data for MQTT transmission.</summary>
+    /// <summary>Wraps cue sequence data for MQTT transmission.</summary>
     public class SequenceMessage
     {
-        /// <summary>The array of segment indices in the sequence.</summary>
-        public int[] sequence;
+        /// <summary>The array of cue identifiers in the sequence.</summary>
+        public byte[] cueSequence;
     }
 }
 ```
@@ -382,16 +378,12 @@ Use static classes for stateless utility functions:
 public static class Utility
 {
     /// <summary>Measures the Z-axis lengths of the given segment prefabs.</summary>
-    /// <param name="segmentPrefabs">The array of segment GameObjects to measure.</param>
-    /// <returns>An array of measured lengths in Unity units.</returns>
-    public static float[] GetSegmentLengths(GameObject[] segmentPrefabs)
+    /// <param name="prefab">The segment GameObject to measure.</param>
+    /// <returns>The measured length in Unity units.</returns>
+    public static float GetPrefabLength(GameObject prefab)
     {
-        float[] lengths = new float[segmentPrefabs.Length];
-        for (int i = 0; i < segmentPrefabs.Length; i++)
-        {
-            lengths[i] = GetPrefabLength(segmentPrefabs[i]);
-        }
-        return lengths;
+        Renderer renderer = prefab.GetComponentInChildren<Renderer>();
+        return renderer != null ? renderer.bounds.size.z : 0f;
     }
 }
 ```

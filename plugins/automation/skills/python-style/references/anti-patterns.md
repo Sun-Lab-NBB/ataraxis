@@ -121,6 +121,12 @@ Transform code to match project style:
 | Manual YAML dump/load                 | No type safety                    | Subclass `YamlConfig`                                            |
 | `multiprocessing.Array`               | Limited dtype support             | `SharedMemoryArray`                                              |
 | Direct file writes in loops           | Blocks acquisition                | `DataLogger` with `LogPackage`                                   |
+| `open(path, "w")` for a config write  | Truncates on a crash mid-write    | `atomic_write()`                                                 |
+| `shutil.copytree()` / `rmtree()`      | No verification, no progress      | `transfer_directory()` / `delete_directory()`                    |
+| Hand-rolled `hashlib` directory walk  | Inconsistent ordering, no caching | `calculate_directory_checksum()`                                 |
+| Manual `np.interp()` wrapper          | Duplicated edge-case handling     | `interpolate_data()`                                             |
+| `os.environ["OMP_NUM_THREADS"] = ...` | Misses sibling BLAS variables     | `limit_worker_threads()` / `initialize_worker_threads()`         |
+| Ad-hoc JSON job-state files           | No atomicity, no schema           | `ProcessingTracker`                                              |
 | Manual `isinstance()` for list check  | Verbose, error-prone              | `ensure_list()`                                                  |
 | Manual slice batching                 | Verbose, doesn't preserve dtype   | `chunk_iterable()`                                               |
 | `os.cpu_count() - N` for workers      | No None guard, fragile            | `resolve_worker_count()`                                         |

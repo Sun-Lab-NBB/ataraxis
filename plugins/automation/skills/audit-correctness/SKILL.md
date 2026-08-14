@@ -163,8 +163,8 @@ Record the prerequisites that apply to the languages in scope, before any verdic
 1. The project archetype, read from the `envlist` in `tox.ini`. Full Python and C++ extension projects carry
    `{pyXXX}-test` and `coverage` environments. Reduced Python projects omit both by design, and C++ docs-only projects
    carry `envlist = docs` alone.
-2. Python only. The actual test matrix. Core libraries use `{py312, py313, py314}-test` and applications use a single
-   version, so read the matrix rather than assuming one.
+2. Python only. The actual test matrix. Core libraries use `{py312, py313, py314}-test` and applications may test
+   fewer, so read the matrix rather than assuming one.
 3. C++ only. The archetype of every C++ file, embedded (a `platformio.ini` at the project root) or extension (nanobind
    headers under a CMake build), plus the target boards, because `int` width and therefore every promotion result varies
    across them.

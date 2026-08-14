@@ -21,8 +21,9 @@ Use `/** ... */` blocks for multi-line documentation and `///` for single-line m
  *
  * @tparam kPinA the digital interrupt pin connected to the 'A' channel of the quadrature encoder.
  * @tparam kPinB the digital interrupt pin connected to the 'B' channel of the quadrature encoder.
+ * @tparam kPinX the digital interrupt pin connected to the 'X' index channel of the quadrature encoder.
  */
-template <const uint8_t kPinA, const uint8_t kPinB>
+template <const uint8_t kPinA, const uint8_t kPinB, const uint8_t kPinX>
 class EncoderModule final : public Module
 
 /// Stores the previous readout of the analog pin.
@@ -186,12 +187,11 @@ Omit tags that do not apply. Never reorder tags within a documentation block.
  * @warning This method is NOT thread-safe. Do not call from interrupt handlers.
  *
  * @tparam ObjectType the type of the data object to send.
- * @param status_code the status code to include in the packet header.
+ * @param event_code the event code to include in the packet header.
  * @param object the data object to serialize and send.
- * @returns true if the data was successfully sent, false otherwise.
  */
 template <typename ObjectType>
-bool SendData(uint8_t status_code, const ObjectType& object);
+void SendData(const uint8_t event_code, const ObjectType& object);
 ```
 
 ---
@@ -383,7 +383,7 @@ Prefer explicit types over `auto` in most cases. Use `auto` when the type is alr
 ```cpp
 // Good - explicit types when the type is not obvious from the initializer
 const int32_t new_motion = _encoder.readAndReset() * kMultiplier;
-const uint16_t signal = AnalogRead(kPin, _custom_parameters.average_pool_size);
+const uint16_t signal = AnalogRead<kPin>(_custom_parameters.average_pool_size);
 uint8_t test_array[4] = {0, 0, 0, 0};
 
 // Good - auto avoids trivially restating the type already visible in the initializer
@@ -434,7 +434,7 @@ long overflow = 0;
 Use `const` with value template parameters to prevent accidental modification:
 
 ```cpp
-template <const uint8_t kPinA, const uint8_t kPinB, const bool kInvertDirection = false>
+template <const uint8_t kPinA, const uint8_t kPinB, const uint8_t kPinX, const bool kInvertDirection = false>
 class EncoderModule final : public Module
 ```
 
