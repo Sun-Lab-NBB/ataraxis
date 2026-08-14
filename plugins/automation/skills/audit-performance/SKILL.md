@@ -357,7 +357,7 @@ Every finding uses the shape below, shared by all four audits in this family so 
 **ID** is a short stable handle, `P1`, `P2`, and so on, numbered in report order, so a reader answers with the
 identifier rather than by restating the finding.
 
-**Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the execution multiplicity
+**Wrong** carries the whole evidence load as prose rather than as labelled fields. It states the execution multiplicity
 with its bounding expression and the `<path>:<line>` that sets it, the current state quoted verbatim, and the cost
 arithmetic given for the current and the proposed form. A table, a ledger, or an interleaving sits directly beneath the
 bullet.
@@ -384,11 +384,8 @@ You MUST adhere to the following discipline during every audit.
 
 - Establish heat from an actual call site with a `<path>:<line>`. A function whose call sites resolve nowhere in the
   package and which the top-level `__init__.py` does not export is UNKNOWN and stays out of the report.
-- Trace every public API entry point on per-call cost, and never substitute a guess about downstream call frequency for
-  the multiplicity such an entry point does not have.
 - Anchor every finding to a verbatim source quote and to explicit cost arithmetic.
 - Cite the authority for a rule by skill name and reference file name, together with a verbatim quote of the rule.
-- Report a construct that `/audit-style` also sees only with its runtime consequence established and cited.
 - Keep every proposal inside the project's own conventions. A speedup that requires breaking a documented convention is
   reported with that conflict stated, and the decision left to the user.
 - Preserve MEASUREMENT-PENDING findings with their static facts intact, and ask before running any benchmark.
@@ -399,7 +396,6 @@ You MUST adhere to the following discipline during every audit.
 - Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
   clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
   code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
-- Never restructure, refactor, or optimize. This skill produces findings only.
 - Treat `console.enable()` and `console.disable()` calls as correct at every library tier.
 
 ---

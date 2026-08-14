@@ -17,7 +17,7 @@ named environment per OS (e.g., `axbu_dev_lin`, `axbu_dev_osx`, `axbu_dev_win`).
 `automation-cli` and handle:
 - Creating bare environments with Python + uv + tox + tox-uv
 - Removing, exporting, and importing environments
-- The `--use-uv` flag is passed to mamba for uv-accelerated operations
+- Passing the `--use-uv` flag to mamba for uv-accelerated operations
 
 ### uv (package installation)
 
@@ -560,23 +560,23 @@ These are the development-automation commands. Agents normally drive them via `t
 
 ### tox environments
 
-| Environment                  | Purpose                                                                  |
-|------------------------------|--------------------------------------------------------------------------|
-| `lint`                       | Purges `.pyi` stubs, then runs `ruff format`, `ruff check --fix`, `mypy` |
-| `stubs`                      | Regenerates the `py.typed` marker and `.pyi` stub files                  |
-| `{py312,py313,py314}-test`   | Runs the test suite under each Python version, collecting coverage       |
-| `coverage`                   | Combines per-version coverage and junit reports, applies the 100% gate   |
-| `docs`                       | Builds API docs with Sphinx (and Doxygen for C++/hybrid projects)        |
-| `build`                      | Builds the sdist and wheel distributions                                 |
-| `upload`                     | Uploads the `dist/` files to PyPI via twine                              |
-| `deploy`                     | Uploads the built html documentation to the project's Netlify site       |
-| `install`                    | Builds and installs the project into its development mamba environment   |
-| `uninstall`                  | Uninstalls the project from its development mamba environment            |
-| `create`                     | Creates the development mamba environment and installs dependencies      |
-| `remove`                     | Removes (deletes) the development mamba environment                      |
-| `provision`                  | Recreates the development mamba environment and installs dependencies    |
-| `export`                     | Exports the mamba environment to `envs/` as a `.yml` file                |
-| `import`                     | Creates or updates the mamba environment from the stored `.yml` file     |
+| Environment                | Purpose                                                                  |
+|----------------------------|--------------------------------------------------------------------------|
+| `lint`                     | Purges `.pyi` stubs, then runs `ruff format`, `ruff check --fix`, `mypy` |
+| `stubs`                    | Regenerates the `py.typed` marker and `.pyi` stub files                  |
+| `{py312,py313,py314}-test` | Runs the test suite under each Python version, collecting coverage       |
+| `coverage`                 | Combines per-version coverage and junit reports, applies the 100% gate   |
+| `docs`                     | Builds API docs with Sphinx (and Doxygen for C++/hybrid projects)        |
+| `build`                    | Builds the sdist and wheel distributions                                 |
+| `upload`                   | Uploads the `dist/` files to PyPI via twine                              |
+| `deploy`                   | Uploads the built html documentation to the project's Netlify site       |
+| `install`                  | Builds and installs the project into its development mamba environment   |
+| `uninstall`                | Uninstalls the project from its development mamba environment            |
+| `create`                   | Creates the development mamba environment and installs dependencies      |
+| `remove`                   | Removes (deletes) the development mamba environment                      |
+| `provision`                | Recreates the development mamba environment and installs dependencies    |
+| `export`                   | Exports the mamba environment to `envs/` as a `.yml` file                |
+| `import`                   | Creates or updates the mamba environment from the stored `.yml` file     |
 
 `tox -e lint` purges `.pyi` stubs (via `automation-cli purge-stubs`) so they do not interfere with mypy, and `tox -e
 stubs` regenerates them afterward. See the lint environment template above for the paths `ruff check` and `mypy` each

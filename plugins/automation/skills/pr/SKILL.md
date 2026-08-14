@@ -155,7 +155,7 @@ Pull Request Compliance:
 - [ ] Drafted title ≤ 72 characters (a squash merge writes it into the commit subject line)
 - [ ] Drafted title starts with a past tense verb and ends with a period
 - [ ] Drafted title names the change rather than the activity that produced it (no audit, review, or ticket)
-- [ ] Summarizes impactful changes; does not reproduce every commit
+- [ ] Summarizes impactful changes, and does not reproduce every commit
 - [ ] Each bullet describes *what* changed and *why*, not *how*, and is specific rather than vague (not "Updated
       various modules")
 - [ ] Bullets state what the change now does, not what it is not or used to be (contrast only when load-bearing)

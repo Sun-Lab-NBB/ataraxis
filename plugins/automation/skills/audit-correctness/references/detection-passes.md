@@ -242,9 +242,9 @@ interleaving with its line, and the result is the concrete on-disk state a later
 
 Enumerate the execution contexts that ACTUALLY exist before anything else, and proceed only when at least two of them
 reach the same state. Contexts to look for are threads, processes, futures, asyncio tasks, signal handlers, exit hooks,
-camera and serial callbacks, interrupt service routines, Unity main-thread callbacks, the Numba `prange` worker
-threads an `@njit(parallel=True)` kernel spawns, and the pytest-xdist workers
-implied by a distributed test run.
+camera and serial callbacks, interrupt service routines, and Unity main-thread callbacks. The list also includes the
+Numba `prange` worker threads an `@njit(parallel=True)` kernel spawns, and the pytest-xdist workers implied by a
+distributed test run.
 
 Build the shared-state set from module-level mutables, class attributes, shared-memory arrays and values, queues, and
 the files and directories written by more than one context. For every item, list every read and write with its owning

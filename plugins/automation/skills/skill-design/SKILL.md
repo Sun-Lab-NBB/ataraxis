@@ -160,9 +160,8 @@ verify it produces correct behavior. Test with both explicit invocation (`/skill
 confirm the trigger conditions work.
 
 A new skill under an existing plugin needs no manual registration, because the default `skills/` scan discovers it. If
-the new skill introduces a new plugin, add that plugin to the repo's
-`.claude-plugin/marketplace.json` `plugins` array. Adding or materially changing a plugin's skills should bump `version`
-in that plugin's `.claude-plugin/plugin.json`.
+the new skill introduces a new plugin, add that plugin to the repo's `.claude-plugin/marketplace.json` `plugins` array.
+Adding or materially changing a plugin's skills should bump `version` in that plugin's `.claude-plugin/plugin.json`.
 
 Bump that `version` EXACTLY ONCE per branch, relative to `main`. Read the branch's version and the `main` version before
 editing, with `git show main:plugins/{plugin}/.claude-plugin/plugin.json`, and leave the version untouched wherever the

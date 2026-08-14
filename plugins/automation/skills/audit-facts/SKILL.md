@@ -339,8 +339,7 @@ covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only 
 
 The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that the report was
 filtered. LOW means the source and claim mapping is inferred rather than literal, and it never excuses a finding from
-the citation rules in the Discipline section. LOW findings sit in the trailing `Appendix: LOW confidence` section the
-protocol defines rather than interleaved into the file groups, so the body of the report reads at one confidence level.
+the citation rules in the Discipline section.
 
 ---
 
@@ -348,12 +347,12 @@ protocol defines rather than interleaved into the file groups, so the body of th
 
 Open the report with the triage header from [verification-protocol.md](references/verification-protocol.md), then the
 Step 9 coverage ledger. The header carries the finding counts by verdict and confidence together with every discard
-count the guards and the Step 8 checks produced. Then report only WRONG, DRIFT, CONTRADICTION, OMISSION, and
-UNVERIFIABLE findings, in that order.
+count the guards and the Step 8 checks produced. Then report findings in the order WRONG, DRIFT, CONTRADICTION,
+OMISSION, UNVERIFIABLE.
 
 When the audit spans multiple files, group the HIGH and MEDIUM confidence findings hierarchically: documentation class
 -> file -> finding verdict -> findings. Collect LOW confidence findings into the trailing `Appendix: LOW confidence`
-section, ordered by the same verdict sequence.
+section, ordered by the same verdict sequence, so the body of the report reads at one confidence level.
 
 Every finding uses the shape below, shared by all four audits in this family so one reading habit serves them all.
 

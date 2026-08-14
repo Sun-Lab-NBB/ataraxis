@@ -93,7 +93,8 @@ re-deriving.
 archetype. That sweep runs once per run, on the main agent and never inside a batch sub-agent, and ONLY where the
 resolved target is a project root, because a package or a single file carries no tree to judge. In change mode it
 additionally requires that the change set CREATES or DELETES a file. Tell `/audit-style` which case applies, so the pass
-runs once rather than once per batch or not at all, and carry the status it reports into the merged coverage ledger.
+runs once rather than once per batch or not at all, and carry the status it reports, in the vocabulary Step 0 states,
+into the merged coverage ledger.
 
 **Parallelize at exactly ONE level.** Each audit already fans out internally over file batches, and nesting a fan-out
 inside a fan-out multiplies the instruction payload by both factors. A target under 10 files parallelizes at the WAVE
@@ -214,10 +215,6 @@ target is small or unusual.
 Run `/audit-facts` and `/audit-style` at the parallel level Step 0 selected. Hand each one the shared context, the
 change-set narrowing where change mode applies, and the instruction that its Step 0 is satisfied.
 
-Tell `/audit-style` whether the target is a project root, and in change mode whether the change set creates or deletes a
-file, because those two facts decide whether its project-scope layout pass runs. Collect the status it reports, in the
-vocabulary Step 0 states, for the merged coverage ledger.
-
 Collect the deterministic-gate diagnostics `/audit-style` produced into the shared context, so wave 2 reads them rather
 than re-deriving them.
 
@@ -262,8 +259,8 @@ confidence appendix. A reader who wants one audit's report finds it whole rather
 
 Every finding keeps the shared shape its own audit defines, which is a stable ID, a rank, a location line, and the
 Wrong, Fix, and Impact bullets, with a Choice bullet where the audit cannot settle the question. The four audits use
-distinct ID letters, `C` for correctness, `P` for performance, `S` for style, and `F` for facts, so identifiers stay
-unique across the merged report and a reader answers with one identifier rather than with a file and a line.
+distinct ID letters, `C` for correctness, `P` for performance, `S` for style, and `F` for facts. Identifiers therefore
+stay unique across the merged report, and a reader answers with one identifier rather than with a file and a line.
 
 A finding that survived adjudication against another audit names the audit that yielded and the rule that decided it at
 the end of its Wrong bullet.
@@ -276,11 +273,6 @@ You MUST adhere to the following discipline during every run.
 
 - Never perform detection work yourself. This skill selects, sequences, and merges, and every finding comes from an
   audit that produced it under its own evidence floor.
-- Never re-rate a finding. Severity, impact, confidence, and evidence belong to the owning audit.
-- Never let an audit pause for its own Step 0 confirmation once Step 0 here is confirmed.
-- Never narrow an audit to a change set in full mode.
-- Never run a wave 2 audit the user did not elect, and never infer the election from the target alone. A wave 2 audit is
-  expensive and its findings are acted on per module, so the user chooses it.
 - Never apply a fix inside an audit. Fixes happen between rounds, outside the audits, and the next round re-audits the
   files they touched.
 - Never resolve a finding by weakening a test, a contract, a docstring, or a coverage setting. A gate satisfied that way

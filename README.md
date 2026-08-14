@@ -4,15 +4,14 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Ataraxis is an open-source framework that enables AI coding assistants to interact with laboratory
-hardware. It provides optimized hardware interface libraries, Model Context Protocol (MCP) servers
-for structured device discovery, and domain-specific skills that encode expert workflows. AI agents
-use these components to generate efficient data acquisition pipelines, configure systems, and
-troubleshoot hardware issues.
+Ataraxis is an open-source framework that enables AI coding assistants to interact with laboratory hardware. It provides
+optimized hardware interface libraries, Model Context Protocol (MCP) servers for structured device discovery, and
+domain-specific skills that encode expert workflows. AI agents use these components to generate efficient data
+acquisition pipelines, configure systems, and troubleshoot hardware issues.
 
-**Core Insight:** AI assistance operates at *configuration time* while runtime data acquisition
-remains *deterministic and AI-independent*. This separation ensures that network latency, API rate
-limits, or model errors never disrupt a running experiment.
+**Core Insight:** AI assistance operates at *configuration time* while runtime data acquisition remains *deterministic
+and AI-independent*. This separation ensures that network latency, API rate limits, or model errors never disrupt a
+running experiment.
 
 Authored by [Ivan Kondratyev](https://github.com/Inkaros).
 Copyright: 2026, NeuroAI Lab, Cornell University.
@@ -22,27 +21,24 @@ ___
 ## Features
 
 ### Hardware Discovery & Validation
-- **MCP-based device enumeration**: AI agents can query connected cameras and microcontrollers
-  through structured tool interfaces.
-- **Pre-session diagnostics**: Validate hardware connectivity and configuration through natural
-  language queries.
-- **Real-time status checking**: Query device responsiveness, serial port status, and camera
-  capabilities without manual debugging loops.
+- **MCP-based device enumeration**: AI agents can query connected cameras and microcontrollers through structured tool
+  interfaces.
+- **Pre-session diagnostics**: Validate hardware connectivity and configuration through natural language queries.
+- **Real-time status checking**: Query device responsiveness, serial port status, and camera capabilities without manual
+  debugging loops.
 
 ### Optimized Hardware Interfaces
-- **High-speed camera acquisition**: Support for OpenCV and GenICam cameras with real-time FFMPEG
-  encoding (CPU/GPU).
-- **Microcontroller communication**: Bidirectional serial communication with Arduino and Teensy
-  boards at microsecond speeds.
+- **High-speed camera acquisition**: Support for OpenCV and GenICam cameras with real-time FFMPEG encoding (CPU/GPU).
+- **Microcontroller communication**: Bidirectional serial communication with Arduino and Teensy boards at microsecond
+  speeds.
 - **Precision timing**: Microsecond-accurate timers using C++ chrono library bindings.
 - **Inter-process data sharing**: Thread-safe shared memory arrays and scalable data logging.
 
 ### AI-Assisted Development
 - **Code generation**: AI agents generate hardware interface code following established patterns.
-- **Domain-specific skills**: Reusable workflows for camera interfaces, microcontroller modules,
-  and system health checks.
-- **Cross-repository coordination**: Skills encode knowledge spanning multiple interdependent
-  libraries.
+- **Domain-specific skills**: Reusable workflows for camera interfaces, microcontroller modules, and system health
+  checks.
+- **Cross-repository coordination**: Skills encode knowledge spanning multiple interdependent libraries.
 
 ### Deterministic Runtime
 - **Static acquisition pipelines**: Experiments run independently of AI systems.
@@ -89,44 +85,44 @@ ___
 ### Core Infrastructure
 
 **[ataraxis-base-utilities](https://github.com/Sun-Lab-NBB/ataraxis-base-utilities)** (Python)
-Shared utility assets providing a unified message/error processing framework (Console class) and
-common utility functions for filesystem operations and parallel data processing.
+Shared utility assets providing a unified message/error processing framework (Console class) and common utility
+functions for filesystem operations and parallel data processing.
 
 **[ataraxis-automation](https://github.com/Sun-Lab-NBB/ataraxis-automation)** (Python)
-Development automation pipelines using tox, providing CLI tools for environment management,
-linting, typing, and documentation generation.
+Development automation pipelines using tox, providing CLI tools for environment management, linting, typing, and
+documentation generation.
 
 ### Hardware Communication
 
 **[ataraxis-communication-interface](https://github.com/Sun-Lab-NBB/ataraxis-communication-interface)** (Python)
-Centralized interface for exchanging commands and data between Arduino/Teensy microcontrollers
-and host computers. Includes MCP server for AI agent integration.
+Centralized interface for exchanging commands and data between Arduino/Teensy microcontrollers and host computers.
+Includes MCP server for AI agent integration.
 
 **[ataraxis-transport-layer-pc](https://github.com/Sun-Lab-NBB/ataraxis-transport-layer-pc)** (Python)
-Transport layer implementation for host computers, providing bidirectional communication with
-microcontrollers over USB/UART serial interfaces using COBS encoding and CRC verification.
+Transport layer implementation for host computers, providing bidirectional communication with microcontrollers over
+USB/UART serial interfaces using COBS encoding and CRC verification.
 
 **[ataraxis-transport-layer-mc](https://github.com/Sun-Lab-NBB/ataraxis-transport-layer-mc)** (C++)
-Transport layer implementation for Arduino and Teensy microcontrollers, enabling bidirectional serial
-communication with PC clients using COBS encoding and configurable CRC support.
+Transport layer implementation for Arduino and Teensy microcontrollers, enabling bidirectional serial communication with
+PC clients using COBS encoding and configurable CRC support.
 
 **[ataraxis-micro-controller](https://github.com/Sun-Lab-NBB/ataraxis-micro-controller)** (C++)
-Framework for integrating custom hardware modules with centralized PC control. Provides Kernel
-and Communication classes with concurrent command execution.
+Framework for integrating custom hardware modules with centralized PC control. Provides Kernel and Communication classes
+with concurrent command execution.
 
 ### Data Acquisition & Processing
 
 **[ataraxis-video-system](https://github.com/Sun-Lab-NBB/ataraxis-video-system)** (Python)
-Camera interface library supporting OpenCV and GenICam cameras with real-time FFMPEG video
-encoding. Includes MCP server and CLI tools for camera management.
+Camera interface library supporting OpenCV and GenICam cameras with real-time FFMPEG video encoding. Includes MCP server
+and CLI tools for camera management.
 
 **[ataraxis-time](https://github.com/Sun-Lab-NBB/ataraxis-time)** (Python/C++)
-High-precision thread-safe timers using C++ chrono bindings for microsecond accuracy. Includes
-helper methods for time conversion and UTC timestamp handling.
+High-precision thread-safe timers using C++ chrono bindings for microsecond accuracy. Includes helper methods for time
+conversion and UTC timestamp handling.
 
 **[ataraxis-data-structures](https://github.com/Sun-Lab-NBB/ataraxis-data-structures)** (Python)
-Classes for storing, manipulating, and sharing data between processes. Includes SharedMemoryArray,
-YamlConfig, and DataLogger for scalable multi-process data storage.
+Classes for storing, manipulating, and sharing data between processes. Includes SharedMemoryArray, YamlConfig, and
+DataLogger for scalable multi-process data storage.
 
 ___
 
@@ -141,8 +137,8 @@ pip install ataraxis-video-system ataraxis-communication-interface ataraxis-time
 pip install ataraxis-data-structures
 ```
 
-The remaining Python libraries arrive as transitive dependencies of the packages above. Install
-`ataraxis-automation` separately when setting up a project's `tox` development pipeline.
+The remaining Python libraries arrive as transitive dependencies of the packages above. Install `ataraxis-automation`
+separately when setting up a project's `tox` development pipeline.
 
 C++ microcontroller libraries are available via PlatformIO:
 
@@ -156,12 +152,11 @@ ___
 
 ## Claude Code Plugins
 
-This repository serves as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin
-marketplace. It distributes four plugins that together form the framework's agentic surface:
-domain-specific *skills* that encode expert workflows and coding conventions, and *MCP servers* that
-expose laboratory hardware to AI agents for structured discovery and control. Installing a plugin
-makes its skills available to Claude Code and, for the plugins that bundle an MCP server, registers
-that server automatically — no manual client configuration is required.
+This repository serves as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin marketplace. It
+distributes four plugins that together form the framework's agentic surface: domain-specific *skills* that encode expert
+workflows and coding conventions, and *MCP servers* that expose laboratory hardware to AI agents for structured
+discovery and control. Installing a plugin makes its skills available to Claude Code and, for the plugins that bundle an
+MCP server, registers that server automatically, so no manual client configuration is required.
 
 | Plugin            | MCP Server                         | Focus                                                                                             |
 |-------------------|------------------------------------|---------------------------------------------------------------------------------------------------|
@@ -172,8 +167,7 @@ that server automatically — no manual client configuration is required.
 
 ### Installation
 
-Claude Code installs plugins through its built-in marketplace system. First, add the ataraxis
-marketplace:
+Claude Code installs plugins through its built-in marketplace system. First, add the ataraxis marketplace:
 
 `/plugin marketplace add Sun-Lab-NBB/ataraxis`
 
@@ -187,14 +181,13 @@ Then install any combination of the four plugins:
 
 `/plugin install microcontroller@ataraxis`
 
-Alternatively, run `/plugin`, open the **Discover** tab, and select the plugins to install
-interactively.
+Alternatively, run `/plugin`, open the **Discover** tab, and select the plugins to install interactively.
 
-***Note,*** installing the `communication` or `video` plugin automatically registers its bundled MCP
-server (started via `axci mcp` and `axvs mcp`, respectively). No manual edits to `~/.claude.json` are
-required. When a plugin is enabled mid-session, run `/reload-plugins` to connect its MCP server.
-The matching pip package must also be installed in the Python environment active when Claude Code
-starts, since the server launches through the `axci` or `axvs` command and fails to start without it.
+***Note,*** installing the `communication` or `video` plugin automatically registers its bundled MCP server (started via
+`axci mcp` and `axvs mcp`, respectively). No manual edits to `~/.claude.json` are required. When a plugin is enabled
+mid-session, run `/reload-plugins` to connect its MCP server. The matching pip package must also be installed in the
+Python environment active when Claude Code starts, since the server launches through the `axci` or `axvs` command and
+fails to start without it.
 
 Each plugin can be installed at a different scope, depending on the intended use:
 - **user** (default): available across all projects for the current user.
@@ -206,13 +199,12 @@ To select a scope during installation, use the CLI form:
 
 ### Skill Invocation
 
-Most skills are deliberately **not** user-invocable. They encode background conventions and workflow
-knowledge that AI coding agents pick up and apply automatically whenever a task matches the skill's
-description — there is nothing to type. The per-plugin tables below enumerate every skill each
-plugin provides.
+Most skills are deliberately **not** user-invocable. They encode background conventions and workflow knowledge that AI
+coding agents pick up and apply automatically whenever a task matches the skill's description. There is nothing to type.
+The per-plugin tables below enumerate every skill each plugin provides.
 
-A small subset of skills is user-invocable: they perform discrete, on-demand actions and can be
-typed directly as slash commands. All of them are provided by the `automation` plugin.
+A small subset of skills is user-invocable: they perform discrete, on-demand actions and can be typed directly as slash
+commands. All of them are provided by the `automation` plugin.
 
 | Command                 | Description                                                            |
 |-------------------------|------------------------------------------------------------------------|
@@ -223,14 +215,13 @@ typed directly as slash commands. All of them are provided by the `automation` p
 | `/audit-style`          | Audits files against applicable style skill checklists for compliance  |
 | `/audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
 | `/audit-performance`    | Audits source code for optimization and dtype predictability findings  |
-| `/commit`               | Stages all changes and creates a style-compliant commit, stopping before push                             |
+| `/commit`               | Stages all changes and creates a style-compliant commit                |
 | `/pr`                   | Drafts a style-compliant pull request summary for the active branch    |
 | `/release`              | Drafts style-compliant release notes summarizing merged pull requests  |
 
 ### automation
 
-Shared development-convention skills used across Ataraxis and derived projects. This plugin does not
-provide an MCP server.
+Shared development-convention skills used across Ataraxis and derived projects.
 
 | Skill                  | Description                                                            |
 |------------------------|------------------------------------------------------------------------|
@@ -250,7 +241,7 @@ provide an MCP server.
 | `audit-style`          | Audits files against applicable style skill checklists for compliance  |
 | `audit-correctness`    | Audits source code for active and latent bugs the tests leave uncaught |
 | `audit-performance`    | Audits source code for optimization and dtype predictability findings  |
-| `commit`               | Stages all changes and creates a style-compliant commit, stopping before push                             |
+| `commit`               | Stages all changes and creates a style-compliant commit                |
 | `pr`                   | Drafts a style-compliant pull request summary for the active branch    |
 | `release`              | Drafts style-compliant release notes summarizing merged pull requests  |
 | `skill-design`         | Generates, updates, and verifies skill files and CLAUDE.md             |
@@ -258,9 +249,8 @@ provide an MCP server.
 ### communication
 
 Microcontroller communication and data-processing skills for
-[ataraxis-communication-interface](https://github.com/Sun-Lab-NBB/ataraxis-communication-interface).
-Bundles the `ataraxis-communication-interface` MCP server for hardware discovery, manifest
-management, and batch log processing.
+[ataraxis-communication-interface](https://github.com/Sun-Lab-NBB/ataraxis-communication-interface). Bundles the
+`ataraxis-communication-interface` MCP server for hardware discovery, manifest management, and batch log processing.
 
 | Skill                                 | Description                                                            |
 |---------------------------------------|------------------------------------------------------------------------|
@@ -277,9 +267,8 @@ management, and batch log processing.
 ### video
 
 Camera acquisition and frame-timing skills for
-[ataraxis-video-system](https://github.com/Sun-Lab-NBB/ataraxis-video-system). Bundles the
-`ataraxis-video-system` MCP server for camera discovery, interactive session testing, and batch log
-processing.
+[ataraxis-video-system](https://github.com/Sun-Lab-NBB/ataraxis-video-system). Bundles the `ataraxis-video-system` MCP
+server for camera discovery, interactive session testing, and batch log processing.
 
 | Skill                         | Description                                                          |
 |-------------------------------|----------------------------------------------------------------------|
@@ -295,9 +284,7 @@ processing.
 
 ### microcontroller
 
-Firmware development skills for
-[ataraxis-micro-controller](https://github.com/Sun-Lab-NBB/ataraxis-micro-controller). This plugin
-does not provide an MCP server.
+Firmware development skills for [ataraxis-micro-controller](https://github.com/Sun-Lab-NBB/ataraxis-micro-controller).
 
 | Skill             | Description                                                          |
 |-------------------|----------------------------------------------------------------------|
@@ -361,16 +348,15 @@ ___
 3. **Encode recurring workflows as skills** that guide AI agents
 4. **Iterate as hardware evolves** with AI-assisted development
 
-The Ataraxis libraries provide open-source building blocks for assembling custom acquisition
-systems. For a complete platform built on Ataraxis, see
-[Sollertia](https://github.com/Sun-Lab-NBB/sollertia) — a platform for AI-assisted data acquisition
-and management.
+The Ataraxis libraries provide open-source building blocks for assembling custom acquisition systems. For a complete
+platform built on Ataraxis, see [Sollertia](https://github.com/Sun-Lab-NBB/sollertia), a platform for AI-assisted data
+acquisition and management.
 
 ___
 
 ## Citation
 
-If you use Ataraxis in your research, please cite:
+Work that uses Ataraxis cites the following entry:
 
 ```bibtex
 @article{ataraxis2025,

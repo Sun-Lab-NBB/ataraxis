@@ -26,10 +26,10 @@ Core libraries maintained under the Sun-Lab-NBB GitHub organization.
 These are PlatformIO dependencies for Arduino/Teensy firmware projects, not Python packages. They cannot be explored
 with `python -c "import ..."`. Instead, locate them in the PlatformIO `.pio/libdeps/` directory.
 
-| Library                     | PlatformIO name                           | Abbr   |
-|-----------------------------|-------------------------------------------|--------|
-| ataraxis-transport-layer-mc | `inkaros/ataraxis-transport-layer-mc`     | axtlmc |
-| ataraxis-micro-controller   | `inkaros/ataraxis-micro-controller`       | axmc   |
+| Library                     | PlatformIO name                       | Abbr   |
+|-----------------------------|---------------------------------------|--------|
+| ataraxis-transport-layer-mc | `inkaros/ataraxis-transport-layer-mc` | axtlmc |
+| ataraxis-micro-controller   | `inkaros/ataraxis-micro-controller`   | axmc   |
 
 ### Python + C++ extension
 
@@ -65,16 +65,16 @@ All repositories are under `https://github.com/Sun-Lab-NBB/`:
 A project may also depend on its own first-party application libraries, higher-level packages built on top of the
 ataraxis infrastructure for specific workflows such as experiment orchestration, data analysis, or acquisition tooling.
 
-| Library                 | PyPI package            | Import name                | Abbr  |
-|-------------------------|-------------------------|----------------------------|-------|
-| sollertia-shared-assets | sollertia-shared-assets | `sollertia_shared_assets`  | slsa  |
-| sollertia-forgery       | sollertia-forgery       | `sollertia_forgery`        | slf   |
-| sollertia-experiment    | sollertia-experiment    | `sollertia_experiment`     | sle   |
-| cindra                  | cindra                  | `cindra`                   | cindra|
+| Library                 | PyPI package            | Import name                | Abbr   |
+|-------------------------|-------------------------|----------------------------|--------|
+| sollertia-shared-assets | sollertia-shared-assets | `sollertia_shared_assets`  | slsa   |
+| sollertia-forgery       | sollertia-forgery       | `sollertia_forgery`        | slf    |
+| sollertia-experiment    | sollertia-experiment    | `sollertia_experiment`     | sle    |
+| cindra                  | cindra                  | `cindra`                   | cindra |
 
-These follow the same exploration workflow as the ataraxis libraries: resolve each with
-`python -c "import ..."` and read their `__all__` exports. Match a dependency by NAME against this catalog rather than
-by prefix alone, because `cindra` shares no prefix with any first-party namespace and a prefix rule never reaches it.
+These follow the same exploration workflow as the ataraxis libraries: resolve each with `python -c "import ..."` and
+read their `__all__` exports. Match a dependency by NAME against this catalog rather than by prefix alone, because
+`cindra` shares no prefix with any first-party namespace and a prefix rule never reaches it.
 
 ---
 

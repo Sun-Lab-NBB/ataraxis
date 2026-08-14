@@ -27,8 +27,7 @@ Napoleon, and optionally Breathe/Doxygen for C++ code.
 - Documentation dependency management via ataraxis-automation
 
 **Does not cover:**
-- MCP server modules or shared asset libraries. These serve AI agents rather than end-users, so they MUST NOT be
-  included in API documentation
+- MCP server modules or shared asset libraries, which api.rst excludes (see the api.rst rules below)
 - Writing Python docstrings or type annotations (see `/python-style`)
 - README file conventions (see `/readme-style`)
 - pyproject.toml dependency sections (see `/pyproject-style`)
@@ -216,7 +215,8 @@ MUST NOT add Sphinx or documentation dependencies directly to downstream project
   rationale comment precedes the block, as in `ataraxis-communication-interface`.
 - Section headings MUST be descriptive names, not module paths (e.g., "Precision Timer" not
   "ataraxis_time.precision_timer.timer_class").
-- You MUST NOT add `automodule` directives for MCP server modules or shared asset modules.
+- You MUST NOT add `automodule` directives for MCP server modules or shared asset modules, because those serve AI agents
+  rather than end-users.
 
 ### welcome.rst rules
 
@@ -304,8 +304,8 @@ the `homepage` key for a C++-only project.
 
 ### Makefile and make.bat
 
-These are standard Sphinx wrapper files. They are rarely used directly since builds are invoked via tox (`tox -e docs`).
-Use the exact templates from [rst-templates.md](references/rst-templates.md) when creating new projects.
+The Makefile and make.bat wrappers are rarely used directly since builds are invoked via tox (`tox -e docs`). Use the
+exact templates from [rst-templates.md](references/rst-templates.md) when creating new projects.
 
 ---
 
@@ -343,7 +343,6 @@ API Documentation Compliance:
 
 Settled by `tox -e docs`. A build surfaces each of these as an error or a warning, so run the
 command rather than hand-checking them. They stay listed for reviews performed without a build.
-- [ ] Explicit user approval obtained before changing the welcome.rst first paragraph
 - [ ] conf.py uses correct extension ordering
 - [ ] Breathe configuration present and correct (C++/hybrid)
 - [ ] index.rst includes welcome.rst and has toctree with api
@@ -353,6 +352,7 @@ command rather than hand-checking them. They stay listed for reviews performed w
 
 Settled by reading. No command inspects these, so this checklist is their only enforcement. Walk
 every one against the files you wrote.
+- [ ] Explicit user approval obtained before changing the welcome.rst first paragraph
 - [ ] Documentation archetype correctly identified (Python-only, C++-only, or hybrid)
 - [ ] Directory structure matches convention (docs/source/ with conf.py, index.rst, welcome.rst, api.rst)
 - [ ] conf.py uses correct extension stack for the archetype

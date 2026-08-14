@@ -149,13 +149,9 @@ project-root/
 - The `src/` layout uses a flat namespace: `c_extensions/`, wrapper subpackages, and pure Python subpackages are all
   direct children of `src/`.
 - C++ extension stubs (`module_ext.pyi`) live at the `src/` top level alongside `py.typed`.
-- The `tests/` directory carries test-support modules alongside its test modules, holding the fixtures, builders, and
-  fakes shared across them. Each one is named for what it provides rather than with the `_test.py` suffix, and
-  `conftest.py` is the support module pytest discovers fixtures from automatically.
-- The `examples/` directory is optional and holds runnable scripts that demonstrate the public API for library
-  consumers. It is source-distribution content. A project that also ships it in the wheel maps it to a
-  distribution-qualified package name. A bare top-level `examples` package installs into a shared
-  `site-packages/examples/` namespace that every distribution shipping that directory name would share.
+- The `tests/` directory carries test-support modules alongside its test modules, under the rule the Python-only notes
+  above state.
+- The `examples/` directory is optional and follows the rule the Python-only notes above state.
 - The `CMakeLists.txt` at the project root drives the nanobind build via scikit-build-core.
 - Build artifacts (`build/`) contain per-Python-version subdirectories and are gitignored.
 
@@ -263,8 +259,7 @@ project-root/
 - All custom modules are header-only `.h` files in `src/` alongside `main.cpp`.
 - The `main.cpp` is the actual firmware entry point (not a development stub like in library projects).
 - Uses `#define` / `#ifdef` conditional compilation for hardware variant selection.
-- No `envs/` directory, because PlatformIO manages its own toolchain environment.
-- No `pyproject.toml`, because this is a pure C++ project.
+- No `envs/` directory and no `pyproject.toml`, for the reasons the C++ PlatformIO library notes above state.
 
 ---
 

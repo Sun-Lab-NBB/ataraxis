@@ -74,8 +74,8 @@ Collect the project-specific values:
 | `{env_abbr}`       | Short project abbreviation            | `axbu`                    |
 | `{version}`        | Current ataraxis-automation release   | `9.0.2`                   |
 | Python versions    | `requires-python` in `pyproject.toml` | `py312, py313, py314`     |
-| `basepython`       | Earliest supported Python version     | `py312`                   |
-| `--python-version` | Latest supported Python version       | `3.14`                    |
+| `basepython`       | Python version matrix (see below)     | `py312`                   |
+| `--python-version` | Python version matrix (see below)     | `3.14`                    |
 
 ### Step 4: Apply conventions
 
@@ -145,8 +145,7 @@ this for environments that need the project installed along with its dev tools (
 ### `extras = dev`
 
 Some projects declare their dev tools as optional dependencies instead, and `extras = dev` reads them from
-`[project.optional-dependencies].dev` in `pyproject.toml`. A tox.ini written or edited under this skill uses
-`dependency_groups = dev`.
+`[project.optional-dependencies].dev` in `pyproject.toml`.
 
 ### `deps = ataraxis-automation=={version}` (utility environments)
 
@@ -182,7 +181,6 @@ tools instead.
 
 ### lint
 
-- `basepython` MUST be set to the earliest supported Python version.
 - Runs `automation-cli purge-stubs` first to remove stubs that interfere with mypy.
 - Command order: `ruff format` → `ruff check --fix ./src ./tests` → `mypy ./src`. Ruff covers the test directory, which
   activates the `tests/**/*.py` per-file ignores (see `/pyproject-style`). Mypy stays on `./src`, which its exclude list
@@ -257,7 +255,6 @@ tools instead.
 
 - All use `skip_install = true` and `deps = ataraxis-automation=={version}`.
 - All call `automation-cli` subcommands with `--environment-name {env_abbr}_dev`.
-- `create` and `provision` also pass `--python-version` set to the latest supported version.
 - `create`, `provision`, and `install` accept `{posargs:}` to allow passing additional flags at invocation time (e.g.,
   `--prerelease` to enable prerelease package installation).
 - `export` has `depends = uninstall`.
@@ -294,12 +291,11 @@ Use block comments above the `[tox]` section and before environments that need e
 ### Description fields
 
 Every environment MUST have a `description` field, and that field opens with a bare third-person imperative verb naming
-what the environment does when it runs ("Runs...", "Combines...", "Builds..."). It is one sentence, two when
-the environment reads its configuration from another file or produces one output the commands block does not reveal,
-and three when it produces more than one such output, as a coverage task producing both a merged test report and a
-coverage report does. Do not prefix it
-with the environment name or a "This environment..." opener, do not restate the commands the environment already
-declares below it, and do not explain why the task matters. See
+what the environment does when it runs ("Runs...", "Combines...", "Builds..."). It is one sentence, two when the
+environment reads its configuration from another file or produces one output the commands block does not reveal. It is
+three sentences when it produces more than one such output, as a coverage task producing both a merged test report and a
+coverage report does. Do not prefix it with the environment name or a "This environment..." opener, do not restate the
+commands the environment already declares below it, and do not explain why the task matters. See
 [environment-templates.md](references/environment-templates.md) for a compliant and a non-compliant description side by
 side.
 
@@ -315,8 +311,7 @@ description =
 
 ### Inline comments
 
-Use inline comments sparingly, only when a setting is non-obvious. Align inline comments vertically within a section, so
-a run of commented settings shares one comment column:
+Align inline comments vertically within a section, so a run of commented settings shares one comment column:
 
 ```ini
 basepython = py312  # Earliest supported version controls lint/mypy ruleset
@@ -422,7 +417,7 @@ Lint Environment:
 - [ ] ruff check targets ./src ./tests, or ./src alone when the project has no tests/ directory
 - [ ] ruff format takes no path argument, so it formats the whole tree
 - [ ] mypy targets ./src (not . or other paths), and never ./tests
-- [ ] mypy runs serial by default; -n/--num-workers added only for large projects with a measured speedup
+- [ ] mypy runs serial by default, and -n/--num-workers is added only for large projects with a measured speedup
 
 Stubs Environment:
 - [ ] depends = lint

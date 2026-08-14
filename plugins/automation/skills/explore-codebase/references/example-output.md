@@ -38,9 +38,9 @@ encoding, including an MCP server and CLI tools for camera management.
 ## Import dependency map
 
 Central components (imported by 5+ modules):
-- `configuration/acquisition_config.py` — imported by video_system, camera, saver
-- `camera/camera_base.py` — base class imported by all camera backends
-- `types.py` — imported by all modules for shared type definitions
+- `configuration/acquisition_config.py`, imported by video_system, camera, saver
+- `camera/camera_base.py`, base class imported by all camera backends
+- `types.py`, imported by all modules for shared type definitions
 
 Dependency direction: cli → video_system → camera + saver → configuration.
 

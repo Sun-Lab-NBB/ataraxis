@@ -204,12 +204,12 @@ position rather than widening a pattern.
 
 Where an enabled check forbids a construct this skill PRESCRIBES, the check is removed from the `Checks` list and the
 reason is recorded in the configuration file header. Do NOT suppress such a check with per-site `// NOLINT` comments,
-because the construct is correct everywhere the skill calls for it, so a suppression would have to be repeated at every
-occurrence and would read as an exception to a rule the project actually follows.
+because the construct is correct everywhere the skill calls for it. A suppression would then repeat at every occurrence,
+and it would read as an exception to a rule the project actually follows.
 
-Two checks are absent for this reason, and both concern the file-scope `using namespace` directive that the "Using
-namespace directives" section of [class-patterns.md](class-patterns.md) prescribes for project-internal shared asset
-namespaces, and that the nanobind pattern above prescribes for the literals and chrono namespaces:
+Two checks are absent for this reason. Both concern the file-scope `using namespace` directive that the "Using namespace
+directives" section of [class-patterns.md](class-patterns.md) prescribes for project-internal shared asset namespaces,
+and that the nanobind pattern above prescribes for the literals and chrono namespaces:
 
 | Check                             | What it forbids                                            |
 |-----------------------------------|------------------------------------------------------------|

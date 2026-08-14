@@ -185,23 +185,14 @@ public async Task<TaskTemplate> LoadConfigAsync(string configPath)
 
 ### Unity-specific
 
-In Unity, prefer coroutines (`IEnumerator` + `StartCoroutine`) for frame-based async operations. Use `async/await` with
-`UniTask` or standard `Task` for true async I/O:
-
-```csharp
-// Unity coroutine for frame-based waiting
-private IEnumerator WaitAndReset()
-{
-    yield return new WaitForSeconds(2f);
-    ResetState();
-}
-```
+For Unity's frame-based async work, see the Coroutine conventions section below.
 
 ---
 
 ## Coroutine conventions
 
-Unity coroutines (`IEnumerator` + `StartCoroutine`) are the standard approach for frame-based async operations.
+Unity coroutines (`IEnumerator` + `StartCoroutine`) are the standard approach for frame-based async operations. Use
+`async/await` with `UniTask` or standard `Task` for true async I/O.
 
 ### Naming
 
@@ -233,11 +224,11 @@ private IEnumerator FadeStimulus(float duration)
 
 ### When to use coroutines vs alternatives
 
-| Approach                       | Use when                                                  |
-|--------------------------------|-----------------------------------------------------------|
-| Coroutine                      | Frame-based waiting, timed sequences, animation staging   |
-| `async/await`                  | True async I/O (file reads, network requests)             |
-| State tracking in `Update`     | Simple state that changes every frame without waiting     |
+| Approach                   | Use when                                                |
+|----------------------------|---------------------------------------------------------|
+| Coroutine                  | Frame-based waiting, timed sequences, animation staging |
+| `async/await`              | True async I/O (file reads, network requests)           |
+| State tracking in `Update` | Simple state that changes every frame without waiting   |
 
 ### Guidelines
 
@@ -587,8 +578,10 @@ Canonical configs are stored in [../assets/](../assets/). When working in a C# p
 - [../assets/.editorconfig](../assets/.editorconfig)
 - [../assets/.csharpierignore](../assets/.csharpierignore)
 
-The `.csharpierignore` contains generic entries only. Individual projects may need additional project-specific entries
-(e.g., paths to auto-generated scripts).
+The `.csharpierignore` carries the generic build and cache directories every Unity project excludes, plus the
+auto-generated sources the framework writes into the project tree, such as the InputSystem `SimulatedInput.cs` file.
+A generated source belongs in the canonical asset because the generator writes the same path into every project that
+uses it. Individual projects add their own entries below those, for paths only that project holds.
 
 ---
 

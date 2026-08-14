@@ -115,10 +115,13 @@ library is part of the [Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) frame
 control."
 
 For Sollertia platform libraries, OPEN the detailed description with a sentence naming both the platform and the
-framework it builds on: "This library is part of the [Sollertia](https://github.com/Sun-Lab-NBB/sollertia) AI-assisted
-scientific data acquisition and processing platform, built on the
-[Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework and developed in the Sun (NeuroAI) lab at Cornell
-University."
+framework it builds on:
+
+```markdown
+This library is part of the [Sollertia](https://github.com/Sun-Lab-NBB/sollertia) AI-assisted scientific data
+acquisition and processing platform, built on the [Ataraxis](https://github.com/Sun-Lab-NBB/ataraxis) framework and
+developed in the Sun (NeuroAI) lab at Cornell University.
+```
 
 ```markdown
 ___

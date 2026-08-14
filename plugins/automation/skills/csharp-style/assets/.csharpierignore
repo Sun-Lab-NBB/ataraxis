@@ -1,7 +1,7 @@
 # CSharpier ignore file for C# projects
 # Excludes Unity-generated files and third-party packages from formatting
 
-# Unity generated directories
+# Unity-generated directories
 Library/
 Temp/
 Logs/

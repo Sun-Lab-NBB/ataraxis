@@ -160,13 +160,13 @@ time. Run them FIRST, read their output as findings, and spend the sweep on the 
 Run only the READ-ONLY forms. Bare `tox` and `tox -e lint` are FORBIDDEN during an audit, because the `lint` environment
 reformats the source, auto-fixes it, and purges its stubs, which mutates the very code under audit.
 
-| Tool                                          | Read-only invocation                            |
-|-----------------------------------------------|-------------------------------------------------|
-| ruff lint rules, for Python files             | `ruff check --no-fix --output-format=json .`    |
-| ruff formatting, for Python files             | `ruff format --diff .`                          |
-| mypy, where the project configures it         | `mypy .`                                        |
-| clang-format, for C++ files                   | `clang-format --dry-run --Werror <files>`       |
-| clang-tidy, where a `.clang-tidy` file exists | `clang-tidy <files>`                            |
+| Tool                                          | Read-only invocation                         |
+|-----------------------------------------------|----------------------------------------------|
+| ruff lint rules, for Python files             | `ruff check --no-fix --output-format=json .` |
+| ruff formatting, for Python files             | `ruff format --diff .`                       |
+| mypy, where the project configures it         | `mypy .`                                     |
+| clang-format, for C++ files                   | `clang-format --dry-run --Werror <files>`    |
+| clang-tidy, where a `.clang-tidy` file exists | `clang-tidy <files>`                         |
 
 A tool the project does not configure is skipped, and its absence is no finding. Report a tool that failed to run as a
 gap in the coverage the report states rather than as a clean result.
@@ -327,7 +327,7 @@ Every finding uses the shape below, shared by all four audits in this family so 
 **ID** is a short stable handle, `S1`, `S2`, and so on, numbered in report order, so a reader answers with the
 identifier rather than by restating the finding.
 
-**Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the checklist point quoted
+**Wrong** carries the whole evidence load as prose rather than as labelled fields. It states the checklist point quoted
 verbatim from the skill or reference file that states it, the current state quoted verbatim at its `<path>:<line>`, and
 the required state as a concrete example or the checklist's own wording. A table, a ledger, or an interleaving sits
 directly beneath the bullet.
@@ -355,13 +355,9 @@ Pass 11 symbol usage finding adds the consumer evidence and the search that esta
 You MUST adhere to the following discipline during every audit.
 
 - Anchor every finding to a verbatim checklist quote. No checklist quote, no finding.
-- Never invent conventions. If a behavior is not in a loaded checklist, it is not a style violation.
 - Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
   clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
   code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
-- Never flag factual errors, missing content, or source-code mismatches. Those belong to `/audit-facts`.
-- Never flag a defect, an edge case, or a runtime cost. Those belong to `/audit-correctness` and `/audit-performance`.
-- Never restructure, restyle, or refactor. This skill produces findings only.
 - Never flag subjective preferences (tone, ordering, terminology) unless the loaded checklist explicitly requires the
   convention.
 - If a file carries an auto-generated block, or an exemption a loaded skill writes down, note the exemption with its

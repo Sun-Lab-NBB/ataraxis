@@ -423,20 +423,20 @@ against the code you wrote.
 - [ ] Named arguments used for boolean params and ambiguous calls
 - [ ] Null checks use explicit comparison (== null, != null)
 - [ ] Guard clauses / early returns preferred over deep nesting
-- [ ] No #region blocks; no this. qualifier (except disambiguation)
+- [ ] No #region blocks, and no this. qualifier except for disambiguation
 - [ ] No heavy section separator blocks (// ====== or // ------)
-- [ ] No IDE suppression comments (ReSharper/Rider // ReSharper disable etc.); use #pragma warning / [SuppressMessage]
-- [ ] One public type per file; file name matches class name
+- [ ] No IDE suppression comments (ReSharper/Rider // ReSharper disable etc.). Use #pragma warning / [SuppressMessage]
+- [ ] One public type per file, and the file name matches the class name
 - [ ] Unity logging uses Debug.LogError/LogWarning/Log appropriately
 - [ ] XML tag ordering: summary -> remarks -> typeparam -> param -> returns -> exception
 - [ ] <exception> tags in alphabetical order by type name
 - [ ] <inheritdoc/> used only when base documentation fully describes override behavior
 - [ ] No <example> or <code> tags in XML documentation
-- [ ] No using static directives; no global usings
+- [ ] No using static directives, and no global usings
 - [ ] ToString format matches ClassName(key=value, key=value) pattern
 - [ ] in used only for large readonly struct parameters (not small types or reference types)
 - [ ] out parameters follow TryX pattern (return bool, populate out on success)
-- [ ] Error mechanism matches context (Debug.LogError in MonoBehaviour; exceptions elsewhere)
+- [ ] Error mechanism matches context (Debug.LogError in MonoBehaviour, exceptions elsewhere)
 - [ ] Error messages state context, constraint, and actual value ("Unable to...", "must be...", "but [actual state]")
 - [ ] Multi-line error messages assigned to variable before passing
 - [ ] Prose used in <remarks> blocks (not bullet lists)
@@ -464,8 +464,8 @@ against the code you wrote.
 - [ ] Coroutines stopped in OnDisable/OnDestroy to prevent orphaned execution
 - [ ] Async methods carry the Async suffix, with async void reserved for Unity event handlers and UI callbacks
 - [ ] CancellationToken passed last, and ConfigureAwait(false) used in library code outside MonoBehaviours
-- [ ] #if UNITY_EDITOR used for editor-only code; [Conditional] preferred over #if DEBUG
-- [ ] Switch expressions used for pure value mapping; switch statements for side effects
+- [ ] #if UNITY_EDITOR used for editor-only code, and [Conditional] preferred over #if DEBUG
+- [ ] Switch expressions used for pure value mapping, and switch statements for side effects
 
 Tooling-enforced items. CSharpier and the EditorConfig-configured Roslyn analyzers settle each of
 these, so run `csharpier --check .` and read the analyzer output rather than hand-checking them.

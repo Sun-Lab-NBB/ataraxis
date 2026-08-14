@@ -159,7 +159,7 @@ Use **full words**, not abbreviations:
 | Classes               | PascalCase               | `TransportLayer`, `EncoderModule`, `COBSProcessor`   |
 | Methods               | PascalCase               | `SendData`, `ReceiveData`, `SetupModule`             |
 | Accessors             | `get_`/`set_` snake_case | `get_buffer_size`, `set_baud_rate`                   |
-| Private members       | `_snake_case`            | `_port`, `_crc_processor`, `_custom_parameters`     |
+| Private members       | `_snake_case`            | `_port`, `_crc_processor`, `_custom_parameters`      |
 | Local variables       | snake_case               | `start_index`, `payload_size`, `new_motion`          |
 | Parameters            | snake_case               | `module_type`, `module_id`, `baud_rate`              |
 | Constants             | `kPascalCase`            | `kTimeout`, `kSerialBufferSize`, `kCalibrationDelay` |
@@ -420,12 +420,12 @@ against the code you wrote.
 - [ ] Symbols used only inside their defining translation unit or header keep the underscore, and symbols with no
       consumer outside the owning component stay out of its public header (tests are not consumers, downstream code is)
 - [ ] Every asset has a consumer, so functions, methods, classes, constants, enum members, and whole headers only tests
-      reference are removed with those tests, sparing public declarations in headers library.json export.include minus
+      reference are removed with those tests. Spared: public declarations in headers library.json export.include minus
       export.exclude ships, an exported mock or fake, and any member an @warning or @note marks a test or debug aid
 - [ ] Local variables and parameters use snake_case
 - [ ] Constants use kPascalCase prefix (static constexpr)
 - [ ] Enum types and values use kPascalCase prefix
-- [ ] Template type params use PascalCase; value params use kPascalCase
+- [ ] Template type params use PascalCase, and value params use kPascalCase
 - [ ] Namespaces use snake_case
 - [ ] Macros use UPPER_SNAKE_CASE
 - [ ] Include guards use LIBRARY_PREFIX_FILE_NAME_H pattern
@@ -434,7 +434,7 @@ against the code you wrote.
 - [ ] Guard clauses / early returns preferred over deep nesting
 - [ ] Error messages carry context ("Unable to..."), constraint ("must be..."), and the actual value when available
 - [ ] Arguments labeled with trailing inline // parameter comments for boolean literals and repeated parameter types
-- [ ] One primary class per file; file name matches class in snake_case
+- [ ] One primary class per file, with the file name matching the class in snake_case
 - [ ] File sections ordered per the file-level ordering list (@file block, include guard, macros, includes, using
       directives, namespaces, free constants, enums, structs, classes)
 - [ ] Class members ordered per the file-level ordering list: static_assert, public nested enums, constructors,
@@ -445,13 +445,13 @@ against the code you wrote.
 - [ ] No @code/@endcode example blocks in Doxygen documentation
 - [ ] Prose used in @brief details (not bullet lists)
 - [ ] Accessor docs (get_/set_) are single-sentence /// comments
-- [ ] get_/set_ used for trivial field access; PascalCase for methods with side effects
+- [ ] get_/set_ used for trivial field access, and PascalCase for methods with side effects
 - [ ] Methods ordered by call hierarchy within each visibility group
 - [ ] I/O operations separated from processing logic (especially in extension code)
 - [ ] Test functions have only @file and @brief (no @param, @returns, or @throws)
 - [ ] Linting warnings resolved (not suppressed) unless resolution adds unnecessary complexity
 - [ ] NOLINT comments for legitimate clang-tidy false positives only
-- [ ] No IDE inspection directives (CLion/ReSharper // noinspection etc.); only clang-tidy // NOLINT suppressions kept
+- [ ] No IDE inspection directives (CLion/ReSharper // noinspection etc.). Only clang-tidy // NOLINT suppressions kept
 - [ ] .clang-tidy Checks list names every enabled check explicitly, with no wildcard enabling entry beyond the leading
       `-*` disable-all prefix, and no entry the installed clang-tidy no longer ships
 - [ ] A check contradicting a construct this skill prescribes is removed from the Checks list with its reason
@@ -465,7 +465,7 @@ without the tools.
 - [ ] Allman brace style (opening braces on new lines)
 - [ ] Include sorting delegated to clang-format (do not manually reorder)
 - [ ] Pointer/reference alignment is left (int* pointer, int& reference)
-- [ ] Attributes ([[nodiscard]], [[maybe_unused]]) on their own line above the declaration (BreakAfterAttributes: Always)
+- [ ] Attributes ([[nodiscard]], [[maybe_unused]]) on their own line above the declaration (BreakAfterAttributes)
 - [ ] Consecutive assignments aligned (AlignConsecutiveAssignments)
 - [ ] Template declarations on separate lines
 - [ ] Static methods used when no instance state is accessed (readability-convert-member-functions-to-static)

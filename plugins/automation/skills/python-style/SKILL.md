@@ -74,12 +74,12 @@ Projects span Python, C++, and C#. These conventions maximize visual and structu
 respecting each language's idiomatic standards.
 
 **Shared across all languages:**
-- 120 character line limit, with wrapped prose filled to that limit rather than broken at a narrower width
+- 120 character line limit (see Wrap width below for the fill rule)
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
-- A leading underscore marks a symbol private to the module or class that defines it (`_snake_case` for any private
-  Python symbol, `_snake_case` for C++ data members, `_camelCase` for C# fields)
+- A leading underscore marks a private symbol (`_snake_case` for any private Python symbol, `_snake_case` for C++ data
+  members, `_camelCase` for C# fields)
 - Full words in identifiers (no abbreviations)
 - Guard clauses preferred over deep nesting
 - Prose over bullet lists in documentation
@@ -422,7 +422,7 @@ against the code you wrote.
 - [ ] Full words used (no abbreviations like `pos`, `idx`, `val`)
 - [ ] Private members use `_underscore` prefix
 - [ ] Constants use UPPER_SNAKE_CASE (bare when exported in __all__, _UPPER_SNAKE_CASE when module-internal)
-- [ ] Enum classes use PascalCase; enum members use UPPER_SNAKE_CASE
+- [ ] Enum classes use PascalCase, and enum members use UPPER_SNAKE_CASE
 - [ ] Every symbol referenced from another module carries a public name, and every symbol referenced
       only inside its defining module carries the underscore (tests are not cross-module consumers)
 - [ ] Every symbol consumed outside its defining (sub)package is re-exported from that package's
@@ -458,7 +458,7 @@ against the code you wrote.
 - [ ] No hand-authored .pyi stubs or py.typed markers, with typing changed in the .py source and regenerated
 - [ ] Inline comments use third-person imperative mood
 - [ ] No heavy section separator blocks (# ====== or # ------)
-- [ ] No IDE-specific suppression comments (PyCharm # noinspection etc.); only ruff # noqa / mypy # type: ignore kept
+- [ ] No IDE-specific suppression comments (PyCharm # noinspection etc.). Only ruff # noqa / mypy # type: ignore kept
 - [ ] Interface modules (cli.py, MCP tool modules, __main__.py) excluded via the pyproject omit list
 - [ ] pragma: no cover used only for unreachable guards, hardware paths, and platform branches in measured modules
 - [ ] Each pragma: no cover annotates the narrowest construct that covers the excluded code
@@ -471,9 +471,9 @@ against the code you wrote.
       and command decorators stacked bottom-up with options closest to `def`
 - [ ] Dataclasses use frozen=True for immutable configs (omit for mutable state)
 - [ ] Dataclasses use slots=True by default (omit when subclassing a non-slotted base such as YamlConfig)
-- [ ] Enum members have inline docstrings; StrEnum for strings, IntEnum for codes
-- [ ] __repr__ uses ClassName(key=value) format; no __str__
-- [ ] Boolean checks use truthiness (not == True); None checks use `is None`
+- [ ] Enum members have inline docstrings, with StrEnum used for strings and IntEnum for codes
+- [ ] __repr__ uses ClassName(key=value) format, with no __str__
+- [ ] Boolean checks use truthiness (not == True), and None checks use `is None`
 - [ ] Guard clauses / early returns preferred over deep nesting
 - [ ] Comprehensions used to build new collections, with generator expressions where the result is iterated once
       and explicit loops kept for side-effecting bodies

@@ -398,11 +398,11 @@ public static class Utility
 
 ## Static vs instance method guidance
 
-| Use                  | When                                                           |
-|----------------------|----------------------------------------------------------------|
-| Instance method      | The method accesses instance fields or properties (`this`)     |
-| `static` method      | The method needs no instance or class state                    |
-| `static` class       | All methods in the class are stateless utilities               |
+| Use             | When                                                       |
+|-----------------|------------------------------------------------------------|
+| Instance method | The method accesses instance fields or properties (`this`) |
+| `static` method | The method needs no instance or class state                |
+| `static` class  | All methods in the class are stateless utilities           |
 
 ### Rules
 
@@ -566,11 +566,11 @@ public static void AdvanceSegmentIndex(ref int segmentIndex, int corridorLength)
 
 ### Guidelines
 
-| Modifier | Use when                                              | Avoid when                              |
-|----------|-------------------------------------------------------|-----------------------------------------|
-| `in`     | Large `readonly struct` (>16 bytes) passed frequently | Small value types, reference types      |
-| `out`    | Method produces a secondary result (`TryX` pattern)   | Method can return a single value        |
-| `ref`    | Method must modify the caller's variable in place     | A return value or `out` would suffice   |
+| Modifier | Use when                                              | Avoid when                            |
+|----------|-------------------------------------------------------|---------------------------------------|
+| `in`     | Large `readonly struct` (>16 bytes) passed frequently | Small value types, reference types    |
+| `out`    | Method produces a secondary result (`TryX` pattern)   | Method can return a single value      |
+| `ref`    | Method must modify the caller's variable in place     | A return value or `out` would suffice |
 
 ---
 

@@ -10,27 +10,27 @@ Complete reference for YAML frontmatter fields in SKILL.md files.
 
 The skill's identifier. You MUST ensure it matches the parent directory name.
 
-| Property   | Value                                                            |
-|------------|------------------------------------------------------------------|
-| Type       | String                                                           |
-| Required   | No by schema, which defaults to the filename. Required by ataraxis convention |
-| Max length | 64 characters, by ataraxis convention                            |
-| Format | Lowercase letters, digits, and hyphens only, no consecutive `--`, by convention |
-| Convention | Must match parent directory name: `explore-codebase`, `commit`   |
+| Property   | Value                                                                           |
+|------------|---------------------------------------------------------------------------------|
+| Type       | String                                                                          |
+| Required   | No by schema, which defaults to the filename. Required by ataraxis convention   |
+| Max length | 64 characters, by ataraxis convention                                           |
+| Format     | Lowercase letters, digits, and hyphens only, no consecutive `--`, by convention |
+| Convention | Must match parent directory name: `explore-codebase`, `commit`                  |
 
 ### `description`
 
 Explains what the skill does and when to use it. Serves as the primary trigger mechanism, because the agent reads all
 skill descriptions at session start to decide when to invoke each skill.
 
-| Property     | Value                                                  |
-|--------------|--------------------------------------------------------|
-| Type         | String (use YAML `>-` for multi-line)                  |
-| Required     | Yes, by ataraxis convention                            |
+| Property     | Value                                                        |
+|--------------|--------------------------------------------------------------|
+| Type         | String (use YAML `>-` for multi-line)                        |
+| Required     | Yes, by ataraxis convention                                  |
 | Max length   | 1024 characters, an ataraxis budget rather than a schema cap |
-| Max lines    | 5 wrapped lines in the folded block                    |
-| Voice        | Third person                                           |
-| Must include | What the skill does AND when to use it ("Use when...") |
+| Max lines    | 5 wrapped lines in the folded block                          |
+| Voice        | Third person                                                 |
+| Must include | What the skill does AND when to use it ("Use when...")       |
 
 **Example:**
 
@@ -49,11 +49,11 @@ description: >-
 
 Controls whether the skill appears in the `/` slash command menu.
 
-| Property | Value                                                           |
-|----------|-----------------------------------------------------------------|
-| Type     | Boolean                                                         |
-| Default  | `true`                                                          |
-| Usage    | Set to `false` for a skill the model invokes through the Skill tool, hiding its slash command  |
+| Property | Value                                                                                         |
+|----------|-----------------------------------------------------------------------------------------------|
+| Type     | Boolean                                                                                       |
+| Default  | `true`                                                                                        |
+| Usage    | Set to `false` for a skill the model invokes through the Skill tool, hiding its slash command |
 
 ### `disable-model-invocation`
 
@@ -112,18 +112,18 @@ Overrides the model used while the skill is active.
 Controls execution context. Set to `fork` to run the skill in a sub-agent with a separate context window, keeping the
 main conversation context clean.
 
-| Property | Value  |
-|----------|--------|
-| Type     | String |
+| Property | Value            |
+|----------|------------------|
+| Type     | String           |
 | Values   | `inline`, `fork` |
 
 ### `agent`
 
 Specifies which sub-agent type to use when `context: fork` is set.
 
-| Property | Value                           |
-|----------|---------------------------------|
-| Type     | String                          |
+| Property | Value                                      |
+|----------|--------------------------------------------|
+| Type     | String                                     |
 | Values   | `Explore`, `Plan`, `general-purpose`, etc. |
 
 ### `hooks`
@@ -156,16 +156,16 @@ Glob patterns this skill applies to. The skill loads only when the model touches
 
 Thinking effort the model applies while the skill is active.
 
-| Property | Value                                          |
-|----------|------------------------------------------------|
-| Values   | `low`, `medium`, `high`, `max`, or an integer  |
+| Property | Value                                         |
+|----------|-----------------------------------------------|
+| Values   | `low`, `medium`, `high`, `max`, or an integer |
 
 ### `shell`
 
 Shell used for `` !`command` `` blocks. Defaults to bash on every platform, so set it only for a Windows-only skill.
 
-| Property | Value              |
-|----------|--------------------|
+| Property | Value                |
+|----------|----------------------|
 | Values   | `bash`, `powershell` |
 
 ### `background`
@@ -193,14 +193,14 @@ skill and reaches nothing in the harness.
 
 SKILL.md content can include variables that are replaced at runtime.
 
-| Variable               | Description                               |
-|------------------------|-------------------------------------------|
-| `$ARGUMENTS`           | All arguments passed after the skill name |
-| `$ARGUMENTS[N]` / `$N` | Positional argument at index N (0-based)  |
-| `${CLAUDE_SESSION_ID}` | Unique identifier for the current session |
-| `${CLAUDE_SKILL_DIR}`  | Directory holding this SKILL.md, for pointing a Read or Bash call at its own references/ |
-| `${CLAUDE_PROJECT_DIR}`| Root directory of the active project                                                     |
-| `${CLAUDE_EFFORT}`     | Thinking effort currently in force                                                       |
+| Variable                | Description                                                                              |
+|-------------------------|------------------------------------------------------------------------------------------|
+| `$ARGUMENTS`            | All arguments passed after the skill name                                                |
+| `$ARGUMENTS[N]` / `$N`  | Positional argument at index N (0-based)                                                 |
+| `${CLAUDE_SESSION_ID}`  | Unique identifier for the current session                                                |
+| `${CLAUDE_SKILL_DIR}`   | Directory holding this SKILL.md, for pointing a Read or Bash call at its own references/ |
+| `${CLAUDE_PROJECT_DIR}` | Root directory of the active project                                                     |
+| `${CLAUDE_EFFORT}`      | Thinking effort currently in force                                                       |
 
 ### Dynamic context injection
 

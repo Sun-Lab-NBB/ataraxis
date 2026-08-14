@@ -88,9 +88,9 @@ Flag any drift between the local checkout and the latest release before treating
 
 For C++ ataraxis libraries (ataraxis-transport-layer-mc, ataraxis-micro-controller), the `python -c "import ..."`
 resolution does not apply. Locate the source under `.pio/libdeps/<env>/<lib>/src`, where `<env>` is the PlatformIO
-environment name from `platformio.ini`, then read the library version from the `version`
-field of the library's `library.json` (not `importlib.metadata`), and enumerate public classes from the library's header
-files rather than from `__all__` (see Step 4).
+environment name from `platformio.ini`. Read the library version from the `version` field of the library's
+`library.json` (not `importlib.metadata`). Enumerate public classes from the library's header files rather than from
+`__all__` (see Step 4).
 
 If a package is not installed, note it as unavailable and skip to the next dependency.
 

@@ -132,7 +132,7 @@ keep only the positive statement.
 ### Worked reductions
 
 The rules above name the defects. This pair shows the size of the correction that follows from them. The "Avoid" block
-is a realistic over-documentation pattern rather than an exaggeration.
+is a realistic over-documentation pattern.
 
 **A self-evident method padded with call-site context and restated types:**
 
@@ -154,8 +154,6 @@ void ResetOverflow();
 
 The reduction keeps the one fact the name omits, which is what the tracker accumulates. It drops the caller, the
 downstream consumer, and the sentence restating the empty signature.
-
----
 
 ### Tag ordering
 

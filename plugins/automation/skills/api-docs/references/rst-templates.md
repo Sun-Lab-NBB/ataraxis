@@ -32,8 +32,6 @@ Index
 * :ref:`genindex`
 ```
 
-This file requires no customization.
-
 ---
 
 ## welcome.rst

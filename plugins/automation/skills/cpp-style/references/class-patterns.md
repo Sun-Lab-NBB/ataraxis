@@ -467,7 +467,7 @@ Classes and structs follow different rules for data member visibility:
   methods beyond simple initialization.
 
 ```cpp
-// Class — all data members private
+// Class, all data members private
 class TransportLayer
 {
     public:
@@ -483,7 +483,7 @@ class TransportLayer
         uint8_t _runtime_status = 0;
 };
 
-// Struct — public members for passive data
+// Struct, public members for passive data
 /// Stores the instance's addressable runtime parameters.
 struct CustomRuntimeParameters
 {

@@ -372,9 +372,9 @@ Every finding uses the shape below, shared by all four audits in this family so 
 identifier rather than by restating the finding.
 
 **Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the contract quoted verbatim
-with its own `<path>:<line>` and source tag, the implementing statements quoted verbatim with their own location, the
-trigger written as an executable expression, a numbered call sequence, or a line-numbered interleaving, and the concrete
-result that trigger produces. A table, a ledger, or an interleaving sits directly beneath the bullet.
+with its own `<path>:<line>` and source tag, and the implementing statements quoted verbatim with their own location.
+The trigger follows, written as an executable expression, a numbered call sequence, or a line-numbered interleaving, and
+the concrete result that trigger produces. A table, a ledger, or an interleaving sits directly beneath the bullet.
 
 **Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
 behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
@@ -399,15 +399,12 @@ You MUST adhere to the following discipline during every audit.
 - Quote both the contract and the implementation verbatim, each with its own `<path>:<line>`.
 - Keep every sentence the report itself writes, outside a verbatim quote, under 40 words and separated by full stops and
   commas alone.
-- Run the ownership ladder before every contract-versus-behavior finding, and route rung 4 results to `/audit-facts`.
 - Verify every external library contract by reading the installed package rather than from memory.
 - Treat coverage as a ranking. Never report a tier, a percentage, or a missing-line list as a defect, and never report
   the absence of a test.
-- Run only read-only commands, plus the two non-mutating tox environments after the user agrees.
 - Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
   clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
   code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
-- Never fix, refactor, or add a test. This skill produces findings only.
 - Treat `console.enable()` and `console.disable()` calls as correct at every library tier.
 
 ---
@@ -440,7 +437,7 @@ Fix this audit's findings after `/audit-facts` and before `/audit-performance` a
 of a documentation mismatch is authoritative comes first, and optimization and style work apply to code whose behavior
 is already correct. That is a FIX order, and `/audit-project` decides the RUN order.
 
-Do NOT make code changes during the audit. Present findings and wait for user direction.
+Do NOT make code changes or run mutating commands during the audit. Present findings and wait for user direction.
 
 ---
 
@@ -451,12 +448,14 @@ You MUST verify the audit output against this checklist before presenting it to 
 ```text
 Code Correctness Audit Compliance:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
-- [ ] Step 1 prerequisites recorded for every language in scope, including the archetype, the actual test matrix, and the branch and fail_under settings
+- [ ] Step 1 prerequisites recorded for every language in scope, including the archetype, the actual test matrix, and
+      the branch and fail_under settings
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
 - [ ] For Large tier, batched by authority with no language mixing, within 40 and 12 in flight, merging to fit
 - [ ] For Large tier, each sub-agent received only the ranking and ledger rows for its own batch
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
-- [ ] Coverage ranking built for every language in scope, from artifacts for Python and from the test suite for C++ and C#
+- [ ] Coverage ranking built for every language in scope, from artifacts for Python and from the test suite for C++
+      and C#
 - [ ] A language lacking a coverage instrument ranked by reading its tests, never dropped from scope
 - [ ] Coverage artifacts read before any command was run
 - [ ] Coverage regenerated only after explicit user consent, and only via the test and coverage environments
@@ -492,7 +491,8 @@ Code Correctness Audit Compliance:
       Impact bullets
 - [ ] Every Impact bullet names what the fix alters for callers and downstream, or states None
 - [ ] A Choice bullet appears only where the audit cannot settle the question, and it closes with a recommendation
-- [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops and commas as clause separators
+- [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full stops
+      and commas as clause separators
 - [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would
       still fit
 - [ ] No file modifications made during the audit
