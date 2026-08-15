@@ -266,6 +266,11 @@ For array indices, bit shifts, and common factors, suppression with `// NOLINT` 
 
 ### Running clang-tidy
 
+On a PlatformIO project, run `pio check`, which resolves the framework and dependency include paths and applies the
+`check_flags` that `/platformio-config` prescribes. A bare `clang-tidy` invocation there resolves no `<Arduino.h>` and
+analyzes a truncated syntax tree, which reports findings the source does not contain. The commands below are for
+extension projects, which compile against the host toolchain:
+
 ```bash
 # Run clang-tidy on all source files
 clang-tidy src/*.h src/*.cpp -- -I include/

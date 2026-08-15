@@ -79,23 +79,25 @@ uses this field set:
 | `upload_protocol` | Set when the board needs a non-default uploader (e.g. `teensy-cli` for Teensy)   |
 | `build_unflags`   | Add `-std=gnu++11` on boards whose Arduino core pins an older standard (AVR/SAM) |
 | `build_flags`     | `-std=c++17` (the project C++ standard)                                          |
+| `check_tool`      | `clangtidy`, which replaces the `cppcheck` default                              |
+| `check_flags`     | The clang-tidy flags the static analysis section below prescribes               |
 | `lib_deps`        | Pinned third-party and ataraxis dependencies (see below)                         |
 
-Every `[env:<board>]` section sets `platform`, `board`, `framework`, `monitor_speed`, `test_framework`, and
-`build_flags`. `upload_protocol`, `build_unflags`, and `lib_deps` appear only on the boards that need them, so a board
-with no dependencies omits `lib_deps` entirely. `build_unflags = -std=gnu++11` is required only where the board's
-default toolchain would otherwise override `build_flags` (the AVR `mega` and SAM `due` cores). Teensy needs no unflag.
-Sections appear in the order of the board table below (`teensy41`, `due`, `mega`), and the keys inside a section follow
-the field-table order above. `build_unflags` comes before `build_flags`, because the unflag is what lets the flag take
-effect.
+Every `[env:<board>]` section sets `platform`, `board`, `framework`, `monitor_speed`, `test_framework`, `build_flags`,
+`check_tool`, and `check_flags`. `upload_protocol`, `build_unflags`, and `lib_deps` appear only on the boards that need
+them, so a board with no dependencies omits `lib_deps` entirely. `build_unflags = -std=gnu++11` is required only where
+the board's default toolchain would otherwise override `build_flags` (the AVR `mega` and SAM `due` cores). Teensy needs
+no unflag. Sections appear in the order of the board table below (`teensy41`, `due`, `mega`), and the keys inside a
+section follow the field-table order above. `build_unflags` comes before `build_flags`, because the unflag is what lets
+the flag take effect.
 
 ### Board / platform mapping
 
-| Board id         | platform   |
-|------------------|------------|
-| `teensy41`       | `teensy`   |
-| `due`            | `atmelsam` |
-| `megaatmega2560` | `atmelavr` |
+| Board id         | platform   | clang target    |
+|------------------|------------|-----------------|
+| `teensy41`       | `teensy`   | `arm-none-eabi` |
+| `due`            | `atmelsam` | `arm-none-eabi` |
+| `megaatmega2560` | `atmelavr` | `avr`           |
 
 ### lib_deps pinning
 
@@ -104,6 +106,35 @@ registry account, NOT the GitHub org, so ataraxis libraries are published under 
 `inkaros/ataraxis-transport-layer-mc@^4.0.1`). Third-party deps use their own owners (`arminjo/digitalWriteFast@^1.3.1`,
 `pfeerick/elapsedMillis@^1.0.6`). Use the caret (`^`) range so patch/minor updates are accepted. List a dependency only
 under the boards that need it.
+
+### Static analysis configuration
+
+`check_tool = clangtidy` selects clang-tidy, and `check_flags` carries the flags that make its report trustworthy.
+PlatformIO resolves both per environment, so every `[env:<board>]` declares them. Write each flag on its own indented
+`clangtidy: ` line, because the single-line form passes 120 characters once the header filter carries a repository name.
+
+| Flag                                               | Purpose                                                      |
+|----------------------------------------------------|--------------------------------------------------------------|
+| `--config-file=.clang-tidy`                        | Keeps the curated check list PlatformIO would replace        |
+| `--header-filter=.*/<repository>/src/.*`           | Reports the repository's own headers alone                   |
+| `--extra-arg=--target=<triple>`                    | Applies the board architecture's integer and pointer widths  |
+| `--extra-arg=-ferror-limit=0`                      | Parses each translation unit to the end                      |
+| `--extra-arg=-Wno-invalid-constexpr`               | Silences GCC libstdc++ headers clang 15 cannot parse         |
+| `--extra-arg=-Wno-unusable-partial-specialization` | Silences the same headers' partial specializations           |
+
+`--config-file` is what keeps the curated list, because PlatformIO appends `--checks=*` whenever no `--config` flag is
+present. The header filter anchors on the repository directory name rather than a file-name pattern, so a header added
+later is still reported, and a dependency under `.pio/libdeps` is still excluded. `--target` takes the triple from the
+board table above, and a wrong triple gives a 32-bit width to a 16-bit AVR.
+
+`-ferror-limit=0` is the flag whose absence is silent. PlatformIO bundles clang-tidy 15, which cannot parse the GCC
+libstdc++ that the Arduino toolchains ship. At the default limit clang stops after twenty errors and analyzes a
+truncated syntax tree, which both hides real findings and reports findings the source does not contain. PlatformIO drops
+the `clang-diagnostic-error` lines unless `-v` is passed, so a truncated run reads as a clean one.
+
+You MUST verify any change to these flags with a positive control. Insert a magic number into a source file, confirm
+`pio check` reports it, then revert. A truncated parse and a mis-anchored header filter both present as a clean run, so
+a passing check is not on its own evidence that the check is working.
 
 ---
 
@@ -219,7 +250,7 @@ for a PlatformIO library is `tox` (docs) plus `pio check` and `pio test`.
 | `pio project metadata` | Emit resolved per-env build metadata (IDE/index integration)  |
 | `pio run`              | Build the firmware/library for the selected environment(s)    |
 | `pio test`             | Run the Unity unit tests on the selected environment(s)       |
-| `pio check`            | Run static analysis on the source                             |
+| `pio check`            | Run the clang-tidy static analysis on the source              |
 
 ---
 
@@ -259,6 +290,10 @@ Judgment items. No tool inspects these, so this checklist is their only enforcem
 wrote. Only parse validity, the library.json $schema, and what pio check and pio test reject are tool-settled.
 - [ ] platformio.ini has one [env:<board>] section per supported board, named for the board
 - [ ] Each env sets platform, board, framework=arduino, monitor_speed, test_framework=unity, build_flags=-std=c++17
+- [ ] Each env sets check_tool=clangtidy and a check_flags block carrying every flag the static analysis table lists
+- [ ] Each check_flags entry sits on its own indented 'clangtidy: ' line
+- [ ] --target matches the board's clang triple from the board table (arm-none-eabi for teensy41 and due, avr for mega)
+- [ ] Flag changes verified with a positive control, by injecting a magic number and confirming pio check reports it
 - [ ] library.json carries every required field ($schema, name, version, description, repository, authors, license,
       frameworks, platforms, headers, export, build)
 - [ ] build_unflags=-std=gnu++11 present on AVR/SAM boards that need it
