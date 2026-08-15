@@ -396,7 +396,7 @@ against the code you wrote.
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, signature, and body)
 - [ ] Documentation records current behavior only, never the edit that produced it
 - [ ] Edits leave documentation no longer than it started unless the new behavior is harder to derive
-- [ ] File-level summary is at most 5 sentences, with detail relocated into the members it documents
+- [ ] File-level summary is at most 2 sentences, with detail relocated into the members it documents
 - [ ] Documentation carries only facts the reader cannot infer from the code (no padding or trivia)
 - [ ] XML docs describe what the code does, with project usage and call-site context left out
 - [ ] Peer-format expectations documented only when counter-intuitive enough to mislead the reader

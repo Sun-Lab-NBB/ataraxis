@@ -417,7 +417,7 @@ against the code you wrote.
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
-- [ ] Module docstring description is at most 5 sentences, with detail relocated into the members it documents
+- [ ] Module docstring description is at most 2 sentences, with detail relocated into the members it documents
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
 - [ ] Full words used (no abbreviations like `pos`, `idx`, `val`)
 - [ ] Private members use `_underscore` prefix
