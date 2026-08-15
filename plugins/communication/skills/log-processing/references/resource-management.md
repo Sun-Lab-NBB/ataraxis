@@ -13,9 +13,9 @@ formula reproduced in this file would drift out of agreement with the library ru
 
 | Asset                                             | Reports                                                                          |
 |---------------------------------------------------|----------------------------------------------------------------------------------|
-| `prepare_log_processing_batch_tool` → `jobs[]`    | Per job: `core_weight`, `memory_mb`, `message_count`, `archive_bytes`, `modeled` |
+| `prepare_log_processing_batch_tool` → `jobs[]`    | Per job: `core_weight`, `memory_mb`, `message_count`, and `archive_bytes`        |
 | `execute_log_processing_jobs_tool` → return value | Resolved `core_budget`, `memory_budget_mb`, `pool_size`, and `job_allocations[]` |
-| `size_archive_job(archive_path)`                  | `(cores, memory_mb, modeled)` for one archive, without preparing a batch         |
+| `size_archive_job(archive_path)`                  | `JobSizing(cores, memory_mb)` for one archive, without preparing a batch         |
 
 Use the first to plan a batch and the second to report what the batch actually committed. The third reads one archive
 and answers both halves of the sizing model from that single read, so a caller planning outside the batch tools

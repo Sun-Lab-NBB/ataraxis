@@ -43,12 +43,12 @@ from ataraxis_video_system import (
 )
 ```
 
-The top-level `__all__` also exports the orchestration layer's job and sizing assets (`JobSource`, `JobUniverse`,
-`execute_job`, `resolve_jobs`, `resolve_timestamps_path`, `size_archive_job`, and the `CAMERA_EXTRACTION_JOB_*`
-constants). Those are deliberately left undocumented here, because log processing is scheduled through the MCP tools
-that `/log-processing` covers rather than driven through those assets by hand. `run_log_processing_pipeline` is the one
-orchestration entry point this reference documents, since it is the whole-recording pipeline the `axvs process` CLI
-runs.
+The top-level `__all__` also exports the orchestration layer's job and sizing assets (`JobSizing`, `JobSource`,
+`JobUniverse`, `execute_job`, `resolve_jobs`, `resolve_timestamps_path`, `size_archive_job`, and the
+`CAMERA_EXTRACTION_JOB_*` constants). Those are deliberately left undocumented here, because log processing is scheduled
+through the MCP tools that `/log-processing` covers rather than driven through those assets by hand.
+`run_log_processing_pipeline` is the one orchestration entry point this reference documents, since it is the
+whole-recording pipeline the `axvs process` CLI runs.
 
 ---
 

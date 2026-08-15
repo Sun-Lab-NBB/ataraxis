@@ -256,6 +256,7 @@ Runs one recording's jobs **sequentially in a plain loop**.
 | Manifest registers no source               | `ValueError`                                                                            |
 | A requested source or job ID unregistered  | `ValueError`                                                                            |
 | A source's archive absent or ambiguous     | `FileNotFoundError`                                                                     |
+| An archive resolves but cannot be read     | `FileNotFoundError` from the `-w -1` width resolution, before that job starts           |
 | Resolved archives span several directories | `ValueError` naming the one-directory-per-invocation rule                               |
 | A job raises mid-run                       | The tracker marks that job FAILED, the exception propagates, and later jobs never start |
 

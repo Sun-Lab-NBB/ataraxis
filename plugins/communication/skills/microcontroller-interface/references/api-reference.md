@@ -6,7 +6,7 @@ Complete API reference for ataraxis-communication-interface public classes, func
 
 ## Public API
 
-The top-level `__all__` exports exactly these 41 names. Anything not listed here must be imported from a subpackage.
+The top-level `__all__` exports exactly these 42 names. Anything not listed here must be imported from a subpackage.
 
 ```python
 from ataraxis_communication_interface import (
@@ -53,6 +53,7 @@ from ataraxis_communication_interface import (
     # Orchestration, driven through the MCP tools and the axci CLI
     CONTROLLER_EXTRACTION_JOB_CORES,
     CONTROLLER_EXTRACTION_JOB_NAME,
+    JobSizing,
     JobSource,
     JobUniverse,
     execute_job,
@@ -69,20 +70,20 @@ one. Import a name through the package that exports it, never from the module fi
 
 | Import path                                        | Exports | Contents                                                                      |
 |----------------------------------------------------|---------|-------------------------------------------------------------------------------|
-| `ataraxis_communication_interface`                 | 41      | The curated public API listed above.                                          |
+| `ataraxis_communication_interface`                 | 42      | The curated public API listed above.                                          |
 | `ataraxis_communication_interface.communication`   | 17      | MQTT and serial transports, all 12 message classes, protocol/prototype enums. |
 | `ataraxis_communication_interface.microcontroller` | 30      | Interfaces, dataclasses, status-code mirrors, extraction and table access.    |
 | `ataraxis_communication_interface.orchestration`   | 41      | Job identity, sizing, discovery, the single-job runner, and the batch engine. |
 | `ataraxis_communication_interface.interfaces`      | 0       | CLI, MCP entry points, response machinery. `__all__` is empty by design.      |
 
-**Note:** all 14 names the `.orchestration` subpackage contributes are re-exported at top level, but this plugin
+**Note:** all 15 names the `.orchestration` subpackage contributes are re-exported at top level, but this plugin
 deliberately does not document the job-scheduling contract they form. Orchestration runs through the MCP tools or
 through the `axci` CLI a user invokes by hand, and there is no third path. Do not write code against these symbols.
 
 Names a caller reaches for by symmetry that are **not** top level: `build_message_dataframe`, `evaluate_port`,
 `extract_logged_microcontroller_data`, `ExtractedMessages`, `ExtractedModuleData`, and `ExtractedControllerData` (all
-`.microcontroller`), plus `prepare_jobs`, `JobDescriptor`, `JobSet`, `size_job`, and `JobSizing` (all `.orchestration`).
-Importing any of them from the top level raises `ImportError`.
+`.microcontroller`), plus `prepare_jobs`, `JobDescriptor`, `JobSet`, and `size_job` (all `.orchestration`). Importing
+any of them from the top level raises `ImportError`.
 
 ---
 
