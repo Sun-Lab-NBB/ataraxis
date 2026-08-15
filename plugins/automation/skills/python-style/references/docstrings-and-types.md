@@ -321,7 +321,7 @@ Follow the same third-person imperative mood pattern as other docstrings:
 """Provides assets for processing and analyzing neural imaging data."""
 ```
 
-The module docstring description is a lean, cohesive chunk of at most 5 sentences. It states what the module provides
+The module docstring description is a lean, cohesive chunk of at most 2 sentences. It states what the module provides
 and, where relevant, why it lives where it does. Detailed material, such as methodology, caveats, interpretation
 guidance, and rationale, belongs in the docstrings of the functions, classes, enums, and constants the module defines.
 Keep the module docstring itself to that lean description. A multi-paragraph module docstring or a module-level `Notes:`

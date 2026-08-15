@@ -395,7 +395,7 @@ using UnityEngine;
 - First sentence describes the primary class or purpose of the file
 - Additional sentences provide context for how the file fits into the larger system. This is the one place that context
   belongs, and it stays subject to the cover test like any other prose
-- The whole description is a lean, cohesive chunk of at most 5 sentences. Methodology, caveats, and rationale belong in
+- The whole description is a lean, cohesive chunk of at most 2 sentences. Methodology, caveats, and rationale belong in
   the XML docs of the classes, methods, and enums the file defines, so relocate each detail to the member it concerns
   rather than accumulating it here
 - Use third-person imperative mood ("Provides...", "Defines...")

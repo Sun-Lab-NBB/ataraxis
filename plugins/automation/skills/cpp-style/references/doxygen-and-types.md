@@ -217,7 +217,7 @@ Every `.h`, `.hpp`, and `.cpp` file must begin with a file-level Doxygen comment
 - `@brief` describes the primary class or purpose of the file
 - Additional `@warning` or `@note` tags provide important file-level context
 - Use third-person imperative mood ("Provides...", "Defines...")
-- The `@brief` description is a lean, cohesive chunk of at most 5 sentences. Methodology, caveats, and rationale belong
+- The `@brief` description is a lean, cohesive chunk of at most 2 sentences. Methodology, caveats, and rationale belong
   in the blocks of the classes, methods, enums, and constants the file defines, so relocate each detail to the member it
   concerns rather than accumulating it here
 
