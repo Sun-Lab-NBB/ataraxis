@@ -106,7 +106,7 @@ log_directories{}:      Dict keyed by the input path string, one entry per direc
   tracker_path:         Absolute path to that directory's ProcessingTracker YAML file
   output_directory:     Absolute path to the `microcontroller_data/` subdirectory the jobs write into
   source_ids[]:         Controller IDs that produced a job, in the same order as `jobs`
-  jobs[]:               Job descriptors, sorted heaviest estimated memory first. Each entry carries the twelve
+  jobs[]:               Job descriptors, sorted heaviest estimated memory first. Each entry carries the eleven
                         execute keys plus `memory_mb`, `status`, and `error_message` when the tracker holds one
   summary{}:            Tracker counts: `total`, `succeeded`, `failed`, `running`, `scheduled`
   skipped_sources[]:    Requested IDs that produced no job, each `{source_id, reason}` (see Error routing)
@@ -133,10 +133,10 @@ neither the output subdirectory nor the tracker.
 | `core_budget`      | `int`        | `-1`       | Cores the session may commit. -1 auto-resolves from the host, keeping a reserve.                |
 | `memory_budget_mb` | `int`        | `-1`       | Memory in MB the session may commit. -1 auto-resolves from host physical memory.                |
 
-**Note:** Every job descriptor must carry all twelve keys the preparation emitted, `log_directory`, `archive_path`,
+**Note:** Every job descriptor must carry all eleven keys the preparation emitted, `log_directory`, `archive_path`,
 `output_directory`, `config_path`, `tracker_path`, `job_name`, `job_id`, `source_id`, `core_weight`, `message_count`,
-`archive_bytes`, and `modeled`. A hand-assembled descriptor that drops the sizing keys is rejected into `invalid_jobs`
-with "Missing or unreadable sizing keys from the prepared manifest."
+and `archive_bytes`. A hand-assembled descriptor that drops the sizing keys is rejected into `invalid_jobs` with
+"Missing or unreadable sizing keys from the prepared manifest."
 
 **Return structure:**
 ```text
@@ -151,7 +151,6 @@ job_allocations[]:  Per-job sizing the session resolved:
   cores:            Cores this job received
   memory_mb:        Estimated memory this job holds
   message_count:    Messages the archive holds
-  modeled:          False when the figures fell back to the baseline rather than being read
 invalid_jobs[]:     Descriptors rejected before dispatch, each carrying an `error` key (present only if any)
 ```
 
@@ -336,9 +335,9 @@ filename.
 
 6. **Prepare batch**: Call `prepare_log_processing_batch_tool` with the confirmed log directories, source IDs, output
    directories, and config path. Then verify the returned `source_ids` against the set you requested, read
-   `skipped_sources` for every difference (see Error routing), and check `modeled` on each job entry. A job carrying
-   `modeled: false` was sized from a floor because its archive could not be read, so treat it as unsized and expect it
-   to fail at extraction for the same reason.
+   `skipped_sources` for every difference (see Error routing), and read `failed_directories` for a directory that
+   prepared nothing. An archive that resolves but cannot be read fails its whole directory there, naming the archive
+   path, so every job a manifest carries was sized from an archive that read.
 
 7. **Confirm resource allocation**: Read the per-job `core_weight` and `memory_mb` the preparation stamped onto each job
    entry, and present those figures alongside the default budgets (`core_budget=-1` and `memory_budget_mb=-1`, both

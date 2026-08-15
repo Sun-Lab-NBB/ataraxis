@@ -119,11 +119,11 @@ entry rather than a parent grouping several of them.
 | `core_budget`      | `int`        | `-1`       | Keyword-only. Total CPU cores for the session, -1 auto-resolves      |
 | `memory_budget_mb` | `int`        | `-1`       | Keyword-only. Total megabytes for the session, -1 auto-resolves      |
 
-Pass each job descriptor through unchanged. The tool reads all eleven keys the prepare manifest stamps onto it:
+Pass each job descriptor through unchanged. The tool reads all ten keys the prepare manifest stamps onto it:
 `log_directory`, `archive_path`, `output_directory`, `tracker_path`, `job_name`, `job_id`, `source_id`, `core_weight`,
-`message_count`, `archive_bytes`, and `modeled`. A job missing any of them is rejected into `invalid_jobs`, and a call
-in which every job is rejected returns `{"error": "No valid jobs to execute.", "invalid_jobs": [...]}`, whose entries
-repeat each rejected job with the reason it was rejected.
+`message_count`, and `archive_bytes`. A job missing any of them is rejected into `invalid_jobs`, and a call in which
+every job is rejected returns `{"error": "No valid jobs to execute.", "invalid_jobs": [...]}`, whose entries repeat
+each rejected job with the reason it was rejected.
 
 **`execute_log_processing_jobs_tool` return structure:**
 
@@ -133,7 +133,7 @@ total_jobs:         Number of valid jobs queued for this session
 core_budget:        The resolved core budget for this session
 memory_budget_mb:   The resolved memory budget for this session
 pool_size:          The job slots the session's shared process pool opens
-job_allocations:    Per job: job_id, source_id, cores, memory_mb, message_count, modeled
+job_allocations:    Per job: job_id, source_id, cores, memory_mb, and message_count
 invalid_jobs:       Present only when some submitted job could not be read
 ```
 
@@ -281,9 +281,9 @@ any formula reproduced in this skill would drift out of agreement with the libra
 
 | Asset                                             | Reports                                                                          |
 |---------------------------------------------------|----------------------------------------------------------------------------------|
-| `prepare_log_processing_batch_tool` → `jobs[]`    | Per job: `core_weight`, `memory_mb`, `message_count`, `archive_bytes`, `modeled` |
+| `prepare_log_processing_batch_tool` → `jobs[]`    | Per job: `core_weight`, `memory_mb`, `message_count`, and `archive_bytes`        |
 | `execute_log_processing_jobs_tool` → return value | Resolved `core_budget`, `memory_budget_mb`, `pool_size`, and `job_allocations[]` |
-| `size_archive_job(archive_path)`                  | `(cores, memory_mb, modeled)` for one archive, without preparing a batch         |
+| `size_archive_job(archive_path)`                  | `JobSizing(cores, memory_mb)` for one archive, without preparing a batch         |
 
 Use the first to plan a batch and the second to report what the batch actually committed. The third is the library's
 single-archive sizing entry point, which an external scheduler calls to derive both figures from one archive read. This

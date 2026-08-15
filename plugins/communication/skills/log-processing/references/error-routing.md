@@ -41,6 +41,7 @@ remedy each one takes.
 | "contains no controller entries"                                 | The manifest under that directory registers no controller. Re-tag the directory via `/microcontroller-setup`, then re-run discovery                                                                                        |
 | "It declares no controllers."                                    | The extraction config itself is empty of controllers. Rebuild it via `/extraction-configuration`                                                                                                                           |
 | A timeout acquiring the tracker lock                             | Another process holds that output directory's tracker, most often a user's own `axci process` run. Wait for it to finish, or prepare a different directory                                                                 |
+| "Unable to size the ... job that reads the log archive"          | The archive resolves but cannot be read, so the job reading it cannot run either. The whole directory fails into `failed_directories`. Repair or reassemble that archive, then prepare again                               |
 
 **Note:** Only `invalid_paths` and `skipped_sources` are soft. Every row above that names a directory-level failure
 places that directory in `failed_directories` and leaves the rest of the batch prepared, so always read all three lists
@@ -64,7 +65,7 @@ before executing.
 
 | Error Pattern                        | Action                                                                                                                                                                      |
 |--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Archive not found / file read errors | Verify .npz archives exist in log directory. Cross-check `modeled` in the prepare output: a job prepared with `modeled: false` already failed to have its archive read once |
+| Archive not found / file read errors | Verify .npz archives exist in log directory. An archive that resolves but cannot be read fails its whole directory at preparation, so no job reads it                       |
 | Invalid extraction config            | Validate config via `/extraction-configuration`                                                                                                                             |
 | MCP tools unavailable                | Invoke `/communication-mcp-environment-setup`                                                                                                                               |
 | Worker killed by the host            | Lower `core_budget` first, then `memory_budget_mb`. A repeat is a pool break. See Batch abandonment                                                                         |
