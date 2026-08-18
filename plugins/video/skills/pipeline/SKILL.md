@@ -337,9 +337,10 @@ batch processing:
 For multi-DataLogger setups, pass each DataLogger output directory as its own entry in the `log_directories` list. One
 batch call can carry several, and each is prepared independently, so a separate batch per directory is not required.
 Passing a parent directory that spans several DataLogger outputs is rejected rather than merged. Preparation fails that
-entry and returns it under `invalid_paths`. The `axvs process` CLI raises the equivalent ValueError, either "Each
-DataLogger output directory must be prepared and processed on its own invocation" or a manifest-count error when the
-tree holds several `camera_manifest.yaml` files.
+entry and returns it under `failed_directories`, paired with the error explaining which rule it broke. The
+`axvs process` CLI reports the equivalent ValueError through its console, either "Each DataLogger output directory must
+be prepared and processed on its own invocation" or a manifest-count error when the tree holds several
+`camera_manifest.yaml` files.
 
 ---
 

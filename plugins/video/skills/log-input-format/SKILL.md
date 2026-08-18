@@ -103,11 +103,11 @@ sources:
 
 **Why manifests matter:** The manifest is a hard gate for both discovery and processing. `discover_camera_data_tool`
 uses manifest-based routing to identify axvs-produced log archives, so directories without a `camera_manifest.yaml` will
-not be discovered by this tool. Beyond discovery, processing requires the manifest as well. A tree holding none resolves
-no job, and a manifest with no source entries raises `ValueError`. The source IDs to process are resolved from the
-manifest when none are requested, and any requested source ID the manifest does not register is rejected. Manifests also
-associate source IDs with human-readable names and enable the discovery tool to locate corresponding video files by
-camera name.
+not be discovered by this tool. Beyond discovery, processing requires the manifest as well. A tree holding none raises
+`FileNotFoundError` whether or not the caller named a source, and a manifest with no source entries raises `ValueError`.
+The source IDs to process are resolved from the manifest when none are requested, and any requested source ID the
+manifest does not register is rejected. Manifests also associate source IDs with human-readable names and enable the
+discovery tool to locate corresponding video files by camera name.
 
 **One manifest per tree:** exactly one `camera_manifest.yaml` may sit under the tree being processed. A tree holding
 several spans several recordings or several DataLogger instances and raises `ValueError` rather than resolving against
