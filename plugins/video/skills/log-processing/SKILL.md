@@ -94,7 +94,7 @@ than one file, is recorded under `skipped_sources` with its reason instead of fa
 **`prepare_log_processing_batch_tool` return structure:**
 
 ```text
-success:                 False when no directory prepared and at least one failed, true otherwise
+success:                 False when no directory prepared and at least one failed, True otherwise
 log_directories:         Mapping keyed by each log directory path, each value carrying:
   tracker_path:          Absolute path to the ProcessingTracker YAML file
   output_directory:      Absolute path to the created camera_timestamps/ subdirectory
@@ -119,33 +119,33 @@ archives came from another library or the recording was logged without one. Pass
 its own entry rather than a parent grouping several of them.
 
 Read `failed_directories` on every call whatever `success` reports. A run that prepared some directories while others
-failed still reads True, so the flag alone never establishes that every named directory was prepared.
+failed still reads True, so the flag alone never establishes that every named directory was prepared. `success` reads
+False only when `log_directories` came back empty and at least one directory raised, so an invalid path never lowers it,
+and a batch whose every name was invalid reports True with `total_jobs` 0. Read `total_jobs` beside the flag.
 
 **`execute_log_processing_jobs_tool` parameters:**
 
-| Parameter          | Type         | Default    | Description                                                          |
-|--------------------|--------------|------------|----------------------------------------------------------------------|
-| `jobs`             | `list[dict]` | (required) | Job descriptors copied unmodified from the prepare manifest's `jobs` |
-| `core_budget`      | `int`        | `-1`       | Keyword-only. Total CPU cores for the session, -1 auto-resolves      |
-| `memory_budget_mb` | `int`        | `-1`       | Keyword-only. Total megabytes for the session, -1 auto-resolves      |
+| Parameter            | Type                | Default | Description                                                                  |
+|----------------------|---------------------|---------|------------------------------------------------------------------------------|
+| `jobs`               | `list[dict] / None` | `None`  | Descriptors from an earlier preparation. Leaving it unset reads those below  |
+| `log_directories`    | `list[str] / None`  | `None`  | Absolute paths to the DataLogger output directories to prepare and dispatch  |
+| `source_ids`         | `list[str] / None`  | `None`  | Source IDs to dispatch. Unset or empty dispatches every registered source    |
+| `output_directories` | `list[str] / None`  | `None`  | Absolute paths for per-directory output. Must match `log_directories` length |
+| `core_budget`        | `int`               | `-1`    | Keyword-only. Total CPU cores for the session, -1 auto-resolves              |
+| `memory_budget_mb`   | `int`               | `-1`    | Keyword-only. Total megabytes for the session, -1 auto-resolves              |
 
-Pass each job descriptor through unchanged. The tool reads all ten keys the prepare manifest stamps onto it:
-`log_directory`, `archive_path`, `output_directory`, `tracker_path`, `job_name`, `job_id`, `source_id`, `core_weight`,
-`message_count`, and `archive_bytes`. A job missing any of them is rejected into `invalid_jobs`, and a call in which
-every job is rejected returns `{"error": "No valid jobs to execute.", "invalid_jobs": [...]}`, whose entries repeat
-each rejected job with the reason it was rejected.
+**Prefer the prepare-and-dispatch form:** Naming `log_directories` and `output_directories` rebuilds the manifest inside
+the tool and dispatches it, which the library documents as the shorter call for a batch of any size. Preparation is
+idempotent, so the rebuild returns the jobs an earlier preparation already reported. Pass `jobs` instead when you
+filtered or reordered that manifest. Naming neither form returns `No work was named. Pass the job descriptors from
+prepare_log_processing_batch_tool as 'jobs', or pass 'log_directories' and 'output_directories' to prepare and dispatch
+in one call.`
 
-**`execute_log_processing_jobs_tool` return structure:**
-
-```text
-started:            True once the background execution manager is running
-total_jobs:         Number of valid jobs queued for this session
-core_budget:        The resolved core budget for this session
-memory_budget_mb:   The resolved memory budget for this session
-pool_size:          The job slots the session's shared process pool opens
-job_allocations:    Per job: job_id, source_id, cores, memory_mb, and message_count
-invalid_jobs:       Present only when some submitted job could not be read
-```
+A rebuild call splices the preparation's `skipped_sources`, `invalid_paths`, and `failed_directories` into both its
+dispatch response and its `No valid jobs to execute.` error, each omitted when empty, and it is the only place they are
+reported. Reconcile all three from that response, since an agent reading `job_allocations` alone drops every skipped
+source silently. See [execution-contract.md](references/execution-contract.md) for the ten keys a descriptor passed as
+`jobs` carries, the full return structure, and every error shape.
 
 ### Monitoring and management tools
 
@@ -176,12 +176,14 @@ That block's `succeeded_jobs` and `failed_jobs` count the jobs this session itse
 narrower than the tracker's own entries because a tracker records every job that ever wrote to its directory. Its
 `active_jobs_at_cancel` is the number of jobs the session still had running when the queue was cleared.
 
-`session_ended` reports whether the execution slot is free for the next batch. A call that leaves no job running waits
-for the session to end and reports `Canceled. Cleared {n} pending job(s). No job was still running.`, and the following
-`execute_log_processing_jobs_tool` call is accepted at once. A call made while jobs are still in flight reports
-`Canceled. Cleared {n} pending job(s). {m} job(s) still completing. Poll get_log_processing_status_tool until 'active'
-reads false before starting another execution.` Cancellation clears the pending queue alone, so read `session_ended`
-first and poll `get_log_processing_status_tool` only while it reads false.
+`session_ended` reports whether the execution slot is free for the next batch, and the `message` is chosen by the count
+of jobs still running, so read the two independently. A call that leaves no job running reports `Canceled. Cleared {n}
+pending job(s). No job was still running.`, and a call made with jobs still in flight reports `Canceled. Cleared {n}
+pending job(s). {m} job(s) still completing. Poll get_log_processing_status_tool until 'active' reads false before
+starting another execution.` Only the first of the two waits, for at most 30 seconds, so `session_ended` can read false
+beside `No job was still running.` when the manager thread is inside a pool warm-up, a rebuild, or the pool shutdown.
+Cancellation clears the pending queue alone, so read `session_ended` rather than the message, and poll
+`get_log_processing_status_tool` only while it reads false.
 
 Every call made without a live session, including one made after the batch ran to completion, returns
 `{"canceled": false, "session_ended": true, "message": "No execution session is active."}` with no `final_state`.
@@ -281,8 +283,10 @@ The processing workflow uses a **prepare-then-execute** model:
 6. **Confirm resource allocation**: Present both defaults, `core_budget=-1` and `memory_budget_mb=-1`, and ask whether
    the user wants to override either. The Resource management section covers what each budget bounds.
 
-7. **Execute jobs**: Call `execute_log_processing_jobs_tool` with the job descriptors from the prepare
-   manifest and confirmed resource settings.
+7. **Execute jobs**: Call `execute_log_processing_jobs_tool` with the confirmed resource settings, naming the log
+   directories, source IDs, and output directories confirmed above so the tool rebuilds the manifest and dispatches it.
+   Pass the prepare manifest's `jobs` instead when you filtered or reordered it. Reconcile `skipped_sources`,
+   `invalid_paths`, and `failed_directories` from this response whenever the call rebuilt the manifest.
 
 8. **Monitor progress**: Use `get_log_processing_status_tool` to check per-job progress. Optionally use
    `get_log_processing_timing_tool` for elapsed time and throughput metrics. Present status as a
@@ -417,17 +421,18 @@ To re-process an entire directory from scratch, call `clean_log_processing_outpu
 | Entry under `failed_directories`      | Read its `error`: no manifest, several manifests, or several outputs   |
 | Source listed under `skipped_sources` | Read its `reason`: unregistered source, or absent/ambiguous archive    |
 | `success` false with nothing prepared | Every named directory failed. Resolve each `failed_directories` error  |
+| `success` true with `total_jobs` 0    | No job resolved. Read `invalid_paths` and each `skipped_sources`       |
 
 Preparation returns an error dictionary for the length mismatch alone. Every other per-directory failure is reported
 under `invalid_paths` or `failed_directories`, and every per-source failure under that directory's `skipped_sources`.
 
 ### Execution errors
 
-| Error                                    | Resolution                                                            |
-|------------------------------------------|-----------------------------------------------------------------------|
-| `An execution session is already active` | Cancel it, then poll only while its `session_ended` flag reads false  |
-| `No valid jobs to execute`               | Verify job descriptors have all required keys                         |
-| `Tracker file not found`                 | Re-prepare the batch to regenerate tracker files                      |
+| Error                                    | Resolution                                                           |
+|------------------------------------------|----------------------------------------------------------------------|
+| `An execution session is already active` | Cancel it, then poll only while its `session_ended` flag reads false |
+| `No valid jobs to execute`               | Verify the ten descriptor keys, or read `skipped_sources` beside it  |
+| `Tracker file not found`                 | Re-prepare the batch to regenerate tracker files                     |
 
 ### Processing failure routing
 

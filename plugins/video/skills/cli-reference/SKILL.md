@@ -197,7 +197,8 @@ never ask a user for an exit status as evidence that a command worked.
 Click's own parameter validation runs before the body and keeps its own contract, so a missing required option, an
 unparseable value, and a `click.Path` constraint each abort at exit code 2 with a usage message. A usage error the body
 itself raises, such as the `axvs configure` camera index checks, travels the decorator's path instead and exits 0 like
-any other body failure.
+any other body failure. The `axvs configure` group callback carries no such decorator, so the usage error it raises
+when `-b` and `--no-blacklist` arrive together aborts at exit code 2 before any subcommand runs.
 
 The exception each failure mode names below is the one the body raises, and it identifies the fault even though the
 user never sees the class name printed.
@@ -280,16 +281,16 @@ Archive assembly runs in a `finally` block, so an ordinary interrupt still assem
 
 Runs one recording's jobs **sequentially in a plain loop**.
 
-| Condition                                  | Behavior                                                                                |
-|--------------------------------------------|-----------------------------------------------------------------------------------------|
-| No `camera_manifest.yaml` under `-ld`      | `FileNotFoundError` naming the log directory and the absent manifest                    |
-| Several manifests under `-ld`              | `ValueError`. Pass each DataLogger output directory on its own invocation               |
-| Manifest registers no source               | `ValueError`                                                                            |
-| A requested source or job ID unregistered  | `ValueError`                                                                            |
-| A source's archive absent or ambiguous     | `FileNotFoundError`                                                                     |
-| An archive resolves but cannot be read     | `FileNotFoundError` from the `-w -1` width resolution, before that job starts           |
-| Resolved archives span several directories | `ValueError` naming the one-directory-per-invocation rule                               |
-| A job raises mid-run                       | The tracker marks that job FAILED, the error is reported, and later jobs never start    |
+| Condition                                  | Behavior                                                                             |
+|--------------------------------------------|--------------------------------------------------------------------------------------|
+| No `camera_manifest.yaml` under `-ld`      | `FileNotFoundError` naming the log directory and the absent manifest                 |
+| Several manifests under `-ld`              | `ValueError`. Pass each DataLogger output directory on its own invocation            |
+| Manifest registers no source               | `ValueError`                                                                         |
+| A requested source or job ID unregistered  | `ValueError`                                                                         |
+| A source's archive absent or ambiguous     | `FileNotFoundError`                                                                  |
+| An archive resolves but cannot be read     | `FileNotFoundError` from the `-w -1` width resolution, before that job starts        |
+| Resolved archives span several directories | `ValueError` naming the one-directory-per-invocation rule                            |
+| A job raises mid-run                       | The tracker marks that job FAILED, the error is reported, and later jobs never start |
 
 That last row is the divergence that matters most. The MCP batch isolates a failure to its own job and carries the rest
 of the batch through, while the CLI abandons the remaining jobs at SCHEDULED. A user reporting "it stopped partway" has
