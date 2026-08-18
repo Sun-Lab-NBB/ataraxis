@@ -359,7 +359,7 @@ owns system ID allocation and the DataLogger topology that constrains it.
 | `start_video_session_tool` → error                   | Session already active                       | Call `stop_video_session_tool` first                                                                   |
 | `start_video_session_tool` → directory error         | Output directory does not exist              | Create the directory or provide a valid path                                                           |
 | GenICam tool errors                                  | Camera not Harvesters-compatible             | GenICam tools only work with Harvesters cameras                                                        |
-| GenICam error naming a discovered camera count       | `camera_index` names no discovered camera    | Re-run `list_cameras_tool` and use a reported index. A count of zero points at the Producer             |
+| GenICam error naming a discovered camera count       | `camera_index` names no discovered camera    | Re-run `list_cameras_tool` and use a reported index. A count of zero points at the Producer            |
 | GenICam error naming the interface as unsupported    | GenICam runtime absent                       | Host limitation, see the GenICam platform support section                                              |
 | Session start fails on frame data type               | Camera set to a wider-than-8-bit format      | Write `PixelFormat` to Mono8, BGR8, or RGB8                                                            |
 | `write_genicam_node_tool` fails                      | Node is read-only or value invalid           | Use `read_genicam_node_tool` to check access mode and range                                            |
