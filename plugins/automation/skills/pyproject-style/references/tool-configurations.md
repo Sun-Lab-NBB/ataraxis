@@ -13,7 +13,7 @@ Exclude CI and packaging directories from source distributions:
 ```toml
 # Specifies files that should not be included in the source-code distribution.
 [tool.hatch.build.targets.sdist]
-exclude = [".github", "recipe"]
+exclude = [".github"]
 ```
 
 ### Wheel packages
@@ -270,7 +270,6 @@ exclude = [
     "dist/",
     "docs/",
     "stubs/",             # stubgen output target
-    "recipe/",            # grayskull output target
     "tests/",
 ]
 ```
@@ -294,7 +293,6 @@ exclude = [
     "dist/",
     "docs/",
     "stubs/",             # stubgen output target
-    "recipe/",            # grayskull output target
     "tests/",
 ]
 ```
@@ -448,7 +446,7 @@ For projects using scikit-build-core (e.g., ataraxis-time):
 
 ```toml
 [tool.scikit-build]
-sdist.exclude = [".github", "recipe"]
+sdist.exclude = [".github"]
 minimum-version = "1.0"
 build-dir = "build/{wheel_tag}"
 ```

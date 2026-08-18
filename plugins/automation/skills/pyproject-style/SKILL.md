@@ -410,7 +410,7 @@ Scripts:
       commands already on the user's PATH
 
 Build Targets:
-- [ ] sdist excludes [".github", "recipe"]
+- [ ] sdist excludes [".github"]
 - [ ] wheel packages lists src/package_name
 
 Tool Configurations:
