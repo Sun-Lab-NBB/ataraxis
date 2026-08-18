@@ -233,7 +233,9 @@ Controller 101 ("teensy_main"):
 
 ### Step 5: Write completed config
 
-Call `write_extraction_config_tool` with the user-provided event codes populated. Ask the user for the output file path.
+Call `write_extraction_config_tool` with the user-provided event codes populated. Ask the user for the output file path,
+offering `extraction_configuration.yaml` as the conventional name. That is the value of the library's
+`EXTRACTION_CONFIGURATION_FILENAME` constant, and nothing enforces it, so any path the user names is accepted.
 
 Then call `read_extraction_config_tool` on the same path and confirm the round trip. The write tool reports only
 `controller_count`, so it cannot show that a module entry or a kernel entry landed with the codes intended. Compare the
@@ -288,23 +290,26 @@ controllers:
 
 ### Structural validation
 
-| Rule                                   | Error message pattern                    |
-|----------------------------------------|------------------------------------------|
-| Non-empty controllers list             | "No controller entries"                  |
-| Each controller has extraction targets | "Controller has no modules or kernel"    |
-| Non-empty event codes per entry        | "Empty event_codes for module/kernel"    |
-| No duplicate event codes per entry     | "Duplicate event codes in module/kernel" |
-| Unique (type, id) pairs per controller | "Duplicate module (type, id) pair"       |
+| Rule                                   | Error message template                                                                             |
+|----------------------------------------|----------------------------------------------------------------------------------------------------|
+| Non-empty controllers list             | "Config contains no controller entries."                                                           |
+| Each controller has extraction targets | "Controller {id}: No modules and no kernel configured. At least one is required."                  |
+| Non-empty event codes per entry        | "Controller {id}, module ({type}, {id}): event_codes is empty."                                    |
+| No duplicate event codes per entry     | "Controller {id}, module ({type}, {id}): event_codes contains duplicates."                         |
+| Unique (type, id) pairs per controller | "Controller {id}, module ({type}, {id}): Duplicate module (type, id) pair within this controller." |
+
+Every entry-level message opens with the label of the offending entry, "Controller {id}, module ({type}, {id})" for a
+module and "Controller {id}, kernel" for a kernel, so the two `event_codes` rules above read identically for both.
 
 ### Manifest cross-reference validation (when manifest_path provided)
 
-| Rule                                      | Error message pattern                           |
-|-------------------------------------------|-------------------------------------------------|
-| Manifest path exists                      | "Manifest file not found"                       |
-| Manifest path points to a file            | "Manifest path is not a file"                   |
-| Manifest parses                           | "Unable to read manifest for cross-referencing" |
-| Controller ID exists in manifest          | "Controller ID not found in manifest"           |
-| Module (type, id) pair exists in manifest | "Module (type, id) not registered in manifest"  |
+| Rule                                      | Error message template                                                                    |
+|-------------------------------------------|-------------------------------------------------------------------------------------------|
+| Manifest path exists                      | "Manifest file not found: {manifest_path}"                                                |
+| Manifest path points to a file            | "Manifest path is not a file: {manifest_path}"                                            |
+| Manifest parses                           | "Unable to read manifest for cross-referencing: {error}"                                  |
+| Controller ID exists in manifest          | "Controller {id}: Not registered in manifest. Registered IDs: {registered_ids}."          |
+| Module (type, id) pair exists in manifest | "Controller {id}, module ({type}, {id}): Not registered in manifest for this controller." |
 
 A `manifest_path` that does not exist, is not a file, or cannot be parsed is reported through `errors` (so `valid` reads
 false), not as a tool-level error dictionary.

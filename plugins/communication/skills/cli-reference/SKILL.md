@@ -23,7 +23,7 @@ exempt. `/communication-mcp-environment-setup` owns that exemption.
 **Covers:**
 - The complete `axci` command surface: every node, its purpose, and its MCP equivalent
 - Every declared option: short form, long form, type, default, required / flag / repeatable status, and effect
-- Per-command failure modes and the exception each raises
+- Per-command failure modes, the error each reports, and the exit status it leaves
 - How `axci process` diverges from the MCP batch path, and why the two report the same fault differently
 - What to tell a user to run when the MCP server cannot be restored in this session
 
@@ -119,14 +119,14 @@ owns the contract these rates form with the PC, and `/platformio-config` owns th
 **Note:** `-c` expands to `--config` here but to `--config-path` on `axci config show`. The short form is safe to quote
 to a user for either command. The long forms are not interchangeable.
 
-**Note on `-w`:** the value is a width the job runs at, and the library caps it against nothing. A non-positive value
+**Note on `-w`:** The value is a width the job runs at, and the library caps it against nothing. A non-positive value
 (the `-1` default) resolves the width from each archive in turn, which yields a single worker below the library's
 parallel extraction threshold and `CONTROLLER_EXTRACTION_JOB_CORES`, the declared per-job allocation, at or above it. A
 positive value is passed through verbatim to every job, above the declared allocation and above the host's own core
 count alike, so a user who names one owns the oversubscription it buys. `-w 1` makes every job sequential. The command's
 own `--help` prints the declared allocation as a concrete figure. Read it from there rather than from this skill.
 
-**Note on `-id`:** a job identifier is `CONTROLLER_EXTRACTION_JOB_NAME` hashed together with the controller's
+**Note on `-id`:** A job identifier is `CONTROLLER_EXTRACTION_JOB_NAME` hashed together with the controller's
 `source_id`, so one controller keeps the same identifier in every recording. A user obtains it from the `job_id` key of
 a `prepare_log_processing_batch_tool` job entry, or from the tracker YAML. The identifier is resolved against the
 extraction config, not against the archives on disk, so a missing sibling archive cannot mask it.
@@ -143,6 +143,14 @@ extraction config, not against the archives on disk, so a missing sibling archiv
 ---
 
 ## Command behavior and failure modes
+
+Every command wraps its body in a decorator that catches whatever it raises, reports the message at the error level, and
+exits 0. A failing command therefore leaves the exit status at 0, so have the user read the printed output rather than
+branch a script on it. `axci mqtt` additionally catches the `ConnectionError` of an unreachable broker inside its own
+body. That catch prints a short remediation line instead of the client's full connection-failure text, and the raw
+exception names the host and port too. Click rejects a missing or malformed option before any body runs and exits 2, and
+a dependency that fails to import fails the `axci` entry point with a traceback before Click dispatches anything. The
+exception names in the tables below are what the bodies raise, and each reaches the user as that one error line.
 
 ### `axci id`
 
@@ -166,13 +174,15 @@ precedes the probing, so it carries no port count and reaches the user before th
 
 Constructs an `MQTTCommunication` client, connects, reports, and disconnects.
 
-| Condition          | Behavior                                                                                                                            |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| Broker reachable   | Prints a SUCCESS line naming host and port                                                                                          |
-| Broker unreachable | Catches the `ConnectionError` and prints an ERROR line. **The command still exits 0**, so a script cannot branch on its exit status |
+| Condition          | Behavior                                                                        |
+|--------------------|---------------------------------------------------------------------------------|
+| Broker reachable   | Prints a SUCCESS line naming host and port                                      |
+| Broker unreachable | Catches the `ConnectionError` and prints an ERROR line naming the host and port |
+| Port at or below 0 | Reports the `ValueError` the client raises, reading `Invalid port number.`      |
 
-**Note:** the unreachable message covers every socket-level failure, including a refused connection, a timeout, and a
-hostname that could not be resolved. Have the user verify the host string as well as the broker service.
+**Note:** The unreachable message covers every socket-level failure, including a refused connection, a timeout, a
+hostname that could not be resolved, and a port number above the socket range. Have the user verify the host string as
+well as the broker service.
 
 ### `axci config create`
 
@@ -187,7 +197,7 @@ and writes the result. Every `event_codes` list is **empty** and kernel extracti
 | `-o` parents do not exist           | Created automatically                                              |
 | `-o` already exists                 | Overwritten without a prompt                                       |
 
-**Note:** the generated file is a **precursor**, not a usable config. Processing it as written fails inside the job body
+**Note:** The generated file is a **precursor**, not a usable config. Processing it as written fails inside the job body
 with an empty-event-codes error. The user must fill in the event codes, and add a kernel entry if kernel messages are
 wanted, before `axci process` can use it. `/extraction-configuration` owns the event-code semantics.
 
@@ -200,7 +210,7 @@ line as either its event codes or `Kernel: not configured`.
 |-------------------------------------|----------------------------------------------------|
 | `-c` missing or not a readable file | Click rejects the invocation (exit 2)              |
 | `-c` does not end in `.yaml`/`.yml` | `ValueError` from the YAML reader                  |
-| `controllers` key present but empty | `ValueError` from `ExtractionConfig.__post_init__` |
+| `controllers` key carries no value  | `ValueError` from `ExtractionConfig.__post_init__` |
 
 **Note:** `show` is a printer, not a validator. It reports an empty `events=[]` without complaint, and it checks nothing
 against a manifest. Only `validate_extraction_config_tool` performs the real checks.
@@ -210,30 +220,31 @@ against a manifest. Only `validate_extraction_config_tool` performs the real che
 Drives `run_log_processing_pipeline` in `orchestration/pipeline.py`. It resolves the job set with **strict** sourcing,
 echoes the resolved controller IDs, opens the tracker, and runs the jobs **one after another**.
 
-| Exception                     | Trigger                                                                                                                                                                                                                                                                                                           |
-|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `FileNotFoundError`           | A requested controller's archive is absent or resolves to more than one file. An archive resolves but cannot be read while the `-w -1` default resolves its width. The log directory resolves no job at all. A nonexistent `-ld` or `-c` never reaches this path, because Click rejects it with exit code 2       |
-| `ValueError`                  | The tree holds more than one `microcontroller_manifest.yaml`. A manifest registers no controllers. The config declares no controllers. A requested controller is unregistered in the manifest or absent from the config. `-id` matches no configured controller. The resolved archives sit in several directories |
-| `ValueError` (at job runtime) | A configured module or the kernel declares empty event codes. A controller declares no extraction target at all. The archive carries no onset timestamp message. A logged message's payload size disagrees with its prototype code                                                                                |
-| `OSError`                     | A directory beneath the log directory cannot be read                                                                                                                                                                                                                                                              |
-| `TimeoutError`                | The tracker's `.LOCK` file cannot be acquired within the timeout, most often a concurrent MCP batch over the same output directory                                                                                                                                                                                |
+| Exception                     | Trigger                                                                                                                                                                                                                                                                                                                              |
+|-------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `FileNotFoundError`           | A requested controller's archive is absent or resolves to more than one file. An archive resolves but cannot be read while the `-w -1` default resolves its width. The log directory's tree holds no `microcontroller_manifest.yaml`. A nonexistent `-ld` or `-c` never reaches this path, because Click rejects it with exit code 2 |
+| `ValueError`                  | The tree holds more than one `microcontroller_manifest.yaml`. A manifest registers no controllers. The config declares no controllers. A requested controller is unregistered in the manifest or absent from the config. `-id` matches no configured controller. The resolved archives sit in several directories                    |
+| `ValueError` (at job runtime) | A configured module or the kernel declares empty event codes. A controller declares no extraction target at all. The archive carries no onset timestamp message. A logged message's payload size disagrees with its prototype code                                                                                                   |
+| `OSError`                     | A directory beneath the log directory cannot be read                                                                                                                                                                                                                                                                                 |
+| `TimeoutError`                | The tracker's `.LOCK` file cannot be acquired within the timeout, most often a concurrent MCP batch over the same output directory                                                                                                                                                                                                   |
 
-**Note:** the first four `ValueError` triggers and the `FileNotFoundError` archive trigger are the strict-sourcing
-counterparts of the MCP path's `skipped_sources` reasons. `/log-processing` is authoritative for the lenient model.
-Cross-reference the **Lenient sourcing** table in its `references/error-routing.md` when a user's hard CLI failure and
-an agent's silent skip describe the same misconfiguration.
+**Note:** The `ValueError` for a requested controller unregistered in the manifest or absent from the config, and the
+`FileNotFoundError` archive trigger, are the strict-sourcing counterparts of the MCP path's three `skipped_sources`
+reasons. The absent manifest is not among them, because it raises under either sourcing mode. `/log-processing` is
+authoritative for the lenient model. Cross-reference the **Lenient sourcing** table in its `references/error-routing.md`
+when a user's hard CLI failure and an agent's silent skip describe the same misconfiguration.
 
-**Note:** output layout is identical on both paths, `microcontroller_data/` under `-od`, holding
+**Note:** Output layout is identical on both paths, `microcontroller_data/` under `-od`, holding
 `controller_{source_id}_module_{type}_{id}.feather`, `controller_{source_id}_kernel.feather`, and
 `microcontroller_processing_tracker.yaml`.
 
 ### `axci mcp`
 
-| Condition            | Behavior                                                                                      |
-|----------------------|-----------------------------------------------------------------------------------------------|
-| `-t stdio` (default) | Calls `console.disable()` and prints **nothing**, because the JSON-RPC stream shares stdout   |
-| `-t streamable-http` | Echoes `Starting AXCI MCP server with streamable-http transport...`, then blocks serving HTTP |
-| Broken dependency    | Traceback instead of the startup line                                                         |
+| Condition            | Behavior                                                                                       |
+|----------------------|------------------------------------------------------------------------------------------------|
+| `-t stdio` (default) | Calls `console.disable()` and prints **nothing**, because the JSON-RPC stream shares stdout    |
+| `-t streamable-http` | Echoes `Starting AXCI MCP server with streamable-http transport...`, then blocks serving HTTP  |
+| Broken dependency    | Traceback from the import, which runs before Click dispatches and so precedes the startup line |
 
 Use `streamable-http` for any hand-launched smoke test, never the `stdio` default.
 `/communication-mcp-environment-setup` owns that procedure.
@@ -245,20 +256,20 @@ Use `streamable-http` for any hand-launched smoke test, never the `stdio` defaul
 These four divergences are the whole reason a user's CLI report can describe behavior the MCP workflow cannot reproduce.
 Read them before answering "why did it fail for me but not for you".
 
-| Divergence            | CLI behavior                                                                                                                                                                                                                                               | MCP behavior                                                                                                                                     |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| Strict sourcing       | `prepare_jobs` runs with its `strict_sources` default, so an unregistered, unconfigured, or unresolvable controller **raises** and no job runs                                                                                                             | `prepare_log_processing_batch_tool` passes `strict_sources=False`, records the same three conditions in `skipped_sources`, and prepares the rest |
-| No error recovery     | The job loop carries **no exception handling**. The first job that raises aborts the invocation. The tracker records that one job `FAILED`, and every job behind it stays `SCHEDULED` with no failure record of its own and no requeue                     | The batch engine requeues a broken job, then fails jobs explicitly with a named reason                                                           |
-| Empty result is fatal | A log directory resolving no job raises `FileNotFoundError` naming it                                                                                                                                                                                      | The same situation returns `success: True` with `jobs: []` and `source_ids: []`                                                                  |
-| No budget sizing      | Resolves each job's width from its own archive at the `-w -1` default and stops there, estimating no memory and weighing nothing against a budget. `memory_mb`, `archive_bytes`, `pool_size`, and `job_allocations` have **no CLI counterpart**            | Sizes every job from its archive's zip directory and admits jobs against resolved core and memory budgets                                        |
+| Divergence           | CLI behavior                                                                                                                                                                                                                                    | MCP behavior                                                                                                                                                                     |
+|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Strict sourcing      | `prepare_jobs` runs with its `strict_sources` default, so an unregistered, unconfigured, or unresolvable controller **raises** and no job runs                                                                                                  | `prepare_log_processing_batch_tool` passes `strict_sources=False`, records the same three conditions in `skipped_sources`, and prepares the rest                                 |
+| No error recovery    | The job loop carries **no exception handling**. The first job that raises aborts the invocation. The tracker records that one job `FAILED`, and every job behind it stays `SCHEDULED` with no failure record of its own and no requeue          | The batch engine requeues a broken job, then fails jobs explicitly with a named reason                                                                                           |
+| No manifest is fatal | A log directory whose tree holds no `microcontroller_manifest.yaml` raises `FileNotFoundError` naming it, and the invocation ends there                                                                                                         | The same directory is recorded under `failed_directories` and the rest of the batch prepares. `success` reads False only when nothing prepared and at least one directory failed |
+| No budget sizing     | Resolves each job's width from its own archive at the `-w -1` default and stops there, estimating no memory and weighing nothing against a budget. `memory_mb`, `archive_bytes`, `pool_size`, and `job_allocations` have **no CLI counterpart** | Sizes every job from its archive's zip directory and admits jobs against resolved core and memory budgets                                                                        |
 
-**Note on `-np`:** the flag reaches only the parallel extraction path. A job that runs sequentially renders no progress
+**Note on `-np`:** The flag reaches only the parallel extraction path. A job that runs sequentially renders no progress
 bar whatever the flag says. That covers `-w 1`, an archive the `-w -1` default sizes to a single worker because it sits
 below the parallel extraction threshold, and an archive the reader itself batches sequentially because it sits below
 the parallel processing threshold. The flag therefore matters mainly for non-interactive runs, where the bar would
 otherwise pollute a captured log.
 
-**Note on tracker contention:** both paths lock the same `microcontroller_processing_tracker.yaml` through its `.LOCK`
+**Note on tracker contention:** Both paths lock the same `microcontroller_processing_tracker.yaml` through its `.LOCK`
 file, on the CLI side when the pipeline aligns the tracker and again on every job state transition. A user running `axci
 process` against a directory the agent is preparing or executing makes whichever side asks second raise a
 `TimeoutError`. Ask the user to stop their CLI run before preparing or executing that directory, and never start an MCP
@@ -318,4 +329,5 @@ Handing a user a CLI command:
 - [ ] Printed the command for the user instead of running it
 - [ ] Warned about strict sourcing and the abort-on-first-failure loop before recommending `axci process`
 - [ ] Confirmed no MCP batch is holding the tracker for that output directory
+- [ ] Told the user to read the printed output, because a failed command still exits 0
 ```

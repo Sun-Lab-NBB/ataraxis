@@ -44,9 +44,9 @@ ataraxis-communication-interface provides a single MCP server accessed through t
 axci = "ataraxis_communication_interface.interfaces.cli:axci_cli"
 ```
 
-| Server                             | CLI command | Purpose                                                              |
-|------------------------------------|-------------|----------------------------------------------------------------------|
-| `ataraxis-communication-interface` | `axci mcp`  | Microcontroller discovery, manifest management, log processing tools |
+| Server                             | CLI command | Purpose                                                                              |
+|------------------------------------|-------------|--------------------------------------------------------------------------------------|
+| `ataraxis-communication-interface` | `axci mcp`  | 19 tools covering microcontroller discovery, manifest management, and log processing |
 
 The server accepts `-t`/`--transport`, a `click.Choice` restricted to exactly two values:
 
@@ -123,8 +123,17 @@ diagnostic workflow here and hand off to the user. Every resolution below instal
 the user's working tree and silently serve stale code to the MCP server.
 
 Tell the user that the developer install path is the one in the repository's `Developers` section. That path is `tox -e
-create` to build the `axci_dev` mamba environment, followed by `tox -e install` to install the checkout into it. Then
-stop. Development and contribution workflows are outside this skill's scope.
+create` to build the development mamba environment, followed by `tox -e install` to install the checkout into it. Every
+tox task passes the bare base name `axci_dev` to `automation-cli`, which appends the running platform's suffix itself,
+so the environment that exists on disk is `axci_dev_lin` on Linux, `axci_dev_osx` on macOS, and `axci_dev_win` on
+Windows. Pass the bare name to a tox task and to every `automation-cli` command, and the suffixed name to the `mamba
+activate` in step 3.
+
+`tox -e create` installs the development toolchain and not the library, so an environment built by it and never handed
+to `tox -e install` carries every dependency and no `axci` command. Because the plugin registers the server as the bare
+command `axci mcp`, the client is left with nothing to launch and the server never appears among its tools. `tox -e
+install` resolves it by running `automation-cli install-project --environment-name axci_dev` against that same
+environment. Then stop. Development and contribution workflows are outside this skill's scope.
 
 ### Step 1: Check MCP server status
 
@@ -277,6 +286,7 @@ command to hand the user for each one, and the tools that stay blocked until the
 | MCP server starts but tools are missing  | `pip install --upgrade ataraxis-communication-interface` |
 | MQTT broker reported unreachable         | The MQTT broker prerequisite section above               |
 | Stale code served from a source checkout | The checkout guard at the top of the workflow            |
+| `axci` missing from an `axci_dev_*` env  | The checkout guard at the top of the workflow            |
 
 ---
 

@@ -205,8 +205,8 @@ padding. Always verify field count, order, and types match across both sides.
 
 ## SetupModule()
 
-Initialize hardware pins and reset parameters to defaults. This method is called by Kernel during `Setup()` and on
-PC-requested resets:
+Initialize hardware pins and reset parameters to defaults. Kernel calls this method from `Setup()`, which runs at
+controller startup, on a PC-requested reset, and when the keepalive monitor detects a lost PC connection:
 
 ```cpp
 bool SetupModule() override

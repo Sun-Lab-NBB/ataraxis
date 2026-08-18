@@ -68,10 +68,10 @@ Pass `include_items=True` to list them, and `detailed=True` to add each source's
 
 ### Preparation and execution tools
 
-| Tool                                | Purpose                                                            |
-|-------------------------------------|--------------------------------------------------------------------|
-| `prepare_log_processing_batch_tool` | Creates execution manifest without starting execution (idempotent) |
-| `execute_log_processing_jobs_tool`  | Dispatches prepared jobs for background execution                  |
+| Tool                                | Purpose                                                                      |
+|-------------------------------------|------------------------------------------------------------------------------|
+| `prepare_log_processing_batch_tool` | Creates execution manifest without starting execution (idempotent)           |
+| `execute_log_processing_jobs_tool`  | Dispatches jobs for background execution, rebuilding the manifest when asked |
 
 **`prepare_log_processing_batch_tool` parameters:**
 
@@ -79,11 +79,14 @@ Pass `include_items=True` to list them, and `detailed=True` to add each source's
 |----------------------|-------------|------------|--------------------------------------------------------------------------------------|
 | `log_directories`    | `list[str]` | (required) | Absolute paths to DataLogger output directories. **Ask user.**                       |
 | `source_ids`         | `list[str]` | (required) | Confirmed source IDs from `discover_microcontroller_data_tool`. Strings, never ints. |
-| `output_directories` | `list[str]` | (required) | Absolute paths for per-directory output. Must match log_directories length.          |
+| `output_directories` | `list[str]` | (required) | Absolute paths for per-directory output. Must match `log_directories` length.        |
 | `config_path`        | `str`       | (required) | Absolute path to the validated ExtractionConfig YAML file.                           |
 
-**Note:** Every ordering the library returns sorts source identifiers **as strings**, so `"10"` precedes `"2"`. A report
-that needs numeric order must sort the identifiers itself rather than presenting the returned order.
+**Note:** The library returns three different orderings. `jobs` and the `source_ids` that parallel it carry the memory
+order the return structure below names, and `discover_microcontroller_data_tool` lists `sources` in manifest path order
+and then manifest entry order and its own `log_directories` in path string order. `skipped_sources` and every
+`breakdown` key sort **as strings**, so `"10"` precedes `"2"` in each. A report that needs numeric order must sort the
+identifiers itself.
 
 **Note:** `source_ids` entries are strings and are compared by exact string equality. Pass the `source_id` values
 `discover_microcontroller_data_tool` returned verbatim. The manifest tools report the same controller as an integer
@@ -93,21 +96,25 @@ that needs numeric order must sort the identifiers itself rather than presenting
 controllers". It is also a filter footgun: one `source_ids` list is applied uniformly to every entry of
 `log_directories`, so a list built from one recording becomes the request for all of them.
 
-**Note:** A requested controller that yields no job is dropped into that directory's `skipped_sources` rather than
-raising, so a directory with no matching archives returns `jobs: []` and `source_ids: []` while still reporting
-`success: True`. See [error-routing.md](references/error-routing.md) for each skip reason and its remedy.
+**Note:** A requested controller that yields no job in a directory the manifest registers is dropped into that
+directory's `skipped_sources` rather than raising. A directory whose requested archives all fail to resolve therefore
+returns `jobs: []` and `source_ids: []` while still reporting `success: True`. A directory whose tree holds no
+`microcontroller_manifest.yaml` at all fails into `failed_directories` instead, since the absent manifest belongs to the
+directory rather than to any one controller. See [error-routing.md](references/error-routing.md) for each skip reason
+and its remedy.
 
 **Return structure:**
 ```text
 success:                Boolean flag. False only when `log_directories` is empty AND at least one directory
-                        raised. A run whose every path was merely invalid still reports true with no jobs
+                        raised. A run whose every path was merely invalid still reports True with no jobs
 log_directories{}:      Dict keyed by the input path string, one entry per directory that resolved without
                         raising, including a directory that produced no job at all:
   tracker_path:         Absolute path to that directory's ProcessingTracker YAML file
   output_directory:     Absolute path to the `microcontroller_data/` subdirectory the jobs write into
   source_ids[]:         Controller IDs that produced a job, in the same order as `jobs`
-  jobs[]:               Job descriptors, sorted heaviest estimated memory first. Each entry carries the eleven
-                        execute keys plus `memory_mb`, `status`, and `error_message` when the tracker holds one
+  jobs[]:               Job descriptors, sorted heaviest estimated memory first. Each entry carries the nine
+                        execute keys, `message_count`, `archive_bytes`, `memory_mb`, `status`, and an
+                        `error_message` when the tracker holds one
   summary{}:            Tracker counts: `total`, `succeeded`, `failed`, `running`, `scheduled`
   skipped_sources[]:    Requested IDs that produced no job, each `{source_id, reason}` (see Error routing)
 total_log_directories:  Number of entries in `log_directories`, which is not the number that produced jobs
@@ -127,35 +134,54 @@ neither the output subdirectory nor the tracker.
 
 **`execute_log_processing_jobs_tool` parameters:**
 
-| Parameter          | Type         | Default    | Description                                                                                     |
-|--------------------|--------------|------------|-------------------------------------------------------------------------------------------------|
-| `jobs`             | `list[dict]` | (required) | Job descriptors from the execution manifest. Pass each dict through unchanged (see note below). |
-| `core_budget`      | `int`        | `-1`       | Cores the session may commit. -1 auto-resolves from the host, keeping a reserve.                |
-| `memory_budget_mb` | `int`        | `-1`       | Memory in MB the session may commit. -1 auto-resolves from host physical memory.                |
+| Parameter            | Type                | Default | Description                                                                        |
+|----------------------|---------------------|---------|------------------------------------------------------------------------------------|
+| `jobs`               | `list[dict] / None` | `None`  | Descriptors from an earlier preparation. Leaving it unset reads those below.       |
+| `log_directories`    | `list[str] / None`  | `None`  | Absolute paths to the DataLogger output directories to prepare and dispatch.       |
+| `source_ids`         | `list[str] / None`  | `None`  | Controller IDs to dispatch. Unset or empty dispatches every configured controller. |
+| `output_directories` | `list[str] / None`  | `None`  | Absolute paths for per-directory output. Must match `log_directories` length.      |
+| `config_path`        | `str / None`        | `None`  | Absolute path to the validated ExtractionConfig YAML file.                         |
+| `core_budget`        | `int`               | `-1`    | Cores the session may commit. -1 auto-resolves from the host, keeping a reserve.   |
+| `memory_budget_mb`   | `int`               | `-1`    | Memory in MB the session may commit. -1 auto-resolves from host physical memory.   |
 
-**Note:** Every job descriptor must carry all eleven keys the preparation emitted, `log_directory`, `archive_path`,
-`output_directory`, `config_path`, `tracker_path`, `job_name`, `job_id`, `source_id`, `core_weight`, `message_count`,
-and `archive_bytes`. A hand-assembled descriptor that drops the sizing keys is rejected into `invalid_jobs` with
-"Missing or unreadable sizing keys from the prepared manifest."
+**Prefer the prepare-and-dispatch form:** Naming `log_directories`, `output_directories`, and `config_path` rebuilds the
+manifest inside the tool and dispatches it, so a batch of any size starts without echoing a whole manifest back through
+the call. Preparation is idempotent, so the rebuild returns the jobs an earlier preparation already reported. Pass
+`jobs` instead when you filtered or reordered that manifest. Naming neither form returns "No work was named."
+
+**Note:** Every descriptor passed as `jobs` must carry the nine keys the preparation emitted, `log_directory`,
+`archive_path`, `output_directory`, `config_path`, `tracker_path`, `job_name`, `job_id`, `source_id`, and
+`core_weight`. A descriptor missing one is rejected into `invalid_jobs` with a message naming the absent keys.
+`message_count` and `archive_bytes` are read when the descriptor carries them and resolved from the archive when it
+does not, so dropping them costs one archive read rather than a rejection.
 
 **Return structure:**
 ```text
-started:            Boolean flag, true when the session was claimed and the manager thread started
-total_jobs:         Valid job descriptors the session accepted, with admission against the budgets happening later
-core_budget:        Cores the session may commit across all concurrently running jobs
-memory_budget_mb:   Memory in MB the session may commit across all concurrently running jobs
-pool_size:          Job slots the shared pool opened
-job_allocations[]:  Per-job sizing the session resolved:
-  job_id:           Canonical hexadecimal job identifier
-  source_id:        Controller ID the job reads
-  cores:            Cores this job received
-  memory_mb:        Estimated memory this job holds
-  message_count:    Messages the archive holds
-invalid_jobs[]:     Descriptors rejected before dispatch, each carrying an `error` key (present only if any)
+started:                Boolean flag, True when the session was claimed and the manager thread started
+total_jobs:             Valid job descriptors the session accepted, with admission against the budgets happening later
+core_budget:            Cores the session may commit across all concurrently running jobs
+memory_budget_mb:       Memory in MB the session may commit across all concurrently running jobs
+pool_size:              Job slots the shared pool opened
+job_allocations[]:      Per-job sizing the session resolved:
+  job_id:               Canonical hexadecimal job identifier
+  source_id:            Controller ID the job reads
+  cores:                Cores this job received
+  memory_mb:            Estimated memory this job holds
+  message_count:        Messages the archive holds
+skipped_sources[]:      Requested IDs that produced no job, each `{log_directory, source_id, reason}`
+invalid_paths[]:        Input paths that are not directories
+failed_directories[]:   Directories whose preparation raised, each `{log_directory, error}`
+invalid_jobs[]:         Descriptors rejected before dispatch, each carrying an `error` key (present only if any)
 ```
 
+**Note:** `job_allocations` is always present in this structure. `skipped_sources`, `invalid_paths`,
+`failed_directories`, and `invalid_jobs` are present only when they hold something, and the first three only on a call
+that rebuilt the manifest. Reconcile those three from the dispatch response exactly as you would from a separate
+preparation, since it is the only place a rebuilt manifest reports them.
+
 When no descriptor survives validation the tool returns an error dictionary carrying `invalid_jobs` instead, and
-`started` is absent.
+`started` is absent. A rebuild that fails outright, on a missing config path or a length mismatch, returns the
+preparation's own bare `{error}` dictionary and dispatches nothing.
 
 ### Monitoring and management tools
 
@@ -169,11 +195,12 @@ When no descriptor survives validation the tool returns an error dictionary carr
 | `clean_log_processing_output_tool` | Deletes `microcontroller_data/` subdirectories for re-processing |
 
 **Note:** `get_log_processing_status_tool`, `get_log_processing_timing_tool`, and `cancel_log_processing_tool` report
-only on the single active in-memory execution session (the most recent `execute_log_processing_jobs_tool` call) and
-return a no-active-session response otherwise. That covers a call made before execute, and a call made after a server
-restart, even where trackers with running jobs exist on disk. Status and timing return `'No execution session exists.'`,
-and cancel returns `{canceled: False}` with `'No execution session is active.'`. For status of directories not in the
-active session, use `get_batch_status_overview_tool`, which reads trackers from disk.
+only on the single in-memory execution session, which is the most recent `execute_log_processing_jobs_tool` call.
+Status and timing return `'No execution session exists.'` where the server holds none at all, which covers a call made
+before execute and a call made after a server restart, even where trackers with running jobs exist on disk. Cancel
+returns `{canceled: False, session_ended: True}` with `'No execution session is active.'` in those cases and once the
+session has finished, since a finished session holds no slot to release. For status of directories not in the active
+session, use `get_batch_status_overview_tool`, which reads trackers from disk.
 
 **Completion test:** a finished session reads `active: False` **with** a populated `jobs` list, while a server that
 never held one reads `active: False` with a `message` and no `jobs` key at all. Branch on the presence of `jobs`, not on
@@ -221,19 +248,26 @@ never change is stuck, whereas a batch that is merely slow moves `pending_count`
 
 **`cancel_log_processing_tool` return structure:**
 ```text
-canceled:                  True whenever a session is stored, including a finished one, False when none is stored
-message:                   Names the pending jobs cleared and the jobs still completing
-final_state:               Present whenever a session is stored:
-  succeeded_jobs:          This session's jobs that had already succeeded
-  failed_jobs:             This session's jobs that had already failed
+canceled:                  True when a live session was canceled, False when no session is active
+session_ended:             True when the session ended before this call returned, so the next execution starts at
+                           once. Present on every response this tool returns, `canceled: False` included
+message:                   Counts the pending jobs cleared, and then either the jobs still completing or, when none
+                           was running, "No job was still running."
+final_state:               Present only alongside `canceled: True`:
+  succeeded_jobs:          Jobs this session itself ran to a success, never an earlier run's outcome
+  failed_jobs:             Jobs this session itself ran to a failure, never an earlier run's outcome
   active_jobs_at_cancel:   Jobs still running when the pending queue was cleared
 ```
 
-**Note:** Cancellation clears the pending queue and stops new admissions. Jobs already running are left to finish. The
-session therefore stays alive while they drain, and an `execute_log_processing_jobs_tool` call made during the drain
-still returns "An execution session is already active". Poll `get_log_processing_status_tool` until `active` reads
-`False` before executing or resetting anything. Cleared queued jobs stay `SCHEDULED` and are re-runnable directly. They
-need no reset.
+**Note:** Cancellation clears the pending queue and stops new admissions, and jobs already running are left to finish. A
+call made when no job is still running waits for the session to close before returning, and `session_ended: True`
+reports that it closed, so the next `execute_log_processing_jobs_tool` call is accepted immediately. A reading of
+`session_ended: False` reports that the session is still held, either by jobs draining or by a manager thread inside a
+pool warm-up, a rebuild, or the pool shutdown, which can outlast the call's 30-second wait. Poll
+`get_log_processing_status_tool` until `active` reads `False` before executing or resetting. Executing while the session
+is held returns "An execution session is already active. Cancel it with cancel_log_processing_tool, then read
+'session_ended' from that call and poll get_log_processing_status_tool only while it reads false." Cleared queued jobs
+stay `SCHEDULED` and are re-runnable directly. They need no reset.
 
 **`reset_log_processing_jobs_tool` parameters:**
 
@@ -244,6 +278,20 @@ need no reset.
 
 **Note:** `source_ids` are matched against each tracker entry's specifier by exact string equality, so `"10"` does not
 select the job of controller `101`, and omitting them is the only way to reset every job in the tracker.
+
+**Return structure:**
+```text
+reset:          Boolean flag, False when no entry matched or when the live session holds one of the targeted jobs
+jobs_reset:     Count of the tracker entries returned to `SCHEDULED`, present only alongside `reset: True`
+jobs[]:         Every entry the tracker now holds, each carrying `job_id`, `source_id`, `status`, and an
+                `error_message` where one is recorded
+summary:        Tracker counts after the reset: `total`, `succeeded`, `failed`, `running`, `scheduled`
+message:        Present only alongside `reset: False`, naming why nothing was reset
+error:          "Tracker file not found: ..." or "Unable to read tracker: ...", returned instead of every field above
+```
+
+**Note:** `jobs` and `summary` span the whole tracker rather than the entries this call reset, and a tracker that
+cannot be re-read after a successful reset returns both of them empty. Read `jobs_reset` to confirm what the call did.
 
 `get_batch_status_overview_tool` requires `root_directory`, the absolute path under which trackers are searched for. A
 bare call reports `total_log_directories`, an aggregate `summary`, and a `breakdown` of directories per status, and it
@@ -257,11 +305,11 @@ each directory's tracker path and per-job entries. See [staged-reads.md](referen
 ```text
 results[]:            One entry per requested directory:
   output_directory:   The requested path, echoed back
-  cleaned:            Boolean flag, true both for a real deletion and for a directory that had nothing to delete
+  cleaned:            Boolean flag, True both for a real deletion and for a directory that had nothing to delete
   data_path:          The deleted `microcontroller_data/` path, present on a real deletion and on a failed one
   message:            "Nothing to clean." when the directory held no `microcontroller_data/` subdirectory
   error:              "Directory does not exist.", "Path is not a directory.", or "Unable to delete: ..."
-total_cleaned:        Entries whose `cleaned` flag reads true
+total_cleaned:        Entries whose `cleaned` flag reads True
 total_directories:    Entries returned
 ```
 
@@ -334,9 +382,10 @@ filename.
 5. **Validate extraction config**: Invoke `/extraction-configuration` when the user has no validated config.
 
 6. **Prepare batch**: Call `prepare_log_processing_batch_tool` with the confirmed log directories, source IDs, output
-   directories, and config path. Then verify the returned `source_ids` against the set you requested, read
-   `skipped_sources` for every difference (see Error routing), and read `failed_directories` for a directory that
-   prepared nothing. An archive that resolves but cannot be read fails its whole directory there, naming the archive
+   directories, and config path. Then verify the returned `source_ids` against the set you requested and account for
+   every difference across all three lists. `skipped_sources` holds a controller a registered directory could not
+   source, `failed_directories` a directory that prepared nothing, and `invalid_paths` a path that is not a directory
+   (see Error routing). An archive that resolves but cannot be read fails its whole directory there, naming the archive
    path, so every job a manifest carries was sized from an archive that read.
 
 7. **Confirm resource allocation**: Read the per-job `core_weight` and `memory_mb` the preparation stamped onto each job
@@ -345,10 +394,11 @@ filename.
    Resource management. Never estimate the cost yourself, because the preparation already sized every job from its
    archive.
 
-8. **Execute jobs**: Call `execute_log_processing_jobs_tool` with the job descriptors from the execution manifest and
-   confirmed resource settings. Read the returned `core_budget`, `memory_budget_mb`, `pool_size`, and
-   `job_allocations[]` back to the user: those are the figures this session actually committed, and they can differ from
-   the `core_weight` and `memory_mb` the preparation reported.
+8. **Execute jobs**: Call `execute_log_processing_jobs_tool` with the same log directories, source IDs, output
+   directories, and config path that step 6 prepared, plus the confirmed resource settings. Pass `jobs` instead only
+   when you filtered or reordered what step 6 returned. Read the returned `core_budget`, `memory_budget_mb`,
+   `pool_size`, and `job_allocations[]` back to the user, since those are the figures this session actually committed
+   and they can differ from the `core_weight` and `memory_mb` the preparation reported.
 
 9. **Monitor progress**: Use `get_log_processing_status_tool` to check per-job progress. Optionally use
    `get_log_processing_timing_tool` for elapsed time and throughput metrics. Present status as a formatted table (see
@@ -421,10 +471,11 @@ Never report `failed` as "the directory failed". Read its `summary` and name the
 
 ## Re-running failed jobs
 
-A reset is refused while the execution session holding those jobs is still alive: the tool returns `reset: False` with a
-message naming the contested jobs. Cancel the session with `cancel_log_processing_tool`, or wait for it to finish, and
-wait out the drain the cancellation note describes before resetting. A `source_ids` list matching no tracker entry
-likewise returns `reset: False` with "No matching jobs found to reset."
+A reset is refused while the execution session holding those jobs is still alive. The tool returns `reset: False` with
+"Unable to reset {n} job(s) currently held by the active execution session.", which counts the contested jobs without
+naming them, so read the session's own status to identify them. Cancel the session with `cancel_log_processing_tool`,
+or wait for it to finish, and follow the cancellation note's `session_ended` flag before resetting. A `source_ids` list
+matching no tracker entry likewise returns `reset: False` with "No matching jobs found to reset."
 
 A reset that lands mid-flight is not lost. An entry reading `SCHEDULED` is never overwritten when the engine reaps a
 finished job, so only an entry still reading `RUNNING` is reconciled to a failure, and the re-run the reset asked for
@@ -437,7 +488,7 @@ after the session ended points at the tracker file, not at the job.
 
 1. Identify failed jobs from `get_log_processing_status_tool` output (check `error_message` field)
 2. Call `reset_log_processing_jobs_tool` with the tracker path and failed source IDs
-3. Confirm the call returned `reset: True` before continuing
+3. Confirm the call returned `reset: True` and a `jobs_reset` count matching the jobs you targeted before continuing
 4. Re-prepare or re-execute the reset jobs using the same workflow
 
 To re-process an entire directory from scratch, call `clean_log_processing_output_tool` to delete the

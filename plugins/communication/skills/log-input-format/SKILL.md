@@ -97,26 +97,29 @@ controllers:
 **How manifests are produced:**
 
 - **Automatic:** `MicroControllerInterface.__init__()` writes a manifest entry to the DataLogger output directory using
-  the `controller_id`, `name`, and module list. Each MicroControllerInterface sharing a DataLogger appends its entry to
-  the same manifest file.
+  the `controller_id`, `name`, and module list. Each MicroControllerInterface sharing a DataLogger writes into the same
+  manifest file, replacing the entry already registered under its `controller_id` and appending a new one when the file
+  holds none.
 - **Manual:** Use `write_microcontroller_manifest_tool` (see `/microcontroller-setup`) to retroactively tag legacy log
   directories that predate the manifest system.
 
 **Why manifests matter:** The `discover_microcontroller_data_tool` uses manifest-based routing to identify
-controller-produced log archives. Directories without a `microcontroller_manifest.yaml` will not be discovered.
-Manifests also associate controller IDs with human-readable names and enumerate the hardware modules managed by each
-controller.
+controller-produced log archives. Directories without a `microcontroller_manifest.yaml` are not discovered, and job
+preparation rejects one reached by any other route. `/log-processing` owns the routing. Manifests also associate
+controller IDs with human-readable names and enumerate the hardware modules managed by each controller.
 
 **Manifest gates, config selects:** The `ExtractionConfig` bounds the work. A controller it does not declare is never
 processed, whatever the manifest registers and whatever `.npz` files sit on disk. Within that bound the caller's
-`source_ids` argument selects, and omitting it requests every configured controller. The manifest only gates: a
-requested controller it does not register yields no job, and neither the manifest nor the archives on disk can add a
-controller the config omits.
+`source_ids` argument selects. `prepare_jobs()` reads `source_ids=None` as every configured controller, and
+`prepare_log_processing_batch_tool` declares `source_ids` as a required parameter that reads an empty list the same
+way. The manifest only gates: a requested controller it does not register yields no job, and neither the manifest nor
+the archives on disk can add a controller the config omits.
 
 **The failure model is not uniform:** what happens to a requested controller that clears neither gate depends on the
-entry point. The local library path fails the whole call, and the MCP path records the controller and prepares the rest.
-`/log-processing` is authoritative for that lenient-sourcing model, for the per-reason remedies, and for the
-`skipped_sources` key that reports them. Read it before diagnosing a batch that prepared fewer jobs than requested.
+sourcing mode. The local library path uses strict sourcing and fails the whole call, and the MCP path uses lenient
+sourcing, records the controller, and prepares the rest. `/log-processing` is authoritative for lenient sourcing, for
+the per-reason remedies, and for the `skipped_sources` key that reports them. Read it before diagnosing a batch that
+prepared fewer jobs than requested.
 
 **Key difference from ataraxis-video-system manifests:** ataraxis-communication-interface manifests include a `modules`
 list per controller, providing full hardware module metadata (type, id, name). ataraxis-video-system camera manifests
@@ -382,19 +385,24 @@ Before running the log processing pipeline, verify these conditions:
    - **One archive per source ID**: Exactly one `{source_id}_log.npz` may exist anywhere under the search root.
      `resolve_jobs()` indexes the archive names with `index_marker_files()`, and a source ID resolving to zero files or
      to several is left unresolved. Duplicates never resolve first-wins. The unresolved source then either fails the
-     call or is reported as a skip, on the entry-point split described under "Manifest gates, config selects" above and
-     owned by `/log-processing`.
+     call or is reported as a skip, according to the sourcing mode described under "The failure model is not uniform"
+     above and owned by `/log-processing`.
    - **Single parent directory per invocation**: All source IDs processed in one invocation must resolve to the same
      parent directory. If the resolved archives span more than one directory, job preparation raises a `ValueError`
      ("The resolved log archives sit in N different directories ... Each DataLogger output directory must be prepared
      and processed on its own invocation"). Unlike the manifest and archive gates above, this check is not subject to
-     the lenient-versus-strict split and raises on both entry points. Point the pipeline at each logger directory
-     separately.
+     the sourcing mode, so no source-level skip absorbs it. The local library path propagates the error, while
+     `prepare_log_processing_batch_tool` catches it and records that directory under `failed_directories` as a
+     `log_directory` and `error` pair, leaving `success` True when another directory prepared. Point the pipeline at
+     each logger directory separately.
    - **One manifest per invocation**: A search root holding more than one `microcontroller_manifest.yaml` spans several
-     recordings and raises a `ValueError` before any archive is indexed, on both entry points.
+     recordings and raises a `ValueError` before any archive is indexed, under both sourcing modes, and reaches the MCP
+     caller through the same `failed_directories` entry.
 
-2. **Onset message present**: Each archive contains exactly one onset message (elapsed_us=0) with a valid UTC epoch
-   payload.
+2. **Onset message present**: Each archive carries an onset message (elapsed_us=0) with a valid UTC epoch payload.
+   `LogArchiveReader.onset_timestamp_us` takes the first entry whose elapsed time reads zero and treats every key after
+   it as a data message, raising a `ValueError` only when the archive holds no such entry. One onset per archive is the
+   DataLogger's own writing contract rather than a validated invariant, since nothing rejects a second one.
 
 3. **Extraction config valid**: A validated `ExtractionConfig` YAML file must exist with event codes matching the
    firmware's data/state message events. See `/extraction-configuration`.

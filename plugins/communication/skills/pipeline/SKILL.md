@@ -238,12 +238,12 @@ To process every controller, list every controller's ID in the extraction config
 the sourcing model that decides which requested IDs become jobs. Do not plan against a restatement of it here.
 
 For multi-DataLogger setups, pass each DataLogger output directory to the preparation tool separately. Passing their
-shared parent fails that directory outright rather than merely processing it inefficiently: a tree holding more than
-one `microcontroller_manifest.yaml` spans several recordings or several DataLogger instances, and exactly one manifest
-is supported per invocation. The preparation tool reports the failure under `failed_directories` and prepares the rest
-of the batch, while the CLI and the library path raise `ValueError`. `discover_microcontroller_data_tool` does tolerate
-the parent: run it there and pass its flat `log_directories` list to preparation, which is exactly the per-directory
-split preparation needs.
+shared parent fails that directory outright rather than merely processing it inefficiently: a tree holding more than one
+`microcontroller_manifest.yaml` spans several recordings or several DataLogger instances, and exactly one manifest is
+supported per invocation. The preparation tool reports the failure under `failed_directories` and prepares the rest of
+the batch, while the library path raises `ValueError` and `axci process` reports that error's message and exits 0.
+`discover_microcontroller_data_tool` does tolerate the parent: run it there and pass its flat `log_directories` list to
+preparation, which is exactly the per-directory split preparation needs.
 
 ---
 
