@@ -28,7 +28,7 @@ from ataraxis_video_system import (
     add_cti_file,
     check_cti_file,
     genicam_runtime_available,
-    harvester_connection,
+    read_camera_configuration,
     # Utilities
     check_ffmpeg_availability,
     check_gpu_availability,
@@ -37,6 +37,8 @@ from ataraxis_video_system import (
     # Configuration
     DEFAULT_BLACKLISTED_NODES,
     CAMERA_MANIFEST_FILENAME,
+    MAXIMUM_QUANTIZATION_VALUE,
+    GENICAM_UNAVAILABLE_REASON,
     # Log processing
     run_log_processing_pipeline,
     extract_logged_camera_timestamps,
@@ -44,11 +46,22 @@ from ataraxis_video_system import (
 ```
 
 The top-level `__all__` also exports the orchestration layer's job and sizing assets (`JobSizing`, `JobSource`,
-`JobUniverse`, `execute_job`, `resolve_jobs`, `resolve_timestamps_path`, `size_archive_job`, and the
-`CAMERA_EXTRACTION_JOB_*` constants). Those are deliberately left undocumented here, because log processing is scheduled
-through the MCP tools that `/log-processing` covers rather than driven through those assets by hand.
+`JobUniverse`, `OutputLayout`, `execute_job`, `generate_job_ids`, `resolve_jobs`, `resolve_timestamps_path`,
+`size_archive_job`, and the `CAMERA_EXTRACTION_JOB_*` constants). Those are deliberately left undocumented here,
+because log processing is scheduled through the MCP tools that `/log-processing` covers rather than driven through
+those assets by hand.
 `run_log_processing_pipeline` is the one orchestration entry point this reference documents, since it is the
 whole-recording pipeline the `axvs process` CLI runs.
+
+### Import rule
+
+The list above is the library root's curated surface, and it is the first import path to reach for. A name the root
+omits may still be public at the subpackage tier, where `.video` and `.orchestration` each export their own `__all__`,
+as in `from ataraxis_video_system.video import harvester_connection`. A name absent from every `__all__`, or carrying a
+leading underscore, is internal, so use the closest public name in its place or ask the library maintainer to export
+it. `HarvestersCamera`, `harvester_connection`, `enumerate_genicam_nodes`, `format_genicam_node`, and
+`read_genicam_node` sit at the subpackage tier under `.video`, and the batch execution engine sits there under
+`.orchestration`.
 
 ---
 
@@ -299,17 +312,27 @@ config = GenicamConfiguration.from_yaml(file_path=Path("camera_config.yaml"))
 
 ### Programmatic GenICam configuration
 
-GenICam state is applied in code through the `HarvestersCamera` interface, the same operations the `/camera-setup` MCP
-tools (`read_genicam_node_tool`, `write_genicam_node_tool`, `dump_genicam_config_tool`, `load_genicam_config_tool`)
-perform. Two supply modes are supported:
+Reading a camera's live configuration goes through `read_camera_configuration()`, which the library root exports. It
+opens and closes its own connection, so the GenTL handle is released before it returns:
 
 ```python
+config = read_camera_configuration(camera_index=0)                # -> GenicamConfiguration
+config.to_yaml(file_path=Path("camera_config.yaml"))
+```
+
+Writing state, and holding one connection open across several operations, goes through the `HarvestersCamera`
+interface, which the `video` subpackage exports rather than the library root. These are the same operations the
+`/camera-setup` MCP tools (`read_genicam_node_tool`, `write_genicam_node_tool`, `dump_genicam_config_tool`,
+`load_genicam_config_tool`) perform:
+
+```python
+from ataraxis_video_system.video import harvester_connection
+
 # harvester_connection() yields a connected camera and disconnects when the block exits.
 with harvester_connection(camera_index=0) as camera:
     # Per-parameter targeting: write a single ReadWrite node (value is coerced to the node's native type)
     camera.set_node_value(name="ExposureTime", value="4000")
     camera.set_node_value(name="Gain", value="2.0")
-    info = camera.get_node_info(name="AcquisitionFrameRate")      # -> GenicamNodeInfo(name, value, selectors)
 
     # Full-config restoration: dump every ReadWrite node, persist to YAML, re-apply later
     config = camera.get_configuration()                           # -> GenicamConfiguration
@@ -320,8 +343,6 @@ with harvester_connection(camera_index=0) as camera:
 `HarvestersCamera` config method signatures:
 
 ```python
-def get_node_info(self, name: str) -> GenicamNodeInfo: ...
-def get_node_description(self, name: str) -> str: ...
 def set_node_value(self, name: str, value: str) -> None: ...
 def get_configuration(self, blacklisted_nodes: frozenset[str] = DEFAULT_BLACKLISTED_NODES) -> GenicamConfiguration: ...
 def apply_configuration(self, config: GenicamConfiguration, *, strict_identity: bool = False,
@@ -416,6 +437,18 @@ def genicam_runtime_available() -> bool
 Returns True when the GenICam camera runtime is importable. It returns False wherever that runtime is not installed, and
 the Dependencies section below records the platforms that runtime installs on.
 
+### read_camera_configuration
+
+```python
+def read_camera_configuration(
+    camera_index: int, blacklisted_nodes: frozenset[str] = DEFAULT_BLACKLISTED_NODES
+) -> GenicamConfiguration
+```
+
+Returns the camera identity and the current value of every writable node the blacklist retains. Opens and closes its
+own connection, so the GenTL handle is released before it returns. This is the root entry point for reading a camera's
+live GenICam state.
+
 ### harvester_connection
 
 ```python
@@ -424,7 +457,8 @@ def harvester_connection(camera_index: int) -> Generator[HarvestersCamera, None,
 ```
 
 Yields a connected `HarvestersCamera` for the duration of the block and disconnects on exit. This is the sanctioned way
-to obtain the camera object the programmatic GenICam configuration methods above are called on.
+to obtain the camera object the programmatic GenICam configuration methods above are called on. This function and
+`HarvestersCamera` are exported from `ataraxis_video_system.video` rather than from the library root.
 
 ---
 
