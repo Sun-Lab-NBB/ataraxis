@@ -49,9 +49,9 @@ struct ExecutionControlParameters
 virtual bool SetupModule() = 0;
 ```
 
-Called by Kernel during `Setup()` and on PC-requested resets. Initializes hardware and sets parameter defaults. Should
-not contain blocking logic. Returns `true` on success, `false` on failure (failure bricks the controller until firmware
-reset).
+Called by Kernel during `Setup()`, which runs at controller startup, on a PC-requested reset, and when the keepalive
+monitor detects a lost PC connection. Initializes hardware and sets parameter defaults. Should not contain blocking
+logic. Returns `true` on success, `false` on failure (failure bricks the controller until firmware reset).
 
 Design this method so it cannot fail, push any unavoidable failure to compile time with `static_assert`, and deactivate
 all managed hardware as the first statement of the body, before any logic that can return `false`. A `false` return
@@ -272,8 +272,8 @@ Unpacks the received ModuleParameters message payload into the specified storage
 into the payload alongside the 3-byte ModuleParameters header and the protocol code. That upper bound is 250 bytes on
 Teensy, 246 bytes on Arduino Due, and 54 bytes on Arduino Mega, so a struct that builds for one board can fail to build
 for another. Returns `true` on success, `false` on one of three conditions: `kExtractionForbidden` (message is not a
-ModuleParameters message), `kParameterMismatch` (received byte count does not equal `sizeof(struct)`), or
-`kParsingError` (payload parsing failed).
+ModuleParameters message), `kParameterMismatch` (the reception buffer does not hold `sizeof(struct)` plus the 3-byte
+ModuleParameters header plus the protocol code), or `kParsingError` (payload parsing failed).
 
 ---
 
@@ -391,9 +391,11 @@ interface has to use the same CRC parameters. Reserves up to ~1 kB of RAM (~700 
 Neither status enumeration below is ever sent as an event code. Every firmware path that fails to send or receive calls
 `Communication::SendCommunicationErrorMessage()`, which packs the two-byte array `{Communication status, TransportLayer
 status}` as the data object of an error message, then drives `LED_BUILTIN` HIGH. Nothing on the error path clears that
-LED. It goes out only when a `Kernel::Setup()` pass completes with no module failure, so a lit LED means at least one
-transfer failed since the last successful setup, not that one is failing right now. The two bytes are the whole
-firmware-side diagnosis of the failure, so read them as a pair.
+LED. Only `SetupKernel()` drives it LOW again. A `Kernel::Setup()` pass reaches it once no module fails, and the first
+`RuntimeCycle()` to observe an incomplete setup runs it as well, before the 2-second toggle takes over. A lit LED
+therefore means at least one transfer failed since the last successful setup, not that one is failing right now, and a
+failed setup leaves the LED blinking rather than off. The two bytes are the whole firmware-side diagnosis of the
+failure, so read them as a pair.
 
 | Failing call                                 | Message emitted | Event code reported                     |
 |----------------------------------------------|-----------------|-----------------------------------------|

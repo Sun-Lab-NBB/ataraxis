@@ -242,6 +242,9 @@ confirm a real change, list the .npy entries in the directory before calling the
 3. The "not reachable" message covers every socket-level failure, including a refused connection, a timeout, and a host
    name that could not be resolved. Verify the host string as well as the broker service before concluding the broker is
    down.
+4. An address the client rejects opens no socket at all and returns a third message, `Unable to check an MQTT broker at
+   {host}:{port}.` followed by `Invalid port number.` for a port at or below zero and by `Invalid host.` for an empty
+   host. Correct the argument rather than investigating the broker.
 
 ### Manifest inspection and retroactive tagging
 

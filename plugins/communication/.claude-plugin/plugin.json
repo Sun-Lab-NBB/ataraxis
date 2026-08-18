@@ -1,6 +1,6 @@
 {
   "name": "communication",
-  "version": "3.2.5",
+  "version": "3.3.0",
   "description": "Provides microcontroller interface and module authoring, MQTT communication, hardware discovery, extraction configuration, log processing, and pipeline orchestration skills for ataraxis-communication-interface. Includes MCP bindings for hardware discovery, manifest management, and batch data processing, plus a reference for the human-facing axci command-line interface.",
   "repository": "https://github.com/Sun-Lab-NBB/ataraxis",
   "license": "Apache-2.0",

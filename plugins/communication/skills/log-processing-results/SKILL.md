@@ -187,11 +187,15 @@ provided by the user:
 {output_directory}/
 └── microcontroller_data/
     ├── microcontroller_processing_tracker.yaml
+    ├── microcontroller_processing_tracker.yaml.lock
     ├── controller_{source_id}_module_{type}_{id}.feather
     ├── controller_{source_id}_module_{type}_{id}.feather
     ├── controller_{source_id}_kernel.feather
     └── ...
 ```
+
+The `.lock` sibling is the file lock `ProcessingTracker` derives from the tracker path and holds while it writes, so it
+appears in every listing of the directory without being an output file.
 
 ### Feather file schema
 
@@ -241,8 +245,8 @@ path built through them cannot drift from a rename in a future release:
 | `parse_kernel_path`   | The source id read back out of a kernel filename, as one int                     |
 
 All seven names are top-level exports of `ataraxis_communication_interface`, so one import from the library root covers
-the enum and every resolver. Every resolver takes the `microcontroller_data/` directory itself, which is the `data_path`
-value `verify_processing_output_tool` returns, not the parent output directory.
+the enum and every resolver. Every resolver and finder takes the `microcontroller_data/` directory itself, which is the
+`data_path` value `verify_processing_output_tool` returns, not the parent output directory.
 
 **Note:** A hand-rolled `controller_*.feather` glob is wrong, because it matches the module and the kernel files
 together. The two finders separate them by construction, `find_module_paths` globbing `controller_*_module_*.feather`

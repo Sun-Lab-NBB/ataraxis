@@ -13,17 +13,19 @@ the remaining controllers still prepare. The three reason strings are fixed, so 
 
 | `reason` (verbatim)                                                         | What it means                                                                                                                                         | Remedy                                                                                                                                                                      |
 |-----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `The controller is absent from the microcontroller manifest.`               | The `microcontroller_manifest.yaml` under this log directory registers no controller with that ID, so nothing confirms this library wrote the archive | Register the controller with `write_microcontroller_manifest_tool` (see `/microcontroller-setup`), re-run discovery, then prepare again                                     |
-| `The controller is absent from the extraction configuration.`               | The extraction config declares no `controller_id` entry for it, so nothing declares what to extract                                                   | Add the controller entry via `/extraction-configuration`, re-validate, then prepare again                                                                                   |
-| `The controller's log archive is absent or resolves to more than one file.` | No `{source_id}_log.npz` resolved under the tree, or several did, which means the tree spans more than one logger                                     | Assemble the archive with `assemble_log_archives_tool` (see `/microcontroller-setup`) when none exists. Pass one DataLogger output directory per entry when several matched |
+| "The controller is absent from the microcontroller manifest."               | The `microcontroller_manifest.yaml` under this log directory registers no controller with that ID, so nothing confirms this library wrote the archive | Register the controller with `write_microcontroller_manifest_tool` (see `/microcontroller-setup`), re-run discovery, then prepare again                                     |
+| "The controller is absent from the extraction configuration."               | The extraction config declares no `controller_id` entry for it, so nothing declares what to extract                                                   | Add the controller entry via `/extraction-configuration`, re-validate, then prepare again                                                                                   |
+| "The controller's log archive is absent or resolves to more than one file." | No `{source_id}_log.npz` resolved under the tree, or several did, which means the tree spans more than one logger                                     | Assemble the archive with `assemble_log_archives_tool` (see `/microcontroller-setup`) when none exists. Pass one DataLogger output directory per entry when several matched |
 
 **Note:** Leniency is a property of the MCP path alone. `axci process` prepares with strict sourcing, where the same
 three conditions raise instead of being recorded: the first two raise `ValueError` and the third raises
 `FileNotFoundError`. A user reporting a hard CLI failure and an agent reporting a silent skip are looking at the same
 misconfiguration.
 
-**Note:** Two sourcing problems are never skips, and the Preparation errors table below carries both of them with the
-remedy each one takes.
+**Note:** A sourcing problem belonging to the whole directory rather than to one controller is never a skip, and the
+Preparation errors table below carries each one with the remedy it takes. A tree holding no
+`microcontroller_manifest.yaml` is the one that reads most like a skip, since an absent manifest registers no controller
+at all, and it raises under both sourcing modes rather than being recorded.
 
 ---
 
@@ -36,6 +38,7 @@ remedy each one takes.
 | "Permission denied"                                              | Check filesystem permissions                                                                                                                                                                                               |
 | "Extraction config not found: ..."                               | Verify extraction config path. Use `/extraction-configuration`                                                                                                                                                             |
 | "Invalid extraction config: ..."                                 | Validate config via `/extraction-configuration`                                                                                                                                                                            |
+| "... its tree holds no microcontroller_manifest.yaml"            | A per-directory failure reported in `failed_directories`, not a skip. Its archives are foreign to this library, or the recording was logged without a manifest. Tag it via `/microcontroller-setup`, then re-run discovery |
 | "The directory tree holds N microcontroller_manifest.yaml files" | A hard per-directory failure, reported in `failed_directories`, not a skip. The path spans several recordings or several DataLogger instances. Pass each DataLogger output directory as its own entry of `log_directories` |
 | "The resolved log archives sit in N different directories"       | The same fault seen through the archives instead of the manifests. Split the request the same way                                                                                                                          |
 | "contains no controller entries"                                 | The manifest under that directory registers no controller. Re-tag the directory via `/microcontroller-setup`, then re-run discovery                                                                                        |
@@ -51,25 +54,25 @@ before executing.
 
 ## Execution errors
 
-| Error                                    | Resolution                                       |
-|------------------------------------------|--------------------------------------------------|
-| "An execution session is already active" | Wait for current session or cancel first         |
-| "No valid jobs to execute"               | Verify job descriptors have all required keys    |
-| "Tracker file not found"                 | Re-prepare the batch to regenerate tracker files |
-| "Missing or unreadable sizing keys"      | Pass the prepared job dicts through unchanged    |
-| "Unable to read a ... job descriptor"    | Re-prepare and pass the emitted dicts verbatim   |
+| Error                                                            | Resolution                                                                                                          |
+|------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| "An execution session is already active."                        | Cancel it, read `session_ended` from that call, and poll `get_log_processing_status_tool` only while it reads False |
+| "No work was named."                                             | Pass `jobs`, or `log_directories`, `output_directories`, and `config_path`                                          |
+| "No valid jobs to execute."                                      | Read `invalid_jobs` for the reason each descriptor was rejected                                                     |
+| "Tracker file not found: ..."                                    | Re-prepare the batch to regenerate tracker files                                                                    |
+| "Unable to read a ... job descriptor from the supplied mapping." | Re-prepare and pass the emitted dicts verbatim                                                                      |
 
 ---
 
 ## Processing failure routing
 
-| Error Pattern                        | Action                                                                                                                                                                      |
-|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Archive not found / file read errors | Verify .npz archives exist in log directory. An archive that resolves but cannot be read fails its whole directory at preparation, so no job reads it                       |
-| Invalid extraction config            | Validate config via `/extraction-configuration`                                                                                                                             |
-| MCP tools unavailable                | Invoke `/communication-mcp-environment-setup`                                                                                                                               |
-| Worker killed by the host            | Lower `core_budget` first, then `memory_budget_mb`. A repeat is a pool break. See Batch abandonment                                                                         |
-| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare                                                                                                                    |
+| Error Pattern                        | Action                                                                                                                                                |
+|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Archive not found / file read errors | Verify .npz archives exist in log directory. An archive that resolves but cannot be read fails its whole directory at preparation, so no job reads it |
+| Invalid extraction config            | Validate config via `/extraction-configuration`                                                                                                       |
+| MCP tools unavailable                | Invoke `/communication-mcp-environment-setup`                                                                                                         |
+| Worker killed by the host            | Lower `core_budget` first, then `memory_budget_mb`. A repeat is a pool break. See Batch abandonment                                                   |
+| Corrupt tracker or partial output    | Call `clean_log_processing_output_tool`, then re-prepare                                                                                              |
 
 ---
 

@@ -112,7 +112,7 @@ surfaces at runtime rather than at build time. See `/microcontroller:firmware-mo
 
 See [references/api-reference.md](references/api-reference.md) for the complete API reference including:
 
-- The full 48-name top-level `__all__`, the top-level-only import rule, and the names the library keeps internal
+- The full 49-name top-level `__all__`, the top-level-only import rule, and the names the library keeps internal
 - MicroControllerInterface constructor parameters and their exact types and defaults
 - ModuleInterface constructor parameters, abstract methods, and `set_input_queue()`
 - MQTTCommunication constructor, lifecycle methods, and its delivery and connection semantics
@@ -268,11 +268,16 @@ anything heavier onto the main process through a shared asset instead.
 
 ```python
 def process_received_data(self, message: ModuleData | ModuleState) -> None:
-    if message.event == np.uint8(51):       # kRotatedCCW from firmware
-        delta: np.uint32 = message.data_object
+    # Both encoder codes arrive as ModuleData, so the union is narrowed before the payload is read.
+    if not isinstance(message, ModuleData):
+        return
+
+    # The conversion sits inside each branch, so an event code neither branch handles never reaches it.
+    if message.event == np.uint8(51):  # kRotatedCCW from firmware
+        delta: np.uint32 = np.uint32(message.data_object)
         self._total_pulses -= int(delta)
-    elif message.event == np.uint8(52):     # kRotatedCW from firmware
-        delta: np.uint32 = message.data_object
+    elif message.event == np.uint8(52):  # kRotatedCW from firmware
+        delta = np.uint32(message.data_object)
         self._total_pulses += int(delta)
 ```
 

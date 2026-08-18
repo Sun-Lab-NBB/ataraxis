@@ -6,7 +6,7 @@ Complete API reference for ataraxis-communication-interface public classes, func
 
 ## Public API
 
-The top-level `__all__` exports exactly these 48 names.
+The top-level `__all__` exports exactly these 49 names.
 
 ```python
 from ataraxis_communication_interface import (
@@ -81,15 +81,17 @@ absent from every `__all__`, or carrying a leading underscore, is internal, so u
 or ask the library maintainer to export it.
 
 The subpackage tier carries `ExtractedControllerData`, `ExtractedMessages`, `ExtractedModuleData`,
-`build_message_dataframe`, and `extract_logged_microcontroller_data` under `.microcontroller`, `SerialCommunication`
-and the ten message classes the "Package-tier message classes" section names under `.communication`, and `ActiveJob`,
-`ArchiveFootprint`, `JobDescriptor`, `JobExecutionState`, `JobSet`, `estimate_job_memory_mb`, `get_execution_state`,
-`group_jobs_by_tracker`, `prepare_jobs`, `resolve_core_budget`, `resolve_job_workers`, `resolve_memory_budget_mb`,
-`resolve_pool_size`, `size_job`, and `start_execution_session` under `.orchestration`. `evaluate_port` is internal.
+`build_message_dataframe`, and `extract_logged_microcontroller_data` under `.microcontroller`, and `SerialCommunication`
+and the ten message classes the "Package-tier message classes" section names under `.communication`. Under
+`.orchestration` it carries `ActiveJob`, `ArchiveFootprint`, `JobDescriptor`, `JobExecutionState`, `JobSet`,
+`estimate_job_memory_mb`, `finish_execution_session`, `get_execution_state`, `group_jobs_by_tracker`, `prepare_jobs`,
+`resolve_core_budget`, `resolve_job_workers`, `resolve_memory_budget_mb`, `resolve_pool_size`, `session_is_active`,
+`size_job`, and `start_execution_session`. `evaluate_port` is internal.
 
-**Note:** all 17 names the orchestration layer contributes are re-exported at top level, and this plugin does not
-document the job-scheduling contract they form, because orchestration runs through the MCP tools or through the `axci`
-CLI a user invokes by hand. A consumer driving those symbols directly works from the library's API documentation.
+**Note:** the orchestration subpackage exports 34 names, of which the root re-exports 17, listed above under the output
+layout and orchestration comments, and leaves the 17 the paragraph above names at the subpackage tier. This plugin does
+not document the job-scheduling contract they form, because orchestration runs through the MCP tools or through the
+`axci` CLI a user invokes by hand. A consumer driving those symbols directly works from the library's API documentation.
 
 ---
 
@@ -429,7 +431,9 @@ write_microcontroller_manifest(
 ) -> None
 ```
 
-Writes or appends a controller entry to the manifest file. Called automatically by MicroControllerInterface.__init__().
+Replaces the entry already registered under the same `controller_id` and appends a new one when the manifest carries
+none, creating the manifest file when the log directory holds none. Called automatically by
+`MicroControllerInterface.__init__()`.
 
 ### create_extraction_config
 
@@ -463,7 +467,7 @@ selects the work). Prefer MCP batch tools for multi-archive processing.
 
 | Name                                                                                                                                             | Owning skill                       |
 |--------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| `get_event_data`, `get_event_timestamps`, `partition_events`                                                                                     | `/log-processing-results`          |
+| `ExtractedDataColumns`, `get_event_data`, `get_event_timestamps`, `partition_events`                                                             | `/log-processing-results`          |
 | `OutputLayout`, `find_kernel_paths`, `find_module_paths`, `parse_kernel_path`, `parse_module_path`, `resolve_kernel_path`, `resolve_module_path` | `/log-processing-results`          |
 | `size_archive_job`, `JobSizing`                                                                                                                  | `/log-processing`                  |
 | `execute_job`, `generate_job_ids`, `resolve_jobs`, `JobSource`, `JobUniverse`                                                                    | Not documented, use MCP or the CLI |
@@ -565,8 +569,9 @@ processed feather. That column stores exactly this string, which is why a consum
 `None` from all three decoders, and the extraction pipeline writes null into both the `dtype` and `data` columns for
 that message.
 
-**Note:** all three decoders return objects from a module-level table shared by every caller. Treat a returned prototype
-as read-only and never write into it.
+**Note:** `get_prototype_for_code()` returns an object from a module-level table shared by every caller, so treat a
+returned prototype as read-only and never write into it. The other two decoders return an `int` and a `str`, which are
+immutable and carry no such constraint.
 
 ### Package-tier message classes
 
