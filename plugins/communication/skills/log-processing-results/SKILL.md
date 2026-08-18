@@ -240,10 +240,9 @@ path built through them cannot drift from a rename in a future release:
 | `parse_module_path`   | `(source_id, module_type, module_id)` read back out of a filename, as three ints |
 | `parse_kernel_path`   | The source id read back out of a kernel filename, as one int                     |
 
-The six functions are top-level exports of `ataraxis_communication_interface`. `OutputLayout` is exported from
-`ataraxis_communication_interface.orchestration` only, so importing it from the top level raises `ImportError`. Every
-resolver takes the `microcontroller_data/` directory itself, which is the `data_path` value
-`verify_processing_output_tool` returns, not the parent output directory.
+All seven names are top-level exports of `ataraxis_communication_interface`, so one import from the library root covers
+the enum and every resolver. Every resolver takes the `microcontroller_data/` directory itself, which is the `data_path`
+value `verify_processing_output_tool` returns, not the parent output directory.
 
 **Note:** A hand-rolled `controller_*.feather` glob is wrong, because it matches the module and the kernel files
 together. The two finders separate them by construction, `find_module_paths` globbing `controller_*_module_*.feather`
@@ -356,8 +355,8 @@ a `ValueError` that names the event code. It raises on four conditions:
 A mixed-dtype event code marks a table this library did not write, or a firmware revision that reused the code. Use
 `get_event_timestamps` for the state-only case the first row names.
 
-**Note:** `build_message_dataframe` is exported from `ataraxis_communication_interface.microcontroller` but not from the
-top level, so importing it alongside the four names above raises `ImportError`. It is a writer, not a reader.
+**Note:** the library keeps `build_message_dataframe` internal, so importing it alongside the four names above raises
+`ImportError`. It is a writer, not a reader.
 
 The `dtype` column contains the numpy dtype string that was used to serialize the data on the microcontroller side.
 Common dtypes include `uint8`, `uint16`, `uint32`, `int32`, `float32`.

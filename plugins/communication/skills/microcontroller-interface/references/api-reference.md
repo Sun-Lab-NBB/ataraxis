@@ -6,7 +6,7 @@ Complete API reference for ataraxis-communication-interface public classes, func
 
 ## Public API
 
-The top-level `__all__` exports exactly these 42 names. Anything not listed here must be imported from a subpackage.
+The top-level `__all__` exports exactly these 47 names.
 
 ```python
 from ataraxis_communication_interface import (
@@ -14,9 +14,15 @@ from ataraxis_communication_interface import (
     MicroControllerInterface,
     ModuleInterface,
     MQTTCommunication,
+    # Hardware discovery
+    discover_microcontrollers,
+    MicroControllerInformation,
     # Message classes
     ModuleData,
     ModuleState,
+    # Protocol and payload prototype enums
+    SerialProtocols,
+    SerialPrototypes,
     # Firmware code mirrors (IntEnum)
     KernelCommandCodes,
     KernelStatusCodes,
@@ -43,7 +49,8 @@ from ataraxis_communication_interface import (
     MICROCONTROLLER_MANIFEST_FILENAME,
     MAXIMUM_CUSTOM_STATUS_CODE,
     MINIMUM_CUSTOM_STATUS_CODE,
-    # Output path resolvers, documented in /log-processing-results
+    # Output layout and path resolvers, documented in /log-processing-results
+    OutputLayout,
     find_kernel_paths,
     find_module_paths,
     parse_kernel_path,
@@ -63,27 +70,22 @@ from ataraxis_communication_interface import (
 )
 ```
 
-### Subpackage map
+### Import rule
 
-Every subpackage declares its own `__all__`, and for the names it owns that list is wider than the curated top-level
-one. Import a name through the package that exports it, never from the module file inside it.
+The list above is the entire public API, and the library root is the only import path a consumer writes. Every name a
+consumer needs must satisfy `from ataraxis_communication_interface import <name>`, and a name that import cannot reach
+is internal even where a subpackage `__all__` lists it. Use the closest public name in its place, or ask the library
+maintainer to export the missing one, and never import from `ataraxis_communication_interface.communication`,
+`.microcontroller`, `.orchestration`, `.interfaces`, or a module file inside any of them.
 
-| Import path                                        | Exports | Contents                                                                      |
-|----------------------------------------------------|---------|-------------------------------------------------------------------------------|
-| `ataraxis_communication_interface`                 | 42      | The curated public API listed above.                                          |
-| `ataraxis_communication_interface.communication`   | 17      | MQTT and serial transports, all 12 message classes, protocol/prototype enums. |
-| `ataraxis_communication_interface.microcontroller` | 30      | Interfaces, dataclasses, status-code mirrors, extraction and table access.    |
-| `ataraxis_communication_interface.orchestration`   | 41      | Job identity, sizing, discovery, the single-job runner, and the batch engine. |
-| `ataraxis_communication_interface.interfaces`      | 0       | CLI, MCP entry points, response machinery. `__all__` is empty by design.      |
+Names a caller reaches for by symmetry that the library keeps internal: `build_message_dataframe`, `evaluate_port`,
+`extract_logged_microcontroller_data`, `ExtractedMessages`, `ExtractedModuleData`, `ExtractedControllerData`,
+`PrototypeType`, `SerialCommunication`, `JobDescriptor`, `JobSet`, `prepare_jobs`, and `size_job`, plus the ten message
+classes the "Internal message classes" section names. Importing any of them from the top level raises `ImportError`.
 
-**Note:** all 15 names the `.orchestration` subpackage contributes are re-exported at top level, but this plugin
-deliberately does not document the job-scheduling contract they form. Orchestration runs through the MCP tools or
-through the `axci` CLI a user invokes by hand, and there is no third path. Do not write code against these symbols.
-
-Names a caller reaches for by symmetry that are **not** top level: `build_message_dataframe`, `evaluate_port`,
-`extract_logged_microcontroller_data`, `ExtractedMessages`, `ExtractedModuleData`, and `ExtractedControllerData` (all
-`.microcontroller`), plus `prepare_jobs`, `JobDescriptor`, `JobSet`, and `size_job` (all `.orchestration`). Importing
-any of them from the top level raises `ImportError`.
+**Note:** all 16 names the orchestration layer contributes are re-exported at top level, but this plugin deliberately
+does not document the job-scheduling contract they form. Orchestration runs through the MCP tools or through the `axci`
+CLI a user invokes by hand, and there is no third path. Do not write code against these symbols.
 
 ---
 
@@ -320,6 +322,20 @@ Per-controller identification metadata for manifests.
 | `name`    | `str`                          | Human-readable controller name. |
 | `modules` | `tuple[ModuleSourceData, ...]` | Managed hardware modules.       |
 
+### MicroControllerInformation (frozen dataclass)
+
+One evaluated serial port, as `discover_microcontrollers()` reports it.
+
+| Field           | Type          | Default    | Description                                                          |
+|-----------------|---------------|------------|----------------------------------------------------------------------|
+| `port`          | `str`         | (required) | Port name, such as `/dev/ttyACM0` on Linux or `COM3` on Windows.     |
+| `description`   | `str`         | (required) | The description the host operating system reports for the port.      |
+| `controller_id` | `int \| None` | `None`     | The identifier of the controller connected to the port.              |
+| `error_message` | `str \| None` | `None`     | The error connecting to the port raised, as `"<ErrorType>: <text>"`. |
+
+The two optional fields carry the outcome: an identified controller fills `controller_id`, a port that answered no
+identification request leaves both fields `None`, and a failed connection fills `error_message` alone.
+
 ---
 
 ## Configuration classes
@@ -383,6 +399,21 @@ where a reader needs it.
 
 ## Functions
 
+### discover_microcontrollers
+
+```python
+discover_microcontrollers(baudrate: int = 115200) -> tuple[MicroControllerInformation, ...]
+```
+
+Evaluates every serial port the host exposes and returns one record per port, in the order the host enumerates them.
+Ports exposing no USB product identifier are skipped before evaluation, which mainly affects Linux hosts, and a host
+with no evaluable port yields an empty tuple. The evaluation runs in a process pool sized to the smaller of the port
+count and the host's worker budget. A port that raises reports its error through its own record, leaving the sweep over
+the other ports intact.
+
+The function returns data and prints nothing, so a caller renders whatever report it needs. `list_microcontrollers_tool`
+and `axci id` are the two printers the library ships over it.
+
 ### write_microcontroller_manifest
 
 ```python
@@ -424,14 +455,14 @@ Processes log archives from a single DataLogger output directory using the extra
 are resolved from the config, and `source_ids` narrows that set further in local mode (it is ignored when `job_id`
 selects the work). Prefer MCP batch tools for multi-archive processing.
 
-### Top-level functions documented elsewhere
+### Top-level names documented elsewhere
 
-| Function                                                                                                                         | Owning skill                       |
-|----------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| `get_event_data`, `get_event_timestamps`, `partition_events`                                                                     | `/log-processing-results`          |
-| `find_kernel_paths`, `find_module_paths`, `parse_kernel_path`, `parse_module_path`, `resolve_kernel_path`, `resolve_module_path` | `/log-processing-results`          |
-| `size_archive_job`                                                                                                               | `/log-processing`                  |
-| `execute_job`, `resolve_jobs`, `JobSource`, `JobUniverse`                                                                        | Not documented, use MCP or the CLI |
+| Name                                                                                                                                             | Owning skill                       |
+|--------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `get_event_data`, `get_event_timestamps`, `partition_events`                                                                                     | `/log-processing-results`          |
+| `OutputLayout`, `find_kernel_paths`, `find_module_paths`, `parse_kernel_path`, `parse_module_path`, `resolve_kernel_path`, `resolve_module_path` | `/log-processing-results`          |
+| `size_archive_job`, `JobSizing`                                                                                                                  | `/log-processing`                  |
+| `execute_job`, `resolve_jobs`, `JobSource`, `JobUniverse`                                                                                        | Not documented, use MCP or the CLI |
 
 ---
 
@@ -504,22 +535,25 @@ firmware-side meaning of every member, and the corrective action each byte pair 
 
 ### Protocol and prototype enums
 
-The `.communication` subpackage exports the codes above as enums, plus the decoders that turn a prototype code into a
-concrete numpy description.
+The library exports the codes above as two enums, plus the decoders that turn a prototype code into a concrete numpy
+description.
 
 ```python
-from ataraxis_communication_interface.communication import PrototypeType, SerialProtocols, SerialPrototypes
+from ataraxis_communication_interface import SerialProtocols, SerialPrototypes
 ```
 
-| Symbol                                      | Kind       | Description                                                             |
-|---------------------------------------------|------------|-------------------------------------------------------------------------|
-| `SerialProtocols`                           | `IntEnum`  | Protocol codes 0-12. Code 0 is `UNDEFINED` and never valid on the wire. |
-| `SerialPrototypes`                          | `IntEnum`  | Prototype codes naming the dtype and element count of a data payload.   |
-| `PrototypeType`                             | type alias | Union of the 11 numpy scalar types and their `NDArray` forms.           |
-| `SerialProtocols.as_uint8()`                | method     | Returns the member as `np.uint8`, the type the message classes expect.  |
-| `SerialPrototypes.get_prototype_for_code()` | static     | Code to a shared read-only prototype object, or `None` if unknown.      |
-| `SerialPrototypes.get_byte_size_for_code()` | static     | Code to the payload byte size, or `None` if unknown.                    |
-| `SerialPrototypes.get_dtype_for_code()`     | static     | Code to a numpy dtype string (`'float32'`), or `None` if unknown.       |
+| Symbol                                      | Kind      | Description                                                             |
+|---------------------------------------------|-----------|-------------------------------------------------------------------------|
+| `SerialProtocols`                           | `IntEnum` | Protocol codes 0-12. Code 0 is `UNDEFINED` and never valid on the wire. |
+| `SerialPrototypes`                          | `IntEnum` | Prototype codes naming the dtype and element count of a data payload.   |
+| `SerialProtocols.as_uint8()`                | method    | Returns the member as `np.uint8`, the type the message classes expect.  |
+| `SerialPrototypes.get_prototype_for_code()` | static    | Code to a shared read-only prototype object, or `None` if unknown.      |
+| `SerialPrototypes.get_byte_size_for_code()` | static    | Code to the payload byte size, or `None` if unknown.                    |
+| `SerialPrototypes.get_dtype_for_code()`     | static    | Code to a numpy dtype string (`'float32'`), or `None` if unknown.       |
+
+`PrototypeType` is the annotation the library writes on `ModuleData.data_object`, a union of the 11 numpy scalar types
+and their `NDArray` forms. The library keeps it internal, so the example above imports the two enums alone, and
+consuming code annotates its own values with the concrete numpy type the module's payload prototype fixes.
 
 `get_dtype_for_code()` is the bridge between a logged message's `prototype_code` byte and the `dtype` column of a
 processed feather. That column stores exactly this string, which is why a consumer can rebuild the payload with
@@ -530,18 +564,17 @@ that message.
 **Note:** all three decoders return objects from a module-level table shared by every caller. Treat a returned prototype
 as read-only and never write into it.
 
-### Subpackage-only names
+### Internal message classes
 
-`ModuleData` and `ModuleState` are the only message classes exported at top level, because they are the only two a
+`ModuleData` and `ModuleState` are the only message classes the library exports, because they are the only two a
 `process_received_data()` implementation annotates against. The other ten, `ControllerIdentification`,
 `DequeueModuleCommand`, `KernelCommand`, `KernelData`, `KernelState`, `ModuleIdentification`, `ModuleParameters`,
-`OneOffModuleCommand`, `ReceptionCode`, `RepeatedModuleCommand`, plus `SerialCommunication`, `SerialProtocols`,
-`SerialPrototypes`, and `PrototypeType`, are importable from `.communication` only.
+`OneOffModuleCommand`, `ReceptionCode`, and `RepeatedModuleCommand`, are internal, as is `SerialCommunication`.
 
-`SerialCommunication` is internal: `MicroControllerInterface` owns the one instance, inside the spawned communication
-process. If you read it anyway, note that `receive_message()` parses into a **reused instance attribute** and returns a
-reference to it, so each call overwrites the previous message. Finish with a message before receiving the next one, and
-copy anything you intend to keep.
+`MicroControllerInterface` owns the one `SerialCommunication` instance, inside the spawned communication process. A
+reader who meets that class in the library source should note that `receive_message()` parses into a **reused instance
+attribute** and returns a reference to it, so each call overwrites the previous message. Finish with a message before
+receiving the next one, and copy anything you intend to keep.
 
 ### Event code ranges
 
