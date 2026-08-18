@@ -65,6 +65,7 @@ from ataraxis_communication_interface import (
     JobSource,
     JobUniverse,
     execute_job,
+    generate_job_ids,
     resolve_jobs,
     run_log_processing_pipeline,
     size_archive_job,
@@ -73,20 +74,22 @@ from ataraxis_communication_interface import (
 
 ### Import rule
 
-The list above is the entire public API, and the library root is the only import path a consumer writes. Every name a
-consumer needs must satisfy `from ataraxis_communication_interface import <name>`, and a name that import cannot reach
-is internal even where a subpackage `__all__` lists it. Use the closest public name in its place, or ask the library
-maintainer to export the missing one, and never import from `ataraxis_communication_interface.communication`,
-`.microcontroller`, `.orchestration`, `.interfaces`, or a module file inside any of them.
+The list above is the library root's curated surface, and it is the first import path to reach for. A name the root
+omits may still be public at the subpackage tier, where `.communication`, `.microcontroller`, and `.orchestration` each
+export their own `__all__`, as in `from ataraxis_communication_interface.orchestration import prepare_jobs`. A name
+absent from every `__all__`, or carrying a leading underscore, is internal, so use the closest public name in its place
+or ask the library maintainer to export it.
 
-Names a caller reaches for by symmetry that the library keeps internal: `build_message_dataframe`, `evaluate_port`,
-`extract_logged_microcontroller_data`, `ExtractedMessages`, `ExtractedModuleData`, `ExtractedControllerData`,
-`SerialCommunication`, `JobDescriptor`, `JobSet`, `prepare_jobs`, and `size_job`, plus the ten message classes the
-"Internal message classes" section names. Importing any of them from the top level raises `ImportError`.
+The subpackage tier carries `ExtractedControllerData`, `ExtractedMessages`, `ExtractedModuleData`,
+`build_message_dataframe`, and `extract_logged_microcontroller_data` under `.microcontroller`, `SerialCommunication`
+and the ten message classes the "Package-tier message classes" section names under `.communication`, and `ActiveJob`,
+`ArchiveFootprint`, `JobDescriptor`, `JobExecutionState`, `JobSet`, `estimate_job_memory_mb`, `get_execution_state`,
+`group_jobs_by_tracker`, `prepare_jobs`, `resolve_core_budget`, `resolve_job_workers`, `resolve_memory_budget_mb`,
+`resolve_pool_size`, `size_job`, and `start_execution_session` under `.orchestration`. `evaluate_port` is internal.
 
-**Note:** all 16 names the orchestration layer contributes are re-exported at top level, but this plugin deliberately
-does not document the job-scheduling contract they form. Orchestration runs through the MCP tools or through the `axci`
-CLI a user invokes by hand, and there is no third path. Do not write code against these symbols.
+**Note:** all 17 names the orchestration layer contributes are re-exported at top level, and this plugin does not
+document the job-scheduling contract they form, because orchestration runs through the MCP tools or through the `axci`
+CLI a user invokes by hand. A consumer driving those symbols directly works from the library's API documentation.
 
 ---
 
@@ -463,7 +466,7 @@ selects the work). Prefer MCP batch tools for multi-archive processing.
 | `get_event_data`, `get_event_timestamps`, `partition_events`                                                                                     | `/log-processing-results`          |
 | `OutputLayout`, `find_kernel_paths`, `find_module_paths`, `parse_kernel_path`, `parse_module_path`, `resolve_kernel_path`, `resolve_module_path` | `/log-processing-results`          |
 | `size_archive_job`, `JobSizing`                                                                                                                  | `/log-processing`                  |
-| `execute_job`, `resolve_jobs`, `JobSource`, `JobUniverse`                                                                                        | Not documented, use MCP or the CLI |
+| `execute_job`, `generate_job_ids`, `resolve_jobs`, `JobSource`, `JobUniverse`                                                                    | Not documented, use MCP or the CLI |
 
 ---
 
@@ -565,12 +568,13 @@ that message.
 **Note:** all three decoders return objects from a module-level table shared by every caller. Treat a returned prototype
 as read-only and never write into it.
 
-### Internal message classes
+### Package-tier message classes
 
-`ModuleData` and `ModuleState` are the only message classes the library exports, because they are the only two a
+`ModuleData` and `ModuleState` are the message classes the library root exports, because they are the two a
 `process_received_data()` implementation annotates against. The other ten, `ControllerIdentification`,
 `DequeueModuleCommand`, `KernelCommand`, `KernelData`, `KernelState`, `ModuleIdentification`, `ModuleParameters`,
-`OneOffModuleCommand`, `ReceptionCode`, and `RepeatedModuleCommand`, are internal, as is `SerialCommunication`.
+`OneOffModuleCommand`, `ReceptionCode`, and `RepeatedModuleCommand`, are exported from
+`ataraxis_communication_interface.communication`, as is `SerialCommunication`.
 
 `MicroControllerInterface` owns the one `SerialCommunication` instance, inside the spawned communication process. A
 reader who meets that class in the library source should note that `receive_message()` parses into a **reused instance
