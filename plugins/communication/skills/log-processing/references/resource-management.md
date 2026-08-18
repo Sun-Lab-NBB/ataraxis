@@ -26,7 +26,7 @@ reproduces neither the width rule nor the memory model.
 ## How the model behaves
 
 - A job's width takes one of two values with nothing between them. An archive holding fewer data messages than
-  `PARALLEL_EXTRACTION_THRESHOLD` opens no pool and takes a single core, and every archive at or above it takes the
+  `_PARALLEL_EXTRACTION_THRESHOLD` opens no pool and takes a single core, and every archive at or above it takes the
   declared `CONTROLLER_EXTRACTION_JOB_CORES` allocation. Execution then collapses that width onto the session's core
   budget wherever the budget is narrower, which is the only narrowing the model applies. Read the width a job actually
   received from its `core_weight` (prepare) and `cores` (execute), never from the budget requested.
