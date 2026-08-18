@@ -6,7 +6,7 @@ Complete API reference for ataraxis-communication-interface public classes, func
 
 ## Public API
 
-The top-level `__all__` exports exactly these 47 names.
+The top-level `__all__` exports exactly these 48 names.
 
 ```python
 from ataraxis_communication_interface import (
@@ -20,9 +20,10 @@ from ataraxis_communication_interface import (
     # Message classes
     ModuleData,
     ModuleState,
-    # Protocol and payload prototype enums
+    # Protocol and payload prototype enums, and the data object type alias
     SerialProtocols,
     SerialPrototypes,
+    PrototypeType,
     # Firmware code mirrors (IntEnum)
     KernelCommandCodes,
     KernelStatusCodes,
@@ -80,8 +81,8 @@ maintainer to export the missing one, and never import from `ataraxis_communicat
 
 Names a caller reaches for by symmetry that the library keeps internal: `build_message_dataframe`, `evaluate_port`,
 `extract_logged_microcontroller_data`, `ExtractedMessages`, `ExtractedModuleData`, `ExtractedControllerData`,
-`PrototypeType`, `SerialCommunication`, `JobDescriptor`, `JobSet`, `prepare_jobs`, and `size_job`, plus the ten message
-classes the "Internal message classes" section names. Importing any of them from the top level raises `ImportError`.
+`SerialCommunication`, `JobDescriptor`, `JobSet`, `prepare_jobs`, and `size_job`, plus the ten message classes the
+"Internal message classes" section names. Importing any of them from the top level raises `ImportError`.
 
 **Note:** all 16 names the orchestration layer contributes are re-exported at top level, but this plugin deliberately
 does not document the job-scheduling contract they form. Orchestration runs through the MCP tools or through the `axci`
@@ -500,7 +501,7 @@ These two never arrive as event codes. The firmware attaches them as the two-byt
 RECEPTION_ERROR (3) and TRANSMISSION_ERROR (4) message and every module TRANSMISSION_ERROR (1) message: byte 1 is the
 `Communication` status, byte 2 is the `TransportLayer` status.
 
-**axci 7.0.0 already decodes both bytes into the `RuntimeError` text it raises.** Read the raised message first. The two
+**axci 7.1.0 already decodes both bytes into the `RuntimeError` text it raises.** Read the raised message first. The two
 enumerations are the decoder for the other path: the raw pair the extraction pipeline writes undecoded into the `data`
 column of a processed kernel or module feather. Index byte 1 into `CommunicationStatusCodes` (51-62) and byte 2 into
 `TransportStatusCodes` (11-29), which mirrors the microcontroller's own TransportLayer rather than the PC's. For the
@@ -552,8 +553,8 @@ from ataraxis_communication_interface import SerialProtocols, SerialPrototypes
 | `SerialPrototypes.get_dtype_for_code()`     | static    | Code to a numpy dtype string (`'float32'`), or `None` if unknown.       |
 
 `PrototypeType` is the annotation the library writes on `ModuleData.data_object`, a union of the 11 numpy scalar types
-and their `NDArray` forms. The library keeps it internal, so the example above imports the two enums alone, and
-consuming code annotates its own values with the concrete numpy type the module's payload prototype fixes.
+and their `NDArray` forms. It is exported at top level, so a handler that accepts any payload annotates against it
+directly, while a handler that knows which prototype its module sends still narrows to that concrete numpy type.
 
 `get_dtype_for_code()` is the bridge between a logged message's `prototype_code` byte and the `dtype` column of a
 processed feather. That column stores exactly this string, which is why a consumer can rebuild the payload with
