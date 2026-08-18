@@ -146,16 +146,21 @@ extraction config, not against the archives on disk, so a missing sibling archiv
 
 ### `axci id`
 
-Lists valid serial ports, evaluates each in its own worker process, and prints one numbered line per port. Ports whose
-USB PID is `None` are filtered out before evaluation, which mainly affects Linux hosts. Each line renders one of three
-`evaluate_port` outcomes: `[Microcontroller ID: N]`, `[No microcontroller]`, or `[Connection Failed: ...]`.
+Announces the scan, evaluates every valid serial port through `discover_microcontrollers`, and prints one numbered line
+per port. Each port line reads `<n>: <port> -> <description>` and closes with `[Microcontroller ID: N]`,
+`[No microcontroller]`, or `[Connection Failed: <ErrorType>: <text>]`. Ports whose USB PID is `None` are filtered out
+before evaluation, which mainly affects Linux hosts, and the evaluation runs in a process pool sized to the smaller of
+the port count and the host's worker budget.
 
-| Condition                     | Behavior                                                                                                         |
-|-------------------------------|------------------------------------------------------------------------------------------------------------------|
-| No valid ports                | Prints "No valid serial ports detected." and exits normally. Not an error                                        |
-| One port unreachable          | `evaluate_port` catches every exception and returns an error string, so the sweep over the other ports continues |
-| Permission denied on the port | Renders as `[Connection Failed]`. Check `/dev/ttyACM*` group membership                                          |
-| Wrong UART baudrate           | Renders as `[No microcontroller]`. Retry at the board's own speed before concluding anything                     |
+The announcement is an INFO line reading `Evaluating serial ports at baudrate <baudrate>, this may take a moment...`. It
+precedes the probing, so it carries no port count and reaches the user before the seconds of scanning it warns about.
+
+| Condition                     | Behavior                                                                                              |
+|-------------------------------|-------------------------------------------------------------------------------------------------------|
+| No valid ports                | Prints the announcement, then "No valid serial ports detected.", and exits normally. Not an error     |
+| One port unreachable          | Discovery reports the error text in that port's own line, so the sweep over the other ports continues |
+| Permission denied on the port | Renders as `[Connection Failed]`. Check `/dev/ttyACM*` group membership                               |
+| Wrong UART baudrate           | Renders as `[No microcontroller]`. Retry at the board's own speed before concluding anything          |
 
 ### `axci mqtt`
 

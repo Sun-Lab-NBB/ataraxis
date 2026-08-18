@@ -112,11 +112,12 @@ surfaces at runtime rather than at build time. See `/microcontroller:firmware-mo
 
 See [references/api-reference.md](references/api-reference.md) for the complete API reference including:
 
-- The full 41-name top-level `__all__`, the per-subpackage export map, and which names are subpackage-only
+- The full 47-name top-level `__all__`, the top-level-only import rule, and the names the library keeps internal
 - MicroControllerInterface constructor parameters and their exact types and defaults
 - ModuleInterface constructor parameters, abstract methods, and `set_input_queue()`
 - MQTTCommunication constructor, lifecycle methods, and its delivery and connection semantics
 - All public data classes (ModuleData, ModuleState, ModuleSourceData, MicroControllerSourceData)
+- `discover_microcontrollers` and the `MicroControllerInformation` record it returns for each evaluated serial port
 - Configuration classes (MicroControllerManifest, ExtractionConfig hierarchy)
 - The five firmware status-code mirror IntEnums, including the two that decode error payload bytes
 - `SerialProtocols`, `SerialPrototypes`, `PrototypeType`, and the prototype-code decoders

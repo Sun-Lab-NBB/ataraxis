@@ -67,17 +67,18 @@ Each line shows the device path, description, and one of three statuses:
 - **No microcontroller**: Port responds but is not running ataraxis-micro-controller firmware
 - **Connection Failed**: Could not establish communication (timeout, permission error, etc.)
 
-Each line is rendered from `evaluate_port(port, baudrate)`, which the `ataraxis_communication_interface.microcontroller`
-sub-package exports. The three statuses are its three return shapes, so import it when code must branch on the outcome
-instead of parsing this string:
+The tool prints one line per `MicroControllerInformation` record that `discover_microcontrollers(baudrate)` returns, and
+that function is a top-level export of `ataraxis_communication_interface`. Call it when code must branch on the outcome
+instead of parsing this string, and read the record's two optional fields:
 
-| `evaluate_port` return  | Rendered status         | Meaning                                                    |
-|-------------------------|-------------------------|------------------------------------------------------------|
-| `(controller_id, None)` | `Microcontroller ID: N` | The controller answered the identification command         |
-| `(-1, None)`            | `No microcontroller`    | The port opened but nothing answered within the ID timeout |
-| `(-1, "Type: message")` | `Connection Failed`     | Opening or querying the port raised. `Type` is the class   |
+| `controller_id` | `error_message`   | Rendered status         | Meaning                                                    |
+|-----------------|-------------------|-------------------------|------------------------------------------------------------|
+| `int`           | `None`            | `Microcontroller ID: N` | The controller answered the identification command         |
+| `None`          | `None`            | `No microcontroller`    | The port opened but nothing answered within the ID timeout |
+| `None`          | `"Type: message"` | `Connection Failed`     | Opening or querying the port raised. `Type` is the class   |
 
-The function never propagates an exception, so one unreachable port never aborts the sweep over the others.
+A port that raises is reported through its own record, so one unreachable port never aborts the sweep over the others.
+`/microcontroller-interface` carries the record's full field list and the discovery function's signature.
 
 Use `check_mqtt_broker_tool` to verify the broker is reachable before writing code that depends on MQTT connectivity.
 `/microcontroller-interface` owns `MQTTCommunication`, the class that carries that connectivity into the runtime.
