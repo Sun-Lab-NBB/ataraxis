@@ -41,7 +41,8 @@ organized into five groups. Log processing and analysis tools are documented in 
 
 Every tool in this skill returns a plain string or a dictionary and never raises. A failure arrives as a string
 beginning `Error:` or as a dictionary carrying an `error` key, so check every return for that marker before treating
-the call as successful.
+the call as successful. `write_genicam_node_tool` carries the one exception, reporting a write that landed while its
+read-back failed without the prefix, since the write needs no retry and only its confirmation is missing.
 
 ### System verification
 
@@ -189,7 +190,8 @@ Returns `{"status": "inactive"}` when no session exists. While a session object 
 ### GenICam configuration
 
 These tools are for Harvesters cameras only. They connect to the camera temporarily, perform the operation, and
-disconnect.
+disconnect. A camera that discards node state across a device close therefore serves its previous values to the next
+call and to the recording, so a setting that has to survive belongs in a camera UserSet.
 
 | Tool                       | Parameters                                                            | Purpose                                         |
 |----------------------------|-----------------------------------------------------------------------|-------------------------------------------------|
@@ -207,6 +209,9 @@ disconnect.
 **`write_genicam_node_tool` behavior:**
 - The `value` parameter is always a string, automatically coerced to the node's native type (int, float, bool,
   or enum string)
+- The tool reads the node back over the same connection and reports the value the camera holds beside the one
+  requested. A node that advertises ReadWrite access can still round the write to its step increment or reject it, so
+  the reported value is the one in force
 
 **`dump_genicam_config_tool` / `load_genicam_config_tool`:**
 - **Always ask the user** for the `output_file` or `config_file` path before calling these tools
@@ -252,6 +257,7 @@ when the write fails. Confirm `status` is `success` before running discovery aga
   `source_id`, and appends a new entry only when the manifest carries none for that ID
 - The write runs under a `.lock` file beside the manifest and aborts if the lock cannot be taken within 10 seconds
 - The `name` parameter must be a non-empty string (e.g., `"face_camera"`, `"body_camera"`)
+- The tool never creates the `log_directory`, so it tags a directory that already holds log archives
 
 ---
 
@@ -292,8 +298,9 @@ when the write fails. Confirm `status` is `success` before running discovery aga
 
 **Modify a single setting:**
 1. Call `read_genicam_node_tool` to check the current value and valid range/entries
-2. Call `write_genicam_node_tool` with the new value. Success returns `Node '{node_name}' set to {value}`
-3. Call `read_genicam_node_tool` again to confirm the change took effect
+2. Call `write_genicam_node_tool` with the new value. The response names the requested value and the value the camera
+   reports for the node on that same connection
+3. Call `read_genicam_node_tool` again to confirm the value survived the connection close
 
 Set `PixelFormat` to an 8-bit format (Mono8, BGR8, RGB8) before recording. The VideoSystem constructor grabs a probe
 frame and rejects the camera with a ValueError when the frames are not 8-bit, so a camera left on Mono12 or Mono16 fails
@@ -352,6 +359,7 @@ owns system ID allocation and the DataLogger topology that constrains it.
 | `start_video_session_tool` → error                   | Session already active                       | Call `stop_video_session_tool` first                                                                   |
 | `start_video_session_tool` → directory error         | Output directory does not exist              | Create the directory or provide a valid path                                                           |
 | GenICam tool errors                                  | Camera not Harvesters-compatible             | GenICam tools only work with Harvesters cameras                                                        |
+| GenICam error naming a discovered camera count       | `camera_index` names no discovered camera    | Re-run `list_cameras_tool` and use a reported index. A count of zero points at the Producer             |
 | GenICam error naming the interface as unsupported    | GenICam runtime absent                       | Host limitation, see the GenICam platform support section                                              |
 | Session start fails on frame data type               | Camera set to a wider-than-8-bit format      | Write `PixelFormat` to Mono8, BGR8, or RGB8                                                            |
 | `write_genicam_node_tool` fails                      | Node is read-only or value invalid           | Use `read_genicam_node_tool` to check access mode and range                                            |

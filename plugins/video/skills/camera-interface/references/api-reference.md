@@ -1,6 +1,6 @@
 # ataraxis-video-system API reference
 
-Complete API reference for ataraxis-video-system v5.0.0.
+Complete API reference for ataraxis-video-system v5.1.0.
 
 ---
 
@@ -447,7 +447,8 @@ def read_camera_configuration(
 
 Returns the camera identity and the current value of every writable node the blacklist retains. Opens and closes its
 own connection, so the GenTL handle is released before it returns. This is the root entry point for reading a camera's
-live GenICam state.
+live GenICam state. A `camera_index` outside the range the configured Producer discovers raises `IndexError`, naming the
+index and the discovered camera count.
 
 ### harvester_connection
 
@@ -456,9 +457,11 @@ live GenICam state.
 def harvester_connection(camera_index: int) -> Generator[HarvestersCamera, None, None]
 ```
 
-Yields a connected `HarvestersCamera` for the duration of the block and disconnects on exit. This is the sanctioned way
-to obtain the camera object the programmatic GenICam configuration methods above are called on. This function and
-`HarvestersCamera` are exported from `ataraxis_video_system.video` rather than from the library root.
+Yields a connected `HarvestersCamera` for the duration of the block and disconnects on exit, releasing the GenTL
+Producer even when the connection itself failed. A `camera_index` outside the range the configured Producer discovers
+raises `IndexError`, naming the index and the discovered camera count. This is the sanctioned way to obtain the camera
+object the programmatic GenICam configuration methods above are called on. This function and `HarvestersCamera` are
+exported from `ataraxis_video_system.video` rather than from the library root.
 
 ---
 

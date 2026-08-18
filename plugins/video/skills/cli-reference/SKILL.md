@@ -165,6 +165,10 @@ cannot be marked required on the group without also blocking `axvs configure SUB
 non-empty default, the CLI settles the conflict by consulting Click's parameter source rather than the parsed tuple, so
 the error fires only when the user actually named a GenICam node.
 
+A `-c` value naming no discovered camera also raises a Click usage error, on all four subcommands. The message names the
+requested index and the number of cameras the configured Producer discovers, so a count of zero points at the Producer
+rather than at the index.
+
 ### `axvs configure` subcommands
 
 | Command | Short | Long            | Type   | Default    | Form     | Effect                                                                  |
@@ -182,6 +186,18 @@ the error fires only when the user actually named a GenICam node.
 ---
 
 ## Command behavior and failure modes
+
+### `axvs configure write`
+
+Echoes `Node '{name}' written with {value}. The camera reports {observed} for it on this connection.` The command reads
+the node back over the connection it wrote on, because a node that advertises ReadWrite access can still round the write
+to its step increment or reject it. Which of the two a camera does is camera-specific, so a value violating the
+increment aborts with an error on one camera and lands rounded on another. A reported value differing from the requested
+one is therefore the value in force rather than a failure.
+
+Each subcommand opens and closes its own connection, so a camera that discards node state across a device close serves
+its previous values to the next command. See `/camera-setup` for the UserSet route a setting takes when it has to
+survive.
 
 ### `axvs cti set` and `axvs cti check`
 
