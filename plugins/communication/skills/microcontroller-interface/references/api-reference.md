@@ -508,7 +508,7 @@ These two never arrive as event codes. The firmware attaches them as the two-byt
 RECEPTION_ERROR (3) and TRANSMISSION_ERROR (4) message and every module TRANSMISSION_ERROR (1) message: byte 1 is the
 `Communication` status, byte 2 is the `TransportLayer` status.
 
-**axci 7.1.0 already decodes both bytes into the `RuntimeError` text it raises.** Read the raised message first. The two
+**axci 7.1.1 already decodes both bytes into the `RuntimeError` text it raises.** Read the raised message first. The two
 enumerations are the decoder for the other path: the raw pair the extraction pipeline writes undecoded into the `data`
 column of a processed kernel or module feather. Index byte 1 into `CommunicationStatusCodes` (51-62) and byte 2 into
 `TransportStatusCodes` (11-29), which mirrors the microcontroller's own TransportLayer rather than the PC's. For the

@@ -1,6 +1,6 @@
 # ataraxis-video-system API reference
 
-Complete API reference for ataraxis-video-system v5.1.0.
+Complete API reference for ataraxis-video-system v5.1.1.
 
 ---
 
