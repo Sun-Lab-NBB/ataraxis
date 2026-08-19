@@ -187,6 +187,24 @@ rather than at the index.
 
 ## Command behavior and failure modes
 
+### How a failure reaches the user
+
+Every one of the eleven leaf commands wraps its body in a decorator that catches whatever the body raises, reports it
+through the console at the ERROR level, and returns normally. The command therefore exits 0 on a body failure, and the
+user sees a single formatted ERROR line rather than a Python stack. The console writes to the standard error stream, so
+a user capturing standard output alone sees nothing. Read the message text to identify the fault, and never ask a user
+for an exit status as evidence that a command worked.
+
+A malformed invocation is the one failure that keeps its own contract, and it aborts at exit code 2 with a usage
+message wherever it is detected. That covers Click's own parameter validation, which runs before the body and rejects
+a missing required option, an unparseable value, and a `click.Path` constraint. It also covers a usage error raised
+inside a command body, such as the `axvs configure` camera index checks, because the decorator lets a Click exception
+pass through, and one raised in the `axvs configure` group callback, such as `-b` arriving together with
+`--no-blacklist`, which aborts before any subcommand runs.
+
+The exception each failure mode names below is the one the body raises, and it identifies the fault even though the
+user never sees the class name printed.
+
 ### `axvs configure write`
 
 Echoes `Node '{name}' written with {value}. The camera reports {observed} for it on this connection.` The command reads
@@ -265,16 +283,16 @@ Archive assembly runs in a `finally` block, so an ordinary interrupt still assem
 
 Runs one recording's jobs **sequentially in a plain loop**.
 
-| Condition                                  | Behavior                                                                                |
-|--------------------------------------------|-----------------------------------------------------------------------------------------|
-| No manifest, or no resolvable source       | `FileNotFoundError` naming the log directory. The recording resolved no job             |
-| Several manifests under `-ld`              | `ValueError`. Pass each DataLogger output directory on its own invocation               |
-| Manifest registers no source               | `ValueError`                                                                            |
-| A requested source or job ID unregistered  | `ValueError`                                                                            |
-| A source's archive absent or ambiguous     | `FileNotFoundError`                                                                     |
-| An archive resolves but cannot be read     | `FileNotFoundError` from the `-w -1` width resolution, before that job starts           |
-| Resolved archives span several directories | `ValueError` naming the one-directory-per-invocation rule                               |
-| A job raises mid-run                       | The tracker marks that job FAILED, the exception propagates, and later jobs never start |
+| Condition                                  | Behavior                                                                             |
+|--------------------------------------------|--------------------------------------------------------------------------------------|
+| No `camera_manifest.yaml` under `-ld`      | `FileNotFoundError` naming the log directory and the absent manifest                 |
+| Several manifests under `-ld`              | `ValueError`. Pass each DataLogger output directory on its own invocation            |
+| Manifest registers no source               | `ValueError`                                                                         |
+| A requested source or job ID unregistered  | `ValueError`                                                                         |
+| A source's archive absent or ambiguous     | `FileNotFoundError`                                                                  |
+| An archive resolves but cannot be read     | `FileNotFoundError` from the `-w -1` width resolution, before that job starts        |
+| Resolved archives span several directories | `ValueError` naming the one-directory-per-invocation rule                            |
+| A job raises mid-run                       | The tracker marks that job FAILED, the error is reported, and later jobs never start |
 
 That last row is the divergence that matters most. The MCP batch isolates a failure to its own job and carries the rest
 of the batch through, while the CLI abandons the remaining jobs at SCHEDULED. A user reporting "it stopped partway" has
