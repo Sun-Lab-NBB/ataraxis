@@ -145,12 +145,14 @@ extraction config, not against the archives on disk, so a missing sibling archiv
 ## Command behavior and failure modes
 
 Every command wraps its body in a decorator that catches whatever it raises, reports the message at the error level, and
-exits 0. A failing command therefore leaves the exit status at 0, so have the user read the printed output rather than
-branch a script on it. `axci mqtt` additionally catches the `ConnectionError` of an unreachable broker inside its own
-body. That catch prints a short remediation line instead of the client's full connection-failure text, and the raw
-exception names the host and port too. Click rejects a missing or malformed option before any body runs and exits 2, and
-a dependency that fails to import fails the `axci` entry point with a traceback before Click dispatches anything. The
-exception names in the tables below are what the bodies raise, and each reaches the user as that one error line.
+exits 0. A failing command therefore leaves the exit status at 0, so have the user read the reported message rather than
+branch a script on it. The console writes to the standard error stream, so a user capturing standard output alone sees
+nothing. `axci mqtt` additionally catches the `ConnectionError` of an unreachable broker inside its own body. That catch
+prints a short remediation line instead of the client's full connection-failure text, and the raw exception names the
+host and port too. A malformed invocation exits 2 instead, whether Click rejects the option before any body runs or a
+command body raises a usage error the decorator lets pass. A dependency that fails to import fails the `axci` entry
+point with a traceback before Click dispatches anything. The exception names in the tables below are what the bodies
+raise, and each reaches the user as that one error line.
 
 ### `axci id`
 
@@ -329,5 +331,5 @@ Handing a user a CLI command:
 - [ ] Printed the command for the user instead of running it
 - [ ] Warned about strict sourcing and the abort-on-first-failure loop before recommending `axci process`
 - [ ] Confirmed no MCP batch is holding the tracker for that output directory
-- [ ] Told the user to read the printed output, because a failed command still exits 0
+- [ ] Told the user to read the standard error stream, because a failed command still exits 0
 ```

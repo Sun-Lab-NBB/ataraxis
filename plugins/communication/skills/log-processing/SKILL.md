@@ -136,7 +136,7 @@ neither the output subdirectory nor the tracker.
 
 | Parameter            | Type                | Default | Description                                                                        |
 |----------------------|---------------------|---------|------------------------------------------------------------------------------------|
-| `jobs`               | `list[dict] / None` | `None`  | Descriptors from an earlier preparation. Leaving it unset reads those below.       |
+| `jobs`               | `list[dict] / None` | `None`  | Descriptors from an earlier preparation. Unset or empty reads those below.         |
 | `log_directories`    | `list[str] / None`  | `None`  | Absolute paths to the DataLogger output directories to prepare and dispatch.       |
 | `source_ids`         | `list[str] / None`  | `None`  | Controller IDs to dispatch. Unset or empty dispatches every configured controller. |
 | `output_directories` | `list[str] / None`  | `None`  | Absolute paths for per-directory output. Must match `log_directories` length.      |
@@ -147,7 +147,9 @@ neither the output subdirectory nor the tracker.
 **Prefer the prepare-and-dispatch form:** Naming `log_directories`, `output_directories`, and `config_path` rebuilds the
 manifest inside the tool and dispatches it, so a batch of any size starts without echoing a whole manifest back through
 the call. Preparation is idempotent, so the rebuild returns the jobs an earlier preparation already reported. Pass
-`jobs` instead when you filtered or reordered that manifest. Naming neither form returns "No work was named."
+`jobs` instead when you filtered or reordered that manifest. An empty `jobs` list reads as unset and takes the rebuild,
+so a caller that filtered every descriptor away names the descriptors it kept or names neither form deliberately.
+Naming neither form returns "No work was named."
 
 **Note:** Every descriptor passed as `jobs` must carry the nine keys the preparation emitted, `log_directory`,
 `archive_path`, `output_directory`, `config_path`, `tracker_path`, `job_name`, `job_id`, `source_id`, and
@@ -182,6 +184,10 @@ preparation, since it is the only place a rebuilt manifest reports them.
 When no descriptor survives validation the tool returns an error dictionary carrying `invalid_jobs` instead, and
 `started` is absent. A rebuild that fails outright, on a missing config path or a length mismatch, returns the
 preparation's own bare `{error}` dictionary and dispatches nothing.
+
+The two error dictionaries a rebuild can reach, the one refusing a live session and the one reporting that no job was
+valid, carry the same three preparation keys the dispatch response carries. Read them there too, since a rebuild that
+ends in an error accounts for its skipped sources and its failed directories nowhere else.
 
 ### Monitoring and management tools
 
