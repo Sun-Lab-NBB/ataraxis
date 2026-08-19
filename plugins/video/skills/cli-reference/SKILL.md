@@ -191,14 +191,16 @@ rather than at the index.
 
 Every one of the eleven leaf commands wraps its body in a decorator that catches whatever the body raises, reports it
 through the console at the ERROR level, and returns normally. The command therefore exits 0 on a body failure, and the
-user sees a single formatted ERROR line rather than a Python stack. Read the message text to identify the fault, and
-never ask a user for an exit status as evidence that a command worked.
+user sees a single formatted ERROR line rather than a Python stack. The console writes to the standard error stream, so
+a user capturing standard output alone sees nothing. Read the message text to identify the fault, and never ask a user
+for an exit status as evidence that a command worked.
 
-Click's own parameter validation runs before the body and keeps its own contract, so a missing required option, an
-unparseable value, and a `click.Path` constraint each abort at exit code 2 with a usage message. A usage error the body
-itself raises, such as the `axvs configure` camera index checks, travels the decorator's path instead and exits 0 like
-any other body failure. The `axvs configure` group callback carries no such decorator, so the usage error it raises
-when `-b` and `--no-blacklist` arrive together aborts at exit code 2 before any subcommand runs.
+A malformed invocation is the one failure that keeps its own contract, and it aborts at exit code 2 with a usage
+message wherever it is detected. That covers Click's own parameter validation, which runs before the body and rejects
+a missing required option, an unparseable value, and a `click.Path` constraint. It also covers a usage error raised
+inside a command body, such as the `axvs configure` camera index checks, because the decorator lets a Click exception
+pass through, and one raised in the `axvs configure` group callback, such as `-b` arriving together with
+`--no-blacklist`, which aborts before any subcommand runs.
 
 The exception each failure mode names below is the one the body raises, and it identifies the fault even though the
 user never sees the class name printed.
