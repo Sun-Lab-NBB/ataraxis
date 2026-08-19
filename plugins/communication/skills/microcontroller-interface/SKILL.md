@@ -75,7 +75,7 @@ Check the locally installed ataraxis-communication-interface version against the
 pip show ataraxis-communication-interface
 ```
 
-The current version is **7.1.0**. If a version mismatch exists, ask the user how to proceed.
+The current version is **7.1.1**. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
 
@@ -102,7 +102,7 @@ initialization timeout rather than as a configuration error, so suspect the baud
 per-environment rates live in `/microcontroller:firmware-module`, "Serial speed per board environment". If a project
 ships its own firmware `platformio.ini`, read that file instead of the library's.
 
-The two library versions are independent (axci 7.1.0 pairs with axmc 4.0.2), so they cannot be compared numerically.
+The two library versions are independent (axci 7.1.1 pairs with axmc 4.0.2), so they cannot be compared numerically.
 Record both, and treat an incompatible pair as the first suspect behind error code 5 (INVALID_MESSAGE_PROTOCOL), which
 surfaces at runtime rather than at build time. See `/microcontroller:firmware-module` for the firmware build.
 
@@ -459,7 +459,7 @@ advise. The convention is not enforced.
 
 ```text
 Microcontroller Interface, tool-settled (run `pip show ataraxis-communication-interface`):
-- [ ] Verified ataraxis-communication-interface version matches requirements (>=7.1.0)
+- [ ] Verified ataraxis-communication-interface version matches requirements (>=7.1.1)
 
 Microcontroller Interface, reader-judged:
 - [ ] Read the firmware's library.json and platformio.ini per Step 3, and set baudrate from the board's monitor_speed
