@@ -127,6 +127,15 @@ where it is lexically appropriate, such as introducing an explanation or list. A
 list marker, or a numeric range is not an em-dash and is fine. This rule governs prose only. Code stays exempt, so a
 statement-terminating `;`, a decrement `--`, or a `--flag` in a CLI reference is left as written.
 
+**Forward-reading clauses**: A clause resolves left to right, so the reader reaches its last word already knowing what
+the clause says. The default is one relative clause per noun, introduced by its own relative pronoun, with every
+preposition standing before the object it governs. A clause ending on a preposition strands that preposition's object
+earlier in the sentence, so write "every module that has a registered parser" rather than "every module the system
+registers a parser for". Two or more bare relative clauses stacked on one noun make the reader resolve nested
+subject-verb pairs before the head noun settles, so restore the relative pronoun or convert the inner clause into a
+participial phrase. Apply the one-pass test to every XML documentation comment: read the sentence once at speaking pace,
+and rewrite it when a second pass is needed to settle the noun that a verb or a preposition governs.
+
 **Positive description**: State what the code does and what is currently true. Do not define behavior by contrast with
 what it does not do ("does X, not Y", "works by X rather than Y"), and do not frame it against former behavior
 ("previously", "used to", "no longer"). The one exception is a contrast that is load-bearing because it corrects a

@@ -295,9 +295,10 @@ alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when the us
 The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that the report was
 filtered. LOW means the checklist and source mapping is inferred rather than literal, and it never excuses a finding
 from the verbatim checklist quote the Discipline section requires. Hold the report's own prose to the rules this audit
-enforces, keeping every sentence in an authored field under 40 words and separating its clauses with full stops and
-commas rather than semicolons or em-dashes. Fill each authored line to 120 characters before breaking, under the wrap
-width rule `/python-style` defines, so a line ending before column 100 while its next word fits is re-flowed.
+enforces, keeping every sentence in an authored field under 40 words, separating its clauses with full stops and commas
+rather than semicolons or em-dashes, and stranding no preposition at a clause end. Fill each authored line to 120
+characters before breaking, under the wrap width rule `/python-style` defines, so a line ending before column 100 while
+its next word fits is re-flowed.
 
 ---
 

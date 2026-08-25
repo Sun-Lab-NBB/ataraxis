@@ -86,6 +86,7 @@ respecting each language's idiomatic standards.
 - No example/code blocks in documentation (they go stale)
 - I/O operations separated from processing logic
 - Only full stops and commas separate clauses in documentation prose (no semicolons, no em-dashes)
+- Clauses read forward, with no preposition stranded at a clause end and no noun carrying stacked bare relatives
 - State what the code does and what is currently true, not what it is not or used to be (contrast only when
   load-bearing)
 
@@ -416,6 +417,8 @@ against the code you wrote.
 - [ ] No stale references in comments (closed issues, removed code, outdated TODOs)
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)
+- [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
+      bare relative clauses (the one-pass test)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Module docstring description is at most 2 sentences, with detail relocated into the members it documents
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])

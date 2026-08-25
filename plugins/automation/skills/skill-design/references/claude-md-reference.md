@@ -149,6 +149,8 @@ unchanged:
 - Prose punctuation and positive description. The full stop and the comma are the only clause separators, with no
   semicolon or em-dash. The single hyphen stays available as a list marker and in compound words, and the prose states
   what is currently true rather than what it is not or used to be
+- Forward-reading clauses. No clause ends on a preposition whose object appeared earlier, and no noun carries two or
+  more stacked bare relative clauses. Every sentence passes the one-pass test the skill file defines
 
 The CLAUDE.md verification checklist in `/skill-design` applies to `AGENTS.md` unchanged. The `@` import syntax and the
 `.claude/rules/*.md` files are Claude Code loading mechanisms, so a tool that reads `AGENTS.md` alone resolves neither,

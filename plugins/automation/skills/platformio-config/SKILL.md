@@ -212,6 +212,25 @@ reason. Sentences over 40 words must be broken into smaller sentences at natural
 sentence in a comment or a `description` field signals over-explanation. Every comment body and `description` field is
 free of typos and grammatical errors.
 
+### Forward-reading clauses
+
+A clause resolves left to right, so the reader reaches its last word already knowing what the clause says. The default
+is one relative clause per noun, introduced by its own relative pronoun, with every preposition standing before the
+object it governs. Two departures from that default are banned, because each one makes the reader hold the clause open
+and back-fill its grammar at the end.
+
+A clause ending on a preposition strands that preposition's object earlier in the sentence and sends the reader back to
+find it. Write "every module that has a registered parser" rather than "every module the system registers a parser
+for", and write "the cores each job occupies" rather than "the cores each job was admitted at".
+
+Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs before the head
+noun settles. Restore the relative pronoun, or convert the inner clause into a participial phrase. Write "one job for
+every module that the session used and that has a registered parser" rather than "one job per module the session
+configured and the system registers a parser for".
+
+**The one-pass test**: read the sentence once at speaking pace. A sentence needing a second pass to settle the noun that
+a verb or a preposition governs fails the test. Rewrite it by naming the actor, then the action, then the qualifier.
+
 ---
 
 ## The lib_deps <-> dependencies mirroring rule
@@ -325,5 +344,7 @@ wrote. Only parse validity, the library.json $schema, and what pio check and pio
       word would still fit
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)
+- [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
+      bare relative clauses (the one-pass test)
 - [ ] Prose states what the configuration does, not what it is not or used to be (contrast only when load-bearing)
 ```
