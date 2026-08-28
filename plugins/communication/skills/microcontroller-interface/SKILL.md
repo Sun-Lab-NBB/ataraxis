@@ -420,6 +420,7 @@ advise. The convention is not enforced.
 | Communication process fails to start    | Wrong port or baudrate                                  | Verify with `list_microcontrollers_tool` MCP tool                              |
 | Controller ID mismatch on start         | Firmware uses different ID                              | Match controller_id to firmware configuration                                  |
 | Module identification fails             | Module type/id mismatch                                 | Match ModuleInterface type/id to firmware modules                              |
+| Duplicate type + id reported on start   | Two firmware modules share one (type, id) pair          | Give each firmware module a unique pair, as the firmware itself does not check |
 | Process crashes on initialization       | DataLogger not started                                  | Start DataLogger before MicroControllerInterface initialization                |
 | Serial permission denied                | User not in dialout group                               | Add user to dialout group or run with sudo                                     |
 | Initialization timeout (>30s)           | Microcontroller not responding                          | Check serial connection, firmware loaded, correct port                         |
