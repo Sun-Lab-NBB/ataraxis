@@ -121,7 +121,12 @@ CustomModule(
 ```
 
 - `module_type` identifies the module family. All instances of the same class share this code.
-- `module_id` identifies the specific instance within the family. Must be unique per type.
+- `module_id` identifies the specific instance within the family. The `(module_type, module_id)` pair must be unique
+  across every module the Kernel manages. Nothing in the firmware checks this. Both codes are runtime constructor
+  arguments, so no `static_assert` can reach them, and `Kernel::Setup()` runs no duplicate scan. A repeat compiles and
+  boots, `Kernel::ResolveTargetModule` routes the shared address to whichever module comes first in `modules[]`, and
+  the companion interface reports the repeat during its connection handshake, which follows the controller's first
+  `Setup()` run.
 - `communication` is the shared Communication instance created before any modules.
 
 Also declare an overriding virtual destructor, `~CustomModule() override = default;`, because the Kernel manages modules
@@ -418,7 +423,9 @@ void loop()
 - Keepalive monitoring arms only once the PC sends its first keepalive command, and every `Setup()` run disarms it
   again, so the controller never times out before the PC starts pinging it
 - Module constructor arguments: `(module_type, module_id, communication)`
-- The `modules[]` array must contain at least one element (enforced by `static_assert`)
+- The `modules[]` array must contain at least one element (enforced by `static_assert`). That count is the only fact
+  about the array the compiler checks, because the Kernel receives type-erased `Module*` pointers. The uniqueness of
+  each `(module_type, module_id)` pair is verified by the PC interface at handshake time, not by the firmware
 - `Serial.begin()` baud rate must match both the target board environment's `monitor_speed` and the PC-side `baudrate`
   parameter, so keep it in a named constant rather than a literal
 - Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`. AVR boards have a fixed
@@ -489,6 +496,7 @@ Firmware Module, reader-judged:
 - [ ] Instantiation order: Communication -> Module(s) -> Kernel
 - [ ] Serial.begin() receives the monitor_speed of the board environment being built, held in a named constant
 - [ ] kKeepaliveInterval is either 0 by deliberate choice or a value inside the README band for the board's link
+- [ ] Every (module_type, module_id) pair in modules[] is unique, which no compiler or firmware check enforces
 - [ ] module_type and module_id match PC-side ModuleInterface values (see /communication:microcontroller-interface)
 - [ ] Command codes, event codes, parameter struct layout, and SendData() prototypes match PC-side counterpart
 ```

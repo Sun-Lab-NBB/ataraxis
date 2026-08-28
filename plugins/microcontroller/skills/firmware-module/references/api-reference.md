@@ -15,6 +15,12 @@ Module(const uint8_t module_type, const uint8_t module_id, Communication& commun
 |-----------------|------------------|----------------------------------------------------------------|
 | `module_type`   | `uint8_t`        | Family code (1-255). All instances of the same class share it. |
 | `module_id`     | `uint8_t`        | Instance code (1-255). Unique within the module type.          |
+
+The `(module_type, module_id)` pair must be unique across every module one Kernel manages. The firmware performs no
+check. Both codes arrive as runtime constructor arguments, so no `static_assert` can inspect them, and
+`Kernel::ResolveTargetModule` returns the first array element whose codes match, leaving a later duplicate unaddressed.
+The companion `ataraxis-communication-interface` raises on the repeat during its connection handshake, which follows
+the controller's first `Kernel::Setup()` run, so a duplicate reaches hardware setup before anything reports it.
 | `communication` | `Communication&` | Shared Communication instance for PC messaging.                |
 
 ---
