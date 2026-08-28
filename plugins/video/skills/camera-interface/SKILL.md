@@ -43,7 +43,7 @@ Check the locally installed ataraxis-video-system version against the latest rel
 pip show ataraxis-video-system
 ```
 
-The current version is **5.0.0**. If a version mismatch exists, ask the user how to proceed.
+The current version is **5.1.1**. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
 
@@ -321,7 +321,7 @@ or low-contrast scenes are cheap. A preset that works for a stationary camera ma
 
 ```text
 Camera Interface, tool-settled (run `pip show ataraxis-video-system` and the project's `tox -e lint`):
-- [ ] Verified ataraxis-video-system version matches requirements (>=5.0.0)
+- [ ] Verified ataraxis-video-system version matches requirements (>=5.1.1)
 - [ ] Comments and docstrings fill to 120 characters before wrapping, under the wrap-width rule /python-style defines
 
 Camera Interface, reader-judged:
