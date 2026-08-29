@@ -41,7 +41,10 @@ not include Examples sections or in-code examples in docstrings.
 ### Rules
 
 - **Punctuation**: Always use proper punctuation in all documentation.
-- **Third-person imperative mood**: Use verbs like "Computes...", "Defines...", "Configures..." for ALL members.
+- **Third-person imperative mood**: Use verbs like "Computes...", "Defines...", "Configures..." for every class,
+  method, and function. A constant, an attribute, a dataclass field, and an enum member take either that verb form
+  ("Stores the session duration.") or a noun phrase naming the value ("The session duration."), because a reader
+  already knows an attribute stores something. Keep one of the two forms across a file rather than mixing them.
 - **Boolean descriptions**: Use "Determines whether..." for boolean parameters. For properties that return a boolean,
   use "Returns..." (the property docstring convention supersedes the boolean convention).
 - **Parameters**: Start descriptions with uppercase. Don't repeat type info.

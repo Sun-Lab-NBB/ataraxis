@@ -32,7 +32,10 @@ static uint16_t previous_readout = 0;
 
 ### Rules
 
-- **Third-person imperative mood**: Use verbs like "Provides...", "Wraps...", "Monitors...", "Tracks..." for ALL members
+- **Third-person imperative mood**: Use verbs like "Provides...", "Wraps...", "Monitors...", "Tracks..." for every
+  class, method, and function. A constant, a data member, and an enum value take either that verb form ("Stores the
+  minimum packet size.") or a noun phrase naming the value ("The minimum packet size."), because a reader already
+  knows a constant stores something. Keep one of the two forms across a file rather than mixing them
 - **Boolean descriptions**: Use "Determines whether..." for boolean members
 - **`///` for inline**: Use single-line `///` for brief member docs (fields, constants, enum values)
 - **`/** ... */` for blocks**: Use multi-line blocks for classes, methods, and complex members

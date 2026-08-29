@@ -28,8 +28,10 @@ public class OccupancyZone : MonoBehaviour
 
 ### Rules
 
-- **Third-person imperative mood**: Use verbs like "Provides...", "Defines...", "Configures...", "Tracks..." for ALL
-  members
+- **Third-person imperative mood**: Use verbs like "Provides...", "Defines...", "Configures...", "Tracks..." for
+  every class and method. A constant, a field, a property, and an enum member take either that verb form ("Stores the
+  track length.") or a noun phrase naming the value ("The track length."), because a reader already knows a field
+  stores something. Keep one of the two forms across a file rather than mixing them
 - **Boolean descriptions**: Use "Determines whether..." for boolean fields and properties
 - **Single-line format**: Use single-line `<summary>` for most members
 - **Multi-line format**: Use multi-line `<summary>` only when the description exceeds 120 characters
