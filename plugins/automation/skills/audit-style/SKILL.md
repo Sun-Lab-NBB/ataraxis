@@ -160,17 +160,25 @@ time. Run them FIRST, read their output as findings, and spend the sweep on the 
 Run only the READ-ONLY forms. Bare `tox` and `tox -e lint` are FORBIDDEN during an audit, because the `lint` environment
 reformats the source, auto-fixes it, and purges its stubs, which mutates the very code under audit.
 
-| Tool                                                              | Read-only invocation                         |
-|-------------------------------------------------------------------|----------------------------------------------|
-| ruff lint rules, for Python files                                 | `ruff check --no-fix --output-format=json .` |
-| ruff formatting, for Python files                                 | `ruff format --diff .`                       |
-| mypy, where the project configures it                             | `mypy .`                                     |
-| clang-format, for C++ files                                       | `clang-format --dry-run --Werror <files>`    |
-| clang-tidy, on a PlatformIO project with `check_tool = clangtidy` | `pio check`                                  |
-| clang-tidy, on a non-PlatformIO project with a `.clang-tidy` file | `clang-tidy <files>`                         |
+| Tool                                                              | Read-only invocation                            |
+|-------------------------------------------------------------------|-------------------------------------------------|
+| ruff lint rules, for Python files                                 | `ruff check --no-fix --output-format=json .`    |
+| ruff formatting, for Python files                                 | `ruff format --diff .`                          |
+| mypy, where the project configures it                             | `mypy .`                                        |
+| clang-format, for C++ files                                       | `clang-format --dry-run --Werror <files>`       |
+| clang-tidy, on a PlatformIO project with `check_tool = clangtidy` | `pio check`                                     |
+| clang-tidy, on a non-PlatformIO project with a `.clang-tidy` file | `clang-tidy <files>`                            |
+| csharpier formatting, for C# files                                | `csharpier check .`                             |
+| the Roslyn compiler, on a Unity project                           | `dotnet <csc.dll> -target:library <refs> <src>` |
 
 On a PlatformIO project a bare `clang-tidy` invocation reports findings the source does not contain, under the rule
 `/cpp-style` owns.
+
+CSharpier formats and parses, and it resolves no symbol, so it reports no `CS0136`, `CS0122`, or `CS0117`. A formatter
+run is not a substitute for a compile, so a C# audit running csharpier alone reports a clean result over a broken build.
+Run the Roslyn compiler as well, one assembly per `.asmdef` in dependency order against Unity's own reference set,
+writing the outputs to a scratch directory outside the repository so no audited file changes. The Roslyn compile gate
+section of `/csharp-style` carries the reference set, the exclusions, and the define list.
 
 A tool the project does not configure is skipped, and its absence is no finding. Report a tool that failed to run as a
 gap in the coverage the report states rather than as a clean result.

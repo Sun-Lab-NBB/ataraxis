@@ -12,6 +12,8 @@ Based on `ataraxis-automation` and `ataraxis-base-utilities`.
 
 ```text
 project-root/
+├── .claude/                          # (optional) Claude Code assets, present when CLAUDE.md offloads its rules
+│   └── rules/                        # Topic-specific rule files, loaded alongside CLAUDE.md
 ├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
@@ -84,6 +86,8 @@ Based on `ataraxis-time`.
 
 ```text
 project-root/
+├── .claude/                          # (optional) Claude Code assets, present when CLAUDE.md offloads its rules
+│   └── rules/                        # Topic-specific rule files, loaded alongside CLAUDE.md
 ├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
@@ -163,6 +167,8 @@ Based on `ataraxis-transport-layer-mc`.
 
 ```text
 project-root/
+├── .claude/                          # (optional) Claude Code assets, present when CLAUDE.md offloads its rules
+│   └── rules/                        # Topic-specific rule files, loaded alongside CLAUDE.md
 ├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
@@ -220,6 +226,8 @@ Based on a microcontroller firmware project.
 
 ```text
 project-root/
+├── .claude/                          # (optional) Claude Code assets, present when CLAUDE.md offloads its rules
+│   └── rules/                        # Topic-specific rule files, loaded alongside CLAUDE.md
 ├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
@@ -269,6 +277,8 @@ Based on a Unity behavioral-task project.
 
 ```text
 project-root/
+├── .claude/                          # (optional) Claude Code assets, present when CLAUDE.md offloads its rules
+│   └── rules/                        # Topic-specific rule files, loaded alongside CLAUDE.md
 ├── .codegraph/                       # (optional) Generated code index, gitignored except its own .gitignore
 ├── .github/
 │   └── ISSUE_TEMPLATE/
