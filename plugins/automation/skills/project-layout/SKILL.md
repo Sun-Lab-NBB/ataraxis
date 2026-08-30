@@ -254,25 +254,44 @@ when creating or updating a repository.
 
 ### Corpus substitution rules
 
-`feature_request.yml` is identical in every repository, so copy it verbatim. `bug_report.yml` carries a single
-substitution, because the environment a maintainer needs to reproduce a bug differs by archetype. Replace the
-`{environment_example}` placeholder in the environment field with the lines matching the project's archetype:
+`feature_request.yml` is identical in every repository, so copy it verbatim. `bug_report.yml` carries one
+placeholder substitution and one archetype-conditional field pair, because the environment a maintainer needs and the
+path that reaches the failure both differ by archetype. Replace the `{environment_example}` placeholder in the
+environment field with the lines matching the project's archetype:
 
-| Archetype                           | Lines that replace `{environment_example}`                             |
-|-------------------------------------|------------------------------------------------------------------------|
-| Python-only                         | `OS: Ubuntu 24.04`, `Python: 3.13`                                     |
-| Python + C++ extension              | `OS: Ubuntu 24.04`, `Python: 3.13`, `CPU: AMD Ryzen 9 5900X`           |
-| C++ PlatformIO library and firmware | `OS: Ubuntu 24.04`, `PlatformIO: 6.1.15`, `Board: Teensy 4.1`          |
-| C# Unity                            | `OS: Windows 11`, `Unity: 6000.3.15f1`, `Platform: Windows Standalone` |
+| Archetype                           | Lines that replace `{environment_example}`                                  |
+|-------------------------------------|-----------------------------------------------------------------------------|
+| Python-only                         | `OS: Ubuntu 24.04`, `Python: 3.13`                                          |
+| Python + C++ extension              | `OS: Ubuntu 24.04`, `Python: 3.13`, `CPU: AMD Ryzen 9 5900X`                |
+| C++ PlatformIO library and firmware | `OS: Ubuntu 24.04`, `PlatformIO: 6.1.15`, `Board: Teensy 4.1`               |
+| C# Unity                            | `OS: Windows 11`, `Unity: <pinned version>`, `Platform: Windows Standalone` |
 
 A Python project whose subject is a physical device adds one more line naming that device, as `Hardware: Teensy 4.1`. A
 maintainer cannot reproduce a bug in code that drives hardware without knowing which hardware it drove. The condition is
 the project's subject rather than its dependency list, so a project that exists to talk to a microcontroller, a camera,
 or an instrument qualifies, and a project that merely runs on a host does not.
 
-Each comma-separated entry becomes its own line of the YAML block scalar, indented to match the asset. The example
-values are illustrative. They show the shape of a useful answer rather than the state of any one project, so the
-version and reproduction examples stay as the asset spells them.
+A C# Unity project states the Editor version its `ProjectSettings/ProjectVersion.txt` pins, because a Unity project
+opens only in the version that serialized it, and an illustrative version would send a reporter to an Editor the
+project rejects.
+
+Each comma-separated entry becomes its own line of the YAML block scalar, indented to match the asset. The remaining
+example values are illustrative. They show the shape of a useful answer rather than the state of any one project, so
+the release version example stays as the asset spells it.
+
+The reproduction and output fields the asset spells suit a project that a reporter installs into an environment and
+then calls. A C# Unity project is imported through Unity Hub and driven from the Editor, so it replaces the reproduction
+placeholder and the output description with the Unity path:
+
+```yaml
+      placeholder: |-
+        1. Import the project into Unity Hub and open the scene that exhibits the bug.
+        2. Run the Editor menu action or the MCP relay call that triggers the bug.
+        3. Observe the error reported in the Unity Console and copy it into the Output section.
+```
+
+That project's output description becomes `The complete Unity Console output and the Player log produced by the failing
+action.` Every other archetype leaves both fields as the asset spells them.
 
 `config.yml` carries a single substitution. Replace the `{project}` placeholder in the API documentation link with the
 site identifier the project's `.netlify-site` file holds, which is the address that actually serves its API
@@ -432,6 +451,9 @@ names and this skill's ownership boundary.
 - [ ] feature_request.yml copied verbatim from assets/github/
 - [ ] bug_report.yml {environment_example} placeholder replaced with the archetype's environment lines
 - [ ] Hardware line added to those environment lines only for a Python project whose subject is a physical device
+- [ ] C# Unity environment lines carry the Editor version ProjectSettings/ProjectVersion.txt pins
+- [ ] C# Unity reproduction steps and output description replaced with the Unity path, with every other archetype
+      leaving both fields as the asset spells them
 - [ ] config.yml {project} placeholder replaced with the repository name
 - [ ] config.yml otherwise unchanged from assets/github/, keeping blank_issues_enabled: false and the
       retained contact link destinations
