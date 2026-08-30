@@ -1,10 +1,10 @@
 ---
 name: commit
 description: >-
-  Stages all local changes and creates a style-compliant git commit, stopping before any push. Drafts the commit message
-  by analyzing all changes relative to the active branch, stages every change, and commits, leaving the push for the
-  user. Offers to commit proactively after completing substantial code changes. Use when the user asks to commit, when
-  completing a coding task that should be committed, or when the user invokes /commit.
+  Stages all local changes and creates style-compliant git commits, stopping before any push. Splits a change set
+  spanning several isolatable concerns into a chain of commits, one per concern, and creates a single commit when the
+  user asks for one. Offers to commit proactively after completing substantial code changes. Use when the user asks to
+  commit, when completing a coding task that should be committed, or when the user invokes /commit.
 user-invocable: true
 ---
 
@@ -18,6 +18,7 @@ Stages all local changes and creates a style-compliant commit, stopping before p
 
 **Covers:**
 - Analyzing local git changes (staged, unstaged, and untracked files)
+- Splitting a change set into a chain of commits, one per isolatable concern
 - Drafting commit messages that comply with conventions
 - Creating a working branch when committing from the default branch (with user confirmation)
 - Staging all changes and creating the commit
@@ -25,6 +26,7 @@ Stages all local changes and creates a style-compliant commit, stopping before p
 
 **Does not cover:**
 - Pushing to remote repositories (the user runs the push)
+- Rewriting commits already pushed to a remote, because the chain is built forward from the working tree
 - Creating pull requests (see `/pr`)
 - Drafting release notes (see `/release`)
 
@@ -59,22 +61,42 @@ Review every changed file and understand:
 
 Do NOT read files that are not part of the changes unless absolutely necessary to understand the purpose of a change.
 
-### Step 3: Draft the commit message
+### Step 3: Plan the chain
 
-Generate a commit message following the style rules below. This message will be applied to the commit created in the
-following steps.
+Split the change set into the commits it ships as, following the commit chains section below. A change set spanning
+several isolatable concerns becomes a chain, and a change set carrying one concern becomes one commit. An explicit
+instruction from the user settles the question before any of that, in either direction.
 
-### Step 4: Resolve the target branch
+Record the plan as an ordered list of commits, each naming its files and its message, before staging anything. Report
+the plan when it holds more than one commit, so the user sees the split before it lands.
+
+### Step 4: Draft the commit messages
+
+Generate one message per planned commit, following the style rules below.
+
+### Step 5: Resolve the target branch
 
 Using the branch information from Step 1:
 
 - If the active branch is NOT the default branch, commit onto the active branch as-is.
 - If the active branch IS the default branch, you MUST ask the user whether to create a new branch before committing.
   Recommend creating one (default to yes), but do NOT proceed until the user confirms. If they confirm, create and
-  switch to a descriptively named branch with `git switch -c <branch-name>` (e.g., `feature/...`, `bugfix/...`) derived
-  from the change. If they decline, commit directly onto the default branch.
+  switch to a branch named under the rules below with `git switch -c <branch-name>`. If they decline, commit directly
+  onto the default branch.
 
-### Step 5: Stage all changes
+**The branch name states the change, not the activity.** An audit, a review, a sweep, a cleanup pass, or the skill that
+ran is the activity, so `refactor/correctness-changes`, `bugfix/audit-findings`, and `refactor/style-cleanup` name none
+of the code they touch. The test is mechanical: read the name alone and ask which files it predicts. A name predicting
+no particular file is rewritten to name the surfaces the branch alters.
+
+An audit is the recurring offender, because a feature carries its own subject while an audit carries only its own name.
+Derive the subject from the files the change set touches rather than from the task that produced it. Build the name as
+`<type>/<subject>`, where the type is `feature`, `bugfix`, `refactor`, or `docs`, and the subject names the altered
+surfaces in two to five hyphenated words. Those four types are the whole set, so a name reaching for another one is
+rewritten to the closest of the four. When one audit produced fixes across several surfaces, name those surfaces, as in
+`bugfix/serial-timeout-and-retry-handling`. When they share no surface, name the subsystem holding them.
+
+### Step 6: Stage all changes
 
 Before staging anything, run `git status --porcelain -uall` and read every line marked `??`. The `-uall` flag matters,
 because the default output collapses an untracked directory into a single entry and never names the files inside it. An
@@ -86,10 +108,13 @@ all pass, so stage them. A file that fits no slot fails, and a stray file at the
 When one fails, STOP. Do not stage it, do not commit it, and do not add it to `.gitignore` on your own initiative.
 Report the file and ask what to do with it.
 
-Once every untracked file is accounted for, stage with `git add -A`, covering tracked modifications, deletions, and
-the untracked files that belong in the tree.
+The untracked audit above runs once over the whole change set, before the first commit, rather than once per chain
+member. Once every untracked file is accounted for, stage the plan's first commit. A single commit stages with
+`git add -A`, covering tracked modifications, deletions, and the untracked files that belong in the tree. A chain stages
+one commit at a time with `git add -- <paths>`, naming that commit's files alone, which stages that pathspec's
+deletions along with its edits. Read the staged set back with `git diff --cached --name-only` before committing.
 
-### Step 6: Create the commit
+### Step 7: Create the commits
 
 Commit the staged changes using the drafted message. To preserve exact formatting (including the blank line after the
 header and the `-- ` bullets), pass the message via standard input:
@@ -106,15 +131,67 @@ EOF
 For a single-line commit, include only the header line. NEVER append authorship, co-author, or attribution trailers to
 the commit message (see the content rules below).
 
-### Step 7: Hand off for push
+For a chain, repeat Step 6 and this step per planned commit, in the planned order. Once the chain is complete, verify it
+under the commit chains section below. `git status --porcelain` then prints nothing, because a leftover path means the
+plan assigned that path to no commit. The exception is a path that halted Step 6, which stays uncommitted by design.
 
-Do NOT push. Report the commit you created and surface the exact command the user can run when they decide to push:
+### Step 8: Hand off for push
+
+Do NOT push. Report every commit you created and surface the exact command the user can run when they decide to push:
 
 ```bash
 git push -u origin <branch-name>
 ```
 
 Stop there. Pushing is the supervising user's decision.
+
+---
+
+## Commit chains
+
+A change set spanning several isolatable concerns ships as a chain of commits, one per concern. An agent accumulates
+many edits inside one task, so the default for a broad change set is the chain rather than the single commit that
+bundles every edit behind one header.
+
+**The isolation test decides.** Cover a candidate commit and ask whether a reviewer accepts or reverts it alone, leaving
+the rest of the chain standing. When yes, it is its own commit. When reverting it forces the reverting of another
+candidate, the two are one commit. Apply the test to each candidate rather than to the change set as a whole.
+
+**The user overrides the default.** An explicit request for one commit produces one commit at any size, and an explicit
+request for a chain produces a chain at any size. Settle this before planning, and do not re-litigate a stated choice.
+
+### Grouping the commits
+
+Group by AREA, meaning the subsystem or directory the files belong to, rather than by change type. Change types such as
+a visibility narrowing, a diagnostic rewrite, and a documentation pass interleave INSIDE a single file, so no hunk
+boundary separates a moved method body from the documentation edits that body contains. An area slice takes whole files
+and stays reviewable, while a type slice on interleaved edits produces hunks that belong to no clean group.
+
+Group by change type only when each type occupies whole files that no other type touches.
+
+**Every commit is dependency-closed.** A commit carries the files it changes AND every file whose build depends on those
+changes, tests included. A narrowing that closes an access path travels with the callers it closes, and a declaration
+that grants access lands in or before the commit that relies on it. Order the chain so each commit builds on its own.
+
+### Verifying the chain
+
+The build gate is the command the project already uses to prove its sources build. A Python package runs its `tox`
+test environment, a PlatformIO project runs `pio check` and `pio test`, and a C# Unity project runs the Roslyn compile
+gate `/csharp-style` documents. Ask the user which command serves as the gate when the project names none, rather than
+inventing one.
+
+Run that gate at EVERY commit, rather than at the tip alone, because a chain that only builds at the end is a chain a
+bisect cannot walk. Check out each commit into a detached worktree with `git worktree add --detach <path> <sha>`, run
+the gate there, and remove the worktree. The working tree stays untouched throughout, so a failure costs a regrouping
+rather than a recovery.
+
+A commit failing the gate is not dependency-closed. Merge it into the adjacent commit supplying what it lacks and run
+the gate again. Report the failure and stop when no regrouping clears it.
+
+**State the verification level.** Report whether the chain is build-verified or test-verified, and never imply the
+stronger one. A chain whose every commit compiles is build-verified, and it stays merely build-verified when a commit
+carries a test assertion updated ahead of the source that assertion pins. Running a full suite per commit is what earns
+the test-verified claim.
 
 ---
 
@@ -258,6 +335,16 @@ Refactored skill architecture to support user-invocable skills.
 | `Fixed bug (Co-Authored-By: ...)` | `Fixed login validation error.`           | Authorship in message      |
 | `Fixed the audit findings`        | `Fixed various environment bugs.`         | Names activity, not change |
 
+Branch names carry the same rule, and an audit is where it breaks most often:
+
+| Wrong                          | Correct                                       | Issue                    |
+|--------------------------------|-----------------------------------------------|--------------------------|
+| `refactor/correctness-changes` | `bugfix/encoder-overflow-and-timeout-guards`  | Names the activity       |
+| `bugfix/audit-findings`        | `bugfix/pyproject-style-grayskull-references` | Names the activity       |
+| `refactor/cleanup`             | `refactor/plugin-export-surface-sync`         | Predicts no file         |
+| `bugfix/various-fixes`         | `bugfix/file-summary-length`                  | Bare outcome category    |
+| `refactor/style-audit-pass`    | `refactor/csharp-compile-gate-and-layout`     | Names the skill that ran |
+
 ---
 
 ## Related skills
@@ -304,9 +391,11 @@ Commit Message Compliance:
 - [ ] Multi-line bullets prefixed with `-- ` and each ends with a period
 - [ ] Every bullet occupies one line, so no line after the header begins with whitespace
 - [ ] Header names the change rather than the activity that produced it (no audit, review, or ticket)
+- [ ] Header names the change the commit itself carries, so no chain position and no running count appear
 - [ ] Contains NO authorship details, co-author tags, or attribution
 - [ ] Contains NO references to tools or AI unless explicitly requested by the user
 - [ ] Contains ONLY information about the changes themselves
+- [ ] Checked against this list once per commit, so a chain runs it for every message rather than once
 ```
 
 ### Commit execution
@@ -319,10 +408,21 @@ Commit Execution Compliance:
 - [ ] Reported nothing to commit and made no commit when `git status` showed no staged, unstaged, or untracked changes
 - [ ] Determined the active branch and the default branch
 - [ ] If on the default branch, asked the user before creating a new branch
+- [ ] Branch name states the changed surfaces rather than the activity that produced them, so it names no audit,
+      review, sweep, cleanup, or skill, and it predicts the files the branch touches
 - [ ] Every untracked file accounted for before staging, with any file occupying no archetype slot reported
       rather than staged
-- [ ] Staged ALL changes with `git add -A`
-- [ ] Created the commit with the drafted, style-compliant message
+- [ ] Chain planned before staging, with each commit passing the isolation test, or a single commit justified by
+      one concern or by an explicit user request
+- [ ] Chain plan reported to the user before staging whenever it holds more than one commit
+- [ ] Each commit dependency-closed, carrying every file whose build depends on its changes
+- [ ] Build gate identified from what the project already runs, or asked of the user when the project names none
+- [ ] Build gate run at EVERY commit in the chain through a detached worktree, not at the tip alone
+- [ ] `git log --oneline <branch-point>..HEAD` lists exactly the planned commits, in the planned order
+- [ ] Verification level reported as build-verified or test-verified, claiming the stronger one only when a full
+      suite ran per commit
+- [ ] Staged a single commit with `git add -A`, or each chain commit with `git add -- <paths>`
+- [ ] Created every commit with its drafted, style-compliant message
 - [ ] Did NOT push and did NOT offer to push automatically
 - [ ] Surfaced the ready-to-run `git push -u origin <branch>` command
 ```
