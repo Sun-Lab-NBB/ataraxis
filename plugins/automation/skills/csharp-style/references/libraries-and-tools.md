@@ -571,6 +571,35 @@ for style rules that CSharpier does not cover (naming, `var` preferences, expres
 The `.csharpierignore` file excludes Unity-generated directories (`Library/`, `Temp/`, `Logs/`) and third-party packages
 from formatting.
 
+### Roslyn compile gate
+
+CSharpier formats and parses, and it resolves no symbol, so it never reports `CS0136` (local shadowing), `CS0122`
+(inaccessible due to protection level), or `CS0117` (missing member). A formatter run is not a substitute for a compile,
+so compile every assembly before reporting a C# change as verified. Unity ships the compiler at
+`<Editor>/Unity.app/Contents/Resources/Scripting/DotNetSdkRoslyn/csc.dll`, and `dotnet` runs it with the Editor closed.
+
+Build the reference set from four sources, writing `<Scripting>` for `<Editor>/Unity.app/Contents/Resources/Scripting`:
+
+- The module assemblies under `<Scripting>/Managed/UnityEngine/`, EXCLUDING the monolithic `UnityEngine.dll` and
+  `UnityEditor.dll` facades in that same folder. Those two forward the module types, so a reference to both sides raises
+  `CS0433` on every shared type.
+- `<Scripting>/NetStandard/ref/2.1.0/netstandard.dll`, plus the `netstandard` and `netfx` shims under
+  `<Scripting>/NetStandard/compat/2.1.0/shims/`. The `netfx` shims are what let netstandard-profile code reference the
+  net40-built `nunit.framework.dll` the test assemblies compile against.
+- The package assemblies Unity already built, under the project's `Library/ScriptAssemblies/`.
+- The inlined third-party assemblies under `Assets/Plugins/`.
+
+Compile one assembly per `.asmdef` in dependency order, passing each earlier output as a `-r` reference:
+
+```bash
+dotnet "$CSC" -nologo -target:library -langversion:latest -nostdlib+ -noconfig \
+    -out:"$OUT/Project.Editor.dll" -define:"$DEFINES" "${REFS[@]}" -r:"$OUT/Project.Runtime.dll" $SOURCES
+```
+
+`$DEFINES` carries the symbols the sources read, such as `UNITY_EDITOR`, `UNITY_64`, and `UNITY_6000_0_OR_NEWER`, plus
+`UNITY_INCLUDE_TESTS` for the test assemblies. `$OUT` points outside the repository, so the gate leaves the working tree
+untouched. A nonzero exit status is a build break, so read the `error CS` lines and fix them before the change ships.
+
 ---
 
 ## Configuration files

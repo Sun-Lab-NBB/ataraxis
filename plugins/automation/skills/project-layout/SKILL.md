@@ -112,6 +112,7 @@ These files appear at the root of all (or most) projects:
 | `CLAUDE.md`      | Yes                                  | Claude Code project instructions                              |
 | `tox.ini`        | Python + C++                         | Automation orchestration (lint, type, test, docs)             |
 | `.netlify-site`  | Projects with a `deploy` environment | Netlify site identifier used by the `deploy` task             |
+| `.claude/`       | Optional                             | Modular rule files loaded alongside `CLAUDE.md`               |
 | `.codegraph/`    | Optional                             | CodeGraph index, present when the repository has been indexed |
 | `.gitattributes` | Optional                             | Line-ending normalization applied to every tracked text file  |
 
@@ -126,6 +127,10 @@ drops both. See `/tox-config` for the environment.
 The `.codegraph/` directory holds a generated code index. It is present only in repositories that have been indexed.
 Every file inside it is ignored by version control except its own `.gitignore`, which is tracked so that the exclusion
 travels with the repository.
+
+The `.claude/` directory holds the modular rule files a project moves out of `CLAUDE.md` to keep it under its length
+cap, and `/skill-design` owns their contents and their optional path frontmatter. A project whose `CLAUDE.md` carries
+every rule inline needs no such directory.
 
 The `.gitattributes` file holds a single `* text=auto` rule, which stores the line endings of every tracked text file as
 LF in the repository and converts them on checkout according to the platform's `core.eol` setting. The file is optional,
