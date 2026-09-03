@@ -208,7 +208,7 @@ the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`
 only where it is lexically appropriate. A single hyphen stays available as a list marker, in tables, and in compound
 words. State what the subject does and what is currently true. Do not frame it by what it is not or what it used to be,
 and keep a "not Y" contrast only when it is load-bearing because it corrects a counter-intuitive assumption, giving its
-reason. Sentences over 40 words must be broken into smaller sentences at natural clause boundaries, because a long
+reason. Sentences over 39 words must be broken into smaller sentences at natural clause boundaries, because a long
 sentence in a comment or a `description` field signals over-explanation. Every comment body and `description` field is
 free of typos and grammatical errors.
 
@@ -339,7 +339,7 @@ wrote. Only parse validity, the library.json $schema, and what pio check and pio
 - [ ] Inline comments aligned vertically within their section
 - [ ] Sentences in comments and description fields stay under 40 words
 - [ ] Comments and description fields free of typos and grammar errors
-- [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings, $schema) exempt
+- [ ] Lines stay within 120 characters, with unbreakable single values (URLs, requirement strings, $schema) exempt
 - [ ] Comments and descriptions fill each line to 120 characters, with no line ending before column 100 while its next
       word would still fit
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code

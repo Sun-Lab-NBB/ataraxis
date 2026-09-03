@@ -145,7 +145,7 @@ public class Task : MonoBehaviour { }
 
 | Wrong                                     | Correct                                 | Rule                         |
 |-------------------------------------------|-----------------------------------------|------------------------------|
-| Sentences over 40 words in prose          | Split into shorter sentences            | Sentence length cap          |
+| Sentences over 39 words in prose          | Split into shorter sentences            | Sentence length cap          |
 | XML doc length driven by method length    | Match length to conceptual difficulty   | Length proportionality       |
 | XML doc explains where it is called       | Describe what the member does           | Behavioral scope             |
 | `<param>` restates parameter type         | Describe semantics, not types           | No type-signature restating  |

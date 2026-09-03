@@ -80,7 +80,7 @@ function. That statement is warranted only when the expectation is genuinely cou
 convention, or is exceptional enough that the reader is lost without it. State the constraint and its reason in one
 sentence. An input that behaves the way a reader already expects needs no such note.
 
-**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be broken into smaller sentences
+**Sentence length**: Sentences over 39 words are difficult for humans to parse and must be broken into smaller sentences
 at natural clause boundaries. Long sentences in docstrings, comments, and inline annotations are a strong signal of
 over-explanation.
 

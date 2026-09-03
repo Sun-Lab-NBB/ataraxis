@@ -235,7 +235,7 @@ Walk every documentation block and check:
 3. Mood and person against the checklist's stated voice.
 4. Prose form against the checklist's structural rules, which covers prose against bullet lists and the specifier forms
    permitted in each context.
-5. Sentence length against the checklist's stated word limit, which is commonly 40 words.
+5. Sentence length against the checklist's stated word limit, which is commonly stated as under 40 words.
 6. Length proportionality, so the block's size tracks the difficulty of understanding the code rather than the length of
    the code.
 7. Redundancy, so the block avoids restating the type signature and avoids padding the reader can infer from the code
