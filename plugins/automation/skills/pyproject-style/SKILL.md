@@ -459,10 +459,14 @@ Tool Configurations:
 - [ ] MyPy: Standard exclusion list present
 - [ ] Pytest: Projects with a tests/ directory declare addopts = "--import-mode=importlib"
 - [ ] Pytest: pythonpath = ["."] present only where tests spawn subprocesses that import test modules
+- [ ] Pytest: markers registers xdist_group where the suite carries that marker
 - [ ] Coverage: paths, html, and report sections present
 - [ ] Coverage: branch = true present only where the suite already passes the 100% gate with it enabled
 - [ ] Coverage: Standard exclude_lines list present
-- [ ] Coverage: fail_under = 100 and show_missing = true set in [tool.coverage.report]
+- [ ] Coverage: show_missing = true set in [tool.coverage.report]
+- [ ] Coverage: [tool.coverage.report] declares no fail_under, which would gate every partial pytest --cov run
+- [ ] Coverage: disable_warnings = ["no-data-collected"] present where the test task passes -n logical or the run
+      section sets concurrency
 - [ ] Coverage: [tool.coverage.run] omit lists every interface module excluded from measurement in full
 - [ ] Coverage: omit patterns start with a wildcard so they match the src/ and site-packages copies
 - [ ] Coverage: [tool.coverage.paths] source lists src/ plus the POSIX and Windows site-packages layouts

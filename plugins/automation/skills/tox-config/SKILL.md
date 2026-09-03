@@ -204,10 +204,14 @@ tools instead.
 - Uses parameterized names: `{py312, py313, py314}-test`.
 - `package = wheel` forces a wheel build before testing.
 - `setenv = COVERAGE_FILE = reports{/}.coverage.{envname}` writes per-version coverage data.
-- Runs pytest with `--import-mode=importlib`, `--cov`, `--cov-config=pyproject.toml`, `-n logical`, `--dist loadgroup`.
+- Runs pytest with `--import-mode=importlib`, `--cov`, `--cov-config=pyproject.toml`, `--cov-fail-under=100`,
+  `-n logical`, `--dist loadgroup`.
 - `--cov` carries the package name as `--cov={package_name}`, or stays bare when `pyproject.toml` declares
   `source_pkgs` under `[tool.coverage.run]`, since a spawned worker reads the measured package from that file rather
   than from the command line.
+- `--cov-fail-under=100` applies the coverage gate. It is stated here rather than in `pyproject.toml`, because a
+  `fail_under` declared there also gates every ad hoc `pytest --cov` run a developer types against a subset of the
+  suite. See `/pyproject-style` for that mechanism and for the section the key stays out of.
 - `--dist loadgroup` routes every test carrying the same `@pytest.mark.xdist_group` marker to one worker. See
   `/python-style` for the marker and the cases that require it.
 - `--import-mode=importlib` matches the `addopts` declaration in `pyproject.toml`, so a bare `pytest` invocation
@@ -218,8 +222,11 @@ tools instead.
 - `skip_install = true`, since the environment needs the coverage tools alone.
 - `depends` MUST list the same Python version matrix as the test environment.
 - Merges junit XML reports, combines coverage data, generates XML and HTML reports, and applies the 100% coverage gate.
-- The `xml` and `html` commands pass `--fail-under=0` so both artifacts are always written, and the trailing `coverage
-  report` command applies the `fail_under = 100` gate declared in `pyproject.toml`.
+- Each reporting command states its own gate, since `pyproject.toml` declares none. The `xml` and `html` commands pass
+  `--fail-under=0` so both artifacts are always written, and the trailing `coverage report` command passes
+  `--fail-under=100`.
+- The `--fail-under=100` here and the `--cov-fail-under=100` on the `test` task MUST carry the same number, because a
+  project whose two gates differ passes one task and fails the other on identical coverage data.
 - The `xml`, `html`, and `report` commands each pass `--keep-combined`, so every command in the sequence receives the
   same set of per-version data files. See [environment-templates.md](references/environment-templates.md) for the
   retention mechanism, and `/pyproject-style` for the gate, the `omit` list, and the `[tool.coverage.paths]` mapping.
@@ -447,13 +454,16 @@ Test Environment:
 - [ ] Parameterized names match requires-python range
 - [ ] package = wheel is set
 - [ ] COVERAGE_FILE uses reports{/}.coverage.{envname}
-- [ ] pytest uses --import-mode=importlib, --cov, -n logical, --dist loadgroup
+- [ ] pytest uses --import-mode=importlib, --cov, --cov-fail-under=100 (or an environment-variable form defaulting to
+      100), -n logical, --dist loadgroup
 - [ ] --cov names the package, or stays bare when pyproject.toml declares source_pkgs under [tool.coverage.run]
 
 Coverage Environment:
 - [ ] depends matches the test environment Python version matrix
 - [ ] Merges junit XML, combines coverage, generates xml and html with --fail-under=0
-- [ ] A trailing coverage report command applies the 100% gate declared in pyproject.toml
+- [ ] A trailing coverage report command applies the gate with --fail-under=100, or with the same environment-variable
+      form the test task uses
+- [ ] The test task's --cov-fail-under and the coverage task's --fail-under carry the same number
 - [ ] The xml, html, and report commands each pass --keep-combined
 
 Docs Environment:

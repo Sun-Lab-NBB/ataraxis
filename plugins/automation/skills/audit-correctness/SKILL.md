@@ -92,8 +92,8 @@ filter removes the most candidates of any rule in the skill.
 
 **Coverage tier** records why a region escaped the test suite. The tiers are language-neutral, each language fills them
 from its own instrument, and [detection-passes.md](references/detection-passes.md) defines all four alongside the pass
-that consumes them. Read the project's actual `[tool.coverage.report] fail_under` and `[tool.coverage.run] branch`
-values in Step 1 rather than assuming either, because the `branch` value decides whether the T3 tier holds anything at
+that consumes them. Read the project's actual `[tool.coverage.run] branch` value and the gate its tox `coverage` task
+applies in Step 1 rather than assuming either, because the `branch` value decides whether the T3 tier holds anything at
 all. A C++ or C# target has no equivalent gate, so its tiers come from reading the test suite directly.
 
 **Severity** orders the report, and [finding-catalog.md](references/finding-catalog.md) defines its four levels
@@ -168,9 +168,9 @@ Record the prerequisites that apply to the languages in scope, before any verdic
 3. C++ only. The archetype of every C++ file, embedded (a `platformio.ini` at the project root) or extension (nanobind
    headers under a CMake build), plus the target boards, because `int` width and therefore every promotion result varies
    across them.
-4. Python only. The coverage settings, read from `pyproject.toml`. Record the `[tool.coverage.run] branch` value, which
-   decides whether T3 exists at all, the `[tool.coverage.report] fail_under` value, which some projects leave unset, and
-   the `[tool.coverage.run] omit` list, which enumerates the T0 modules.
+4. Python only. The coverage settings, read from `pyproject.toml` and `tox.ini`. Record the `[tool.coverage.run] branch`
+   value, which decides whether T3 exists at all, and the `[tool.coverage.run] omit` list, which enumerates the T0
+   modules. Record also the gate that the `coverage` task applies, since some hosts cannot execute every path.
 5. C# only. Whether the project is a Unity project, which decides whether the component lifecycle hazards of Pass 8
    apply, and where its test assemblies live.
 6. Every language. The test suite's location and shape, which supplies the Step 2 ranking wherever no coverage
@@ -219,9 +219,9 @@ root. Query an existing data file only through a non-mutating command:
 coverage report --data-file=reports/.coverage --show-missing --fail-under=0 --keep-combined
 ```
 
-Both flags are mandatory. The `fail_under = 100` gate fires on every rendering command, and a reporting command without
-`--keep-combined` deletes the per-version data files it combines, which would destroy the project's coverage data during
-a read-only audit.
+Both flags are mandatory. `--fail-under=0` suppresses whatever gate the project configures, so an audited project whose
+coverage has drifted still answers the query. A reporting command without `--keep-combined` deletes the per-version data
+files it combines, which would destroy the project's coverage data during a read-only audit.
 
 When the artifacts are absent or stale, ask the user before regenerating. On approval, run `tox -e <matrix-member>-test`
 and then `tox -e coverage`, in that order. Bare `tox` and `tox -e lint` are FORBIDDEN during an audit, because the
@@ -420,8 +420,8 @@ You MUST adhere to the following discipline during every audit.
 | `/python-style`         | Supplies the error-handling, None-check, and keyword-argument rules cited as authority |
 | `/cpp-style`            | Supplies the fixed-width type and per-archetype embedded rules cited as authority      |
 | `/csharp-style`         | Supplies the Unity lifecycle and null-handling rules cited as authority                |
-| `/tox-config`           | Defines the coverage environments and the commands this skill may run                  |
-| `/pyproject-style`      | Defines the coverage gate, the omit list, and the exclude corpus that set the tiers    |
+| `/tox-config`           | Defines the coverage environments, the gate they apply, and the commands this skill runs |
+| `/pyproject-style`      | Defines the omit list and the exclude corpus that set the tiers                        |
 | `/explore-dependencies` | Provides ataraxis API snapshots, invoke before judging any library call                |
 | `/explore-codebase`     | Provides project structure context, invoke first when auditing an unfamiliar codebase  |
 
@@ -448,8 +448,8 @@ You MUST verify the audit output against this checklist before presenting it to 
 ```text
 Code Correctness Audit Compliance:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
-- [ ] Step 1 prerequisites recorded for every language in scope, including the archetype, the actual test matrix, and
-      the branch and fail_under settings
+- [ ] Step 1 prerequisites recorded for every language in scope, including the archetype, the actual test matrix, the
+      branch setting, and the gate the coverage task applies
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
 - [ ] For Large tier, batched by authority with no language mixing, within 40 and 12 in flight, merging to fit
 - [ ] For Large tier, each sub-agent received only the ranking and ledger rows for its own batch

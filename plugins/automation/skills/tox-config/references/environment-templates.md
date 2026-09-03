@@ -177,8 +177,8 @@ setenv =
     # [testenv] setenv (tox does not merge).
     # UV_PRERELEASE = allow
 commands =
-    pytest --import-mode=importlib --cov={package_name} --cov-config=pyproject.toml \
-    --cov-report=xml --junitxml=reports/pytest.xml.{envname} -n logical --dist loadgroup
+    pytest --import-mode=importlib --cov={package_name} --cov-config=pyproject.toml --cov-report=xml \
+    --cov-fail-under=100 --junitxml=reports/pytest.xml.{envname} -n logical --dist loadgroup
 ```
 
 **Parameterization:**
@@ -187,6 +187,9 @@ commands =
 - `{package_name}` in `--cov`: The underscore-separated package name. A project that declares `source_pkgs` under
   `[tool.coverage.run]` in `pyproject.toml` passes a bare `--cov` instead. Spawned worker processes read the measured
   package from that config file rather than from the command line, so the name belongs in exactly one place.
+- `--cov-fail-under=100`: The coverage gate. It rides the command rather than `[tool.coverage.report]`, because a
+  `fail_under` declared there is ambient and gates every ad hoc `pytest --cov` run against a subset of the suite. See
+  `/pyproject-style` for the mechanism.
 - `package = wheel`: Forces the project to be built as a wheel before testing.
 - `--import-mode=importlib`: Matches the `addopts` declaration in `pyproject.toml`, so a bare `pytest` invocation
   resolves test modules the same way this task does. See `/pyproject-style` for that declaration.
@@ -194,12 +197,12 @@ commands =
 ### coverage environment
 
 ```ini
-# Note: the 'xml' and 'html' commands run with '--fail-under=0' so that both reports are always written, the html
-# report to the 'reports' directory and the xml report to the project root. The trailing 'report' command applies the
-# 100% coverage gate configured in the pyproject.toml file and prints the statements that remain uncovered. Every
-# reporting command also combines any data files it finds, so all of them run with '--keep-combined' to preserve the
-# per-version data files consumed by the 'combine' command. Without the flag, the first reporting command deletes those
-# files and the task only succeeds once per test run.
+# Note: each reporting command states its own gate, because the pyproject.toml file declares none. The 'xml' and 'html'
+# commands run with '--fail-under=0' so that both reports are always written, the html report to the 'reports'
+# directory and the xml report to the project root. The trailing 'report' command applies the 100% coverage gate and
+# prints the statements that remain uncovered. Every reporting command also combines any data files it finds, so all
+# of them run with '--keep-combined' to preserve the per-version data files consumed by the 'combine' command. Without
+# the flag, the first reporting command deletes those files and the task only succeeds once per test run.
 [testenv:coverage]
 skip_install = true
 description =
@@ -215,7 +218,7 @@ commands =
     coverage combine --keep
     coverage xml --fail-under=0 --keep-combined
     coverage html --fail-under=0 --keep-combined
-    coverage report --keep-combined
+    coverage report --fail-under=100 --keep-combined
 ```
 
 **Parameterization:**
@@ -223,9 +226,20 @@ commands =
 - `depends`: Must list the same Python version matrix as the test environment.
 
 **Coverage gate:** The `xml` and `html` commands pass `--fail-under=0` so both artifacts are always written, and the
-trailing `coverage report` command applies the gate. See `/pyproject-style` for the `fail_under` setting, the `omit`
-list that keeps interface modules out of the measured corpus, and the `# pragma: no cover` marker for individual
-unreachable statements.
+trailing `coverage report` command applies the gate with `--fail-under=100`. That number and the `--cov-fail-under=100`
+on the test command MUST carry the same value, because a project whose two gates differ passes one task and fails the
+other on identical coverage data. See `/pyproject-style` for the placement of the gate, the `omit` list that keeps
+interface modules out of the measured corpus, and the `# pragma: no cover` marker for individual unreachable
+statements.
+
+A project whose gate depends on the host states the number once as an environment variable that both commands read,
+rather than by lowering it in either place. `ataraxis-video-system` does this, because a host installing no GenICam
+runtime and carrying no NVENC device cannot execute the camera and encoder paths:
+
+```ini
+    pytest ... --cov-fail-under={env:AXVS_COVERAGE_MINIMUM:100} ...
+    coverage report --fail-under={env:AXVS_COVERAGE_MINIMUM:100} --keep-combined
+```
 
 **Data file retention:** `coverage combine --keep` writes the combined record while retaining the per-version data
 files. Each reporting command that follows performs its own implicit combine, so `xml`, `html`, and `report` all carry

@@ -27,7 +27,7 @@ inventory:
 prerequisites:
   archetype:        <full python | reduced python | cpp extension | cpp docs-only | unity>
   test_matrix:      <the tox envlist members, or N/A>
-  coverage:         {branch, fail_under, omit}          # Python targets
+  coverage:         {branch, omit, gate}                # Python targets, gate from the tox coverage task
   numpy_pin:        <version, and NEP 50 or legacy regime>   # Python targets
   numba:            <present or absent>                  # Python targets
   cpp_archetype:    <embedded or extension, plus target boards>
