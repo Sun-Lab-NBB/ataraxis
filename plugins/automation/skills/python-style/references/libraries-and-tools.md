@@ -199,6 +199,9 @@ Pass the group name through the `name` keyword, as with every other call. Group 
 declaring module, so tests in separate modules that contend for one resource carry the same name. `/tox-config` owns the
 `-n logical --dist loadgroup` flags themselves.
 
+`pyproject.toml` registers the marker under `[tool.pytest.ini_options] markers`, because pytest-xdist declares it only
+while the plugin is loaded. See `/pyproject-style` for that key.
+
 ---
 
 ## Linting and code quality

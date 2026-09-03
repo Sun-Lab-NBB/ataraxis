@@ -328,13 +328,25 @@ pythonpath = ["."]
 The src layout keeps this entry from shadowing the installed distribution the suite measures coverage against. Add it
 only for a project that spawns such workers, and state the reason in the comment above the section.
 
+A project whose tests carry `@pytest.mark.xdist_group` registers that marker, because pytest-xdist declares it only
+while the plugin is loaded:
+
+```toml
+markers = ["xdist_group(name): Routes every test carrying this name to a single pytest-xdist worker process."]
+```
+
+Without the key, a run that disables the plugin with `-p no:xdist`, or an environment installing pytest alone, emits
+one `PytestUnknownMarkWarning` per decorated test and a warnings summary listing every one of them. The tox `test`
+task loads the plugin and hides the whole block, so the warnings surface only in the ad hoc runs a developer types.
+Registering the marker costs one line and settles it for every invocation.
+
 ---
 
 ## Coverage configuration
 
-The test suite MUST cover 100% of the measured statements. The `[tool.coverage.report]` section declares that gate, and
-the `[tool.coverage.run]` section lists the files that stay outside the measured corpus. The `omit` entries are
-project-specific, and the remaining settings are shared:
+The test suite MUST cover 100% of the measured statements. The two tox commands that enforce that gate declare it, and
+the `[tool.coverage.run]` section lists the files that stay outside it. The `omit` entries are project-specific, and the
+remaining settings are shared:
 
 ```toml
 # Lists the source files excluded from coverage measurement in full. Interface modules, such as the CLI, are covered
@@ -362,9 +374,11 @@ source = [
 [tool.coverage.html]
 directory = "reports/coverage_html"
 
-# Specifies the coverage gate and additional ignore directives
+# Specifies the reporting settings and the ignore directives. The 100% gate is absent here and lives on the two tox
+# commands that enforce it, because pytest-cov adopts a 'fail_under' declared in this section whenever the command line
+# names no '--cov-fail-under' of its own. A partial run against a project declaring it here therefore reports a coverage
+# failure and exits non-zero even when every selected test passes.
 [tool.coverage.report]
-fail_under = 100     # Requires the test suite to cover every measured statement
 show_missing = true  # Lists the statements missed by the test suite, so a failed check names the lines to cover
 exclude_lines = [
     "pragma: no cover",
@@ -383,9 +397,26 @@ block. `'^\s*pass$'` is anchored so it matches a bare `pass` statement alone, wh
 `password`, `bypass`, and `passed`, silently dropping real statements from the measured corpus while the gate still
 reports success. Anchor any entry added to this list unless it is a comment directive such as `pragma: no cover`.
 
-`fail_under` applies to every command that renders a report, so `pytest --cov`, `coverage report`, `coverage xml`, and
-`coverage html` all fail once the measured total drops below 100. See `/tox-config` for the `coverage` environment
-command sequence that renders the artifacts and applies the gate.
+### Where the 100% gate lives
+
+`[tool.coverage.report]` declares no `fail_under`. The gate is stated by each command that enforces it, namely
+`--cov-fail-under=100` on the `test` task's pytest command and `--fail-under=100` on the `coverage` task's trailing
+`coverage report` command. See `/tox-config` for both.
+
+A `fail_under` declared in the configuration file is ambient, and that is the reason it stays out. It applies to every
+command that renders a report, so `coverage report`, `coverage xml`, and `coverage html` all fail once the measured
+total drops below 100. The pytest-cov plugin adopts it too, and when the command line names no `--cov-fail-under` it
+copies the configured value into its own gate. Every `pytest --cov` run a developer types against a subset of the suite
+then prints a red coverage failure and raises the exit code, although every selected test passed. A suite that cries
+wolf on each partial run trains its readers to ignore the one run where the gate means something.
+
+Stating the gate on the command keeps it exactly where the whole corpus is measured. An ad hoc `pytest --cov` run stays
+silent and exits on its test results alone, while both tox tasks fail on a genuine drop. The number appears twice in
+`tox.ini`, and the two occurrences MUST carry the same value, because a project whose two gates differ passes one task
+and fails the other on identical coverage data.
+
+A project that gates below 100% on some hosts states the exception once as a tox environment variable that both
+commands read, rather than by lowering the configured value. See `/tox-config` for that form.
 
 The `source` list in `[tool.coverage.paths]` carries one entry per virtual environment layout the project is tested on.
 POSIX hosts place installed packages under `lib/python*/site-packages/` and Windows hosts place them under
@@ -434,9 +465,28 @@ A project may also measure branch coverage, which reports a conditional or loop 
 branch = true
 ```
 
-`branch = true` raises what `fail_under = 100` demands, since a partial branch counts as a gap once the key is present.
-Add it to a project whose suite already passes with it, rather than to a project that would need new tests written to
+`branch = true` raises what the 100% gate demands, since a partial branch counts as a gap once the key is present. Add
+it to a project whose suite already passes with it, rather than to a project that would need new tests written to
 restore the gate.
+
+A project whose test task passes `-n logical` silences the warning an idle worker prints:
+
+```toml
+[tool.coverage.run]
+disable_warnings = ["no-data-collected"]
+```
+
+`-n logical` starts one pytest-xdist worker per logical core, so any run selecting fewer tests than the host has cores
+leaves workers idle, and a worker measuring nothing warns as it exits. A project whose `concurrency` includes
+`multiprocessing` reaches the same warning by a second route, because the measurement session each spawned child starts
+also has nothing to report when that child runs no library code. The warning goes to stderr rather than to the pytest
+warnings summary, so it interleaves with the progress output once per such worker or child. A full-core host therefore
+turns a small selection into dozens of lines. The `--cov-fail-under` gate the `test` task applies still catches a run
+that genuinely measures nothing, so the slug costs no coverage safety.
+
+The listed slug suppresses that one warning alone. Every other coverage warning still prints, `couldnt-parse` and
+`no-ctracer` among them, because each of those names a measurement the configuration or the environment got wrong
+rather than a worker that idled.
 
 ---
 

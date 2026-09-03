@@ -466,7 +466,8 @@ against the code you wrote.
 - [ ] pragma: no cover used only for unreachable guards, hardware paths, and platform branches in measured modules
 - [ ] Each pragma: no cover annotates the narrowest construct that covers the excluded code
 - [ ] Tests contending for a process-wide or on-disk resource carry @pytest.mark.xdist_group, and all
-      mutually contending tests share one group name (flags owned by /tox-config)
+      mutually contending tests share one group name, with pyproject.toml registering the marker
+      (flags owned by /tox-config)
 - [ ] Numba functions use cache=True
 - [ ] @staticmethod used when a method touches neither self nor cls, @classmethod when it touches cls alone
 - [ ] Decorator stacking order: @staticmethod/@classmethod, @njit, custom, @property
