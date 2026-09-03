@@ -175,7 +175,7 @@ These dependencies will be automatically resolved when the library is installed.
 The method will return a tuple of timestamps.
 ```
 
-**Sentence length**: Sentences over 40 words are difficult for humans to parse and must be broken into smaller sentences
+**Sentence length**: Sentences over 39 words are difficult for humans to parse and must be broken into smaller sentences
 at natural clause boundaries.
 
 **Wrap width**: Break a README line only where it would otherwise pass 120 characters, and fill each line to that limit
@@ -425,7 +425,7 @@ Style:
       syntax exempt)
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
-- [ ] README prose lines under 120 characters and filled to that limit rather than broken at a narrower width, with
+- [ ] README prose lines within 120 characters and filled to that limit rather than broken at a narrower width, with
       table rows, code blocks, and badge URLs exempt
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] README prose free of typos and grammar errors

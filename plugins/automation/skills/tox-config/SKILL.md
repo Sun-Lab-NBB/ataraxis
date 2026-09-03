@@ -328,7 +328,7 @@ currently stands, never the edit that produced it.
 A comment's claim must be true of the key it sits on as it currently reads, covering the value, the bound, and the
 effect tox actually produces. A comment naming a version, a bound, a path, or a coupled file is rewritten or deleted in
 the same edit that moves that value. A comment must not reference a removed key, section, or environment, a closed
-issue, a superseded tool version, or an outdated TODO. Sentences over 40 words are difficult to parse and MUST be broken
+issue, a superseded tool version, or an outdated TODO. Sentences over 39 words are difficult to parse and MUST be broken
 into smaller sentences at natural clause boundaries. Every comment and `description` field must be free of typos and
 grammatical errors. Every line stays under the **120 character limit**, matching the `line-length` the project sets for
 its Python code, with a single unbreakable value such as a URL or a requirement string exempt.
@@ -490,7 +490,7 @@ Formatting:
       versions, outdated TODOs)
 - [ ] Sentences in comments and description fields stay under 40 words
 - [ ] Comments and description fields free of typos and grammar errors
-- [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings) exempt
+- [ ] Lines stay within 120 characters, with unbreakable single values (URLs, requirement strings) exempt
 - [ ] Comments and descriptions fill each line to 120 characters, with no line ending before column 100 while its next
       word would still fit
 - [ ] Block comments above [tox] section

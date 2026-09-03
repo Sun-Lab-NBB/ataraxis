@@ -492,7 +492,7 @@ hand-checking them. They stay listed for reviews performed without the linter.
 - [ ] Functions and methods use snake_case (both public and private, the private ones underscore-prefixed)
 - [ ] Double quotes used for all strings (enforced by ruff)
 - [ ] F-strings used exclusively (no % formatting or .format())
-- [ ] Lines under 120 characters, with wrapped prose filled to that limit rather than broken at a narrower width
+- [ ] Lines within 120 characters, with wrapped prose filled to that limit rather than broken at a narrower width
 - [ ] 4-space indentation, no tabs
 - [ ] All imports at top of file (no deferred or inline imports)
 - [ ] Import sorting delegated to ruff (do not manually reorder)

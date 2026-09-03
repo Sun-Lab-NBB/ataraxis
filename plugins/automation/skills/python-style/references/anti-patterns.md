@@ -59,7 +59,7 @@ Transform code to match project style:
 
 | Anti-Pattern                                | Problem                        | Solution                                            |
 |---------------------------------------------|--------------------------------|-----------------------------------------------------|
-| Sentences over 40 words in prose            | Hard for humans to parse       | Split at clause boundaries into shorter sentences   |
+| Sentences over 39 words in prose            | Hard for humans to parse       | Split at clause boundaries into shorter sentences   |
 | Docstring length driven by function length  | Tracks size, not difficulty    | Match length to conceptual difficulty               |
 | Docstring explains where it is called       | Usage context goes stale       | Describe what the function does                     |
 | Docstring restates the type signature       | Redundant information          | Describe behavior, not types                        |

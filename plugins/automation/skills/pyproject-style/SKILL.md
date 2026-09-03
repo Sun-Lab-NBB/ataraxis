@@ -245,7 +245,7 @@ and keep a "not Y" contrast only when it is load-bearing because it corrects a c
 reason. This rule governs prose only. Code stays exempt, so a `;` in a PEP 508 dependency marker or a `--flag` in a CLI
 reference is left as written.
 
-Sentences over 40 words are difficult to parse and must be broken at natural clause boundaries, in block comments,
+Sentences over 39 words are difficult to parse and must be broken at natural clause boundaries, in block comments,
 inline comments, and the `description` field alike. Every block comment, inline comment, and `description` field must be
 free of typos and grammatical errors.
 
@@ -471,7 +471,7 @@ Tool Configurations:
 Formatting:
 - [ ] Block comments above section headers
 - [ ] Inline comments aligned within sections
-- [ ] Lines stay under 120 characters, with unbreakable single values (URLs, requirement strings, $schema) exempt
+- [ ] Lines stay within 120 characters, with unbreakable single values (URLs, requirement strings, $schema) exempt
 - [ ] Comments and descriptions fill each line to 120 characters, with no line ending before column 100 while its next
       word would still fit
 - [ ] Multi-line arrays with trailing commas

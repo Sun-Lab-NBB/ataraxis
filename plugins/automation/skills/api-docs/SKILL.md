@@ -237,7 +237,7 @@ uses only the full stop and the comma to separate clauses. Do not use a semicolo
 separator, and use a colon only where it is lexically appropriate. A single hyphen stays available as a list marker, in
 tables, and in compound words. State what the subject does and what is currently true. Do not frame it by what it is not
 or what it used to be, and keep a "not Y" contrast only when it is load-bearing because it corrects a counter-intuitive
-assumption, giving its reason. Sentences over 40 words are difficult for humans to parse and must be broken into smaller
+assumption, giving its reason. Sentences over 39 words are difficult for humans to parse and must be broken into smaller
 sentences at natural clause boundaries. Every hand-written sentence in `welcome.rst` and `index.rst` must also be free
 of typos and grammatical errors, while a defect in a generated page is fixed in the source docstring under the owning
 language style skill.
@@ -402,7 +402,7 @@ every one against the files you wrote.
       bare relative clauses (the one-pass test)
 - [ ] Prose states what the component does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Sentences in hand-written RST prose stay under 40 words
-- [ ] Hand-written RST lines under 120 characters, with wrapped prose filled to that limit rather than broken at a
+- [ ] Hand-written RST lines within 120 characters, with wrapped prose filled to that limit rather than broken at a
       narrower width
 - [ ] Hand-written RST prose free of typos and grammar errors
 - [ ] Hand-written RST image directives carry an :alt: option naming what the image shows, and link text names the

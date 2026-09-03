@@ -335,7 +335,7 @@ Use sentence case for all section headers ("Verification checklist", not "Verifi
 ### Content restraint
 
 The default for a rule is one sentence, and examples, tables, and motivation are earned rather than assumed. Sentences
-over 40 words are broken at a natural clause boundary, in SKILL.md, reference files, and CLAUDE.md alike. Cover each
+over 39 words are broken at a natural clause boundary, in SKILL.md, reference files, and CLAUDE.md alike. Cover each
 sentence and delete it when you are able to reconstruct it from the skill name, the section heading, and the rule it
 sits under. A section starts with its rule, so an opening sentence that announces the section or restates the
 frontmatter description is deleted. Every skill file, reference file, and CLAUDE.md is free of typos and grammatical
