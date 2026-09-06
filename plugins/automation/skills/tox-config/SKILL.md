@@ -240,10 +240,15 @@ tools instead.
 ### build
 
 - `skip_install = true`, since the build runs from source rather than from the installed package.
-- Standard projects: `python -m build . --sdist` + `python -m build . --wheel`.
-- C++ extension projects: `python -m build . --sdist` + `cibuildwheel --output-dir dist --platform auto`.
+- Standard projects: `uv build . --sdist` + `uv build . --wheel`.
+- C++ extension projects: `uv build . --sdist` + `cibuildwheel --output-dir dist --platform auto`.
+- `uv build` resolves the PEP 517 backend and creates the isolated environment that produces each distribution. The
+  stdlib `venv` module seeds such an environment through `ensurepip`, and that step fails on a Windows host running a
+  conda interpreter, because the symlinked environment reaches no working `ctypes` module.
+- `uv` reaches every utility environment through the `cibuildwheel[uv]` dependency of the pinned `ataraxis-automation`,
+  so the build environment carries no `uv` pin of its own.
 - `allowlist_externals = docker` belongs to the cibuildwheel build alone, which reaches docker to build the manylinux
-  wheels. A standard project's build calls no external tool and carries no such key.
+  wheels. A standard project's build reaches uv inside its own environment and carries no such key.
 
 ### upload and deploy
 
@@ -473,8 +478,9 @@ Docs Environment:
 - [ ] sphinx-build uses -j auto -v flags
 
 Build Environment:
-- [ ] Standard projects use python -m build for sdist and wheel
-- [ ] C++ extension projects use cibuildwheel for wheel
+- [ ] Standard projects use uv build for sdist and wheel
+- [ ] C++ extension projects use uv build for sdist and cibuildwheel for wheel
+- [ ] No environment invokes python -m build
 
 Upload and Deploy Environments:
 - [ ] upload runs acquire-pypi-token then upload-project, and deploy runs acquire-netlify-token then deploy-docs

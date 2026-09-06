@@ -19,13 +19,15 @@ named environment per OS (e.g., `axbu_dev_lin`, `axbu_dev_osx`, `axbu_dev_win`).
 - Removing, exporting, and importing environments
 - Passing the `--use-uv` flag to mamba for uv-accelerated operations
 
-### uv (package installation)
+### uv (package installation and distribution builds)
 
-uv replaces pip for all package installation operations. It is used in two contexts:
+uv replaces pip for all package installation operations. It is used in three contexts:
 - **Inside mamba environments**: `automation-cli` calls `uv pip install` to install all project dependencies (runtime +
   dev) from `pyproject.toml` into the mamba environment.
 - **Inside tox environments**: The `tox-uv` plugin makes tox use uv as its backend for creating isolated test
   environments, replacing pip with uv for speed.
+- **Building distributions**: The `build` environment calls `uv build`, which resolves the PEP 517 backend and creates
+  the isolated environment that produces each distribution.
 
 ### tox (task orchestration)
 
@@ -297,8 +299,8 @@ description =
 deps = ataraxis-automation=={version}
 commands =
     python -c "import shutil; shutil.rmtree('dist', ignore_errors=True)"
-    python -m build . --sdist
-    python -m build . --wheel
+    uv build . --sdist
+    uv build . --wheel
 ```
 
 **C++ extension projects** (cibuildwheel):
@@ -313,7 +315,7 @@ deps = ataraxis-automation=={version}
 allowlist_externals = docker
 commands =
     python -c "import shutil; shutil.rmtree('dist', ignore_errors=True)"
-    python -m build . --sdist
+    uv build . --sdist
     cibuildwheel --output-dir dist --platform auto
 ```
 
