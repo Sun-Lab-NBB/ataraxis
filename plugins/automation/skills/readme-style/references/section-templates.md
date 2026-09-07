@@ -208,8 +208,8 @@ dependencies.
 ## Installation
 
 Python libraries use two subsections: Source and pip. Short shell commands (such as `pip install PACKAGE-NAME`, `pip
-install .`, `tox -e lint`) should be inlined with backticks rather than placed in fenced code blocks. Reserve fenced
-code blocks for multi-line code samples such as Python usage examples.
+install .`, `tox -e lint`) should be inlined with backticks. Reserve fenced code blocks for multi-line code samples such
+as Python usage examples.
 
 ### Source subsection
 
@@ -367,9 +367,8 @@ Replace the URL with the actual documentation URL. Documentation links follow th
 
 The AI-Assisted Development section is an H3 under Developers by default, where it tells a contributor which plugin
 carries the project's agent assets. A project whose primary interface is an agent, meaning the documented path to using
-it runs through its MCP server and skills rather than through its Python API, promotes the section to H2 and places it
-immediately after API Documentation. Promotion moves the section to where a user reads rather than where a contributor
-reads, and the title stays `AI-Assisted Development` at either level.
+it runs through its MCP server and skills, promotes the section to H2 and places it immediately after API Documentation.
+Promotion moves the section to where a user reads, and the title stays `AI-Assisted Development` at either level.
 
 A promoted section carries what its readers need to start, which is the plugin name, the tools or skills the plugin
 exposes, and the client registration step. Keep the tool listing to a table and link the API documentation for

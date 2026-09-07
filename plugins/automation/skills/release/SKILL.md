@@ -65,8 +65,8 @@ Determine whether the project is an independent library or part of a unified, cr
 Infer the release type from the change set and recommend it to the user. You MUST ask the user to confirm the type
 before finalizing the notes. The user decides the type, so never decide it unilaterally.
 
-For C++ PlatformIO libraries the release version is single-sourced from `library.json` rather than pyproject.toml, which
-is where Python projects hold it. See `/platformio-config`.
+For C++ PlatformIO libraries the release version is single-sourced from `library.json`. Python projects hold it in
+`pyproject.toml`. See `/platformio-config`.
 
 | Type  | Use case                                                                                 |
 |-------|------------------------------------------------------------------------------------------|
@@ -123,6 +123,13 @@ code span, is not a clause separator and is left as written. State what the subj
 not frame it by what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing because
 it corrects a counter-intuitive assumption, giving its reason.
 
+The two-word phrase `rather` followed by `than` is FORBIDDEN in the release notes, in the header line and in every
+numbered item, with no exception and no load-bearing carve-out. It names an alternative the reader never proposed, and
+the sentence keeps its full meaning once the trailing clause is deleted, so delete the clause and state the positive
+claim alone. Substituting `instead of`, `as opposed to`, or `in place of` reproduces the same padding under a new
+spelling and is equally forbidden. Where the excluded option genuinely carries information, it earns its own sentence
+naming what it costs.
+
 ### Forward-reading clauses
 
 A clause resolves left to right, so the reader reaches its last word already knowing what the clause says. The default
@@ -131,13 +138,13 @@ object it governs. Two departures from that default are banned, because each one
 and back-fill its grammar at the end.
 
 A clause ending on a preposition strands that preposition's object earlier in the sentence and sends the reader back to
-find it. Write "every module that has a registered parser" rather than "every module the system registers a parser
-for", and write "the cores each job occupies" rather than "the cores each job was admitted at".
+find it. Write "every module that has a registered parser", not "every module the system registers a parser for", and
+write "the cores each job occupies", not "the cores each job was admitted at".
 
 Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs before the head
 noun settles. Restore the relative pronoun, or convert the inner clause into a participial phrase. Write "one job for
-every module that the session used and that has a registered parser" rather than "one job per module the session
-configured and the system registers a parser for".
+every module that the session used and that has a registered parser", not "one job per module the session configured and
+the system registers a parser for".
 
 **The one-pass test**: read the sentence once at speaking pace. A sentence needing a second pass to settle the noun that
 a verb or a preposition governs fails the test. Rewrite it by naming the actor, then the action, then the qualifier.
@@ -177,13 +184,13 @@ The release notes follow the content rules `/commit` defines for commit messages
 themselves, and `/commit` carries the forbidden-content list that applies here verbatim.
 
 **What and why, not how**: Each item states *what* the release changed and *why*, not *how*, and is specific and
-descriptive rather than vague like "Updated various modules".
+descriptive. An item as vague as "Updated various modules" tells a reader nothing about the release.
 
 **Sentence length**: Every sentence in a release note item stays under 40 words, broken at a natural clause boundary or
 split into two numbered items when it runs longer.
 
 **Typo-free and grammatical**: The release notes must be free of typos and grammatical errors, with every symbol name,
-file name, and version string verified against the diff or tag output rather than recalled from memory.
+file name, and version string verified against the diff or tag output.
 
 ---
 
@@ -221,16 +228,16 @@ Release Notes Compliance:
 - [ ] `**Major Changes:**` numbered list ordered from most to least impactful
 - [ ] Each item is past tense and ends with a period
 - [ ] Each item occupies one line, with no hand-wrapped continuation
-- [ ] Each item describes *what* changed and *why*, not *how*, and is specific rather than vague (not "Updated
-      various modules")
+- [ ] Each item describes *what* changed and *why*, not *how*, and is specific (not "Updated various modules")
 - [ ] Prose separators are full stops and commas only, no semicolons or em-dashes (colons, hyphen bullets, and code
       syntax exempt)
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
 - [ ] Prose states what the release does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] Release notes free of the phrase `rather` followed by `than` (forbidden with no exception)
 - [ ] Every sentence in the drafted text stays under 40 words
 - [ ] Free of typos and grammar errors, with every symbol name, file name, and version string verified against the diff
-      or tag output rather than recalled from memory
+      or tag output
 - [ ] Condenses many pull requests into a few impactful themes (does not list every pull request)
 - [ ] Does NOT include `## What's Changed` or `**Full Changelog**`
 - [ ] Enumerated changes since the previous release tag, reconciling merge and squash/rebase history against the

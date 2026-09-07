@@ -42,7 +42,7 @@ NUMERIC OR TEMPORAL CONSEQUENCE. A positional `dtype` argument keeps the width e
 style finding. An ABSENT `dtype` hands the width to NumPy and hides it from the source, so it belongs here. A construct
 that both skills can see enters this report only with a cited runtime consequence attached. A docstring, Doxygen block,
 or XML doc comment stating a dtype, a width, a unit, or a complexity the implementation does not deliver belongs to
-`/audit-facts`, because the fix edits the prose rather than the code.
+`/audit-facts`, because the fix edits the prose.
 
 ---
 
@@ -142,8 +142,7 @@ git ls-files '*.py' '*.pyi' '*.h' '*.hpp' '*.cpp' '*.cs'
 ```
 
 Generated and vendored files stay out of scope, which covers `.pyi` stubs, a virtual environment, site-packages, a tox
-working directory, a build directory, and a vendored third-party tree, each read as authority for a callee's cost rather
-than audited.
+working directory, a build directory, and a vendored third-party tree, each read as authority for a callee's cost.
 
 Whole-repository coverage is the default and stays the default. Narrow to a change set ONLY when the user asks for that
 in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a branch, `git diff --name-only <commit>`
@@ -160,8 +159,7 @@ Bind each file to the style skill that supplies its citable authority:
 | `*.cs`                  | `/csharp-style` |
 
 Record the prerequisites that apply to the languages in scope, before any verdict. A C++-only or C#-only target records
-only the last three, and a project carrying no `pyproject.toml` records the Python rows as N/A rather than treating
-their absence as a finding:
+only the last three, and a project carrying no `pyproject.toml` records the Python rows as N/A:
 
 1. Python only. The NumPy version pin from `pyproject.toml`. NumPy 2.0 and above applies NEP 50, and earlier versions
    apply value-based casting for scalars. A dtype verdict that omits its regime is unfalsifiable.
@@ -185,13 +183,12 @@ Classify the audit tier:
 | Medium | 2 to 9 files                       | Main agent, file-by-file                                |
 | Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
-A Large-tier audit BATCHES rather than fanning out per file. Every sub-agent re-receives the whole instruction payload,
-so fanning out per file pays that payload once per file and costs more than the sweep it parallelizes. Build the batches
-under two rules:
+A Large-tier audit BATCHES its files. Every sub-agent re-receives the whole instruction payload, so fanning out per file
+pays that payload once per file and costs more than the sweep it parallelizes. Build the batches under two rules:
 
 1. **One authority per batch.** Group by the style skill the binding table above assigned, so a batch holds Python files
-   or C++ files or C# files, never a mixture. A sub-agent then loads one authority rather than three, and Pass 2
-   dispatches to one width procedure rather than switching per file.
+   or C++ files or C# files, never a mixture. A sub-agent then loads one authority, and Pass 2 dispatches to one width
+   procedure for the whole batch.
 2. **Roughly eight files per batch**, sharing a package or a directory where the authority allows it. Forty sub-agents
    cap the run, twelve run at once, and batches beyond forty merge by authority.
 
@@ -201,8 +198,8 @@ Only the sweep passes fan out. Every other step runs on the main agent, because 
 guard application, the benchmark question, verification, and the report each need the whole-project view or sit on a
 trust boundary.
 
-Do NOT use the `Explore` agent type for sweep work. Explore returns summaries rather than verbatim citations and breaks
-the "verbatim quote" discipline.
+Do NOT use the `Explore` agent type for sweep work. Explore returns summaries and breaks the "verbatim quote"
+discipline.
 
 ### Step 2: Hot-path census
 
@@ -216,8 +213,8 @@ cross-file call-site evidence that establishes heat.
 ### Step 3: Run the sweep passes
 
 Run passes 2 through 9 from [detection-passes.md](references/detection-passes.md) in order, over ONE traversal of each
-file rather than one traversal per pass. Each pass asks one question of every line, and the file also holds the two
-named width procedures that Pass 2 dispatches to, DTYPE TRACE for Python and WIDTH TRACE for C++ and C#.
+file. Each pass asks one question of every line, and the file also holds the two named width procedures that Pass 2
+dispatches to, DTYPE TRACE for Python and WIDTH TRACE for C++ and C#.
 
 For every candidate, classify it against [finding-catalog.md](references/finding-catalog.md), which supplies each
 category's definition, mechanical detection procedure, required evidence, and impact guidance.
@@ -271,7 +268,7 @@ count the protocol names, because the Step 8 ledger and the report's triage head
 
 ### Step 8: Assemble the coverage ledger
 
-Build the ledger that opens the report. It records what was swept, so a thin pass is visible rather than silent:
+Build the ledger that opens the report. It records what was swept, so a thin pass is visible:
 
 ```text
 | Language | Files in scope | Files swept | Files skipped | Passes run                  |
@@ -280,9 +277,8 @@ Build the ledger that opens the report. It records what was swept, so a thin pas
 | C++      | 6              | 6           | 0             | 1-9, Pass 2 via WIDTH TRACE |
 ```
 
-Passes 1 and 3 through 8 apply to every language, so a row listing fewer than those has an unswept gap rather than an
-inapplicable pass. Pass 2 always runs and dispatches to DTYPE TRACE for Python and to WIDTH TRACE for C++ and C#, and
-Pass 9 runs over C++ and C# alone.
+Passes 1 and 3 through 8 apply to every language, so a row listing fewer than those has an unswept gap. Pass 2 always
+runs and dispatches to DTYPE TRACE for Python and to WIDTH TRACE for C++ and C#, and Pass 9 runs over C++ and C# alone.
 
 List every skipped file by path with its reason, and state the Large-tier batch count. Skipping is allowed only when the
 user narrowed the scope in Step 0 or Step 1, when a file is generated, or when a file is unreadable. A run narrowed to a
@@ -296,12 +292,11 @@ Report every surviving finding at every confidence tier by default, which covers
 the report to HIGH and MEDIUM only when the user explicitly asks for it via `--min-confidence medium` or equivalent
 invocation.
 
-The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that the report was
-filtered. LOW means the cost or multiplicity mapping is inferred rather than measured, and it never lowers the evidence
-floor. A candidate whose heat rests on speculation is still deleted by Guard 2 rather than demoted to LOW, and the
-aggregation rule in Guard 14 still collapses constant-factor micro-findings into one note per function. LOW findings sit
-in the trailing `Appendix: LOW confidence` section the protocol defines rather than interleaved into the file groups, so
-the body of the report reads at one confidence level.
+The confidence tier stays on every finding, so a reader triages by tier. LOW means the cost or multiplicity mapping is
+inferred, and it never lowers the evidence floor. A candidate whose heat rests on speculation is still deleted by Guard
+2 and never demoted to LOW, and the aggregation rule in Guard 14 still collapses constant-factor micro-findings into one
+note per function. LOW findings sit in the trailing `Appendix: LOW confidence` section the protocol defines, never
+interleaved into the file groups, so the body of the report reads at one confidence level.
 
 ---
 
@@ -349,18 +344,17 @@ Every finding uses the shape below, shared by all four audits in this family so 
 `<path>:<line>` · <category from the catalog> · <HIGH | MEDIUM | LOW> confidence · <STATIC | MEASUREMENT-PENDING>
 
 - **Wrong:** <the defect, carrying every quote and citation the evidence floor requires>
-- **Fix:** <the concrete change, described rather than applied>
+- **Fix:** <the concrete change, described and never applied>
 - **Impact:** <what the change alters for callers and downstream, or "None" when nothing observable changes>
 - **Choice:** <the options, one clause each, closing with a recommendation>
 ```
 
 **ID** is a short stable handle, `P1`, `P2`, and so on, numbered in report order, so a reader answers with the
-identifier rather than by restating the finding.
+identifier.
 
-**Wrong** carries the whole evidence load as prose rather than as labelled fields. It states the execution multiplicity
-with its bounding expression and the `<path>:<line>` that sets it, the current state quoted verbatim, and the cost
-arithmetic given for the current and the proposed form. A table, a ledger, or an interleaving sits directly beneath the
-bullet.
+**Wrong** carries the whole evidence load as prose. It states the execution multiplicity with its bounding expression
+and the `<path>:<line>` that sets it, the current state quoted verbatim, and the cost arithmetic given for the current
+and the proposed form. A table, a ledger, or an interleaving sits directly beneath the bullet.
 
 **Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
 behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
@@ -439,14 +433,14 @@ You MUST verify the audit output against this checklist before presenting it to 
 Performance Optimization Audit Compliance:
 - [ ] Step 0 plan produced and confirmed by user before sweep began
 - [ ] Step 1 prerequisites recorded for every language in scope, with the rows for absent languages marked N/A
-- [ ] Published surface recorded, with every symbol it exports marked PUBLIC_API and traced on per-call cost rather
-      than dropped for carrying no in-repo call site
+- [ ] Published surface recorded, with every symbol it exports marked PUBLIC_API and traced on per-call cost, never
+      dropped for carrying no in-repo call site
 - [ ] For Python in scope, the NumPy version pin recorded together with its promotion regime
 - [ ] Pass 2 dispatched to DTYPE TRACE for Python files and WIDTH TRACE for C++ and C# files
 - [ ] Scalar widths traced alongside array widths, including constants, reduction results, and extracted elements
 - [ ] Tier classified (small/medium/large) and agent allocation matched the table
 - [ ] For Large tier, files batched by authority with no batch mixing languages
-- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
+- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit with no file dropped
 - [ ] For Large tier, each sub-agent received its own batch's multiplicity rows and cross-file call sites
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] No finding filed against a stub, a generated file, a vendored tree, a virtual environment, site-packages, a tox
@@ -468,20 +462,20 @@ Performance Optimization Audit Compliance:
 - [ ] Micro-findings aggregated to at most one note per function
 - [ ] Repeated instances of one root cause collapsed with counts
 - [ ] Citation verification run against every finding, with each quote and each multiplicity source confirmed
-- [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
+- [ ] Every finding whose quote or line failed citation verification deleted and never repaired
 - [ ] Adversarial refutation run against every HIGH impact finding, in fresh sub-agents
 - [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
 - [ ] Triage header present, carrying the impact by confidence counts and every discard count
 - [ ] Coverage ledger present, with every skipped file listed by path and reason
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
-- [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
+- [ ] LOW confidence findings placed in the trailing appendix and never interleaved
 - [ ] No style, formatting, or convention findings appear (those belong to /audit-style)
 - [ ] No correctness or bug findings appear (those belong to /audit-correctness)
 - [ ] No documentation-side finding appears (a docstring, Doxygen, or XML doc claim the code contradicts belongs to
       /audit-facts)
 - [ ] No proposal violates a documented project convention without that conflict being stated
 - [ ] Findings ordered by impact, STATIC section before MEASUREMENT-PENDING section
-- [ ] Fix bullets are concrete code changes, described rather than applied
+- [ ] Fix bullets are concrete code changes, described and never applied
 - [ ] Every finding uses the shared shape, carrying a stable ID, a rank, a location line, and the Wrong, Fix, and
       Impact bullets
 - [ ] Every Impact bullet names what the fix alters for callers and downstream, or states None

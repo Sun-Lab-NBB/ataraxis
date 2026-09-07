@@ -2,7 +2,7 @@
 
 Annotated directory trees for each project archetype. A tree whose section heading names a canonical example repository
 is verified against that repository. The firmware and Unity headings name none, because no repository exemplifies either
-archetype in its modernized form yet, so those two trees state the target layout rather than a verified one.
+archetype in its modernized form yet, so those two trees state the target layout.
 
 ---
 
@@ -67,7 +67,7 @@ project-root/
 - The `tests/` directory mirrors the `src/package_name/` structure. Test files use the `_test.py` suffix (e.g.,
   `automation_test.py`).
 - Test-support modules under `tests/` hold the fixtures, builders, and fakes shared across test modules. Each one is
-  named for what it provides rather than with the `_test.py` suffix, which the rule above reserves for test modules,
+  named for what it provides, not with the `_test.py` suffix, which the rule above reserves for test modules,
   and `conftest.py` is the support module pytest discovers fixtures from automatically.
 - The `examples/` directory is optional and holds runnable scripts that demonstrate the public API for library
   consumers. It is source-distribution content. A project that also ships it in the wheel maps it to a

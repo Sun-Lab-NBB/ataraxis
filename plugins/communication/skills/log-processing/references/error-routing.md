@@ -22,10 +22,9 @@ three conditions raise instead of being recorded: the first two raise `ValueErro
 `FileNotFoundError`. A user reporting a hard CLI failure and an agent reporting a silent skip are looking at the same
 misconfiguration.
 
-**Note:** A sourcing problem belonging to the whole directory rather than to one controller is never a skip, and the
-Preparation errors table below carries each one with the remedy it takes. A tree holding no
-`microcontroller_manifest.yaml` is the one that reads most like a skip, since an absent manifest registers no controller
-at all, and it raises under both sourcing modes rather than being recorded.
+**Note:** A sourcing problem belonging to the whole directory is never a skip, and the Preparation errors table below
+carries each one with the remedy it takes. A tree holding no `microcontroller_manifest.yaml` is the one that reads most
+like a skip, since an absent manifest registers no controller at all, and it raises under both sourcing modes.
 
 ---
 
@@ -94,7 +93,7 @@ exactly what `validate_extraction_config_tool` reports, so running that tool bef
 
 The engine absorbs a bounded number of worker kills before it gives up on the batch. When it gives up, every unfinished
 job, running and queued alike, is marked `FAILED` with the same reason, so a whole batch failing at once with one shared
-`error_message` is an abandonment rather than many independent data faults.
+`error_message` is an abandonment.
 
 | `error_message` begins with                                                                                               | What happened                                                                                                                                                                        | Action                                                                                    |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|

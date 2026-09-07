@@ -8,7 +8,7 @@ against a reader who never saw the sweep. Re-reading your own reasoning is no su
 reasoning is the thing under test.
 
 A finding produced by a Step 3 deterministic gate skips both checks. The tool that produced it already is the external
-check, and it cites a rule code rather than a checklist quote.
+check, and it cites a rule code.
 
 ---
 
@@ -30,21 +30,19 @@ Runs against EVERY surviving sweep finding, with no sampling.
 Each finding carries two citations, and both are checked.
 
 **The checklist point.** Find the quoted rule in the loaded checklist or reference file the finding names and confirm it
-appears there character for character. Confirm the quote is the WHOLE rule rather than a clause of it, because a rule
-truncated before its exemption reverses its meaning.
+appears there character for character. Confirm the quote is the WHOLE rule, because a rule truncated before its
+exemption reverses its meaning.
 
 **The current state.** Open the cited `<path>` at the cited line range and confirm the Current state quote appears there
 character for character. For a collapsed finding carrying several line citations, check every line the finding lists.
 
 **The consumer set**, for a Pass 11 finding alone. Re-run the repository-wide search the finding names and confirm it
-returns what the finding says it returned. This citation is checked by RUNNING rather than by reading, because the claim
-is about the whole repository rather than about the cited line. A stale search is how a symbol that acquired a caller
-last week is reported as unused today.
+returns what the finding says it returned. This citation is checked by RUNNING the search, because the claim covers the
+whole repository. A stale search is how a symbol that acquired a caller last week is reported as unused today.
 
 Delete the finding when either quote fails to appear at its cited location. Repairing the citation is FORBIDDEN here. A
-citation that drifted is evidence that the finding was assembled from recollection rather than from the checklist, which
-makes the rule application resting on it unreliable for the same reason. A deleted finding is free to be re-derived from
-scratch in a later audit.
+citation that drifted is evidence that the finding was assembled from recollection, which makes the rule application
+resting on it unreliable for the same reason. A deleted finding is free to be re-derived from scratch in a later audit.
 
 Record the count of findings checked and the count deleted.
 
@@ -71,13 +69,13 @@ of these holds:
 - The construct sits in a generated block, a vendored tree, or a test file the configuration relaxes
 - For a CONFLICT, the two cited rules can both be satisfied at once
 - For a symbol usage finding, a consumer exists that the stated consumer evidence missed. Search the
-  repository yourself rather than trusting the finding's search, and treat a runtime registration, an
-  interface the symbol implements, and an entry in the top-level `__all__` as consumers
+  repository yourself, and treat a runtime registration, an interface the symbol implements, and an
+  entry in the top-level `__all__` as consumers
 Return CONFIRMED only after reading the full rule including its exemptions and confirming the cited
 line breaks it. Answer REFUTED whenever you are uncertain.
 ```
 
-Discard every refuted finding. A refuted BLOCKING finding is discarded rather than demoted to STANDARD, because the
+Discard every refuted finding. A refuted BLOCKING finding is discarded and never demoted to STANDARD, because the
 refutation attacked whether the rule applies at all. Record the counts of findings put through this check, confirmed,
 and refuted.
 
@@ -112,7 +110,7 @@ stage, and stating the numbers is what lets a reader tell those apart.
 
 ## The coverage ledger
 
-The ledger follows the triage header and records what was audited, so a thin pass is visible rather than silent:
+The ledger follows the triage header and records what was audited, so a thin pass is visible:
 
 ```text
 | Binding        | Files in scope | Files audited | Files skipped |
@@ -140,9 +138,9 @@ from an unrun pass.
 
 Every file in scope is either audited or recorded as skipped by path. Sum the `Files audited` and `Files skipped`
 columns for each binding and compare the total against `Files in scope`. Any residue names files the sweep never read
-and never recorded, which is a coverage gap rather than a permitted skip. Skipping is permitted only for a file the
-user's narrowing removed from scope, a file matching no binding row, a generated or vendored file Guard 5 removes, or a
-file that cannot be read. A skip with no stated reason fails this check.
+and never recorded, which is a coverage gap. Skipping is permitted only for a file the user's narrowing removed from
+scope, a file matching no binding row, a generated or vendored file Guard 5 removes, or a file that cannot be read. A
+skip with no stated reason fails this check.
 
 ---
 
@@ -152,18 +150,18 @@ HIGH and MEDIUM confidence findings occupy the body of the report, grouped file,
 ordered BLOCKING, INCONSISTENCY, CONFLICT, STANDARD.
 
 LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered by the same severity
-sequence, rather than interleaved into the file groups. Every finding there still carries its verbatim checklist quote
-and still passed every guard and both checks above. The appendix exists so the body of the report reads at one
-confidence level, and so a reader who wants only the settled findings knows where to stop.
+sequence and never interleaved into the file groups. Every finding there still carries its verbatim checklist quote and
+still passed every guard and both checks above. The appendix exists so the body of the report reads at one confidence
+level, and so a reader who wants only the settled findings knows where to stop.
 
 ---
 
 ## Report prose
 
 The report's own prose obeys the documentation-quality rules this audit enforces on everyone else. Keep every sentence
-in a Wrong, Fix, Impact, or Choice bullet under 40 words. Separate clauses with full stops and commas rather than with
-semicolons or em-dashes, and state what the fix does rather than what the code fails to do. Verbatim quotes, tool rule
-codes, and cost arithmetic are exempt, because they are copied rather than written.
+in a Wrong, Fix, Impact, or Choice bullet under 40 words. Separate clauses with full stops and commas and never with
+semicolons or em-dashes, and state what the fix does. Verbatim quotes, tool rule codes, and cost arithmetic are exempt,
+because they are copied.
 
 Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
 line ending before column 100 while its next word would still fit is re-flowed. A line ending early because the sentence

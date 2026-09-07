@@ -110,13 +110,12 @@ failed_directories:      Present only when a directory's preparation raised. Ent
 
 The two failure keys separate two different faults. `invalid_paths` holds a bare path string for a name that is not a
 directory on this host, which is a typo or a wrong mount. `failed_directories` holds a real directory whose preparation
-raised, as an entry pairing the `log_directory` with the `error` the library reported, so read that message rather than
-inferring the cause from the path.
+raised, as an entry pairing the `log_directory` with the `error` the library reported, so read that message.
 
 A directory whose tree holds no `camera_manifest.yaml`, holds several of them, or whose resolved archives span several
 parent directories reaches `failed_directories`. A tree holding no manifest registers no source at all, so either its
-archives came from another library or the recording was logged without one. Pass each DataLogger output directory as
-its own entry rather than a parent grouping several of them.
+archives came from another library or the recording was logged without one. Pass each DataLogger output directory as its
+own entry.
 
 Read `failed_directories` on every call whatever `success` reports. A run that prepared some directories while others
 failed still reads True, so the flag alone never establishes that every named directory was prepared. `success` reads
@@ -182,8 +181,8 @@ pending job(s). No job was still running.`, and a call made with jobs still in f
 pending job(s). {m} job(s) still completing. Poll get_log_processing_status_tool until 'active' reads false before
 starting another execution.` Only the first of the two waits, for at most 30 seconds, so `session_ended` can read false
 beside `No job was still running.` when the manager thread is inside a pool warm-up, a rebuild, or the pool shutdown.
-Cancellation clears the pending queue alone, so read `session_ended` rather than the message, and poll
-`get_log_processing_status_tool` only while it reads false.
+Cancellation clears the pending queue alone, so read `session_ended`, and poll `get_log_processing_status_tool` only
+while it reads false.
 
 Every call made without a live session, including one made after the batch ran to completion, returns
 `{"canceled": false, "session_ended": true, "message": "No execution session is active."}` with no `final_state`.
@@ -222,9 +221,9 @@ Returns a `results` list with per-directory outcomes plus `total_cleaned` and `t
 Each `results` entry carries `output_directory` and a `cleaned` flag. A successful delete adds `timestamps_path`. A
 directory that had no `camera_timestamps/` to remove adds `message: "Nothing to clean."` and still reports
 `cleaned: true`. An output directory that is absent or is not a directory reports `error` alone with `cleaned: false`,
-while a failed delete reports both `timestamps_path` and `error`. Because `total_cleaned` counts the flag rather than
-actual deletions, a run over wrong paths can still report every directory cleaned. Confirm each entry carries a
-`timestamps_path` before reporting a full reset.
+while a failed delete reports both `timestamps_path` and `error`. Because `total_cleaned` counts the flag, a run over
+wrong paths can still report every directory cleaned. Confirm each entry carries a `timestamps_path` before reporting a
+full reset.
 
 ---
 
@@ -273,12 +272,11 @@ The processing workflow uses a **prepare-then-execute** model:
 4. **Confirm output directories**: Ask the user for the output directory paths, one per log directory. You MUST
    confirm before proceeding.
 
-5. **Prepare batch**: Call `prepare_log_processing_batch_tool` with the confirmed log directories,
-   source IDs, and output directories. All three parameters are required. Reconcile the result against the
-   directories you asked for before continuing. A directory missing from `log_directories` sits under
-   `invalid_paths` or `failed_directories`, and a confirmed source that produced no job sits under its
-   directory's `skipped_sources`. Report every one of them to the user rather than executing a shortened batch
-   silently.
+5. **Prepare batch**: Call `prepare_log_processing_batch_tool` with the confirmed log directories, source IDs, and
+   output directories. All three parameters are required. Reconcile the result against the directories you asked for
+   before continuing. A directory missing from `log_directories` sits under `invalid_paths` or `failed_directories`, and
+   a confirmed source that produced no job sits under its directory's `skipped_sources`. Report every one of them to the
+   user.
 
 6. **Confirm resource allocation**: Present both defaults, `core_budget=-1` and `memory_budget_mb=-1`, and ask whether
    the user wants to override either. The Resource management section covers what each budget bounds.
@@ -301,8 +299,8 @@ The processing workflow uses a **prepare-then-execute** model:
 
 Every job is sized by the library, never by the agent. Preparation reads each archive's zip directory once and stamps
 the resulting figures onto the job descriptor, and execution resolves the session budgets and reports what it allocated.
-Read those figures from the assets below rather than recomputing them, because the sizing model is tuned per release and
-any formula reproduced in this skill would drift out of agreement with the library running the batch.
+Read those figures from the assets below, because the sizing model is tuned per release and any formula reproduced in
+this skill would drift out of agreement with the library running the batch.
 
 | Asset                                             | Reports                                                                          |
 |---------------------------------------------------|----------------------------------------------------------------------------------|
@@ -363,8 +361,8 @@ include an `executor_id`.
 
 A per-job entry reports a fifth status, `UNKNOWN`, when its tracker cannot be read or when the tracker holds no entry
 for the job. An `UNKNOWN` job is counted in none of the `summary` status counts while still counting toward
-`summary.total`, so the four counts can sum below the total. Treat such a job as unresolved rather than complete, and
-re-prepare the batch to regenerate the tracker.
+`summary.total`, so the four counts can sum below the total. Treat such a job as unresolved, and re-prepare the batch to
+regenerate the tracker.
 
 When presenting batch status to the user, format as a table:
 

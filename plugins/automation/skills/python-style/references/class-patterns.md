@@ -40,7 +40,7 @@ A leading underscore marks a symbol private to the **module** that defines it. T
 constants, class attributes, and methods.
 
 Every symbol sits in exactly one of three tiers, and the tier is decided by the widest boundary the symbol's consumers
-actually cross rather than by the visibility its author intended:
+actually cross:
 
 | Widest consumer                    | Name          | Listed in the package `__init__.py` |
 |------------------------------------|---------------|-------------------------------------|
@@ -49,9 +49,8 @@ actually cross rather than by the visibility its author intended:
 | Another package                    | public        | Yes                                 |
 
 The name a symbol carries MATCHES its tier in both directions. Any symbol referenced from another module MUST carry a
-public name, so a helper that acquires a caller in a second module is renamed rather than imported with its underscore
-intact. Any symbol referenced only inside the module that defines it MUST carry the underscore, so a public name is
-earned by a real cross-module consumer rather than granted by default:
+public name, so a helper that acquires a caller in a second module is renamed. Any symbol referenced only inside the
+module that defines it MUST carry the underscore, so a public name is earned by a real cross-module consumer:
 
 ```python
 # Good - the helper is referenced from another module, so it carries a public name
@@ -83,9 +82,8 @@ reason: the reader meets the interface before the helpers that support it. A pri
 public member of its class, even when only one public member calls it. Within the public group and within the private
 group, order members by call hierarchy or group them by purpose.
 
-Dunder methods are the one exception to visibility ordering. Their leading underscores mark a language protocol rather
-than private visibility, so they stay at the top of the class body where readers expect to find construction and
-representation.
+Dunder methods are the one exception to visibility ordering. Their leading underscores mark a language protocol, so they
+stay at the top of the class body where readers expect to find construction and representation.
 
 ```python
 class ArchiveReader:
@@ -587,16 +585,14 @@ __all__ = [
   rule, and the two paragraphs below state the exporting half
 
 Any symbol consumed outside the (sub)package that defines it MUST be re-exported from that package's `__init__.py`,
-added to both the import list and `__all__`, and imported through the package namespace rather than through the
-submodule that declares it. This holds for internal implementation symbols and not only for the curated public API, so a
-subpackage `__init__.py` may export a broader set than the distribution's top-level `__init__.py`. Exporting the symbol
-and reaching past the export are two halves of one rule, and a cross-package consumer is evidence that the export is
-missing.
+added to both the import list and `__all__`, and imported through the package namespace. This holds for internal
+implementation symbols and not only for the curated public API, so a subpackage `__init__.py` may export a broader set
+than the distribution's top-level `__init__.py`. Exporting the symbol and reaching past the export are two halves of one
+rule, and a cross-package consumer is evidence that the export is missing.
 
 The same test that requires an export also BOUNDS it. A symbol that no package outside the defining one consumes does
 NOT appear in that package's `__init__.py`, in either the import list or `__all__`. The absence of a cross-package
-consumer is evidence that the export is unwarranted, and the fix is the removed entry rather than a caller invented to
-justify it.
+consumer is evidence that the export is unwarranted, and the fix is the removed entry.
 - **Manual check**: `per-file-ignores` waives `F401` for `**/__init__.py`, so the export list is checked by reading it
   against the set of packages that import from it
 - **Alphabetical sorting**: Sort `__all__` entries alphabetically

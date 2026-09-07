@@ -49,8 +49,7 @@ the agent select the right skill for the task.
 ### Composability
 
 Skills must work independently and combine freely without conflicts. No skill should assume or require another skill's
-internal state. If skill A needs information from skill B, it must reference skill B explicitly rather than duplicating
-its content.
+internal state. If skill A needs information from skill B, it must reference skill B explicitly.
 
 **Test**: Can this skill be invoked in isolation and still produce correct results? If not, it has a hidden dependency
 that must be made explicit.
@@ -165,8 +164,8 @@ Adding or materially changing a plugin's skills should bump `version` in that pl
 
 Bump that `version` EXACTLY ONCE per branch, relative to `main`. Read the branch's version and the `main` version before
 editing, with `git show main:plugins/{plugin}/.claude-plugin/plugin.json`, and leave the version untouched wherever the
-branch already carries a bump. A branch that revises ten skills across twenty commits ships one bump rather than twenty,
-because the version names the release the branch produces rather than the edits inside it.
+branch already carries a bump. A branch that revises ten skills across twenty commits ships one bump, because the
+version names the release the branch produces.
 
 ---
 
@@ -334,24 +333,31 @@ Use sentence case for all section headers ("Verification checklist", not "Verifi
 
 ### Content restraint
 
-The default for a rule is one sentence, and examples, tables, and motivation are earned rather than assumed. Sentences
-over 39 words are broken at a natural clause boundary, in SKILL.md, reference files, and CLAUDE.md alike. Cover each
-sentence and delete it when you are able to reconstruct it from the skill name, the section heading, and the rule it
-sits under. A section starts with its rule, so an opening sentence that announces the section or restates the
-frontmatter description is deleted. Every skill file, reference file, and CLAUDE.md is free of typos and grammatical
-errors. A rule appears once per file, because a file loads as a unit and a second copy inside it earns nothing. The same
-rule in both SKILL.md and a reference file is permitted, because SKILL.md loads on every invocation while a reference
-loads only when the agent opens it. See [progressive-disclosure.md](references/progressive-disclosure.md) for the full
-rule set.
+The default for a rule is one sentence, and examples, tables, and motivation are earned. Sentences over 39 words are
+broken at a natural clause boundary, in SKILL.md, reference files, and CLAUDE.md alike. Cover each sentence and delete
+it when you are able to reconstruct it from the skill name, the section heading, and the rule it sits under. A section
+starts with its rule, so an opening sentence that announces the section or restates the frontmatter description is
+deleted. Every skill file, reference file, and CLAUDE.md is free of typos and grammatical errors. A rule appears once
+per file, because a file loads as a unit and a second copy inside it earns nothing. The same rule in both SKILL.md and a
+reference file is permitted, because SKILL.md loads on every invocation while a reference loads only when the agent
+opens it. See [progressive-disclosure.md](references/progressive-disclosure.md) for the full rule set.
 
 ### Prose punctuation and positive description
 
-Prose in skill files and CLAUDE.md follows the same two rules the language style skills apply to code documentation.
+Prose in skill files and CLAUDE.md follows the same three rules the language style skills apply to code documentation.
 Prose uses only the full stop and the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`, or
 `–`) as a separator, and use a colon only where it is lexically appropriate. A single hyphen stays available as a list
 marker, in tables, and in compound words, so bulleted change lists are unaffected. State what the skill does and what is
 currently true. Do not frame it by what it is not or what it used to be, and keep a "not Y" contrast only when it is
 load-bearing because it corrects a counter-intuitive assumption, giving its reason.
+
+The two-word phrase `rather` followed by `than` is FORBIDDEN in skill files, reference files, CLAUDE.md, and AGENTS.md,
+with no exception and no load-bearing carve-out. It names an alternative the reader never proposed, and the sentence
+keeps its full meaning once the trailing clause is deleted, so delete the clause and state the positive claim alone.
+Substituting `instead of`, `as opposed to`, or `in place of` reproduces the same padding under a new spelling and is
+equally forbidden. Where the excluded option genuinely carries information, it earns its own sentence naming what it
+costs. A copy split across a line break survives a plain search, so `rg -Uni '\brather\b[\s#*/>|+-]*\bthan\b'` settles
+the rule.
 
 ### Forward-reading clauses
 
@@ -361,13 +367,13 @@ object it governs. Two departures from that default are banned, because each one
 and back-fill its grammar at the end.
 
 A clause ending on a preposition strands that preposition's object earlier in the sentence and sends the reader back to
-find it. Write "every module that has a registered parser" rather than "every module the system registers a parser
-for", and write "the cores each job occupies" rather than "the cores each job was admitted at".
+find it. Write "every module that has a registered parser", not "every module the system registers a parser for", and
+write "the cores each job occupies", not "the cores each job was admitted at".
 
 Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs before the head
 noun settles. Restore the relative pronoun, or convert the inner clause into a participial phrase. Write "one job for
-every module that the session used and that has a registered parser" rather than "one job per module the session
-configured and the system registers a parser for".
+every module that the session used and that has a registered parser", not "one job per module the session configured and
+the system registers a parser for".
 
 **The one-pass test**: read the sentence once at speaking pace. A sentence needing a second pass to settle the noun that
 a verb or a preposition governs fails the test. Rewrite it by naming the actor, then the action, then the qualifier.
@@ -405,7 +411,7 @@ CLAUDE.md follows the same conventions as skill files with one difference:
 ### Content guidelines
 
 - Keep CLAUDE.md focused on project-specific instructions
-- Reference skills rather than duplicating their content
+- Reference skills for the content they own
 - Include workflow guidance for common tasks
 - Document integration points with other libraries
 - Only include instructions the agent cannot infer from code inspection alone
@@ -447,6 +453,8 @@ Skill File Compliance, tool-settled (run `rg -n '.{121,}' <file>` and `wc -l <fi
       syntax exempt)
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
+- [ ] No occurrence of `rather` followed by `than`, including across a line break
+      (`rg -Uni '\brather\b[\s#*/>|+-]*\bthan\b'`, forbidden with no exception)
 
 Skill File Compliance, reader-judged:
 - [ ] YAML frontmatter with `name` and `description`
@@ -497,6 +505,8 @@ CLAUDE.md Compliance, tool-settled (run `rg -n '.{121,}' <file>`, `rg -n '^---$'
       syntax exempt)
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
+- [ ] No occurrence of `rather` followed by `than`, including across a line break
+      (`rg -Uni '\brather\b[\s#*/>|+-]*\bthan\b'`, forbidden with no exception)
 
 CLAUDE.md Compliance, reader-judged:
 - [ ] Title is `# Claude Code Instructions`

@@ -145,16 +145,16 @@ You MUST follow these steps after every recording session.
 2. **Verify video file**: Call `validate_video_file_tool` with the `video_file` path. Confirm:
    - The file exists and has non-zero `file_size_bytes`
    - `frame_count`, `duration_seconds`, and `bit_rate_bps` are each `null` when ffprobe does not report the
-     corresponding field, so treat a `null` as "unknown" rather than zero. `file_size_bytes` is always
-     populated, since it falls back to a filesystem stat
+     corresponding field, so treat a `null` as "unknown". `file_size_bytes` is always populated, since it falls back to
+     a filesystem stat
    - `codec`, `width`, `height`, and `frame_rate` match expected session parameters
    - A `null` `video_file` means the session had no video output directory / no saver configured (`output_directory` was
      `None` at construction). A non-null path whose validation returns `{"error": "No video stream found in file."}`,
      backed by a file of only a few hundred bytes on disk, is the signal that `start_frame_saving_tool` was never
      called. The encoder process starts with the session and always creates the `.mp4` container, and that container
      holds no encoded stream
-   - An `{"error": "ffprobe failed: ..."}` response carries ffprobe's own diagnostic after the colon, so quote that
-     text when reporting the failure rather than calling the file merely unreadable
+   - An `{"error": "ffprobe failed: ..."}` response carries ffprobe's own diagnostic after the colon, so quote that text
+     when reporting the failure
 
 3. **Verify archive assembly**: If `archives_assembled` is `true` in the stop response, call `discover_camera_data_tool`
    with the recording root, `include_items=True`, and `detailed=True` to confirm archives exist for all expected source

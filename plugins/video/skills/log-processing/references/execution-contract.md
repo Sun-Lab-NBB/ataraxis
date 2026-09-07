@@ -35,7 +35,7 @@ recording's `camera_manifest.yaml` registers. `output_directories` must match th
 A descriptor passed under `jobs` carries all ten keys the prepare manifest stamps onto it: `log_directory`,
 `archive_path`, `output_directory`, `tracker_path`, `job_name`, `job_id`, `source_id`, `core_weight`, `message_count`,
 and `archive_bytes`. The last two are required alongside the other eight, because the tool reads the archive figures out
-of the mapping rather than resolving them from the archive on disk. Pass each descriptor through unchanged.
+of the mapping. Pass each descriptor through unchanged.
 
 Three checks reject a descriptor into `invalid_jobs`, each entry repeating the submitted mapping with an added `error`:
 
@@ -89,7 +89,7 @@ other preparation fault is soft and travels under `invalid_paths`, `failed_direc
 
 The "No valid jobs to execute." response also carries the preparation notes on a rebuild call, so its `skipped_sources`,
 `invalid_paths`, and `failed_directories` explain why nothing survived. `started` is absent from it, and from every
-other shape in this table, so test for `started` rather than for the absence of `error`.
+other shape in this table, so test for `started`.
 
 The session refusal reads in full: "An execution session is already active. Cancel it with cancel_log_processing_tool,
 then read 'session_ended' from that call and poll get_log_processing_status_tool only while it reads false."

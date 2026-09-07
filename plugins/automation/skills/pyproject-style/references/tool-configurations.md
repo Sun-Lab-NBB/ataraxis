@@ -93,8 +93,8 @@ arrives at a single sentence.
 | the shared test corpus             | the `"tests/**/*.py"` key of `per-file-ignores` | Test code under `tests/`  |
 
 Each opens with a shared block, the entries every project carries, and closes with a project-specific section below a
-blank line. The `per-file-ignores."**/__init__.py"` key is a third ignore list rather than a corpus. It waives two
-import rules and takes no project-specific section.
+blank line. The `per-file-ignores."**/__init__.py"` key is a third ignore list. It waives two import rules and takes no
+project-specific section.
 
 Test code is linted, and it is held to the wider of the two lists. Tests assert, reach into private members, inline
 expected values, and omit annotations and docstrings, all of which library code is forbidden to do. The shared test
@@ -137,8 +137,8 @@ project-specific entries:
 ]
 ```
 
-`D` and `ANN` are family prefixes rather than individual codes. Test files trip a wide and shifting set of members of
-both families, so the prefixes keep the list stable as tests are added.
+`D` and `ANN` are family prefixes. Test files trip a wide and shifting set of members of both families, so the prefixes
+keep the list stable as tests are added.
 
 These entries take effect only when the lint task passes the test directory to `ruff check`. A lint task that checks
 `./src` alone leaves the whole key inert. See `/tox-config` for the lint task definition.
@@ -234,6 +234,18 @@ ignore-variadic-names = true       # Ignores unused *args and **kwargs
 ```
 
 ---
+
+### Ruff ignore comments
+
+Each ruff ignore entry must have an inline comment explaining the reason:
+
+```toml
+lint.ignore = [
+    "COM812",  # Conflicts with the formatter
+    "ISC001",  # Conflicts with the formatter
+    "D107",    # __init__ is documented inside the main class docstring where applicable
+]
+```
 
 ## MyPy configuration
 
@@ -415,8 +427,8 @@ silent and exits on its test results alone, while both tox tasks fail on a genui
 `tox.ini`, and the two occurrences MUST carry the same value, because a project whose two gates differ passes one task
 and fails the other on identical coverage data.
 
-A project that gates below 100% on some hosts states the exception once as a tox environment variable that both
-commands read, rather than by lowering the configured value. See `/tox-config` for that form.
+A project that gates below 100% on some hosts states the exception once as a tox environment variable that both commands
+read. See `/tox-config` for that form.
 
 The `source` list in `[tool.coverage.paths]` carries one entry per virtual environment layout the project is tested on.
 POSIX hosts place installed packages under `lib/python*/site-packages/` and Windows hosts place them under
@@ -466,8 +478,7 @@ branch = true
 ```
 
 `branch = true` raises what the 100% gate demands, since a partial branch counts as a gap once the key is present. Add
-it to a project whose suite already passes with it, rather than to a project that would need new tests written to
-restore the gate.
+it to a project whose suite already passes with it.
 
 A project whose test task passes `-n logical` silences the warning an idle worker prints:
 
@@ -479,14 +490,13 @@ disable_warnings = ["no-data-collected"]
 `-n logical` starts one pytest-xdist worker per logical core, so any run selecting fewer tests than the host has cores
 leaves workers idle, and a worker measuring nothing warns as it exits. A project whose `concurrency` includes
 `multiprocessing` reaches the same warning by a second route, because the measurement session each spawned child starts
-also has nothing to report when that child runs no library code. The warning goes to stderr rather than to the pytest
-warnings summary, so it interleaves with the progress output once per such worker or child. A full-core host therefore
-turns a small selection into dozens of lines. The `--cov-fail-under` gate the `test` task applies still catches a run
-that genuinely measures nothing, so the slug costs no coverage safety.
+also has nothing to report when that child runs no library code. The warning goes to stderr, so it interleaves with the
+progress output once per such worker or child. A full-core host therefore turns a small selection into dozens of lines.
+The `--cov-fail-under` gate the `test` task applies still catches a run that genuinely measures nothing, so the slug
+costs no coverage safety.
 
 The listed slug suppresses that one warning alone. Every other coverage warning still prints, `couldnt-parse` and
-`no-ctracer` among them, because each of those names a measurement the configuration or the environment got wrong
-rather than a worker that idled.
+`no-ctracer` among them, because each of those names a measurement the configuration or the environment got wrong.
 
 ---
 

@@ -39,7 +39,7 @@ internal structure, and source ID semantics.
 **Handoff rules:** If a prerequisite below is unmet, invoke the skill that repairs it. Missing `.npz` archives and raw
 `.npy` entries go to `/post-recording`, a missing manifest goes to `/camera-setup` for `write_camera_manifest_tool`, and
 a source ID collision goes to `/pipeline`. Once every prerequisite holds, invoke `/log-processing`. If the archives in
-question are `{controller_id}_log.npz` entries rather than camera archives, invoke `/communication:log-input-format`.
+question are `{controller_id}_log.npz` entries, invoke `/communication:log-input-format`.
 
 ---
 
@@ -90,16 +90,16 @@ sources:
 
 **How manifests are produced:**
 
-- **Automatic:** `VideoSystem.__init__()` writes a manifest entry to the DataLogger output directory using
-  the `name` parameter. Each VideoSystem sharing a DataLogger registers into the same manifest file. The write
-  is idempotent per source ID, because an entry already registered under that ID is replaced rather than duplicated,
-  and the read-replace-write sequence is held under a file lock so concurrent registrations are safe.
-- **MCP sessions:** `start_video_session_tool` creates a VideoSystem with `name="live_camera"`, which writes
-  a manifest automatically.
-- **CLI sessions:** `axvs run` creates a VideoSystem with `system_id=111` and `name="live_camera"` against a
-  DataLogger named `axvs_live_run`, so its manifest lands in `{output_directory}/axvs_live_run_data_log/`.
-- **Manual:** Use `write_camera_manifest_tool` (see `/camera-setup`) to retroactively tag legacy log
-  directories that predate the manifest system.
+- **Automatic:** `VideoSystem.__init__()` writes a manifest entry to the DataLogger output directory using the `name`
+  parameter. Each VideoSystem sharing a DataLogger registers into the same manifest file. The write is idempotent per
+  source ID, because an entry already registered under that ID is replaced, and the read-replace-write sequence is held
+  under a file lock so concurrent registrations are safe.
+- **MCP sessions:** `start_video_session_tool` creates a VideoSystem with `name="live_camera"`, which writes a manifest
+  automatically.
+- **CLI sessions:** `axvs run` creates a VideoSystem with `system_id=111` and `name="live_camera"` against a DataLogger
+  named `axvs_live_run`, so its manifest lands in `{output_directory}/axvs_live_run_data_log/`.
+- **Manual:** Use `write_camera_manifest_tool` (see `/camera-setup`) to retroactively tag legacy log directories that
+  predate the manifest system.
 
 **Why manifests matter:** The manifest is a hard gate for both discovery and processing. `discover_camera_data_tool`
 uses manifest-based routing to identify axvs-produced log archives, so directories without a `camera_manifest.yaml` will
@@ -110,8 +110,8 @@ manifest does not register is rejected. Manifests also associate source IDs with
 discovery tool to locate corresponding video files by camera name.
 
 **One manifest per tree:** exactly one `camera_manifest.yaml` may sit under the tree being processed. A tree holding
-several spans several recordings or several DataLogger instances and raises `ValueError` rather than resolving against
-the first match. Pass each DataLogger output directory individually.
+several spans several recordings or several DataLogger instances and raises `ValueError`. Pass each DataLogger output
+directory individually.
 
 ---
 
@@ -142,8 +142,8 @@ VideoSystem(system_id=51, data_logger=logger)
 
 The CLI (`system_id=111`) and MCP server (`system_id=112`) use fixed IDs for testing and exploration sessions, not
 production recording. These two are the only values the library reserves. Runtime VideoSystem instances (actual
-recording cameras) are advised to use IDs in the range 51-100, which is this plugin's allocation convention rather than
-a library-enforced range (see `/pipeline`).
+recording cameras) are advised to use IDs in the range 51-100, which is this plugin's allocation convention (see
+`/pipeline`). The library enforces no range of its own.
 
 ---
 
@@ -198,9 +198,9 @@ session_data_log/
 └── 101_log.npz                          # Microcontroller
 ```
 
-Discovery here reads `camera_manifest.yaml` alone and never resolves 101, so an unregistered archive is invisible rather
-than mis-parsed. The payload layouts differ as well, and `/communication:log-input-format` documents the microcontroller
-side. `/pipeline` owns the shared-namespace rules that keep the source IDs from colliding.
+Discovery here reads `camera_manifest.yaml` alone and never resolves 101, so an unregistered archive is invisible. The
+payload layouts differ as well, and `/communication:log-input-format` documents the microcontroller side. `/pipeline`
+owns the shared-namespace rules that keep the source IDs from colliding.
 
 The discovery tool groups archives by their parent directory, which is the DataLogger output directory.
 
@@ -281,8 +281,7 @@ stage decides from a separate and higher threshold that `/log-processing` docume
    source_id)`, so an "invalid job_id" error likewise means the source ID is not registered in the manifest. If missing,
    use `write_camera_manifest_tool` to create one.
 
-2. **Archives assembled**: log directories hold assembled `.npz` files rather than raw `.npy` files, as "How archives
-   are produced" above spells out.
+2. **Archives assembled**: log directories hold assembled `.npz` files, as "How archives are produced" above spells out.
 
 3. **Archive naming valid**: files match the `{source_id}_log.npz` pattern, as "Naming convention" above spells out.
 

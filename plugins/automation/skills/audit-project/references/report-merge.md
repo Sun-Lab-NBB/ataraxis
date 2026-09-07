@@ -35,8 +35,7 @@ ladder has already run against wave 1's verdicts. Apply its result.
 | Rung 4        | `/audit-facts`       | Nothing, correctness never reported it          |
 | Rung 5        | Both, cross-linked   | Nothing, and the AMBIGUOUS marker stays         |
 
-A rung 5 pair is the one case where both reports keep an entry. Cross-link them so a reader sees one decision to make
-rather than two findings to triage.
+A rung 5 pair is the one case where both reports keep an entry. Cross-link them so a reader sees one decision to make.
 
 ### Collision 2: A construct has both a form and a runtime consequence
 
@@ -133,8 +132,8 @@ block, which tells a reader what a change-mode run over the same code would stop
 
 ## The combined coverage ledger
 
-Merge each audit's coverage ledger into one table, keeping the per-audit rows rather than summing them, because the
-audits count different things.
+Merge each audit's coverage ledger into one table, keeping the per-audit rows, because the audits count different
+things.
 
 ```text
 | Audit               | Files in scope | Files audited | Files skipped | Notes                                               |
@@ -145,20 +144,19 @@ audits count different things.
 | /audit-performance  | <n>            | <n>           | <n>           | passes as its ledger reports them                   |
 ```
 
-Each row is filled from the audit's own coverage ledger rather than recounted here. `/audit-style` reports files SWEPT
-and files marked UNAUDITED, one row per style binding, so its row here sums those rows and its two counts fill the
-audited and the skipped columns.
+Each row is filled from the audit's own coverage ledger. `/audit-style` reports files SWEPT and files marked UNAUDITED,
+one row per style binding, so its row here sums those rows and its two counts fill the audited and the skipped columns.
 
 `/audit-performance` reports its pass range per language, because Pass 9 runs over C++ and C# alone, so copy each
-language row rather than stating one range for the audit.
+language row.
 
 List every skipped file once, with the audits that skipped it and the reason. A file skipped by one audit and covered by
-another is not a gap, and the ledger must show that rather than implying one. A file `/audit-style` marked UNAUDITED is
-listed by path here alongside them.
+another is not a gap, and the ledger must show that. A file `/audit-style` marked UNAUDITED is listed by path here
+alongside them.
 
 Name every tool an audit ran in its Notes cell, and mark each tool that FAILED to run beside it. A deterministic gate
-that produced no diagnostic because it crashed is a coverage gap rather than a clean result, and a Notes cell that hides
-the failure reports the gap as coverage.
+that produced no diagnostic because it crashed is a coverage gap, and a Notes cell that hides the failure reports the
+gap as coverage.
 
 Carry the `/audit-style` project-scope layout pass status verbatim, as `run`, `skipped-not-a-project-root`, or
 `skipped-no-created-or-deleted-files`. That pass sweeps the directory tree once per run, so a skip is expected for a
@@ -176,7 +174,7 @@ Group by AUDIT, then preserve each audit's own internal ordering inside its sect
 `Appendix: LOW confidence` section. Every finding keeps the shared shape its own audit defines, and the four audits use
 distinct ID letters, so identifiers stay unique across the merged report.
 
-Order the audit sections by the FIX order rather than the run order, because the report exists to be acted on:
+Order the audit sections by the FIX order, because the report exists to be acted on:
 
 1. `/audit-facts`
 2. `/audit-correctness`
@@ -185,7 +183,7 @@ Order the audit sections by the FIX order rather than the run order, because the
 
 In change mode, place a `Blocking findings` section ahead of all four, listing every blocking finding by file with its
 identifier, which points at its full entry below. That section is what the fix pass works from, and grouping it by file
-rather than by audit means each file is opened once.
+means each file is opened once.
 
 A finding that survived a collision rule closes its Wrong bullet by naming the audit that yielded and the rule that
 decided it, written as `Adjudicated: <audit that yielded> yielded under <collision rule name>`.

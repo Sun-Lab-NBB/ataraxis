@@ -13,8 +13,8 @@ directory. The skill directory must contain only SKILL.md and optional reference
 
 ### Duplicating content across skills
 
-If two skills need the same information, one must reference the other rather than duplicating the content. Duplication
-causes inconsistencies when one copy is updated but not the other.
+If two skills need the same information, one must reference the other. Duplication causes inconsistencies when one copy
+is updated but not the other.
 
 **Wrong:** Copying the commit message rules into both `/commit` and `/python-style`.
 

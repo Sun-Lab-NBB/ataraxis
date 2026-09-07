@@ -81,7 +81,7 @@ The summary is a concise bulleted list of the most impactful changes the branch 
 
 **Title length limit**: The drafted title must be no longer than 72 characters, because a squash merge writes it into
 the commit subject line where the same display constraint applies. Summary bullets carry no length cap, since they
-render as wrapped markdown rather than a git log column.
+render as wrapped markdown.
 
 **Title punctuation and tense**: The drafted title starts with a past tense verb from the verb set in `/commit` and ends
 with a period, matching the commit header it becomes on a squash merge.
@@ -108,17 +108,24 @@ The pull request title and body obey the content rules defined in `/commit`, plu
 an audit, a review, or a ticket. A squash merge writes that title into the permanent commit subject line.
 
 **What and why, not how**: Each bullet states *what* the branch changed and *why*, not *how*, and is specific and
-descriptive rather than vague like "Updated various modules".
+descriptive. A bullet as vague as "Updated various modules" tells a reader nothing about the branch.
 
 **Positive description**: State what the branch now does. Do not frame a bullet by what the code no longer does or by
 how it used to behave, beyond the removal verb itself. Keep a "not Y" contrast only when it is load-bearing because it
 corrects a counter-intuitive assumption, and give its reason.
 
+**Forbidden phrase**: The two-word phrase `rather` followed by `than` is FORBIDDEN in the drafted title and in every
+summary bullet, with no exception and no load-bearing carve-out. It names an alternative the reader never proposed, and
+the sentence keeps its full meaning once the trailing clause is deleted, so delete the clause and state the positive
+claim alone. Substituting `instead of`, `as opposed to`, or `in place of` reproduces the same padding under a new
+spelling and is equally forbidden. Where the excluded option genuinely carries information, it earns its own sentence
+naming what it costs.
+
 **Sentence length**: Every sentence in the drafted title and summary bullets stays under 40 words, broken at a natural
 clause boundary or split into two bullets when it runs longer.
 
 **Typo-free and grammatical**: The drafted title and summary bullets must be free of typos and grammatical errors, with
-every symbol name, file name, and flag spelling verified against the diff rather than recalled from memory.
+every symbol name, file name, and flag spelling verified against the diff.
 
 ---
 
@@ -154,11 +161,11 @@ Pull Request Compliance:
 - [ ] Drafted a title as well when the active branch carries more than one commit
 - [ ] Drafted title ≤ 72 characters (a squash merge writes it into the commit subject line)
 - [ ] Drafted title starts with a past tense verb and ends with a period
-- [ ] Drafted title names the change rather than the activity that produced it (no audit, review, or ticket)
+- [ ] Drafted title names the change itself (no audit, review, or ticket)
 - [ ] Summarizes impactful changes, and does not reproduce every commit
-- [ ] Each bullet describes *what* changed and *why*, not *how*, and is specific rather than vague (not "Updated
-      various modules")
+- [ ] Each bullet describes *what* changed and *why*, not *how*, and is specific (not "Updated various modules")
 - [ ] Bullets state what the change now does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] Drafted title and every bullet free of the phrase `rather` followed by `than` (forbidden with no exception)
 - [ ] Every sentence in the drafted text stays under 40 words
 - [ ] Free of typos and grammar errors
 - [ ] Compared the active branch against the default branch (three-dot diff)

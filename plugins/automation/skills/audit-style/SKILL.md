@@ -94,8 +94,8 @@ in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a 
 for one commit, or `git status --porcelain` for the working tree. A narrowed run still reads every surviving file in
 full, because ordering, visibility grouping, and length proportionality are properties of a whole file. It also still
 builds the Step 5 reference table across the WHOLE repository, because a symbol's tier is decided by consumers a change
-set does not contain. Guard 16 skips the usage pass outright rather than deciding an absence from a partial table.
-Record the narrowing and the revision it resolved against in the report, so it states what it did not cover.
+set does not contain. Guard 16 skips the usage pass outright where that widening cannot run. Record the narrowing and
+the revision it resolved against in the report, so it states what it did not cover.
 
 For each file in scope, identify the applicable style skill using the binding table:
 
@@ -115,12 +115,10 @@ For each file in scope, identify the applicable style skill using the binding ta
 | Project directory tree                                                    | `/project-layout`    |
 
 Where a file matches more than one row, the MOST SPECIFIC pattern wins, which resolves `docs/source/conf.py` to
-`/api-docs` rather than to any broader row it also matches. The `Project directory tree` row binds no file at all and is
-executed by the Step 4 layout sweep rather than by the per-file passes.
+`/api-docs`. The `Project directory tree` row binds no file at all and is executed by the Step 4 layout sweep.
 
-A `.pyi` stub file binds to `/python-style` for its generated-stub rule alone. Judge it against that rule rather than
-against the ordinary source checklist, so the one finding it can carry is evidence of hand-authoring in a file the stub
-generator writes.
+A `.pyi` stub file binds to `/python-style` for its generated-stub rule alone. Judge it against that rule, so the one
+finding it can carry is evidence of hand-authoring in a file the stub generator writes.
 
 If a file in scope matches no binding row, no style skill applies to it. Mark it skipped in the plan and report, with
 the reason `no binding row`, and flag no findings against it.
@@ -149,8 +147,7 @@ For every distinct style skill the bindings resolve to, invoke that skill and lo
 with every reference file the skill mentions. The loaded checklists are the only source of truth for "applicable style
 point." A convention not present in any loaded checklist is NOT a violation.
 
-Tag every ledger row with the batch that will consume it, so Step 5 hands each sub-agent its own rows rather than the
-whole ledger.
+Tag every ledger row with the batch that will consume it, so Step 5 hands each sub-agent its own rows.
 
 ### Step 3: Run the deterministic gates
 
@@ -181,7 +178,7 @@ writing the outputs to a scratch directory outside the repository so no audited 
 section of `/csharp-style` carries the reference set, the exclusions, and the define list.
 
 A tool the project does not configure is skipped, and its absence is no finding. Report a tool that failed to run as a
-gap in the coverage the report states rather than as a clean result.
+gap in the coverage the report states.
 
 Fold each diagnostic into the report as an ordinary finding, citing the tool and its rule code in place of the checklist
 quote, at HIGH confidence. A diagnostic a tool produced needs no adversarial verification in Step 8, because the tool IS
@@ -209,9 +206,8 @@ candidate.
 ### Step 5: Line-by-line sweep
 
 Run passes 2 through 8 from [detection-passes.md](references/detection-passes.md) in order, over ONE traversal of each
-file rather than one traversal per pass. Passes 9 and 11 run after that traversal closes, on the main agent. Passes 2
-through 6 cover Dimension A, passes 7 and 8 cover Dimension B, pass 9 covers Dimension C, and pass 11 covers Dimension
-D.
+file. Passes 9, 11, and 12 run after that traversal closes, on the main agent. Passes 2 through 6 cover Dimension A,
+passes 7, 8, and 12 cover Dimension B, pass 9 covers Dimension C, and pass 11 covers Dimension D.
 
 For every file in scope, walk top to bottom. For every line, evaluate against every applicable checklist item. Track
 four parallel dimensions.
@@ -220,10 +216,14 @@ four parallel dimensions.
 patterns, and file-section ordering. The source of truth is the loaded style skill's main checklist.
 
 **Dimension B, comment and docstring quality:** Apply the loaded style skill's docstring and comment checklist to every
-comment, docstring, and inline annotation, judging the FORM of the prose rather than its factual accuracy. Passes 7 and
-8 of [detection-passes.md](references/detection-passes.md) carry the eleven checks, which cover typos, grammar, sentence
+comment, docstring, and inline annotation, judging the FORM of the prose. Passes 7 and 8 of
+[detection-passes.md](references/detection-passes.md) carry the eleven checks, which cover typos, grammar, sentence
 length, length proportionality, redundancy with the signature, narrate-the-code comments, behavioral scope, separator
 punctuation, and positive description.
+
+The two-word phrase `rather` followed by `than` is FORBIDDEN in every file the style skills govern, with no exception
+and no load-bearing carve-out. Pass 12 of [detection-passes.md](references/detection-passes.md) hunts it once on the
+main agent, over the raw bytes of every bound file, and reports each hit as BLOCKING.
 
 **Dimension C, cross-file consistency:** Naming, ordering, and idiom drift across the file set. Examples include the
 same field named differently in two sibling classes, or one module following a convention that adjacent modules ignore.
@@ -243,7 +243,7 @@ For Large-tier audits, spawn one `general-purpose` sub-agent per batch under the
 its batch's file paths, ONLY the checklists those files bind to, ONLY the rule-ledger rows built from those checklists,
 the Step 3 diagnostics for those files, and the severity and confidence rules. Sub-agents return findings in the output
 format defined below, together with the Pass 11 declaration and reference rows for their own files. The main agent
-synthesizes after all sub-agents complete, then runs passes 9 and 11 over the merged result.
+synthesizes after all sub-agents complete, then runs passes 9, 11, and 12 over the merged result.
 
 For Small and Medium tiers, the main agent performs all sweep work sequentially.
 
@@ -289,12 +289,11 @@ the report's triage header carries them.
 ### Step 9: Assemble the coverage ledger
 
 Build the coverage ledger the report carries under its triage header, in the shape
-[verification-protocol.md](references/verification-protocol.md) defines. It exists so a thin pass is visible rather than
-silent.
+[verification-protocol.md](references/verification-protocol.md) defines. It exists so a thin pass is visible.
 
 Skipping is permitted only for a file the user's narrowing removed from scope, a file matching no binding row, a
 generated or vendored file Guard 5 removes, or a file that cannot be read. A file in scope that is neither audited nor
-recorded as skipped is a coverage gap rather than a permitted skip.
+recorded as skipped is a coverage gap.
 
 ### Step 10: Produce the findings report
 
@@ -304,13 +303,12 @@ Skip compliant items entirely. Report every surviving finding at every confidenc
 alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user explicitly asks for it via
 `--min-confidence medium` or equivalent invocation.
 
-The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that the report was
-filtered. LOW means the checklist and source mapping is inferred rather than literal, and it never excuses a finding
-from the verbatim checklist quote the Discipline section requires. Hold the report's own prose to the rules this audit
-enforces, keeping every sentence in an authored field under 40 words, separating its clauses with full stops and commas
-rather than semicolons or em-dashes, and stranding no preposition at a clause end. Fill each authored line to 120
-characters before breaking, under the wrap width rule `/python-style` defines, so a line ending before column 100 while
-its next word fits is re-flowed.
+The confidence tier stays on every finding, so a reader triages by tier. LOW means the checklist and source mapping is
+inferred, and it never excuses a finding from the verbatim checklist quote the Discipline section requires. Hold the
+report's own prose to the rules this audit enforces. Every sentence in an authored field stays under 40 words, its
+clauses separated by full stops and commas and never by semicolons or em-dashes, with no preposition stranded at a
+clause end. Fill each authored line to 120 characters before breaking, under the wrap width rule `/python-style`
+defines, so a line ending before column 100 while its next word fits is re-flowed.
 
 ---
 
@@ -332,18 +330,17 @@ Every finding uses the shape below, shared by all four audits in this family so 
 `<path>:<line>` · <owning skill or tool> · <HIGH | MEDIUM | LOW> confidence · <checklist point or rule code>
 
 - **Wrong:** <the defect, carrying every quote and citation the evidence floor requires>
-- **Fix:** <the concrete change, described rather than applied>
+- **Fix:** <the concrete change, described and never applied>
 - **Impact:** <what the change alters for callers and downstream, or "None" when nothing observable changes>
 - **Choice:** <the options, one clause each, closing with a recommendation>
 ```
 
 **ID** is a short stable handle, `S1`, `S2`, and so on, numbered in report order, so a reader answers with the
-identifier rather than by restating the finding.
+identifier.
 
-**Wrong** carries the whole evidence load as prose rather than as labelled fields. It states the checklist point quoted
-verbatim from the skill or reference file that states it, the current state quoted verbatim at its `<path>:<line>`, and
-the required state as a concrete example or the checklist's own wording. A table, a ledger, or an interleaving sits
-directly beneath the bullet.
+**Wrong** carries the whole evidence load as prose. It states the checklist point quoted verbatim from the skill or
+reference file that states it, the current state quoted verbatim at its `<path>:<line>`, and the required state as a
+concrete example or the checklist's own wording. A table, a ledger, or an interleaving sits directly beneath the bullet.
 
 **Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
 behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
@@ -426,7 +423,7 @@ Style Audit Compliance:
 - [ ] For Large tier, batches built by authority with no batch carrying more than two checklists
 - [ ] For Large tier, every single-file authority, each skill batch, and the docs package given its own sub-agent
 - [ ] For Large tier, each sub-agent loaded only its own batch's checklists and rule-ledger rows
-- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit rather than dropping files
+- [ ] Sub-agents held to 40 for the run and 12 in flight, merging to fit with no file dropped
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the report
 - [ ] Step 1 file binding executed (every file in scope mapped to its applicable style skill)
 - [ ] `.pyi` stubs judged against the generated-stub rule alone, with no ordinary source findings reported inside them
@@ -434,7 +431,7 @@ Style Audit Compliance:
 - [ ] Step 3 deterministic gates run in their read-only form for every tool the project configures
 - [ ] Bare `tox` and `tox -e lint` never run during the audit
 - [ ] Tool diagnostics folded in as findings citing the tool and rule code, at HIGH confidence
-- [ ] Rules the tools decide delegated to them rather than re-derived by the sweep
+- [ ] Rules the tools decide delegated to them and never re-derived by the sweep
 - [ ] Report states which tools ran, which failed to run, and which rules were delegated
 - [ ] Step 4 layout sweep run once on the main agent for a project-root target, before the batches fanned out
 - [ ] Layout sweep skipped and recorded for a package, single-file, or edit-only change-set target
@@ -447,16 +444,18 @@ Style Audit Compliance:
 - [ ] Pass 9 run on the main agent over the whole file set, after that traversal closed
 - [ ] Pass 10 run on the main agent for a project-root target, or skipped with the reason recorded
 - [ ] Pass 11 run on the main agent over the whole file set, or skipped with the reason recorded
+- [ ] Pass 12 forbidden-phrase search run over every bound file in scope with the multiline pattern, and every hit
+      reported as BLOCKING
 - [ ] Declaration and reference rows collected during the single traversal, and returned by every batch sub-agent
 - [ ] Reference table built across the whole repository even where the sweep was narrowed to a change set
 - [ ] Every symbol's declared tier compared against the widest boundary its consumers actually cross
 - [ ] Each package export list compared against the set of packages importing from it, in both directions
 - [ ] Every Pass 11 candidate confirmed by a repository-wide search, with the search result quoted
 - [ ] Every Pass 11 finding carries its consumer evidence and the search that established it
-- [ ] Citation verification re-ran each Pass 11 search rather than accepting the recorded result
+- [ ] Citation verification re-ran each Pass 11 search, never accepting the recorded result
 - [ ] Guard 15 applied, so curated public API, runtime registrations, interface conformance, and generated
       declarations produced no usage finding, and test references counted as no consumer
-- [ ] Unused imports, locals, and arguments left to ruff rather than re-derived by the usage pass
+- [ ] Unused imports, locals, and arguments left to ruff and never re-derived by the usage pass
 - [ ] All four dimensions evaluated (structural, comment/docstring quality, cross-file consistency,
       symbol visibility and usage)
 - [ ] Every finding anchored to a verbatim checklist quote, or to a tool rule code
@@ -466,7 +465,7 @@ Style Audit Compliance:
 - [ ] Repeated violations of the same checklist point collapsed with counts
 - [ ] Every false-positive guard applied in order, with the discarded-candidate count recorded
 - [ ] Citation verification run against every finding, with the checklist quote and source quote confirmed
-- [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
+- [ ] Every finding whose quote or line failed citation verification deleted and never repaired
 - [ ] Adversarial refutation run against every BLOCKING and CONFLICT finding, in fresh sub-agents
 - [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
 - [ ] Step 9 coverage ledger assembled, carrying files in scope, files audited, and files skipped by path
@@ -477,15 +476,15 @@ Style Audit Compliance:
 - [ ] Ledger states the symbol usage pass status with the declaration and reference counts it reconciled
 - [ ] Triage header present, carrying the severity by confidence counts and every discard count
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
-- [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
+- [ ] LOW confidence findings placed in the trailing appendix and never interleaved
 - [ ] No compliant items appear in the report
 - [ ] No factual errors, missing content, or source mismatches appear (those belong to /audit-facts)
 - [ ] No findings invented outside the loaded checklists
 - [ ] No exemption applied without a verbatim clause from a loaded skill quoted beside it
 - [ ] No finding spared for shared corpus, house convention, sibling-repository text, or age
 - [ ] Findings ordered: BLOCKING -> INCONSISTENCY -> CONFLICT -> STANDARD
-- [ ] Cross-skill conflicts surfaced rather than silently resolved
-- [ ] Fix bullets are concrete textual edits, described rather than applied
+- [ ] Cross-skill conflicts surfaced and never silently resolved
+- [ ] Fix bullets are concrete textual edits, described and never applied
 - [ ] Every fix that removes a symbol, an export entry, or a public name names that break in its Impact
 - [ ] Every finding uses the shared shape, carrying a stable ID, a rank, a location line, and the Wrong, Fix, and
       Impact bullets
@@ -493,6 +492,7 @@ Style Audit Compliance:
 - [ ] A Choice bullet appears only where the audit cannot settle the question, and it closes with a recommendation
 - [ ] Every sentence the report itself writes, outside a verbatim quote, is under 40 words and uses only full
       stops and commas as clause separators
+- [ ] No sentence the report itself writes contains the phrase `rather` followed by `than` (forbidden with no exception)
 - [ ] Report prose fills each line to 120 characters, with no line ending before column 100 while its next word would
       still fit
 - [ ] No file modifications made during the audit

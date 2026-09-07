@@ -19,13 +19,12 @@ CLAUDE.md files use the following section order. Omit sections that do not apply
 9. **Distribution model** *(optional)*: How the project's assets reach the user
 10. **Project context**: Architecture, key areas, patterns, and standards
 
-The headings above are the canonical spellings. Write `Style guide compliance` rather than `Style guide requirements`
-and `MCP server` rather than `MCP server integration`, so that the same concern carries one name across every project.
+The headings above are the canonical spellings. Write `Style guide compliance`, not `Style guide requirements`, and `MCP
+server`, not `MCP server integration`, so that the same concern carries one name across every project.
 
 ### The two conditional sections
 
-Sections 8 and 9 apply to a subset of projects, and a project without the concern omits the section rather than writing
-an empty one.
+Sections 8 and 9 apply to a subset of projects, and a project without the concern omits the section.
 
 A **companion library synchronization** section belongs to a project that has a counterpart it must stay in step with,
 such as a microcontroller library paired with its host-side interface. It names the counterpart and states what must
@@ -101,7 +100,13 @@ team:
 
 A CLAUDE.md complies when it passes the CLAUDE.md checklist in `/skill-design`. Beyond that checklist, the default is
 that every instruction names a command to run or a concrete action to take, and an instruction that restates a language
-default is deleted rather than kept.
+default is deleted.
+
+The two-word phrase `rather` followed by `than` is FORBIDDEN in CLAUDE.md and AGENTS.md, with no exception and no
+load-bearing carve-out. It names an alternative the reader never proposed, and the sentence keeps its full meaning once
+the trailing clause is deleted, so delete the clause and state the positive claim alone. Substituting `instead of`,
+`as opposed to`, or `in place of` reproduces the same padding under a new spelling and is equally forbidden. Where the
+excluded option genuinely carries information, it earns its own sentence naming what it costs.
 
 ---
 
@@ -148,7 +153,7 @@ unchanged:
 - Sentence case for section headings
 - Prose punctuation and positive description. The full stop and the comma are the only clause separators, with no
   semicolon or em-dash. The single hyphen stays available as a list marker and in compound words, and the prose states
-  what is currently true rather than what it is not or used to be
+  what is currently true, not what it is not or used to be
 - Forward-reading clauses. No clause ends on a preposition whose object appeared earlier, and no noun carries two or
   more stacked bare relative clauses. Every sentence passes the one-pass test the skill file defines
 

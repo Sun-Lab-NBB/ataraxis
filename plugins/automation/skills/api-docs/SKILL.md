@@ -210,13 +210,13 @@ MUST NOT add Sphinx or documentation dependencies directly to downstream project
 - C++ files use `doxygenfile` with `:project:` set to the project name.
 - A package constant that `automodule` skips uses `autodata`. `automodule` discovers module-level data through the
   source of the module it documents, so a constant the package re-exports is dropped from the rendered page. The
-  `autodata` directive names the DEFINING module rather than the re-exporting package, because autodoc reads the
-  attribute docstring from that module's source and otherwise falls back to the docstring of the value's own type. A
-  rationale comment precedes the block, as in `ataraxis-communication-interface`.
+  `autodata` directive names the DEFINING module, because autodoc reads the attribute docstring from that module's
+  source and otherwise falls back to the docstring of the value's own type. A rationale comment precedes the block, as
+  in `ataraxis-communication-interface`.
 - Section headings MUST be descriptive names, not module paths (e.g., "Precision Timer" not
   "ataraxis_time.precision_timer.timer_class").
-- You MUST NOT add `automodule` directives for MCP server modules or shared asset modules, because those serve AI agents
-  rather than end-users.
+- You MUST NOT add `automodule` directives for MCP server modules or shared asset modules, because those serve AI
+  agents.
 
 ### welcome.rst rules
 
@@ -242,6 +242,12 @@ sentences at natural clause boundaries. Every hand-written sentence in `welcome.
 of typos and grammatical errors, while a defect in a generated page is fixed in the source docstring under the owning
 language style skill.
 
+The two-word phrase `rather` followed by `than` is FORBIDDEN in hand-written RST prose, with no exception and no
+load-bearing carve-out. It names an alternative the reader never proposed, and the sentence keeps its full meaning once
+the trailing clause is deleted, so delete the clause and state the positive claim alone. Substituting `instead of`,
+`as opposed to`, or `in place of` reproduces the same padding under a new spelling and is equally forbidden. Where the
+excluded option genuinely carries information, it earns its own sentence naming what it costs.
+
 ### Forward-reading clauses
 
 A clause resolves left to right, so the reader reaches its last word already knowing what the clause says. The default
@@ -250,13 +256,13 @@ object it governs. Two departures from that default are banned, because each one
 and back-fill its grammar at the end.
 
 A clause ending on a preposition strands that preposition's object earlier in the sentence and sends the reader back to
-find it. Write "every module that has a registered parser" rather than "every module the system registers a parser
-for", and write "the cores each job occupies" rather than "the cores each job was admitted at".
+find it. Write "every module that has a registered parser", not "every module the system registers a parser for", and
+write "the cores each job occupies", not "the cores each job was admitted at".
 
 Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs before the head
 noun settles. Restore the relative pronoun, or convert the inner clause into a participial phrase. Write "one job for
-every module that the session used and that has a registered parser" rather than "one job per module the session
-configured and the system registers a parser for".
+every module that the session used and that has a registered parser", not "one job per module the session configured and
+the system registers a parser for".
 
 **The one-pass test**: read the sentence once at speaking pace. A sentence needing a second pass to settle the noun that
 a verb or a preposition governs fails the test. Rewrite it by naming the actor, then the action, then the qualifier.
@@ -277,8 +283,7 @@ code.
 
 **No hand-written API prose**: Do not describe a class, a function, a parameter, or a return value in RST. The
 `automodule`, `click`, and `doxygenfile` directives already emit that content from the authoritative source. When an API
-description reads poorly on the rendered page, correct the docstring in the source rather than adding prose around the
-directive.
+description reads poorly on the rendered page, correct the docstring in the source.
 
 **The cover test**: Before keeping a hand-written sentence, cover it and try to reconstruct it from the project
 description and the generated page it introduces. A sentence you are able to reconstruct carries no information, so
@@ -360,8 +365,8 @@ You MUST verify your work against this checklist before submitting any documenta
 ```text
 API Documentation Compliance:
 
-Settled by `tox -e docs`. A build surfaces each of these as an error or a warning, so run the
-command rather than hand-checking them. They stay listed for reviews performed without a build.
+Settled by `tox -e docs`. A build surfaces each of these as an error or a warning, so run the command. They stay listed
+for reviews performed without a build.
 - [ ] conf.py uses correct extension ordering
 - [ ] Breathe configuration present and correct (C++/hybrid)
 - [ ] index.rst includes welcome.rst and has toctree with api
@@ -401,14 +406,15 @@ every one against the files you wrote.
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
 - [ ] Prose states what the component does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] No hand-written RST prose contains the phrase `rather` followed by `than`, including where it wraps across a line
+      break (forbidden with no exception)
 - [ ] Sentences in hand-written RST prose stay under 40 words
-- [ ] Hand-written RST lines within 120 characters, with wrapped prose filled to that limit rather than broken at a
-      narrower width
+- [ ] Hand-written RST lines within 120 characters, with wrapped prose filled to that limit
 - [ ] Hand-written RST prose free of typos and grammar errors
 - [ ] Hand-written RST image directives carry an :alt: option naming what the image shows, and link text names the
       page it opens
 - [ ] No hand-written RST describing a class, function, parameter, or return value
-- [ ] Poor API prose corrected in the source docstring rather than worked around in RST
+- [ ] Poor API prose corrected in the source docstring
 - [ ] welcome.rst carries only its three prescribed paragraphs (no features, quickstart, or overview sections)
 - [ ] Each retained hand-written sentence survives the cover test (unable to be reconstructed from the project
       description and the generated page)

@@ -28,16 +28,15 @@ Each finding carries two citations, and both are checked.
 character.
 
 **The source reality.** Open the source file at its cited line and confirm the quoted source reality appears there
-character for character. Where the finding gives a factual summary rather than a quote, confirm the cited line supports
-that summary by reading it.
+character for character. Where the finding gives a factual summary, confirm the cited line supports that summary by
+reading it.
 
 An UNVERIFIABLE finding carries no source citation, so only its claim quote is checked. Its record of what was searched
 and where is checked instead by re-running one of the searches it names.
 
 Delete the finding when either quote fails to appear at its cited location. Repairing the citation is FORBIDDEN here. A
-citation that drifted is evidence that the finding was assembled from recollection rather than from the file, which
-makes the mismatch resting on it unreliable for the same reason. A deleted finding is free to be re-derived from scratch
-in a later audit.
+citation that drifted is evidence that the finding was assembled from recollection, which makes the mismatch resting on
+it unreliable for the same reason. A deleted finding is free to be re-derived from scratch in a later audit.
 
 Record the count of findings checked and the count deleted.
 
@@ -57,8 +56,7 @@ Give the sub-agent this task:
 
 ```text
 Refute this documentation finding by reading both cited files. Return REFUTED when any of these holds:
-- The implementation satisfies the claim through different wording, which is a match rather than a
-  mismatch
+- The implementation satisfies the claim through different wording, which is a match
 - The claim is satisfied deeper in the body, or by a helper the documented callable delegates to
 - The named symbol resolves through a re-export, so the module the documentation names does hold it
 - The claim states an authoritative external requirement the repository cannot confirm or deny
@@ -69,8 +67,8 @@ satisfies the claim. Answer REFUTED whenever you are uncertain.
 
 Discard every refuted finding. Record the counts of findings put through this check, confirmed, and refuted.
 
-A refuted WRONG finding is discarded rather than demoted to DRIFT, because the refutation attacked whether any mismatch
-exists rather than when it arose.
+A refuted WRONG finding is discarded and never demoted to DRIFT, because the refutation attacked whether any mismatch
+exists at all.
 
 ---
 
@@ -97,8 +95,8 @@ Refuted by adversarial verification: <n> of <n> checked
 ```
 
 These counts are the audit's own precision record, and the EXACT and SEMANTIC total is what shows how much of the
-documentation the audit confirmed rather than merely read. A run that discards nothing at any stage has either found
-unusually accurate documentation or skipped the stage, and stating the numbers is what lets a reader tell those apart.
+documentation the audit confirmed. A run that discards nothing at any stage has either found unusually accurate
+documentation or skipped the stage, and stating the numbers is what lets a reader tell those apart.
 
 ---
 
@@ -108,6 +106,6 @@ HIGH and MEDIUM confidence findings occupy the body of the report, grouped by do
 finding verdict, with the verdicts ordered WRONG, DRIFT, CONTRADICTION, OMISSION, UNVERIFIABLE.
 
 LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered by the same verdict
-sequence, rather than interleaved into the file groups. Every finding there still carries its full evidence and still
+sequence and never interleaved into the file groups. Every finding there still carries its full evidence and still
 passed every guard and both checks above. The appendix exists so the body of the report reads at one confidence level,
 and so a reader who wants only the settled findings knows where to stop.

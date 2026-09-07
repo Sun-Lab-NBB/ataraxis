@@ -76,7 +76,7 @@ Projects span Python, C++, and C#. These conventions maximize visual and structu
 respecting each language's idiomatic standards.
 
 **Shared across all languages:**
-- 120 character line limit, with wrapped prose filled to that limit rather than broken at a narrower width
+- 120 character line limit, with wrapped prose filled to that limit
 - 4-space indentation (no tabs)
 - Comprehensive documentation on ALL public and private members
 - Third-person imperative mood for documentation ("Provides...", "Determines whether...")
@@ -90,6 +90,8 @@ respecting each language's idiomatic standards.
 - Only full stops and commas separate clauses in documentation prose (no semicolons, no em-dashes)
 - Clauses read forward, with no preposition stranded at a clause end and no noun carrying stacked bare relatives
 - State what the code does now, not what it avoids doing or formerly did (positive description)
+- The two-word phrase `rather` followed by `than` is FORBIDDEN in documentation and comment prose, with no exception,
+  and deleting the excluded alternative is the only fix
 
 **Shared between C++ and C# only:**
 - Allman brace style (opening braces on new lines, where Python uses indentation)
@@ -117,8 +119,8 @@ respecting each language's idiomatic standards.
 - Both rules bind downward as well. A symbol referenced only inside its defining translation unit or header keeps the
   underscore, and a symbol every consumer of which lives inside the owning component stays out of that component's
   public header. A test is not a consumer for either rule, and a downstream project is
-- An asset with no consumer is removed rather than kept, which covers functions, methods, classes, constants, enum
-  members, and whole headers, and a symbol only its own tests exercise is removed together with those tests
+- An asset with no consumer is removed, which covers functions, methods, classes, constants, enum members, and whole
+  headers, and a symbol only its own tests exercise is removed together with those tests
 - A published library ships headers to consumers this repository cannot see, so every public declaration in an exported
   header is consumed. `library.json` fixes that boundary as `export.include` minus `export.exclude`. See the
   distribution boundary section of [libraries-and-tools.md](references/libraries-and-tools.md) for the shapes it spares
@@ -411,6 +413,8 @@ against the code you wrote.
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] No Doxygen block or comment contains the phrase `rather` followed by `than`, including where it wraps across a
+      line break (forbidden with no exception)
 - [ ] Full words used (no abbreviations like pos, idx, val, buf)
 - [ ] Classes use PascalCase
 - [ ] Methods use PascalCase (both public and private)
@@ -458,11 +462,10 @@ against the code you wrote.
 - [ ] .clang-tidy Checks list names every enabled check explicitly, with no wildcard enabling entry beyond the leading
       `-*` disable-all prefix, and no entry the installed clang-tidy no longer ships
 - [ ] A check contradicting a construct this skill prescribes is removed from the Checks list with its reason
-      recorded in the file header, rather than suppressed per-site with NOLINT
+      recorded in the file header
 
-Tooling-enforced items. Run clang-format -i src/*.h src/*.cpp and clang-tidy src/*.h src/*.cpp -- -I include/
-to resolve or report each of these rather than hand-checking them. They stay listed for reviews performed
-without the tools.
+Tooling-enforced items. Run clang-format -i src/*.h src/*.cpp and clang-tidy src/*.h src/*.cpp -- -I include/ to resolve
+or report each of these. They stay listed for reviews performed without the tools.
 - [ ] All lines <= 120 characters
 - [ ] 4-space indentation, no tabs
 - [ ] Allman brace style (opening braces on new lines)

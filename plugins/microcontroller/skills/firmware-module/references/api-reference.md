@@ -253,11 +253,10 @@ Arduino Mega, so counts such as `uint8_t[248]` or `uint16_t[124]` compile only o
 assertion rejects an oversized object at compile time for the board being built.
 
 **`double` does not build for an AVR board by default.** avr-gcc compiles `double` to 4 bytes unless the build passes
-`-mdouble=64`, and `axmc_shared_assets.h` rejects the narrower width at compile time rather than tagging a 4-byte
-payload with a prototype code the PC would decode as 8 bytes. An Arduino Mega therefore fails to compile rather than
-failing at runtime. Add `-mdouble=64` to that board's `build_flags`, or use `float` and `np.float32` on both sides.
-Teensy and Arduino Due are unaffected. `/communication:microcontroller-interface` carries the PC-side statement of the
-same constraint.
+`-mdouble=64`, and `axmc_shared_assets.h` rejects the narrower width at compile time. Accepting it would tag a 4-byte
+payload with a prototype code the PC decodes as 8 bytes. An Arduino Mega therefore fails to compile. Add `-mdouble=64`
+to that board's `build_flags`, or use `float` and `np.float32` on both sides. Teensy and Arduino Due are unaffected.
+`/communication:microcontroller-interface` carries the PC-side statement of the same constraint.
 
 ```cpp
 void SendData(const uint8_t event_code) const;
@@ -324,18 +323,18 @@ Kernel(
 | `keepalive_interval` | `uint32_t`       | Milliseconds between expected keepalive messages. 0=disabled. |
 
 The Kernel internally doubles the keepalive interval to tolerate brief communication lapses, saturating at the largest
-representable millisecond value rather than wrapping, so an interval above `UINT32_MAX / 2` yields the maximum timeout.
-Keepalive tracking stays inert until the PC sends its first keepalive kernel command (code 5), which arms tracking when
-the configured interval is non-zero and resets the timer. A controller the PC has not yet contacted therefore never
-times out. Every `Setup()` run disarms tracking again, so the PC has to re-arm the watchdog after a requested reset or
-after a keepalive-triggered emergency reset.
+representable millisecond value, so an interval above `UINT32_MAX / 2` yields the maximum timeout. Keepalive tracking
+stays inert until the PC sends its first keepalive kernel command (code 5), which arms tracking when the configured
+interval is non-zero and resets the timer. A controller the PC has not yet contacted therefore never times out. Every
+`Setup()` run disarms tracking again, so the PC has to re-arm the watchdog after a requested reset or after a
+keepalive-triggered emergency reset.
 
 The library README recommends enabling keepalive for most use cases and gives starting bands chosen by link speed and
-CPU frequency rather than by board name. The bands are 100-500 ms for a fast controller on USB such as the Teensy 4.1,
-and 2-5 s for a slower controller on UART such as the Arduino Mega. The README pairs the slow band with a 115200 UART
-link while the `mega` environment in `platformio.ini` runs faster, so treat a band as a starting point to confirm
-against the link the project actually uses. A band names the PC's ping period, and the silence the controller tolerates
-follows from the doubling above.
+CPU frequency. The bands are 100-500 ms for a fast controller on USB such as the Teensy 4.1, and 2-5 s for a slower
+controller on UART such as the Arduino Mega. The README pairs the slow band with a 115200 UART link while the `mega`
+environment in `platformio.ini` runs faster, so treat a band as a starting point to confirm against the link the project
+actually uses. A band names the PC's ping period, and the silence the controller tolerates follows from the doubling
+above.
 
 ### kKernelCommands
 
@@ -400,8 +399,8 @@ status}` as the data object of an error message, then drives `LED_BUILTIN` HIGH.
 LED. Only `SetupKernel()` drives it LOW again. A `Kernel::Setup()` pass reaches it once no module fails, and the first
 `RuntimeCycle()` to observe an incomplete setup runs it as well, before the 2-second toggle takes over. A lit LED
 therefore means at least one transfer failed since the last successful setup, not that one is failing right now, and a
-failed setup leaves the LED blinking rather than off. The two bytes are the whole firmware-side diagnosis of the
-failure, so read them as a pair.
+failed setup leaves the LED blinking. The two bytes are the whole firmware-side diagnosis of the failure, so read them
+as a pair.
 
 | Failing call                                 | Message emitted | Event code reported                     |
 |----------------------------------------------|-----------------|-----------------------------------------|
@@ -556,7 +555,7 @@ void ReadSensor()
 
 **Constexpr pin logic for polarity-configurable modules:** When a template parameter controls whether hardware is
 normally-open vs. normally-closed (or similar polarity inversion), compute the active/inactive logic levels as constexpr
-booleans rather than branching at runtime:
+booleans:
 
 ```cpp
 template <const uint8_t kPin, const bool kNormallyClosed>
@@ -611,8 +610,8 @@ after which the flashed controller is ready for the PC-side `MicroControllerInte
 ### Serial speed
 
 The firmware's `Serial.begin()` rate has to match the `monitor_speed` of the environment being built, and the PC side
-has to open the port at that same speed, so hold the rate in a named constant rather than a literal. Nothing reports a
-baud-rate fault when the two disagree. The controller runs `RuntimeCycle()` normally, and the PC-side
-`MicroControllerInterface` raises a "did not respond to the identification request" error once its retry budget expires.
-Read that identification failure as a baud mismatch first, before suspecting the module code. A project that targets
-more than one board resolves the rate at compile time, so the wrong constant cannot reach the wrong board.
+has to open the port at that same speed, so hold the rate in a named constant. Nothing reports a baud-rate fault when
+the two disagree. The controller runs `RuntimeCycle()` normally, and the PC-side `MicroControllerInterface` raises a
+"did not respond to the identification request" error once its retry budget expires. Read that identification failure as
+a baud mismatch first, before suspecting the module code. A project that targets more than one board resolves the rate
+at compile time, so the wrong constant cannot reach the wrong board.

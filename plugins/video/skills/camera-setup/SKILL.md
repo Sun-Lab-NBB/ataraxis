@@ -88,7 +88,7 @@ never have them. On a host without the runtime:
 - Starting a session with `interface="harvesters"` fails for the same reason
 
 None of this is a wiring, driver, or configuration fault, and no camera-side change fixes it. The reason reported by the
-tools names one of two causes, so read it rather than assuming a cause:
+tools names one of two causes, so read it:
 
 - **An Intel Mac, or any Mac on Python 3.14**: the library declares no GenICam runtime there, so this is
   permanent. Use the `opencv` interface, or drive GenICam cameras from an Apple Silicon Mac on Python 3.12 or
@@ -116,7 +116,7 @@ constructor.
 
 When nothing is found, the tool returns `No cameras discovered on the system.` instead of a list. Either response
 carries a trailing `Harvesters discovery skipped.` note with the reason when the GenICam runtime is absent, which means
-the host cannot enumerate GenICam hardware at all rather than that none is attached.
+the host cannot enumerate GenICam hardware at all.
 
 Harvesters discovery is skipped a second way, when no GenTL Producer (.cti) file has been configured, and that skip
 carries no note. An OpenCV-only listing with no skip note therefore still warrants a `get_cti_status_tool` call before
@@ -135,13 +135,13 @@ concluding that no GenICam camera is attached.
 Only one video session can be active at a time.
 
 A session writes exactly one `{system_id:03d}.mp4` (`112.mp4` for MCP sessions) for its whole lifetime, and the file is
-finalized only when the session stops. `stop_frame_saving_tool` clears a flag rather than closing the file, so a later
-`start_frame_saving_tool` call resumes appending to the same file. Several save/stop cycles in one session therefore
-produce one video, not several. To get separate files, stop the session and start a new one.
+finalized only when the session stops. `stop_frame_saving_tool` clears a flag, so a later `start_frame_saving_tool` call
+resumes appending to the same file. Several save/stop cycles in one session therefore produce one video, not several. To
+get separate files, stop the session and start a new one.
 
 `start_video_session_tool`, `start_frame_saving_tool`, and `stop_frame_saving_tool` report success as
-`Session started: ...`, `Recording started`, and `Recording stopped` respectively. A failed start returns a value
-rather than an exception, so an unchecked failure leaves a later recording call looking successful.
+`Session started: ...`, `Recording started`, and `Recording stopped` respectively. A failed start reports the failure in
+its return value, so an unchecked failure leaves a later recording call looking successful.
 
 **`start_video_session_tool` parameter details:**
 
@@ -204,7 +204,7 @@ call and to the recording, so a setting that has to survive belongs in a camera 
 - `camera_index` defaults to `0` and `node_name` defaults to `""`
 - With `node_name` provided: returns detailed metadata (type, value, access mode, range, unit, description)
 - With `node_name` empty: returns `Found {N} writable GenICam nodes:` followed by one `  {name} = {value}` line
-  per node. A node that cannot be read renders as `<unreadable>` rather than aborting the listing
+  per node. A node that cannot be read renders as `<unreadable>` and the listing continues
 
 **`write_genicam_node_tool` behavior:**
 - The `value` parameter is always a string, automatically coerced to the node's native type (int, float, bool,
@@ -304,7 +304,7 @@ when the write fails. Confirm `status` is `success` before running discovery aga
 
 Set `PixelFormat` to an 8-bit format (Mono8, BGR8, RGB8) before recording. The VideoSystem constructor grabs a probe
 frame and rejects the camera with a ValueError when the frames are not 8-bit, so a camera left on Mono12 or Mono16 fails
-to start rather than being down-converted.
+to start.
 
 **Save and restore configuration:**
 1. Ask the user for a YAML file path
@@ -316,16 +316,15 @@ to start rather than being down-converted.
 ## Encoding parameter guidance
 
 `/camera-interface` owns the use-case encoding table, the encoder and pixel format trade-offs, the H264-to-H265
-quantization equivalence, and the FFMPEG error catalog. Read those from there rather than from a restatement here.
+quantization equivalence, and the FFMPEG error catalog. Read those from there.
 
 The MCP defaults (`H264`, preset `3`, `yuv420p`, QP `15`) are tuned for a quick compatibility-first test, not for
 production. Two of them deserve attention while testing:
 
 - **Preset.** `3` (FAST) suits a quick camera test. Raise it to `4` for an extended test recording, and to `5` when the
-  point of the session is evaluating the camera's own image quality rather than proving the pipeline runs.
+  point of the session is evaluating the camera's own image quality.
 - **Quantization parameter.** The default of `15` is calibrated for H265 and is likely too low for the H264 default a
-  session starts with. Around 15-20 is a reasonable place to begin for H264. Tune it for the scene rather than treating
-  it as a documented equivalence.
+  session starts with. Around 15-20 is a reasonable place to begin for H264. Tune it for the scene.
 
 ---
 

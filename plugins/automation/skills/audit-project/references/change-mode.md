@@ -51,8 +51,8 @@ directory from the list before routing, and record the count dropped.
 
 ## The routing table
 
-Route from what the change CONTAINS rather than from file extensions alone. A docstring-only edit to a Python file needs
-no numeric width trace, and running one wastes a whole audit.
+Route from what the change CONTAINS. A docstring-only edit to a Python file needs no numeric width trace, and running
+one wastes a whole audit.
 
 | The change set contains                                                 | Audits that run                       |
 |-------------------------------------------------------------------------|---------------------------------------|
@@ -65,28 +65,27 @@ no numeric width trace, and running one wastes a whole audit.
 | Generated or vendored files alone                                       | none, and the run reports that        |
 | A created or deleted file, whatever else the change set holds           | adds the `/audit-style` layout pass   |
 
-Apply the table to the WHOLE change set rather than per file. An audit runs when any file in the set triggers it, and it
-then covers every file in the set that binds to it.
+Apply the table to the WHOLE change set. An audit runs when any file in the set triggers it, and it then covers every
+file in the set that binds to it.
 
 This table decides what the wave 2 members are RECOMMENDED for. The Step 0 election decides whether they run, and a user
-who declines one gets it recorded as DECLINED rather than as a routing skip.
+who declines one gets it recorded as DECLINED.
 
 Two refinements matter.
 
-**Performance is recommended, not merely permitted, for source changes that touch data.** Read the hunks rather than
-guessing. A change adding a loop over an array, a `np.` constructor, a file read, a serialization call, or a method
-inside a Unity per-frame set triggers it. A change renaming a variable does not.
+**Performance is recommended, not merely permitted, for source changes that touch data.** Read the hunks. A change
+adding a loop over an array, a `np.` constructor, a file read, a serialization call, or a method inside a Unity
+per-frame set triggers it. A change renaming a variable does not.
 
 **Correctness is recommended whenever an executable statement changed.** There is no cheap way to know that a statement
-is safe without asking, and that asking is the audit. This is the case where the plan should argue for the election
-rather than present it neutrally.
+is safe without asking, and that asking is the audit. This is the case where the plan should argue for the election.
 
-**The layout pass follows the shape of the file set rather than its contents.** `/audit-style` sweeps the project
-directory tree once per run, on its own main agent, and only where the target is a project root. In change mode it
-additionally requires that the change set CREATED or DELETED a file, because a layout finding follows from where a file
-sits rather than from what it holds. Tell `/audit-style` both facts, and record the status it returns, which is `run`,
-`skipped-not-a-project-root`, or `skipped-no-created-or-deleted-files`. A change set that edits files in place skips the
-pass, and the report states that rather than reporting a tree nothing examined as clean.
+**The layout pass follows the shape of the file set.** `/audit-style` sweeps the project directory tree once per run, on
+its own main agent, and only where the target is a project root. In change mode it additionally requires that the change
+set CREATED or DELETED a file, because a layout finding follows from where a file sits. Tell `/audit-style` both facts,
+and record the status it returns, which is `run`, `skipped-not-a-project-root`, or
+`skipped-no-created-or-deleted-files`. A change set that edits files in place skips the pass, and the report states
+that, because a tree nothing examined reads as clean.
 
 Record every audit that did not run with the routing row or the election that stopped it.
 
@@ -103,8 +102,8 @@ visibility grouping, and length proportionality.
 
 The saving in change mode comes from auditing FEWER FILES, never from reading less of each one.
 
-Where a changed file's caller lives outside the change set, that caller is read as AUTHORITY rather than audited,
-exactly as the audits already read tests and build files.
+Where a changed file's caller lives outside the change set, that caller is read as AUTHORITY, exactly as the audits
+already read tests and build files.
 
 ---
 
@@ -153,8 +152,8 @@ the routing table. An audit that passed on unchanged files does not run again.
 
 ### Fixes that require explicit user approval
 
-A fix that breaks the public API or alters public behavior is PRESENTED and waited on rather than applied. The agent
-never makes that call alone, in any mode, and no gate verdict authorizes it.
+A fix that breaks the public API or alters public behavior is PRESENTED and waited on, never applied. The agent never
+makes that call alone, in any mode, and no gate verdict authorizes it.
 
 | The fix would                                                        | Example                          |
 |----------------------------------------------------------------------|----------------------------------|
@@ -170,9 +169,8 @@ re-exports from `__init__`. A symbol private to its own module is not in this cl
 Present such a fix with what breaks, the callers the shared context's CALLGRAPH ledger shows reaching it, and the
 alternative that preserves the contract where one exists. Then WAIT.
 
-Approval is per fix rather than per round or per run. A user who approved one break has not approved the next, and a
-blocking finding whose only fix needs approval stays unresolved until they answer, which holds the verdict at BLOCKED
-rather than advancing it.
+Approval is per fix. A user who approved one break has not approved the next, and a blocking finding whose only fix
+needs approval stays unresolved until they answer, which holds the verdict at BLOCKED.
 
 Three rules protect the loop from defeating itself:
 
@@ -181,7 +179,7 @@ Three rules protect the loop from defeating itself:
 - Never resolve a facts finding by editing the code when the ownership ladder assigned the fix to the documentation, or
   the reverse.
 - Never suppress a finding to reach PASSED. An accepted finding is stated as accepted, with its reason, and the verdict
-  stays ADVISORY ONLY rather than becoming PASSED.
+  stays ADVISORY ONLY.
 
 ---
 
@@ -190,7 +188,7 @@ Three rules protect the loop from defeating itself:
 Three rounds cap the loop. A round is one report, one fix pass, and one re-audit.
 
 The cap exists because a change set that still blocks after three rounds is telling you something the next round will
-not fix, which is usually that the design is wrong rather than the code.
+not fix, which is usually that the design is wrong.
 
 On the cap, produce the report with the CAPPED verdict, list every remaining blocking finding with the rounds it
 survived, and hand the decision to the user. Do not start a fourth round, and do not lower a severity to reach PASSED.

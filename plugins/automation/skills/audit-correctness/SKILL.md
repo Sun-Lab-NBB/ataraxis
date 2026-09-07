@@ -79,7 +79,7 @@ lacks it.
 
 Where a language ships no coverage instrument, build the ranking by reading its test suite and mapping each test to the
 symbols it exercises, then treat every symbol no test reaches as T0. Embedded firmware frequently carries no unit tests
-at all, which puts its entire runtime path at T0 rather than out of scope.
+at all, which puts its entire runtime path at T0.
 
 ---
 
@@ -87,14 +87,14 @@ at all, which puts its entire runtime path at T0 rather than out of scope.
 
 **Trigger and result** carry every finding. A finding is reportable only when the trigger is written as an executable
 expression, a numbered call sequence, or a line-numbered interleaving, AND the result is written as a concrete value,
-exception, corruption, or hang. A candidate that resists being written that way is discarded rather than softened. This
-filter removes the most candidates of any rule in the skill.
+exception, corruption, or hang. A candidate that resists being written that way is discarded. This filter removes the
+most candidates of any rule in the skill.
 
 **Coverage tier** records why a region escaped the test suite. The tiers are language-neutral, each language fills them
 from its own instrument, and [detection-passes.md](references/detection-passes.md) defines all four alongside the pass
 that consumes them. Read the project's actual `[tool.coverage.run] branch` value and the gate its tox `coverage` task
-applies in Step 1 rather than assuming either, because the `branch` value decides whether the T3 tier holds anything at
-all. A C++ or C# target has no equivalent gate, so its tiers come from reading the test suite directly.
+applies in Step 1, because the `branch` value decides whether the T3 tier holds anything at all. A C++ or C# target has
+no equivalent gate, so its tiers come from reading the test suite directly.
 
 **Severity** orders the report, and [finding-catalog.md](references/finding-catalog.md) defines its four levels
 alongside the per-category guidance that assigns them.
@@ -137,7 +137,7 @@ scope. A user who narrows the scope here has that narrowing recorded in the Step
 
 Resolve the target into the set of files in scope. For a directory or project-root target, every source file under the
 target is in scope. There is no "covered area" reduction. Enumerate the audited files and, separately, the files read as
-authority rather than audited:
+authority:
 
 ```bash
 git ls-files '*.py' '*.pyi' '*.h' '*.hpp' '*.cpp' '*.cs'   # audited
@@ -163,8 +163,8 @@ Record the prerequisites that apply to the languages in scope, before any verdic
 1. The project archetype, read from the `envlist` in `tox.ini`. Full Python and C++ extension projects carry
    `{pyXXX}-test` and `coverage` environments. Reduced Python projects omit both by design, and C++ docs-only projects
    carry `envlist = docs` alone.
-2. Python only. The actual test matrix. Core libraries use `{py312, py313, py314}-test` and applications may test
-   fewer, so read the matrix rather than assuming one.
+2. Python only. The actual test matrix. Core libraries use `{py312, py313, py314}-test` and applications may test fewer,
+   so read the matrix.
 3. C++ only. The archetype of every C++ file, embedded (a `platformio.ini` at the project root) or extension (nanobind
    headers under a CMake build), plus the target boards, because `int` width and therefore every promotion result varies
    across them.
@@ -184,13 +184,12 @@ Classify the audit tier:
 | Medium | 2 to 9 files                       | Main agent, file-by-file                                |
 | Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
-A Large-tier audit BATCHES rather than fanning out per file. Every sub-agent re-receives the whole instruction payload,
-so fanning out per file pays that payload once per file and costs more than the sweep it parallelizes. Build the batches
-under two rules:
+A Large-tier audit BATCHES its files. Every sub-agent re-receives the whole instruction payload, so fanning out per file
+pays that payload once per file and costs more than the sweep it parallelizes. Build the batches under two rules:
 
 1. **One authority per batch.** Group by the style skill the binding table above assigned, so a batch holds Python files
-   or C++ files or C# files, never a mixture. A sub-agent then loads one authority rather than three, and it never
-   judges a file against another language's rules.
+   or C++ files or C# files, never a mixture. A sub-agent then loads one authority, and it never judges a file against
+   another language's rules.
 2. **Roughly eight files per batch**, sharing a package or a directory where the authority allows it. Forty sub-agents
    cap the run, twelve run at once, and batches beyond forty merge by authority.
 
@@ -200,8 +199,8 @@ Only the sweep passes fan out. Every other step runs on the main agent, because 
 ownership adjudication, guard application, verification, and the report each need the whole-project view or sit on a
 trust boundary.
 
-Do NOT use the `Explore` agent type for sweep work. Explore returns summaries rather than the verbatim quotes and
-line-level traces this skill's evidence standard requires.
+Do NOT use the `Explore` agent type for sweep work. Explore returns summaries, and this skill's evidence standard
+requires verbatim quotes and line-level traces.
 
 ### Step 2: Establish the coverage ranking
 
@@ -209,7 +208,7 @@ Coverage decides what is examined FIRST. It never decides what is examined at al
 
 For C++ and C# targets, and for any Python target whose archetype omits the coverage environments, skip straight to the
 test-suite reading described at the end of this step. Those languages carry no coverage.py artifacts, and their absence
-is a property of the archetype rather than a finding.
+is a property of the archetype.
 
 For a Python target that has them, read the existing artifacts before executing anything:
 `reports/coverage_html/index.html` with its per-file pages, and coverage.py's default `coverage.xml` at the project
@@ -242,9 +241,8 @@ pass consumes them.
 ### Step 4: Run the sweep passes
 
 Run passes 2 through 10 from [detection-passes.md](references/detection-passes.md) in ranked order, over ONE traversal
-of each file rather than one traversal per pass. Each pass asks one question of every line, and the file also holds the
-named CEAI procedure that Pass 2 and several categories call. Pass 8 runs over C++ and C# files alone, and Pass 9
-consumes the Step 2 ranking.
+of each file. Each pass asks one question of every line, and the file also holds the named CEAI procedure that Pass 2
+and several categories call. Pass 8 runs over C++ and C# files alone, and Pass 9 consumes the Step 2 ranking.
 
 For every candidate, classify it against [finding-catalog.md](references/finding-catalog.md), which supplies each
 category's definition, mechanical detection procedure, required evidence, and severity guidance. List ALL candidates in
@@ -257,15 +255,15 @@ agent synthesizes after all sub-agents complete.
 
 ### Step 5: Adjudicate ownership and categorize
 
-Run the ownership ladder against every contract-versus-behavior candidate and route rung 4 results to `/audit-facts`
-rather than reporting them here. Assign every surviving candidate a category, a severity, and a confidence tier, and
-collapse a defect satisfying several categories onto the most specific one, listing the others as tags.
+Run the ownership ladder against every contract-versus-behavior candidate and route rung 4 results to `/audit-facts`.
+Assign every surviving candidate a category, a severity, and a confidence tier, and collapse a defect satisfying several
+categories onto the most specific one, listing the others as tags.
 
 | Confidence | Meaning                                                                   |
 |------------|---------------------------------------------------------------------------|
 | HIGH       | Contract and implementation both quoted verbatim, the trace is mechanical |
 | MEDIUM     | Both quotes present, the trace requires interpretation                    |
-| LOW        | Pattern detected but the trigger is inferred rather than derived          |
+| LOW        | Pattern detected but the trigger is inferred                              |
 
 ### Step 6: Apply the false-positive guards
 
@@ -310,11 +308,10 @@ Report every surviving finding at every confidence tier by default, which covers
 the report to HIGH and MEDIUM only when the user explicitly asks for it via `--min-confidence medium` or equivalent
 invocation.
 
-The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that the report was
-filtered. LOW means the trigger is inferred rather than derived, and it never lowers the evidence floor. A candidate
-carrying no concrete trigger and no concrete result is still deleted by Guard 1 rather than demoted to LOW. LOW findings
-sit in the trailing `Appendix: LOW confidence` section the protocol defines rather than interleaved into the file
-groups, so the body of the report reads at one confidence level.
+The confidence tier stays on every finding, so a reader triages by tier. LOW means the trigger is inferred, and it never
+lowers the evidence floor. A candidate carrying no concrete trigger and no concrete result is still deleted by Guard 1
+and never demoted to LOW. LOW findings sit in the trailing `Appendix: LOW confidence` section the protocol defines,
+never interleaved into the file groups, so the body of the report reads at one confidence level.
 
 ---
 
@@ -363,18 +360,18 @@ Every finding uses the shape below, shared by all four audits in this family so 
 `<path>:<line>` · <category from the catalog> · <HIGH | MEDIUM | LOW> confidence · <T0 | T1 | T2 | T3 | COVERED>
 
 - **Wrong:** <the defect, carrying every quote and citation the evidence floor requires>
-- **Fix:** <the concrete change, described rather than applied>
+- **Fix:** <the concrete change, described and never applied>
 - **Impact:** <what the change alters for callers and downstream, or "None" when nothing observable changes>
 - **Choice:** <the options, one clause each, closing with a recommendation>
 ```
 
 **ID** is a short stable handle, `C1`, `C2`, and so on, numbered in report order, so a reader answers with the
-identifier rather than by restating the finding.
+identifier.
 
-**Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the contract quoted verbatim
-with its own `<path>:<line>` and source tag, and the implementing statements quoted verbatim with their own location.
-The trigger follows, written as an executable expression, a numbered call sequence, or a line-numbered interleaving, and
-the concrete result that trigger produces. A table, a ledger, or an interleaving sits directly beneath the bullet.
+**Wrong** carries the whole evidence load as prose, stating the contract quoted verbatim with its own `<path>:<line>`
+and source tag, and the implementing statements quoted verbatim with their own location. The trigger follows, written as
+an executable expression, a numbered call sequence, or a line-numbered interleaving, and the concrete result that
+trigger produces. A table, a ledger, or an interleaving sits directly beneath the bullet.
 
 **Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
 behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
@@ -399,7 +396,7 @@ You MUST adhere to the following discipline during every audit.
 - Quote both the contract and the implementation verbatim, each with its own `<path>:<line>`.
 - Keep every sentence the report itself writes, outside a verbatim quote, under 40 words and separated by full stops and
   commas alone.
-- Verify every external library contract by reading the installed package rather than from memory.
+- Verify every external library contract by reading the installed package, never from memory.
 - Treat coverage as a ranking. Never report a tier, a percentage, or a missing-line list as a defect, and never report
   the absence of a test.
 - Never invent an exemption. An exemption exists only where a loaded skill writes it down, and you MUST quote that
@@ -480,13 +477,13 @@ Code Correctness Audit Compliance:
 - [ ] Triage header present, carrying the severity by confidence counts and every discard count
 - [ ] Coverage ledger present, with every skipped file listed by path and reason
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
-- [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
+- [ ] LOW confidence findings placed in the trailing appendix and never interleaved
 - [ ] No style, formatting, or convention findings appear (those belong to /audit-style)
 - [ ] No cost or speed findings appear (those belong to /audit-performance)
 - [ ] No documentation-side findings appear (those belong to /audit-facts)
 - [ ] No missing test reported as a defect, and no coverage percentage reported as a defect
 - [ ] Findings ordered most severe first
-- [ ] Fix bullets are concrete code changes, described rather than applied
+- [ ] Fix bullets are concrete code changes, described and never applied
 - [ ] Every finding uses the shared shape, carrying a stable ID, a rank, a location line, and the Wrong, Fix, and
       Impact bullets
 - [ ] Every Impact bullet names what the fix alters for callers and downstream, or states None

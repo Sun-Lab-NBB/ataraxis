@@ -8,8 +8,8 @@ Records how the library sizes each log processing job, and which returned figure
 
 Every job is sized by the library, never by the agent. Preparation reads each archive's zip directory once and stamps
 the resulting figures onto the job entry, and execution resolves the session budgets and reports what it allocated. Read
-those figures from the assets below rather than recomputing them, because the sizing model is tuned per release and any
-formula reproduced in this file would drift out of agreement with the library running the batch.
+those figures from the assets below, because the sizing model is tuned per release and any formula reproduced in this
+file would drift out of agreement with the library running the batch.
 
 | Asset                                             | Reports                                                                          |
 |---------------------------------------------------|----------------------------------------------------------------------------------|

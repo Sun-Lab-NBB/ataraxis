@@ -49,7 +49,7 @@ The `kind` field takes one of `source`, `metadata-doc`, `build-config`, `test`, 
 reads it. The `authority` field takes the style skill the file binds to, and the audits' batching rules read it.
 
 Every audit still RECORDS the prerequisites, because its own verification checklist requires it. It records what this
-context hands it rather than deriving them again.
+context hands it.
 
 ---
 
@@ -72,7 +72,7 @@ Collect two outputs into the shared context before wave 2 starts:
 ### Wave 2: `/audit-correctness` and `/audit-performance`
 
 Concurrent. Both consume the shared context, and neither consumes the other's output. What sits between them is a
-ROUTING rule rather than a data dependency, so it is settled at merge time.
+ROUTING rule, so it is settled at merge time.
 
 The three routing rules that touch both:
 
@@ -118,11 +118,11 @@ Two limits govern every run, and they are not the same limit.
 
 A wave-level run spends two of the twelve in-flight slots on the audits themselves, which leaves ten for the
 verification refutations each audit spawns in its own verification step. Queue whatever exceeds twelve and start each as
-a slot frees, because the in-flight limit paces a run rather than truncating it.
+a slot frees, because the in-flight limit paces a run.
 
-The total is a budget rather than a coverage limit. Where an audit's batching rules produce more units than the total
-allows, merge units that share an authority or a checklist until they fit, and record the merge in that audit's coverage
-ledger. Dropping files to reach the cap is a coverage error.
+The total is a budget. Where an audit's batching rules produce more units than the total allows, merge units that share
+an authority or a checklist until they fit, and record the merge in that audit's coverage ledger. Dropping files to
+reach the cap is a coverage error.
 
 ---
 
@@ -133,7 +133,7 @@ Hand every audit exactly this, and nothing more:
 1. The shared context, with the inventory filtered to the files that audit will cover
 2. The change-set narrowing, in change mode only, naming the base revision
 3. The instruction that its Step 0 plan is satisfied and that it MUST NOT pause for confirmation
-4. Its tier, fixed by the parallel level rather than by its own tier table
+4. Its tier, fixed by the parallel level
 5. Wave 1 verdicts, for `/audit-correctness` alone
 6. The gate diagnostics, for wave 2 alone
 

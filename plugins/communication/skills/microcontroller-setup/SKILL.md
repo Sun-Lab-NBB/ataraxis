@@ -214,9 +214,9 @@ before reading `status`:
 | The assembly call itself raised    | `Archive assembly failed: <error>` |
 
 **Note:** `archives`, `source_ids`, and `archive_count` are recomputed by scanning the directory AFTER assembly runs, so
-they report what is present rather than what this call produced. A directory that already holds .npz archives and no
-.npy entries returns `status: "assembled"` with a full archive list and no indication that nothing was assembled. To
-confirm a real change, list the .npy entries in the directory before calling the tool.
+they report what is present. A directory that already holds .npz archives and no .npy entries returns
+`status: "assembled"` with a full archive list and no indication that nothing was assembled. To confirm a real change,
+list the .npy entries in the directory before calling the tool.
 
 ---
 
@@ -244,7 +244,7 @@ confirm a real change, list the .npy entries in the directory before calling the
    down.
 4. An address the client rejects opens no socket at all and returns a third message, `Unable to check an MQTT broker at
    {host}:{port}.` followed by `Invalid port number.` for a port at or below zero and by `Invalid host.` for an empty
-   host. Correct the argument rather than investigating the broker.
+   host. Correct the argument.
 
 ### Manifest inspection and retroactive tagging
 

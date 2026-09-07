@@ -199,6 +199,12 @@ marker, in tables, and in compound words. State what the library does and what i
 what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing because it corrects a
 counter-intuitive assumption, giving its reason.
 
+The two-word phrase `rather` followed by `than` is FORBIDDEN in every line of README prose, with no exception and no
+load-bearing carve-out. It names an alternative the reader never proposed, and the sentence keeps its full meaning once
+the trailing clause is deleted, so delete the clause and state the positive claim alone. Substituting `instead of`,
+`as opposed to`, or `in place of` reproduces the same padding under a new spelling and is equally forbidden. Where the
+excluded option genuinely carries information, it earns its own sentence naming what it costs.
+
 ### Forward-reading clauses
 
 A clause resolves left to right, so the reader reaches its last word already knowing what the clause says. The default
@@ -207,13 +213,13 @@ object it governs. Two departures from that default are banned, because each one
 and back-fill its grammar at the end.
 
 A clause ending on a preposition strands that preposition's object earlier in the sentence and sends the reader back to
-find it. Write "every module that has a registered parser" rather than "every module the system registers a parser
-for", and write "the cores each job occupies" rather than "the cores each job was admitted at".
+find it. Write "every module that has a registered parser", not "every module the system registers a parser for", and
+write "the cores each job occupies", not "the cores each job was admitted at".
 
 Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs before the head
 noun settles. Restore the relative pronoun, or convert the inner clause into a participial phrase. Write "one job for
-every module that the session used and that has a registered parser" rather than "one job per module the session
-configured and the system registers a parser for".
+every module that the session used and that has a registered parser", not "one job per module the session configured and
+the system registers a parser for".
 
 **The one-pass test**: read the sentence once at speaking pace. A sentence needing a second pass to settle the noun that
 a verb or a preposition governs fails the test. Rewrite it by naming the actor, then the action, then the qualifier.
@@ -226,7 +232,7 @@ documentation, and the one-line description at the top of the file.
 
 **The cover test**: Before keeping a sentence, cover it and try to reconstruct it from the project name, the one-line
 description, and the section heading it sits under. A sentence you are able to reconstruct carries no information, so
-delete it. Apply the test to one sentence at a time rather than to the section as a whole.
+delete it. Apply the test to one sentence at a time.
 
 **No API reproduction**: The README shows a reader what the library is for and how to use it. What it leaves to the
 hosted documentation is the generated reference, meaning a table or list that enumerates a function's parameters, a
@@ -235,9 +241,9 @@ correct as the code changes, so restating it here only creates a second copy tha
 
 A worked usage example is a different thing, and it belongs in the README. A runnable snippet per public feature earns
 its place, because it shows a reader how the pieces fit together, which a generated signature never does. Judge a Usage
-subsection on whether its example teaches something the reference cannot, rather than on how many public members the
-section happens to cover. A Usage section that runs long because the library exposes many features is doing its job, so
-do not propose deleting or collapsing worked examples on length alone.
+subsection on whether its example teaches something the reference cannot. A Usage section that runs long because the
+library exposes many features is doing its job, so do not propose deleting or collapsing worked examples on length
+alone.
 
 **No marketing prose**: State what the library does. Do not describe it as powerful, flexible, seamless, robust,
 comprehensive, or easy to use, and do not explain why its problem matters.
@@ -425,16 +431,18 @@ Style:
       syntax exempt)
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
-- [ ] README prose lines within 120 characters and filled to that limit rather than broken at a narrower width, with
-      table rows, code blocks, and badge URLs exempt
+- [ ] README prose lines within 120 characters and filled to that limit, with table rows, code blocks, and badge URLs
+      exempt
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] No README prose contains the phrase `rather` followed by `than`, including where it wraps across a line break
+      (forbidden with no exception)
 - [ ] README prose free of typos and grammar errors
 
 Quality:
 - [ ] Sentences in README prose stay under 40 words
 - [ ] Each retained sentence survives the cover test (unable to be reconstructed from name, description, and heading)
-- [ ] Generated reference material is linked rather than reproduced (no per-parameter or per-method signature listings,
-      and worked usage examples are not reference material and are never flagged here)
+- [ ] Generated reference material is linked (no per-parameter or per-method signature listings, and worked usage
+      examples are not reference material and are never flagged here)
 - [ ] No marketing adjectives (powerful, flexible, seamless, robust, comprehensive, easy to use)
 - [ ] No section preamble restating the heading above it
 - [ ] README records the library as it currently stands, never the edit that produced it

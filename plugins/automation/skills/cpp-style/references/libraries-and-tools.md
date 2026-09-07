@@ -70,10 +70,9 @@ time.
 
 ### Distribution boundary
 
-An asset with no consumer is removed rather than kept, and a published library measures that consumption against its
-distribution boundary rather than against this repository. `library.json` fixes the boundary as `export.include` minus
-`export.exclude`, so an auditor reads both fields before calling any symbol dead, and `/platformio-config` owns those
-two fields.
+An asset with no consumer is removed, and a published library measures that consumption against its distribution
+boundary. `library.json` fixes the boundary as `export.include` minus `export.exclude`, so an auditor reads both fields
+before calling any symbol dead, and `/platformio-config` owns those two fields.
 
 Every public declaration in an exported header reaches consumers this repository cannot see, so it is consumed. Three
 shapes recur. A published class keeps its whole public API, including the accessors that only the test suite calls
@@ -189,16 +188,16 @@ canonical configuration is stored in `assets/.clang-tidy` and is shared across b
 ### Every check is named explicitly
 
 The `Checks` list opens with `-*` and then names every enabled check in full. It carries NO globs, so the enabled set is
-identical on every clang-tidy version. This matters because clang-tidy is host-provided rather than pinned by the
-project environments, so two contributors routinely run different releases. A glob adopts each check a new release adds,
-and `WarningsAsErrors: '*'` turns that adoption into a build failure across every project sharing this file.
+identical on every clang-tidy version. This matters because clang-tidy is host-provided, so two contributors routinely
+run different releases. A glob adopts each check a new release adds, and `WarningsAsErrors: '*'` turns that adoption
+into a build failure across every project sharing this file.
 
 Naming each check also makes the list auditable. A name clang-tidy has dropped is visible as a dead entry, which a glob
 hides. Verify the list against the installed toolchain with `clang-tidy --checks='*' --list-checks` when a new release
 lands, and remove the entries it no longer ships.
 
 Adopting a new check is therefore a deliberate edit, which adds its name to the list in its family's alphabetical
-position rather than widening a pattern.
+position.
 
 ### A check that contradicts this skill is disabled, never suppressed
 

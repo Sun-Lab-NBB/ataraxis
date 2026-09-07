@@ -6,7 +6,7 @@ passes that judge it.
 
 The passes decompose the workflow steps in the skill. Pass 1 executes Step 2, pass 10 executes Step 4, passes 2 through
 6 cover Dimension A of Step 5, passes 7 and 8 cover Dimension B, pass 9 covers Dimension C, and pass 11 covers Dimension
-D.
+D. Pass 12 covers the forbidden phrase in Dimension B, as one search over every bound file in scope.
 
 Every pass draws its authority from the checklists Pass 1 loads. A convention absent from every loaded checklist is not
 a violation, whatever a pass below appears to invite.
@@ -26,23 +26,23 @@ a violation, whatever a pass below appears to invite.
 - Pass 9: Cross-file consistency sweep
 - Pass 10: Project layout sweep
 - Pass 11: Symbol usage sweep
+- Pass 12: Forbidden phrase sweep
 
 ---
 
-## One traversal, eleven questions
+## One traversal, twelve questions
 
-Passes 2 through 8 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file ONCE and answer every
-applicable pass during that single traversal, carrying the pass list beside you. Re-reading the file set once per pass
-costs six extra traversals of every line in scope and surfaces nothing the single traversal misses.
+Passes 2 through 8 are a CHECKLIST OF QUESTIONS. Read each file ONCE and answer every applicable pass during that single
+traversal, carrying the pass list beside you. Re-reading the file set once per pass costs six extra traversals of every
+line in scope and surfaces nothing the single traversal misses.
 
-Four passes sit outside that traversal. Pass 1 runs first, because it builds the ledger every later pass reports
+Five passes sit outside that traversal. Pass 1 runs first, because it builds the ledger every later pass reports
 against. Pass 10 runs once on the main agent at Step 4, before the traversal opens, because the directory tree belongs
-to the repository rather than to any file in it. Passes 9 and 11 run last on the main agent, because each needs the
-whole file set in one view.
+to the repository. Passes 9 and 11 run last on the main agent, because each needs the whole file set in one view. Pass
+12 runs there too, as one search over the raw files, because the phrase it hunts wraps across a line break.
 
 Pass 11 also takes an input the traversal produces. Every file read during passes 2 through 8 records the symbols it
-DECLARES and the symbols it REFERENCES. The single traversal therefore supplies the two tables pass 11 reconciles rather
-than paying for a second reading of every file in scope.
+DECLARES and the symbols it REFERENCES. The single traversal therefore supplies the two tables pass 11 reconciles.
 
 ---
 
@@ -80,11 +80,11 @@ Build the batches under three rules:
    assigned. A batch is Python files, or C++ files, or C# files, and never a mixture.
 2. **A single-file authority gets its own sub-agent.** `README.md`, `pyproject.toml`, and `tox.ini` each bind to a
    checklist nothing else uses. `platformio.ini` travels with `library.json`, and `CLAUDE.md` with `AGENTS.md`. A skill
-   is one such batch rather than one per file, so its `SKILL.md` and its `references/*.md` travel together, because the
-   progressive-disclosure rules judge a reference file against the `SKILL.md` that loads it. The documentation package
-   under `docs/` is one sub-agent holding `/api-docs` alone.
+   is one such batch, so its `SKILL.md` and its `references/*.md` travel together, because the progressive-disclosure
+   rules judge a reference file against the `SKILL.md` that loads it. The documentation package under `docs/` is one
+   sub-agent holding `/api-docs` alone.
 3. **Roughly eight files per source batch**, sharing a package or a directory. Forty sub-agents cap the run, twelve run
-   at once, and batches beyond forty merge by shared checklist rather than dropping files.
+   at once, and batches beyond forty merge by shared checklist with no file dropped.
 
 Each sub-agent loads ONLY the checklists its own batch binds to, and receives ONLY the rule-ledger rows Step 2 built
 from those checklists.
@@ -98,8 +98,8 @@ reference rows Pass 11 defines, covering each symbol its files declare and each 
 alone would leave the main agent unable to run Pass 11 at all, because a symbol declared in one batch and consumed in
 another is invisible to both sub-agents while the main agent never reads their files.
 
-Do NOT use the `Explore` agent type for sweep work. Explore returns summaries rather than verbatim citations and breaks
-the "verbatim checklist quote" discipline.
+Do NOT use the `Explore` agent type for sweep work. Explore returns summaries and breaks the "verbatim checklist quote"
+discipline.
 
 ---
 
@@ -115,10 +115,10 @@ reference file the skill names. Then build the ledger the later passes consume:
 ```
 
 Assign each rule a short identifier, copy its text VERBATIM, and record which pass below will check it. A rule copied
-loosely produces a finding that cannot be defended, so use the Read tool and copy rather than paraphrasing.
+loosely produces a finding that cannot be defended, so use the Read tool and copy the exact text.
 
 Record separately any rule that two loaded checklists state incompatibly. Those become CONFLICT findings and are
-surfaced rather than silently resolved in favor of one skill.
+surfaced, never silently resolved in favor of one skill.
 
 The ledger converts the audit from a search for anything that looks wrong into a finite checklist walked against a
 finite file set. Every later pass reports only rule identifiers drawn from it.
@@ -161,7 +161,7 @@ and break another.
 
 First, casing against the checklist's per-kind convention, which differs by language and by kind. Second, the visibility
 prefix, so a member private to its module or class carries the marker the checklist requires and a member crossing a
-module boundary does not. Third, vocabulary, so identifiers use full words rather than the abbreviations the checklist
+module boundary does not. Third, vocabulary, so identifiers use full words and never the abbreviations the checklist
 enumerates.
 
 Resolve the kind before judging the casing. A constant and a variable carry different conventions in every one of these
@@ -174,14 +174,14 @@ languages, so an identifier judged as the wrong kind produces a false finding.
 **Question:** Does this declaration carry the annotations and argument conventions its checklist requires?
 
 For every callable, check that each parameter and the return carry a type annotation where the checklist requires one,
-and that the annotation is parameterized rather than bare where the checklist names a parameterized form.
+and that the annotation is parameterized where the checklist names a parameterized form.
 
 Then check the call conventions the checklist states, which covers keyword arguments at call sites and their documented
 exceptions, boolean flags placed behind a keyword-only separator, and the declaration forms the checklist prescribes for
 aliases, dataclasses, and enums.
 
 Resolve each documented exception before reporting. A checklist that exempts one call form exempts it wherever that form
-appears, so confirm the construct is outside the exemption rather than assuming it.
+appears, so confirm the construct is outside the exemption.
 
 ---
 
@@ -190,10 +190,9 @@ appears, so confirm the construct is outside the exemption rather than assuming 
 **Question:** Is this import in the position and the form its checklist requires?
 
 Collect every import in the file with its line, then check four properties. Position, so every import sits at the top of
-the file and no deferred or function-local import appears. Form, so a local import brings in the required names directly
-rather than the module holding them. Boundary, so an import reaching another package goes through that package's public
-namespace rather than into a submodule. Export surface, so an `__init__` declares `__all__` and orders its entries as
-the checklist requires.
+the file and no deferred or function-local import appears. Form, so a local import brings in the required names
+directly. Boundary, so an import reaching another package goes through that package's public namespace and never into a
+submodule. Export surface, so an `__init__` declares `__all__` and orders its entries as the checklist requires.
 
 This pass sees ONE file, so it decides only what that one file reveals. Whether an export list holds the right NAMES is
 a question about the whole file set, because the answer turns on which packages import which symbols, and pass 11 owns
@@ -215,9 +214,9 @@ null, guard clauses against nested conditionals, and resource management through
 path handling, string interpolation and quoting, and the library helper the checklist prefers over a hand-rolled
 equivalent.
 
-Judge each against the checklist text rather than against general good practice, and report only where the checklist
-names the prescribed form. This pass is where invented conventions enter a report most easily, because the constructs
-are familiar and the temptation to apply outside knowledge is strongest.
+Judge each against the checklist text, and report only where the checklist names the prescribed form. This pass is where
+invented conventions enter a report most easily, because the constructs are familiar and the temptation to apply outside
+knowledge is strongest.
 
 ---
 
@@ -236,22 +235,20 @@ Walk every documentation block and check:
 4. Prose form against the checklist's structural rules, which covers prose against bullet lists and the specifier forms
    permitted in each context.
 5. Sentence length against the checklist's stated word limit, which is commonly stated as under 40 words.
-6. Length proportionality, so the block's size tracks the difficulty of understanding the code rather than the length of
-   the code.
+6. Length proportionality, so the block's size tracks the difficulty of understanding the code.
 7. Redundancy, so the block avoids restating the type signature and avoids padding the reader can infer from the code
    directly.
-8. Behavioral scope, so the block describes the asset's own behavior rather than the pipeline stage or feature that
+8. Behavioral scope, so the block describes the asset's own behavior and never the pipeline stage or feature that
    consumes it.
-9. Separator punctuation against the checklist's rule, so clauses are separated by full stops and commas rather than by
-   a semicolon or an em-dash.
-10. Positive description, so the text states present behavior rather than framing it by what it is not or what it used
-    to be. Contrastive and historical framing ("does X, not Y" or "used to do Y") is a finding, with a load-bearing
-    contrast that carries its reason exempt.
-11. Spelling and grammar against the checklist's stated language variant, checked word by word rather than by
-    impression.
+9. Separator punctuation against the checklist's rule, so clauses are separated by full stops and commas and never by a
+   semicolon or an em-dash.
+10. Positive description, so the text states present behavior, never framing it by what it is not or what it used to be.
+    Contrastive and historical framing ("does X, not Y" or "used to do Y") is a finding, with a load-bearing contrast
+    that carries its reason exempt.
+11. Spelling and grammar against the checklist's stated language variant, checked word by word.
 
-Check each block against all eleven rather than stopping at the first, because these violations co-occur and a block
-corrected for one frequently still breaks three others.
+Check each block against all eleven, because these violations co-occur and a block corrected for one frequently still
+breaks three others.
 
 ---
 
@@ -270,7 +267,7 @@ authoritative in place. Whether a suppression is still needed is a factual quest
 `/audit-facts`.
 
 Apply the same mood, sentence-length, separator, and positive-description rules from Pass 7 to comment prose, because
-the checklist states them for all documentation rather than for blocks alone.
+the checklist states them for all documentation.
 
 ---
 
@@ -286,9 +283,9 @@ ordering scheme within comparable files, and the declaration form chosen for com
 the error-reporting form, the documentation section set on comparable members, and the import style for comparable
 dependencies.
 
-Report a row where files disagree and the loaded checklist permits both forms only separately, which is an INCONSISTENCY
-rather than a violation of any single rule. Where the checklist prescribes one form outright, the deviating file is an
-ordinary finding under the pass that owns that rule, so report it there instead and keep this pass for genuine drift.
+Report a row where files disagree and the loaded checklist permits both forms only separately, which is an
+INCONSISTENCY. Where the checklist prescribes one form outright, the deviating file is an ordinary finding under the
+pass that owns that rule, so report it there instead and keep this pass for genuine drift.
 
 ---
 
@@ -301,8 +298,7 @@ report a path as ABSENT, because every other pass takes one existing file as its
 file nobody wrote.
 
 Run it for a project-root target alone. A package directory and a single file carry no tree to judge, and in change mode
-only a change set that creates or deletes files can alter one. Record the skip and its reason rather than passing over
-it silently.
+only a change set that creates or deletes files can alter one. Record the skip and its reason.
 
 Work in four parts:
 
@@ -337,9 +333,9 @@ removal, or relocation, and the Impact bullet names what a deleted or relocated 
 each symbol have a consumer at all?
 
 This pass runs on the main agent after every per-file pass completes, alongside pass 9, because a symbol's tier is a
-property of the WHOLE file set rather than of the file that declares it. No per-file pass can reach these findings. A
-pass reading one file sees the declaration or the reference, never both, so it can no more report an export nobody
-imports than pass 10 could report a file nobody wrote.
+property of the WHOLE file set. No per-file pass can reach these findings. A pass reading one file sees the declaration
+or the reference, never both, so it can no more report an export nobody imports than pass 10 could report a file nobody
+wrote.
 
 Work in four parts:
 
@@ -376,11 +372,11 @@ lets Check 1 verify these findings unchanged, and the consumer evidence carries 
 file can settle.
 
 Every one of the five is a claim about ABSENCE, which is the shape of claim a partial reading gets wrong most often, so
-the consumer evidence names the search that established it rather than asserting it. Confirm each candidate with a
-repository-wide search for the symbol's name across `src/`, `tests/`, and the configuration files carrying runtime
-registrations, then quote what the search returned. Where the repository holds a `.codegraph/` index, `codegraph
-explore` answers the same question directly and is the cheaper confirmation. A candidate whose search never ran, and a
-finding that cannot name its consumers, are both deleted rather than reported at low confidence.
+the consumer evidence names the search that established it. Confirm each candidate with a repository-wide search for the
+symbol's name across `src/`, `tests/`, and the configuration files carrying runtime registrations, then quote what the
+search returned. Where the repository holds a `.codegraph/` index, `codegraph explore` answers the same question
+directly and is the cheaper confirmation. A candidate whose search never ran, and a finding that cannot name its
+consumers, are both deleted.
 
 Rate UNDER_EXPOSED, MISSING_EXPORT, and a deep import reaching past a missing export as BLOCKING, because each names a
 rule the checklists state with MUST. Rate OVER_EXPOSED, UNWARRANTED_EXPORT, and UNUSED_ASSET as STANDARD.
@@ -388,3 +384,25 @@ rule the checklists state with MUST. Rate OVER_EXPOSED, UNWARRANTED_EXPORT, and 
 Run this pass for every language in scope, resolving the tier against the visibility construct the bound checklist
 names. That construct is the underscore prefix and the `__init__.py` export list in Python, the underscore prefix and
 the public header in C++, and the access modifier in C#.
+
+---
+
+## Pass 12: Forbidden phrase sweep
+
+**Question:** Does any file a style skill governs carry the forbidden two-word phrase?
+
+The two-word phrase `rather` followed by `than` is FORBIDDEN in every file the style skills govern, with no exception
+and no load-bearing carve-out. Every loaded checklist states the ban, so a hit cites that checklist line like any other
+finding. A docstring, a comment, a README, a configuration description, and a skill file all fall in scope, and the
+phrase is a finding in each. A commit message carries the same ban under `/commit`, which owns that surface.
+
+This pass runs once on the main agent, over the raw bytes of every bound file in scope, because the phrase survives a
+line-by-line reading. It wraps across a line break, leaving `rather` at the end of one line and `than` at the start of
+the next, where a plain search finds neither. Four such wrapped copies survived a purge of another repository for
+exactly that reason. Search with `rg -Uni '\brather\b[\s#*/>|+-]*\bthan\b' <paths>`, whose multiline flag spans the
+break and whose character class absorbs the `#`, `*`, `//`, and `>` a wrapped comment line carries.
+
+Report every hit as BLOCKING at HIGH confidence, cite the path and the line `rather` sits on, and quote both lines for a
+wrapped hit. The fix deletes the excluded alternative and keeps the positive claim alone. Substituting `instead of`,
+`as opposed to`, or `in place of` reproduces the same padding under a new spelling and is rejected as a fix. Where the
+excluded option genuinely carries information, the fix gives it its own sentence naming what it costs.

@@ -182,13 +182,12 @@ DataLogger namespace and `system_id` for the VideoSystem constructor.
 
 The library constrains one thing and requires one more. A `system_id` must fit `np.uint8` (0-255, enforced with an
 `OverflowError`), and every source sharing one DataLogger must carry a unique one. That second rule is a requirement the
-library does not check, since a duplicate ID silently replaces the earlier manifest entry rather than raising. 111 and
-112 are the only values the library itself reserves, and the axvs README's own quickstart uses 101 for a camera.
+library does not check, since a duplicate ID silently replaces the earlier manifest entry. 111 and 112 are the only
+values the library itself reserves, and the axvs README's own quickstart uses 101 for a camera.
 
 The 51-100 band is this plugin's allocation convention for keeping camera code clear of the reserved pair and of the
 101-150 band `/communication:pipeline` advises for microcontrollers. You MUST confirm the rig's existing allocation with
-the user rather than assuming it follows the convention. Within the band, allocate sequentially from 51 (51, 52, 53 for
-a 3-camera rig).
+the user. Within the band, allocate sequentially from 51 (51, 52, 53 for a 3-camera rig).
 
 Note that 111 falls inside the communication plugin's advised band, so a rig that runs `axvs run` against the same
 DataLogger a controller 111 writes to collides. This is only a concern for interactive testing, since production camera
@@ -208,10 +207,9 @@ DataLogger(instance_name="session")
 All cameras share one log directory, all timestamps are correlated, one `assemble_log_archives` call consolidates
 everything, and one processing batch covers all source IDs. Each VideoSystem writes an entry to `camera_manifest.yaml`
 during initialization, enabling manifest-based discovery downstream. The manifest write is idempotent per source ID,
-because re-constructing a VideoSystem against an already-used output directory replaces that source's entry rather than
-appending a duplicate. The read-replace-write sequence runs under a lock file beside the manifest and aborts if the lock
-cannot be taken within 10 seconds, so the concurrent registrations of several VideoSystems sharing one DataLogger are
-safe.
+because re-constructing a VideoSystem against an already-used output directory replaces that source's entry. The
+read-replace-write sequence runs under a lock file beside the manifest and aborts if the lock cannot be taken within 10
+seconds, so the concurrent registrations of several VideoSystems sharing one DataLogger are safe.
 
 Use multiple DataLoggers only where the user reports a single logger's buffering backing up during a run, which is rare.
 Each DataLogger then creates a separate output directory that must be assembled and processed independently, and
@@ -336,11 +334,10 @@ batch processing:
 
 For multi-DataLogger setups, pass each DataLogger output directory as its own entry in the `log_directories` list. One
 batch call can carry several, and each is prepared independently, so a separate batch per directory is not required.
-Passing a parent directory that spans several DataLogger outputs is rejected rather than merged. Preparation fails that
-entry and returns it under `failed_directories`, paired with the error explaining which rule it broke. The
-`axvs process` CLI reports the equivalent ValueError through its console, either "Each DataLogger output directory must
-be prepared and processed on its own invocation" or a manifest-count error when the tree holds several
-`camera_manifest.yaml` files.
+Passing a parent directory that spans several DataLogger outputs is rejected. Preparation fails that entry and returns
+it under `failed_directories`, paired with the error explaining which rule it broke. The `axvs process` CLI reports the
+equivalent ValueError through its console, either "Each DataLogger output directory must be prepared and processed on
+its own invocation" or a manifest-count error when the tree holds several `camera_manifest.yaml` files.
 
 ---
 

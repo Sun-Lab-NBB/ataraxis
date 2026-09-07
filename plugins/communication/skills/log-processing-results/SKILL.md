@@ -98,7 +98,7 @@ tracker:            ProcessingTracker status summary. {} when the directory hold
 ```
 
 A `source_id` that reads as an eight-character hex string is that fallback, not a controller identifier: it means the
-tracker entry carries no specifier, so pair it with `job_id` rather than matching it against a manifest source.
+tracker entry carries no specifier, so pair it with `job_id`.
 
 **Error returns.** Three checks return a single top-level `{error: ...}` and inspect nothing further, so no `files`
 list, `tracker` block, or `verified` flag is produced:
@@ -115,7 +115,7 @@ The third message ends with "Processing may not have been run yet", which is onl
 2. The `microcontroller_data/` directory itself was passed instead of its parent. The tool always appends the
    subdirectory name, so the nested lookup fails. Pass the output directory the batch was prepared with.
 3. `clean_log_processing_output_tool` (see `/log-processing`) deleted the subdirectory, taking the feather files and the
-   tracker with it. Re-prepare and re-execute rather than treating this as data loss.
+   tracker with it. Re-prepare and re-execute.
 
 ### Event analysis tool
 
@@ -213,9 +213,9 @@ Rows are ordered chronologically. Each row corresponds to one extracted message 
 codes.
 
 **Note:** Each feather file is published through a temporary file and a rename, so a reader never observes a partially
-written one. A job killed mid-write leaves the previously written file intact rather than a truncated file. Treat a
-feather file that fails to decode as a foreign file or a damaged filesystem, not as partial output, and do not add a
-"re-run because the write may have been cut short" step to a recovery path.
+written one. A job killed mid-write leaves the previously written file intact. Treat a feather file that fails to decode
+as a foreign file or a damaged filesystem, not as partial output, and do not add a "re-run because the write may have
+been cut short" step to a recovery path.
 
 ### Naming conventions
 
@@ -250,10 +250,10 @@ the enum and every resolver. Every resolver and finder takes the `microcontrolle
 
 **Note:** A hand-rolled `controller_*.feather` glob is wrong, because it matches the module and the kernel files
 together. The two finders separate them by construction, `find_module_paths` globbing `controller_*_module_*.feather`
-and `find_kernel_paths` globbing `controller_*_kernel.feather`, and both return an empty list rather than raising when
-the directory does not exist. Pair each finder with its parser to recover a file's identity from the filename instead
-of re-reading the manifest. Both parsers raise `ValueError` naming the offending filename when a name does not follow
-the convention, where a hand-written `split("_")` would silently mis-index.
+and `find_kernel_paths` globbing `controller_*_kernel.feather`, and both return an empty list when the directory does
+not exist. Pair each finder with its parser to recover a file's identity from the filename instead of re-reading the
+manifest. Both parsers raise `ValueError` naming the offending filename when a name does not follow the convention,
+where a hand-written `split("_")` would silently mis-index.
 
 ### ProcessingTracker file
 
@@ -278,8 +278,7 @@ The `microcontroller_processing_tracker.yaml` file tracks job lifecycle per outp
   extraction config.
 
 **Decoding the columns.** The library mirrors the firmware code tables as importable `IntEnum` classes, so decode
-against the enum rather than against a number written into analysis code. All three are top-level exports of
-`ataraxis_communication_interface`:
+against the enum. All three are top-level exports of `ataraxis_communication_interface`:
 
 | Enum                 | Decodes                                                                           |
 |----------------------|-----------------------------------------------------------------------------------|
@@ -296,8 +295,8 @@ enums, so decode them against the module's own interface. `MINIMUM_CUSTOM_STATUS
 addressed.
 
 **Counting event code 2 undercounts recurrent commands.** An event-2 count in a module feather counts command
-retirements rather than repetitions, so count an event the command body itself emits instead.
-`/microcontroller:firmware-module` owns the firmware code tables and the emission rules behind both readings.
+retirements, so count an event the command body itself emits instead. `/microcontroller:firmware-module` owns the
+firmware code tables and the emission rules behind both readings.
 
 ### Inter-event timing quality
 
@@ -321,7 +320,7 @@ acquisition, not from post-hoc log analysis.
 
 ### Data payload reconstruction
 
-Read the payloads through the library's exported primitives rather than looping `np.frombuffer` over rows:
+Read the payloads through the library's exported primitives:
 
 ```python
 import numpy as np

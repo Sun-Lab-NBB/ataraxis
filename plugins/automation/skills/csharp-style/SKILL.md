@@ -88,6 +88,8 @@ respecting each language's idiomatic standards.
 - Only full stops and commas separate clauses in documentation prose (no semicolons, no em-dashes)
 - Clauses read forward, with no preposition stranded at a clause end and no noun carrying stacked bare relatives
 - State what the code does now, not what it avoids doing or formerly did (positive description)
+- The two-word phrase `rather` followed by `than` is FORBIDDEN in documentation and comment prose, with no exception,
+  and deleting the excluded alternative is the only fix
 
 **Shared between C++ and C# only:**
 - Allman brace style (opening braces on new lines, where Python uses indentation)
@@ -315,8 +317,8 @@ All definitions within a file follow this vertical ordering from top to bottom:
 ### Visibility ordering
 
 Within each member kind, order by visibility: `public` -> `internal` -> `protected` -> `private`. Always write access
-modifiers explicitly, so every member states its visibility in source rather than inheriting C#'s implicit `private`
-default. Unity lifecycle methods appear in their natural execution order regardless of visibility.
+modifiers explicitly, so every member states its visibility in source. Unity lifecycle methods appear in their natural
+execution order regardless of visibility.
 
 ### Call-hierarchy ordering
 
@@ -412,6 +414,8 @@ against the code you wrote.
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] No XML doc or comment contains the phrase `rather` followed by `than`, including where it wraps across a line
+      break (forbidden with no exception)
 - [ ] Full words used (no abbreviations like pos, idx, val, msg)
 - [ ] Methods use PascalCase (both public and private)
 - [ ] Enum types and values use PascalCase
@@ -420,7 +424,7 @@ against the code you wrote.
 - [ ] Members whose consumers all live inside the declaring type stay private, and those whose consumers all
       live inside the assembly stay internal (tests are not consumers)
 - [ ] Every asset has a consumer, so methods, properties, fields, types, constants, and enum members that
-      nothing outside the test suite references are removed rather than kept
+      nothing outside the test suite references are removed
 - [ ] Using directives at top of file, outside namespace
 - [ ] String interpolation used (not string.Format or concatenation)
 - [ ] Named arguments used for boolean params and ambiguous calls
@@ -470,9 +474,8 @@ against the code you wrote.
 - [ ] #if UNITY_EDITOR used for editor-only code, and [Conditional] preferred over #if DEBUG
 - [ ] Switch expressions used for pure value mapping, and switch statements for side effects
 
-Tooling-enforced items. CSharpier and the EditorConfig-configured Roslyn analyzers settle each of
-these, so run `csharpier check .` and read the analyzer output rather than hand-checking them.
-They stay listed for reviews performed without the tooling.
+Tooling-enforced items. CSharpier and the EditorConfig-configured Roslyn analyzers settle each of these, so run
+`csharpier check .` and read the analyzer output. They stay listed for reviews performed without the tooling.
 - [ ] All lines <= 120 characters
 - [ ] 4-space indentation, no tabs
 - [ ] Allman brace style (opening braces on new lines)

@@ -122,8 +122,8 @@ For a target outside version control, run the equivalent `find` over the same pa
 Whole-repository coverage is the default and stays the default. Narrow to a change set ONLY when the user asks for that
 in the invocation, resolving it with `git diff --name-only <base>...HEAD` for a branch, `git diff --name-only <commit>`
 for one commit, or `git status --porcelain` for the working tree. A narrowed run still reads every surviving file in
-full, because a claim is verified against a whole implementation rather than against a hunk. Record the narrowing and
-the revision it resolved against in the Step 9 coverage ledger, so the report states what it did not cover.
+full, because a claim is verified against a whole implementation. Record the narrowing and the revision it resolved
+against in the Step 9 coverage ledger, so the report states what it did not cover.
 
 Bind every enumerated file to its class and its authoritative source:
 
@@ -140,8 +140,7 @@ Bind every enumerated file to its class and its authoritative source:
 | `*.cs`                                                        | In-source | The documented file, class, member, and the symbols they call            |
 
 A file matching no row is out of scope. Record it in the coverage ledger as UNBOUND. State whether `tests/` is audited
-or read as authority, bind every test path to the tests row rather than to its language row, and give it its own
-coverage-ledger row.
+or read as authority, bind every test path to the tests row, and give it its own coverage-ledger row.
 
 For files that reference external libraries, include the installed package location in the authoritative source list for
 that file. For ataraxis dependencies, invoke `/explore-dependencies` to obtain a current API snapshot before proceeding.
@@ -155,7 +154,7 @@ Classify the audit tier from the union of both classes:
 | Large  | 10 or more files or a project root | Parallel `general-purpose` sub-agents over file batches |
 
 A repository-root target is always Large. Group Large-tier work under three rules, which exist so a sub-agent loads one
-authority rather than the union of every authority in the repository.
+authority.
 
 1. **One metadata file, one sub-agent.** `README.md`, `CLAUDE.md`, `pyproject.toml`, `tox.ini`, and `platformio.ini`
    each get a dedicated sub-agent, because each resolves against a different authoritative source. A skill is one batch,
@@ -165,7 +164,7 @@ authority rather than the union of every authority in the repository.
    files, and never mixing languages inside a batch.
 3. **Forty sub-agents cap the run, and twelve run at once.** Every sub-agent re-receives the whole instruction payload,
    so the total bounds what the fan-out costs and the in-flight limit paces it. Batches beyond forty merge by shared
-   authoritative source rather than dropping files.
+   authoritative source with no file dropped.
 
 Record the sub-agent count in the Step 9 coverage ledger.
 
@@ -173,8 +172,8 @@ Only the per-file claim verification fans out. Every other step runs on the main
 and contradiction passes each need the whole claim ledger in one view, and the guards, the verification, and the report
 each sit on a trust boundary.
 
-Do NOT use the `Explore` agent type for verification work. Explore returns summaries rather than verbatim citations and
-breaks the "verbatim quote" discipline.
+Do NOT use the `Explore` agent type for verification work. Explore returns summaries and breaks the "verbatim quote"
+discipline.
 
 ### Step 2: Extract verifiable claims
 
@@ -249,8 +248,7 @@ Also assign a confidence tier to every finding:
 
 For UNVERIFIABLE findings, state what you searched for and where you looked.
 
-List ALL non-matching claims in each pass, walking a block that yields one WRONG claim to the end of its ledger rows
-rather than stopping at the first.
+List ALL non-matching claims in each pass, walking a block that yields one WRONG claim to the end of its ledger rows.
 
 ### Step 4: Omission pass
 
@@ -311,8 +309,7 @@ count the protocol names, because the Step 9 ledger and the report's triage head
 
 ### Step 9: Assemble the coverage ledger
 
-Build the ledger that opens the report. It records what was audited, so a thin in-source pass is visible rather than
-silent:
+Build the ledger that opens the report. It records what was audited, so a thin in-source pass is visible:
 
 ```text
 | Documentation class | Files in scope | Files audited | Files skipped |
@@ -324,10 +321,9 @@ silent:
 
 List every skipped and UNBOUND file by path with its reason, and state the sub-agent count. Skipping is allowed only
 when the user narrowed the scope in Step 0 or Step 1, when a file is generated, or when a file is unreadable. A tests
-row bound as authority rather than audited is recorded in the skipped list with the reason `authority, not audited`. A
-run narrowed to a change set names the revision it resolved against here. A Large-tier audit that produced no in-source
-findings still reports a non-zero audited count in the in-source row, which distinguishes clean documentation from an
-unrun pass.
+row bound as authority is recorded in the skipped list with the reason `authority, not audited`. A run narrowed to a
+change set names the revision it resolved against here. A Large-tier audit that produced no in-source findings still
+reports a non-zero audited count in the in-source row, which distinguishes clean documentation from an unrun pass.
 
 ### Step 10: Produce the findings report
 
@@ -337,9 +333,8 @@ Skip EXACT and SEMANTIC findings entirely. Report every surviving finding at eve
 covers LOW alongside HIGH and MEDIUM. Narrow the report to HIGH and MEDIUM only when the user explicitly asks for it via
 `--min-confidence medium` or equivalent invocation.
 
-The confidence tier stays on every finding, so a reader triages by tier rather than by trusting that the report was
-filtered. LOW means the source and claim mapping is inferred rather than literal, and it never excuses a finding from
-the citation rules in the Discipline section.
+The confidence tier stays on every finding, so a reader triages by tier. LOW means the source and claim mapping is
+inferred, and it never excuses a finding from the citation rules in the Discipline section.
 
 ---
 
@@ -362,17 +357,17 @@ Every finding uses the shape below, shared by all four audits in this family so 
 `<path>:<line>` · <METADATA | IN-SOURCE> · <HIGH | MEDIUM | LOW> confidence · <source `<path>:<line>`, or N/A>
 
 - **Wrong:** <the defect, carrying every quote and citation the evidence floor requires>
-- **Fix:** <the concrete change, described rather than applied>
+- **Fix:** <the concrete change, described and never applied>
 - **Impact:** <what the change alters for callers and downstream, or "None" when nothing observable changes>
 - **Choice:** <the options, one clause each, closing with a recommendation>
 ```
 
 **ID** is a short stable handle, `F1`, `F2`, and so on, numbered in report order, so a reader answers with the
-identifier rather than by restating the finding.
+identifier.
 
-**Wrong** carries the whole evidence load as prose rather than as labelled fields, stating the claim quoted verbatim
-from the documentation with its own `<path>:<line>`, and the source reality quoted verbatim or summarized with the
-citation that establishes it. A table, a ledger, or an interleaving sits directly beneath the bullet.
+**Wrong** carries the whole evidence load as prose, stating the claim quoted verbatim from the documentation with its
+own `<path>:<line>`, and the source reality quoted verbatim or summarized with the citation that establishes it. A
+table, a ledger, or an interleaving sits directly beneath the bullet.
 
 **Impact** states what the fix alters for a caller or a downstream project, and states "None" when the change is
 behavior-preserving. Naming a break here IS the signal that the fix needs the owner's decision.
@@ -382,7 +377,7 @@ denies, where the owner decides between correcting the prose and removing it. Ea
 bullet closes with a recommendation.
 
 An UNVERIFIABLE finding replaces the source reality with a description of what was searched and where, so a reader can
-extend the search rather than repeat it.
+extend the search.
 
 ---
 
@@ -398,7 +393,7 @@ You MUST adhere to the following discipline during every audit, and you MUST app
   clause before applying it. Shared corpus, house convention, text byte-identical in a sibling repository, long-standing
   code, and "it reads fine" are none of them, so a real finding survives wherever else the same text appears.
 - Hold the report's own prose to the rules this family enforces, keeping every authored sentence under 40 words and
-  separating clauses with full stops and commas rather than semicolons or em-dashes.
+  separating clauses with full stops and commas and never semicolons or em-dashes.
 - Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
   line ending before column 100 while its next word would still fit is re-flowed.
 
@@ -455,8 +450,7 @@ Documentation Fact Audit Compliance:
 - [ ] For Large tier, in-source batched by package with no language mixing, within 40 and 12 in flight, merging to fit
 - [ ] Scope narrowed to a change set only on explicit request, with the revision recorded in the ledger
 - [ ] Every claim carries a verdict (EXACT, SEMANTIC, DRIFT, WRONG, CONTRADICTION, OMISSION, UNVERIFIABLE)
-- [ ] Every harvested claim carries a verdict, with all non-matching claims in a block reported rather than the
-      first one only
+- [ ] Every harvested claim carries a verdict, with every non-matching claim in a block reported
 - [ ] Every claim assigned a confidence tier (HIGH, MEDIUM, LOW)
 - [ ] Every non-EXACT and non-SEMANTIC finding cites a source location <path>:<line>
 - [ ] Claim ledger built in Pass 1, with every claim tagged by kind
@@ -471,20 +465,20 @@ Documentation Fact Audit Compliance:
 - [ ] Internal contradictions surfaced
 - [ ] Every false-positive guard applied in order, with the discarded-candidate count recorded
 - [ ] Citation verification run against every finding, with the claim quote and the source quote both confirmed
-- [ ] Every finding whose quote or line failed citation verification deleted rather than repaired
+- [ ] Every finding whose quote or line failed citation verification deleted and never repaired
 - [ ] Adversarial refutation run against every WRONG and CONTRADICTION finding, in fresh sub-agents
 - [ ] Every refuted finding discarded, and the confirmed and refuted counts recorded
 - [ ] Triage header present, carrying the verdict by confidence counts and every discard count
 - [ ] Coverage ledger present, with every skipped and UNBOUND file listed by path and reason
 - [ ] In-source row of the ledger shows a non-zero audited count for repository targets
 - [ ] Every confidence tier reported, with LOW included unless the user narrowed the report
-- [ ] LOW confidence findings placed in the trailing appendix rather than interleaved
+- [ ] LOW confidence findings placed in the trailing appendix and never interleaved
 - [ ] No EXACT or SEMANTIC findings appear in the report
 - [ ] No style, formatting, convention, or documentation-quality findings appear in the report
 - [ ] No wholly undocumented callable, class, module, or file reported as an omission
 - [ ] No file modifications made during the audit
 - [ ] Findings ordered: WRONG -> DRIFT -> CONTRADICTION -> OMISSION -> UNVERIFIABLE
-- [ ] Fix bullets are concrete textual edits, described rather than applied
+- [ ] Fix bullets are concrete textual edits, described and never applied
 - [ ] Every finding uses the shared shape, carrying a stable ID, a rank, a location line, and the Wrong, Fix, and
       Impact bullets
 - [ ] Every Impact bullet names what the fix alters for callers and downstream, or states None

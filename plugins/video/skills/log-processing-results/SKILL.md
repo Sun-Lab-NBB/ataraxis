@@ -198,9 +198,9 @@ interval, rounded, reduced by one, and clamped at zero, because a span of N medi
 frames. A recording's last interval has no successor to repay it, so it is netted against a full interval and carries
 no compensation.
 
-A gap the netting resolves to zero is jitter rather than loss. It counts under `jitter_compensated_gaps`, contributes
-nothing to `total_estimated_dropped_frames`, and still appears in `drop_locations` with an `estimated_frames_lost` of
-zero. A file whose `total_gaps_detected` and `jitter_compensated_gaps` are equal lost no frames at all.
+A gap the netting resolves to zero is jitter. It counts under `jitter_compensated_gaps`, contributes nothing to
+`total_estimated_dropped_frames`, and still appears in `drop_locations` with an `estimated_frames_lost` of zero. A file
+whose `total_gaps_detected` and `jitter_compensated_gaps` are equal lost no frames at all.
 
 A span in which the session paused frame saving reads as one long gap here, because the log carries no row for a frame
 acquired while saving was off. Confirm with the user whether saving was toggled mid-session before reporting a single
@@ -210,8 +210,8 @@ large gap as loss.
 `frame_drop_analysis` are empty `{}`. When `total_frames == 1`, `basic_stats` is fully populated but `duration_us`,
 `duration_seconds`, and `estimated_fps` are `0`, and the timing and drop sections are again empty `{}`. Whenever
 `duration_us` is zero, including a degenerate capture whose timestamps are identical, `estimated_fps` is `0.0`, which is
-a "cannot compute" sentinel rather than a measured 0 fps. Check `total_frames >= 2` before indexing into
-`inter_frame_timing` or `frame_drop_analysis` to avoid a `KeyError`.
+a "cannot compute" sentinel. Check `total_frames >= 2` before indexing into `inter_frame_timing` or
+`frame_drop_analysis` to avoid a `KeyError`.
 
 ---
 
@@ -274,9 +274,8 @@ Read each source entry's `timestamps_file` from the discovery response:
 
 To determine per-job status (SCHEDULED, RUNNING, SUCCEEDED, FAILED), read the `camera_processing_tracker.yaml` file
 through `get_batch_status_overview_tool` with `include_items=True` and `detailed=True`, which together add each
-directory's `jobs` entries. That tool reports one entry per `camera_timestamps/` subdirectory rather than per
-DataLogger log directory, so its `output_directory` values will not match the `log_directory` values
-`discover_camera_data_tool` returns.
+directory's `jobs` entries. That tool reports one entry per `camera_timestamps/` subdirectory, so its `output_directory`
+values will not match the `log_directory` values `discover_camera_data_tool` returns.
 
 ---
 

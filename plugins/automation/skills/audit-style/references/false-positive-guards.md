@@ -28,7 +28,7 @@ Where a candidate breaches a rule the ledger holds, only a clause a loaded skill
 - Guard 9: Factual findings belong to /audit-facts
 - Guard 10: Defects and costs belong to the sibling code audits
 - Guard 11: An inconsistency needs the checklist to permit both forms
-- Guard 12: A conflict is surfaced rather than resolved
+- Guard 12: A conflict is surfaced, never resolved
 - Guard 13: One rule, one finding
 - Guard 14: Layout paths carry their own exemptions
 - Guard 15: A consumer the reading cannot see is still a consumer
@@ -39,7 +39,7 @@ Where a candidate breaches a rule the ledger holds, only a clause a loaded skill
 ## Guard 1: No ledger row, no finding
 
 Every finding cites a rule identifier from the Pass 1 rule ledger, together with that rule's verbatim text. A candidate
-matching no ledger row is DELETED rather than reported at low confidence.
+matching no ledger row is DELETED.
 
 "This would read better", "the convention elsewhere is", and "most projects do" are all unreportable. A convention
 absent from every loaded checklist is not a violation, however sound it is. Where the convention genuinely should exist,
@@ -56,8 +56,7 @@ counts, quote and string form, trailing commas, import sorting and grouping, and
 project enables all belong to the tool.
 
 Re-deriving one of those by reading is forbidden, because the tool is exact and a reading is not. A tool that ran and
-stayed silent on a line has cleared that line, so a hand-derived finding contradicting a tool that ran is deleted rather
-than reported.
+stayed silent on a line has cleared that line, so a hand-derived finding contradicting a tool that ran is deleted.
 
 Where a configured tool failed to run, its rules stay unchecked and the report says so. It does not hand them back to
 the sweep.
@@ -90,8 +89,8 @@ of the last group.
 
 ## Guard 5: Generated, vendored, and auto-generated blocks are out of scope
 
-Stub files, the typing marker, generated API pages, and vendored third-party trees are produced by a tool rather than
-hand-authored, so a style divergence in them is regenerated rather than fixed.
+Stub files, the typing marker, generated API pages, and vendored third-party trees are produced by a tool, so a style
+divergence in them disappears at the next regeneration.
 
 A `.pyi` stub carrying evidence of hand-authoring is the one reportable case, because `/python-style` states that the
 stubs and the typing marker are generated. Report the hand-authoring against that rule and report nothing else inside
@@ -99,7 +98,7 @@ the file.
 
 Audit nothing inside a virtual environment, site-packages, a tox working directory, or a build directory. Where a
 hand-authored file carries an auto-generated block or a documented exception, note the exception and skip its enclosing
-range rather than reporting inside it.
+range.
 
 ---
 
@@ -132,10 +131,9 @@ Judging it against a checklist bound to a different file type is an invented con
 
 ## Guard 9: Factual findings belong to /audit-facts
 
-Three classes of finding are FACTUAL rather than formal. They are a stale reference to a renamed symbol, a removed
-feature, or a closed issue, a docstring claim that disagrees with the signature or the observable behavior, and a
-suppression comment whose diagnostic no longer fires. Settling any of them requires reading the implementation or
-running a tool.
+Three classes of finding are FACTUAL. They are a stale reference to a renamed symbol, a removed feature, or a closed
+issue, a docstring claim that disagrees with the signature or the observable behavior, and a suppression comment whose
+diagnostic no longer fires. Settling any of them requires reading the implementation or running a tool.
 
 This audit judges the FORM of the prose. Where a block breaks both a form rule and a fact, report the form rule here and
 leave the fact to its owner.
@@ -164,7 +162,7 @@ rule, so report it there instead. Where the checklist states nothing, Guard 1 de
 
 ---
 
-## Guard 12: A conflict is surfaced rather than resolved
+## Guard 12: A conflict is surfaced, never resolved
 
 Where two loaded checklists state the same point incompatibly, the finding is the CONFLICT itself. Quote both rules with
 their skill and reference file, and leave the decision to the user.
@@ -195,8 +193,8 @@ Four classes are discarded outright:
    are the same, because the stubs task writes them into the source tree while `/stubs/` itself stays gitignored.
 2. **Paths the archetype tree marks optional.** A tree entry annotated `(optional)` is absent by permission, so its
    absence supports no finding.
-3. **Generated and vendored directories.** A directory a tool produces or a third party ships is regenerated rather than
-   restructured, so neither its presence nor its contents are reportable.
+3. **Generated and vendored directories.** A directory a tool produces or a third party ships is regenerated at its next
+   build, so neither its presence nor its contents are reportable.
 4. **Absent paths under a low-confidence archetype.** Where the key indicators matched partially or contradicted one
    another, the required-path set is unsettled, so report the ambiguous archetype to the user and leave the absent paths
    unjudged.
@@ -218,19 +216,19 @@ them is DISCARDED:
 1. **The curated public API.** A symbol in the distribution's top-level `__init__.py` `__all__` is consumed by
    downstream code this repository cannot see, so it is never UNUSED_ASSET, never OVER_EXPOSED, and never
    UNWARRANTED_EXPORT at that level.
-2. **Runtime registration.** A symbol the interpreter or a framework resolves by string or by registration rather than
-   by name is consumed without a written reference. This covers `pyproject.toml` entry points, Click commands and their
-   groups, MCP tool registrations, pytest plugins and conftest fixtures, plugin and dispatch registries, and `getattr`
-   and `__getattr__` lookup. It also covers serialization fields read from YAML or JSON, enum members matched by value,
-   Unity serialized fields and lifecycle methods, and embedded interrupt and callback registration.
+2. **Runtime registration.** A symbol the interpreter or a framework resolves by string or by registration is consumed
+   without a written reference. This covers `pyproject.toml` entry points, Click commands and their groups, MCP tool
+   registrations, pytest plugins and conftest fixtures, plugin and dispatch registries, and `getattr` and `__getattr__`
+   lookup. It also covers serialization fields read from YAML or JSON, enum members matched by value, Unity serialized
+   fields and lifecycle methods, and embedded interrupt and callback registration.
 3. **Interface conformance.** A method implementing an abstract base, satisfying a protocol, overriding a parent, or
-   carrying a dunder name is consumed through the interface rather than through its own name.
+   carrying a dunder name is consumed through the interface.
 4. **Generated and vendored declarations.** Guard 5 has already removed these files from scope, so a symbol they declare
-   is unjudged rather than unused.
+   is unjudged.
 
 One class runs the other way. A reference from `tests/` is NOT a consumer for any Pass 11 question, so it neither
-promotes a symbol's tier nor rescues it from UNUSED_ASSET. That is the checklists' own rule rather than an inference, so
-quote the clause stating it before reporting a symbol its tests use.
+promotes a symbol's tier nor rescues it from UNUSED_ASSET. That is the checklists' own rule, so quote the clause stating
+it before reporting a symbol its tests use.
 
 Guard 2 still binds here. Ruff owns unused imports outside `__init__.py` (`F401`), unused locals (`F841`), and unused
 arguments (`ARG`), so this pass reports NONE of the three on its own authority. It covers what ruff carries no rule for,
@@ -244,10 +242,10 @@ Pass 11 answers every question from the reference table, so the table's coverage
 to a change set has read only the changed files, and a consumer sitting in an unread file leaves no row, which turns
 every unread consumer into a false OVER_EXPOSED, UNWARRANTED_EXPORT, or UNUSED_ASSET finding.
 
-Resolve it by widening rather than by guessing. Build the reference table across the whole repository even when the
-sweep is narrowed, because collecting references is a search rather than a full reading of every file. Where that
-widening cannot run, SKIP the pass and record `skipped-reference-table-incomplete` in the coverage ledger, because a
-silent skip reads as a clean result nothing ever checked.
+Resolve it by widening. Build the reference table across the whole repository even when the sweep is narrowed, because
+collecting references is a search. Where that widening cannot run, SKIP the pass and record
+`skipped-reference-table-incomplete` in the coverage ledger, because a silent skip reads as a clean result nothing ever
+checked.
 
 The same reasoning binds the audit's own scope. A package-directory target cannot decide the cross-package tier of any
 symbol it holds, so under such a target report UNDER_EXPOSED and MISSING_EXPORT alone and record the remaining three as

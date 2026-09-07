@@ -36,8 +36,8 @@ toolchain version floors, installer requirements, cross-repository version pins,
 specifications, and vendor documentation the file cites.
 
 Report such a claim only when the file contradicts itself about it, and set the Fix bullet to "leave as-is,
-authoritative external requirement" rather than a removal or a change. `/readme-style` is the source of the canonical
-install-section requirements, so a claim matching those is settled there rather than here.
+authoritative external requirement". `/readme-style` is the source of the canonical install-section requirements, so a
+claim matching those is settled there.
 
 The failure this prevents is an audit that deletes a true requirement because the repository holds no copy of it.
 
@@ -60,11 +60,10 @@ When the documentation says X lives in module Y, and Y re-exports X from elsewhe
 
 Check the package `__init__` before reporting any missing symbol. The framework requires a symbol consumed outside its
 defining package to be exported from that package's `__init__` and imported through the package namespace, so re-export
-is the normal case rather than the exception.
+is the normal case.
 
 Tests are the exception the framework states. A docstring or comment under `tests/` naming a private member, or
-importing directly from a submodule, is correct rather than a broken reference, because the framework permits both
-there.
+importing directly from a submodule, is correct, because the framework permits both there.
 
 ---
 
@@ -83,7 +82,7 @@ Subjective quality language, future-tense and aspirational statements, motivatio
 nothing the source can confirm or deny, so they never entered the claim ledger and never enter the report.
 
 Pedagogical "why" prose is a claim only where it contains a verifiable factual statement, and then the statement is the
-claim rather than the passage holding it.
+claim.
 
 ---
 
@@ -110,8 +109,7 @@ This audit reports what documentation SAYS. It never reports the absence of docu
 A defect, an edge case, a race, a leak, and a runtime cost are never findings here, whatever the documentation says
 about them. `/audit-correctness` and `/audit-performance` own them.
 
-Where verification of a claim uncovers a defect, note the claim's verdict here and leave the defect to its owner rather
-than reporting both.
+Where verification of a claim uncovers a defect, note the claim's verdict here and leave the defect to its owner.
 
 ---
 
@@ -133,7 +131,7 @@ A `# noqa` or `# type: ignore` code is a claim about a diagnostic, and only the 
 settle whether the line still produces it.
 
 Report the suppression as DRIFT only when that tool is available and confirms the diagnostic is gone. Without the tool,
-leave the suppression unreported rather than guessing.
+leave the suppression unreported.
 
 Run that tool in its READ-ONLY form only. `ruff check --no-fix` and `mypy .` settle the claim. Bare `tox` and `tox -e
 lint` are FORBIDDEN during an audit, because the `lint` environment reformats the source, auto-fixes it, and purges its
@@ -144,7 +142,7 @@ the suppression unreported and record the tool as unavailable in the Step 9 cove
 
 ## Guard 11: Generated and vendored documentation is out of scope
 
-Stub files, generated API pages, and vendored third-party documentation are regenerated rather than edited, so a
+Stub files, generated API pages, and vendored third-party documentation are regenerated at their next build, so a
 divergence in them is no finding.
 
 Audit nothing inside a virtual environment, site-packages, a tox working directory, or a build directory. Read them as
@@ -165,11 +163,10 @@ never undertook to cover produces nothing, and neither does a surface outside th
 ## Guard 13: UNVERIFIABLE needs a stated search
 
 UNVERIFIABLE records that the audit looked and failed, so it carries what was searched for and where it was searched. A
-verdict without both is an unexamined claim rather than an unverifiable one.
+verdict without both is an unexamined claim.
 
 Search the package `__init__`, the installed library under the environment, and the version control index before
-assigning it. A claim too vague to state as a testable proposition is dropped from the ledger rather than reported as
-UNVERIFIABLE.
+assigning it. A claim too vague to state as a testable proposition is dropped from the ledger.
 
 ---
 

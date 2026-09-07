@@ -499,8 +499,7 @@ comparisons, dictionaries, or extraction configs, a literal drifts, a member doe
 The first three cover the **complete** firmware sets, not the error-only subsets the SKILL.md tables list. They include
 the success members the runtime never raises on, `KernelStatusCodes.SETUP_COMPLETE` (1) and
 `KernelStatusCodes.MODULE_PARAMETERS_SET` (6) on the Kernel side, `ModuleStatusCodes.COMMAND_COMPLETED` (2) on the
-module side. Those three are the codes to select when building an extraction config that captures runtime progress
-rather than faults.
+module side. Those three are the codes to select when building an extraction config that captures runtime progress.
 
 ### CommunicationStatusCodes and TransportStatusCodes
 
@@ -511,9 +510,8 @@ RECEPTION_ERROR (3) and TRANSMISSION_ERROR (4) message and every module TRANSMIS
 **axci 7.1.1 already decodes both bytes into the `RuntimeError` text it raises.** Read the raised message first. The two
 enumerations are the decoder for the other path: the raw pair the extraction pipeline writes undecoded into the `data`
 column of a processed kernel or module feather. Index byte 1 into `CommunicationStatusCodes` (51-62) and byte 2 into
-`TransportStatusCodes` (11-29), which mirrors the microcontroller's own TransportLayer rather than the PC's. For the
-firmware-side meaning of every member, and the corrective action each byte pair points at, see
-`/microcontroller:firmware-module`.
+`TransportStatusCodes` (11-29), which mirrors the microcontroller's own TransportLayer. For the firmware-side meaning of
+every member, and the corrective action each byte pair points at, see `/microcontroller:firmware-module`.
 
 ---
 
@@ -633,8 +631,8 @@ therefore compiles on Teensy and can fail the firmware's `static_assert` on anot
 from `/microcontroller:firmware-module`, and size `parameter_data` against the target board before writing the tuple.
 
 \* **`np.float64` does not reach an AVR board such as the Arduino Mega by default.** The mismatch surfaces as a firmware
-build failure rather than at runtime, so use `np.float32` / `float` on both sides for those boards. Teensy and Arduino
-Due are unaffected, and `/microcontroller:firmware-module` owns the build-flag alternative.
+build failure, so use `np.float32` / `float` on both sides for those boards. Teensy and Arduino Due are unaffected, and
+`/microcontroller:firmware-module` owns the build-flag alternative.
 
 ---
 
