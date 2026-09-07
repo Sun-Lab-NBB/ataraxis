@@ -8,13 +8,29 @@ Detailed specifications for all `[tool.*]` sections in pyproject.toml files.
 
 ### sdist exclusions
 
-Exclude CI and packaging directories from source distributions:
+A directory that git ignores through a nested `.gitignore` still reaches the archive, because the build backend applies
+the root `.gitignore` reliably and nested ones inconsistently. `.codegraph/`, `.import_linter_cache/`, and `.claude/`
+have each been observed in a built sdist, the first of them carrying a live database that fails the build when its
+daemon rewrites the file mid-walk. Naming every machine-local directory in `exclude` settles the question at the one
+layer that holds whatever the backend makes of an ignore file.
 
 ```toml
-# Specifies files that should not be included in the source-code distribution.
+# Names the directories the source distribution omits. A nested .gitignore keeps a cache out of git without keeping it
+# out of the archive, so every machine-local directory is named here.
 [tool.hatch.build.targets.sdist]
-exclude = [".github"]
+exclude = [
+    ".claude",
+    ".codegraph",
+    ".github",
+    ".import_linter_cache",
+    ".ruff_cache",
+    "recipe",
+]
 ```
+
+`.github` and `recipe` hold tracked files that sit outside the distributed package. The remaining four hold
+machine-local state, and a project adopting another tool that caches to the repository root adds that directory to the
+same array.
 
 ### Wheel packages
 
@@ -506,10 +522,19 @@ For projects using scikit-build-core (e.g., ataraxis-time):
 
 ```toml
 [tool.scikit-build]
-sdist.exclude = [".github"]
+sdist.exclude = [
+    ".claude",
+    ".codegraph",
+    ".github",
+    ".import_linter_cache",
+    ".ruff_cache",
+    "recipe",
+]
 minimum-version = "1.0"
 build-dir = "build/{wheel_tag}"
 ```
+
+The `sdist.exclude` roster matches the hatchling one above.
 
 A project that cross-compiles adds `[[tool.scikit-build.overrides]]` blocks beneath the table, each selecting on an
 environment variable and setting a CMake define. ataraxis-time uses one to force the ARM64 generator platform for

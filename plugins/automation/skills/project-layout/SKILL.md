@@ -125,7 +125,8 @@ drops both. See `/tox-config` for the environment.
 
 The `.codegraph/` directory holds a generated code index. It is present only in repositories that have been indexed.
 Every file inside it is ignored by version control except its own `.gitignore`, which is tracked so that the exclusion
-travels with the repository.
+travels with the repository. That nested rule hides the directory from git alone, so `/pyproject-style` also names the
+directory in the sdist exclusion array.
 
 The `.claude/` directory holds the modular rule files a project moves out of `CLAUDE.md` to keep it under its length
 cap, and `/skill-design` owns their contents and their optional path frontmatter. A project whose `CLAUDE.md` carries

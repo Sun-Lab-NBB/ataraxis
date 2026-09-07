@@ -427,7 +427,8 @@ Scripts:
       commands already on the user's PATH
 
 Build Targets:
-- [ ] sdist excludes [".github"]
+- [ ] sdist exclude names .github, recipe, and every machine-local cache directory that git leaves untracked, which
+      `tar -tzf dist/*.tar.gz | cut -d/ -f2 | sort -u` settles by listing no dot-directory
 - [ ] wheel packages lists src/package_name
 
 Tool Configurations:
