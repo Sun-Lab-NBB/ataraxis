@@ -28,10 +28,10 @@ public class OccupancyZone : MonoBehaviour
 
 ### Rules
 
-- **Third-person imperative mood**: Use verbs like "Provides...", "Defines...", "Configures...", "Tracks..." for
-  every class and method. A constant, a field, a property, and an enum member take either that verb form ("Stores the
-  track length.") or a noun phrase naming the value ("The track length."), because a reader already knows a field
-  stores something. Keep one of the two forms across a file rather than mixing them
+- **Third-person imperative mood**: Use verbs like "Provides...", "Defines...", "Configures...", "Tracks..." for every
+  class and method. A constant, a field, a property, and an enum member take either that verb form ("Stores the track
+  length.") or a noun phrase naming the value ("The track length."), because a reader already knows a field stores
+  something. Keep one of the two forms across a file
 - **Boolean descriptions**: Use "Determines whether..." for boolean fields and properties
 - **Single-line format**: Use single-line `<summary>` for most members
 - **Multi-line format**: Use multi-line `<summary>` only when the description exceeds 120 characters
@@ -70,8 +70,8 @@ no such property can be named, the `<summary>` line was already complete.
 
 **The cover test**: Before keeping a documentation sentence, cover it and try to reconstruct it from the member name,
 the signature, and the first few lines of the body. A sentence you are able to reconstruct carries no information, so
-delete it. Apply the test to one sentence at a time rather than to the block as a whole, because a compliant `<summary>`
-line frequently sits above three sentences that each fail.
+delete it. Apply the test to one sentence at a time, because a compliant `<summary>` line frequently sits above three
+sentences that each fail.
 
 **Behavioral scope**: An XML doc describes what the member does, and it stops there. Leave out how the member is
 deployed in the project, which scene or task calls it, which feature depends on it, and why it was introduced. That
@@ -132,18 +132,17 @@ statement-terminating `;`, a decrement `--`, or a `--flag` in a CLI reference is
 **Forward-reading clauses**: A clause resolves left to right, so the reader reaches its last word already knowing what
 the clause says. The default is one relative clause per noun, introduced by its own relative pronoun, with every
 preposition standing before the object it governs. A clause ending on a preposition strands that preposition's object
-earlier in the sentence, so write "every module that has a registered parser" rather than "every module the system
-registers a parser for". Two or more bare relative clauses stacked on one noun make the reader resolve nested
-subject-verb pairs before the head noun settles, so restore the relative pronoun or convert the inner clause into a
-participial phrase. Apply the one-pass test to every XML documentation comment: read the sentence once at speaking pace,
-and rewrite it when a second pass is needed to settle the noun that a verb or a preposition governs.
+earlier in the sentence, so write "every module that has a registered parser", not "every module the system registers a
+parser for". Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs
+before the head noun settles, so restore the relative pronoun or convert the inner clause into a participial phrase.
+Apply the one-pass test to every XML documentation comment: read the sentence once at speaking pace, and rewrite it when
+a second pass is needed to settle the noun that a verb or a preposition governs.
 
 **Positive description**: State what the code does and what is currently true. Do not define behavior by contrast with
-what it does not do ("does X, not Y", "works by X rather than Y"), and do not frame it against former behavior
-("previously", "used to", "no longer"). The one exception is a contrast that is load-bearing because it corrects a
-counter-intuitive but likely assumption, and it must carry its reason. For example, "Iterates over columns rather than
-rows, because the columnar store keeps each column contiguous in memory." Without that reason, drop the contrast and
-keep only the positive statement.
+what it does not do ("does X, not Y"), and do not frame it against former behavior ("previously", "used to", "no
+longer"). The one exception is a contrast that is load-bearing because it corrects a counter-intuitive but likely
+assumption, and it must carry its reason. For example, "Iterates over columns, not rows, because the columnar store
+keeps each column contiguous in memory." Without that reason, drop the contrast and keep only the positive statement.
 
 ### Worked reductions
 
@@ -341,8 +340,7 @@ public void ResetCounter()
 
 ### Prose over lists in remarks
 
-Use flowing prose in `<remarks>` blocks rather than bullet lists, the same narrative form `/python-style` requires of an
-extended description:
+Use flowing prose in `<remarks>` blocks, the same narrative form `/python-style` requires of an extended description:
 
 ```csharp
 // Good - prose explains the relationship between concepts
@@ -408,7 +406,6 @@ using UnityEngine;
   belongs, and it stays subject to the cover test like any other prose
 - The whole description is a lean, cohesive chunk of at most 2 sentences. Methodology, caveats, and rationale belong in
   the XML docs of the classes, methods, and enums the file defines, so relocate each detail to the member it concerns
-  rather than accumulating it here
 - Use third-person imperative mood ("Provides...", "Defines...")
 
 ---

@@ -41,10 +41,10 @@ not include Examples sections or in-code examples in docstrings.
 ### Rules
 
 - **Punctuation**: Always use proper punctuation in all documentation.
-- **Third-person imperative mood**: Use verbs like "Computes...", "Defines...", "Configures..." for every class,
-  method, and function. A constant, an attribute, a dataclass field, and an enum member take either that verb form
-  ("Stores the session duration.") or a noun phrase naming the value ("The session duration."), because a reader
-  already knows an attribute stores something. Keep one of the two forms across a file rather than mixing them.
+- **Third-person imperative mood**: Use verbs like "Computes...", "Defines...", "Configures..." for every class, method,
+  and function. A constant, an attribute, a dataclass field, and an enum member take either that verb form ("Stores the
+  session duration.") or a noun phrase naming the value ("The session duration."), because a reader already knows an
+  attribute stores something. Keep one of the two forms across a file.
 - **Boolean descriptions**: Use "Determines whether..." for boolean parameters. For properties that return a boolean,
   use "Returns..." (the property docstring convention supersedes the boolean convention).
 - **Parameters**: Start descriptions with uppercase. Don't repeat type info.
@@ -66,8 +66,8 @@ prose. When no such property can be named, the summary line was already complete
 
 **The cover test**: Before keeping a documentation sentence, cover it and try to reconstruct it from the member name,
 the signature, and the first few lines of the body. A sentence you are able to reconstruct carries no information, so
-delete it. Apply the test to one sentence at a time rather than to the block as a whole, because a compliant summary
-line frequently sits above three sentences that each fail.
+delete it. Apply the test to one sentence at a time, because a compliant summary line frequently sits above three
+sentences that each fail.
 
 **Behavioral scope**: A docstring describes what the function does, and it stops there. Leave out how the function is
 deployed in the project, which pipeline stage calls it, which feature depends on it, and why it was introduced. That
@@ -129,18 +129,17 @@ separator is left as written.
 **Forward-reading clauses**: A clause resolves left to right, so the reader reaches its last word already knowing what
 the clause says. The default is one relative clause per noun, introduced by its own relative pronoun, with every
 preposition standing before the object it governs. A clause ending on a preposition strands that preposition's object
-earlier in the sentence, so write "every module that has a registered parser" rather than "every module the system
-registers a parser for". Two or more bare relative clauses stacked on one noun make the reader resolve nested
-subject-verb pairs before the head noun settles, so restore the relative pronoun or convert the inner clause into a
-participial phrase. Apply the one-pass test to every docstring and comment: read the sentence once at speaking pace, and
-rewrite it when a second pass is needed to settle the noun that a verb or a preposition governs.
+earlier in the sentence, so write "every module that has a registered parser", not "every module the system registers a
+parser for". Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs
+before the head noun settles, so restore the relative pronoun or convert the inner clause into a participial phrase.
+Apply the one-pass test to every docstring and comment: read the sentence once at speaking pace, and rewrite it when a
+second pass is needed to settle the noun that a verb or a preposition governs.
 
 **Positive description**: State what the code does and what is currently true. Do not define behavior by contrast with
-what it does not do ("does X, not Y", "works by X rather than Y"), and do not frame it against former behavior
-("previously", "used to", "no longer"). The one exception is a contrast that is load-bearing because it corrects a
-counter-intuitive but likely assumption, and it must carry its reason. For example, "Iterates over columns rather than
-rows, because the columnar store keeps each column contiguous in memory." Without that reason, drop the contrast and
-keep only the positive statement.
+what it does not do ("does X, not Y"), and do not frame it against former behavior ("previously", "used to", "no
+longer"). The one exception is a contrast that is load-bearing because it corrects a counter-intuitive but likely
+assumption, and it must carry its reason. For example, "Iterates over columns, not rows, because the columnar store
+keeps each column contiguous in memory." Without that reason, drop the contrast and keep only the positive statement.
 
 ### Worked reductions
 
@@ -218,8 +217,7 @@ for session in sessions:
 
 # Good
 for session in sessions:
-    # Sessions interrupted before the descriptor write are unrecoverable, so they are skipped
-    # rather than repaired.
+    # Sessions interrupted before the descriptor write are unrecoverable, so they are skipped.
     if session.descriptor is None:
         continue
 ```

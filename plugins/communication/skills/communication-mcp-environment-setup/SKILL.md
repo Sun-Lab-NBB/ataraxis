@@ -216,11 +216,11 @@ axci --help
 ```
 
 **Note:** `/cli-reference` forbids agents from invoking `axci`. `--help` is the ONE exemption to that rule. It is
-read-only, it starts no server and touches no hardware, and it reports the installed build rather than a documented
-snapshot of it, so it never drifts. Use it to smoke-test the install and to settle any question about a command's real
-options. The exemption covers `axci --help` and `axci COMMAND --help` only, and no other `axci` invocation. Always use
-the long form: the CLI leaves Click's `help_option_names` at its `["--help"]` default, so `-h` is never a help alias,
-and on `axci mqtt` it is bound to `--host`.
+read-only, it starts no server and touches no hardware, and it reports the installed build, so it never drifts. Use it
+to smoke-test the install and to settle any question about a command's real options. The exemption covers `axci --help`
+and `axci COMMAND --help` only, and no other `axci` invocation. Always use the long form: the CLI leaves Click's
+`help_option_names` at its `["--help"]` default, so `-h` is never a help alias, and on `axci mqtt` it is bound to
+`--host`.
 
 If the command fails with an import error, a dependency is missing or broken. Run:
 

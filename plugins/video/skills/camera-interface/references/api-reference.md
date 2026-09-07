@@ -47,11 +47,10 @@ from ataraxis_video_system import (
 
 The top-level `__all__` also exports the orchestration layer's job and sizing assets (`JobSizing`, `JobSource`,
 `JobUniverse`, `OutputLayout`, `execute_job`, `generate_job_ids`, `resolve_jobs`, `resolve_timestamps_path`,
-`size_archive_job`, and the `CAMERA_EXTRACTION_JOB_*` constants). Those are deliberately left undocumented here,
-because log processing is scheduled through the MCP tools that `/log-processing` covers rather than driven through
-those assets by hand.
-`run_log_processing_pipeline` is the one orchestration entry point this reference documents, since it is the
-whole-recording pipeline the `axvs process` CLI runs.
+`size_archive_job`, and the `CAMERA_EXTRACTION_JOB_*` constants). Those are deliberately left undocumented here, because
+log processing is scheduled through the MCP tools that `/log-processing` covers. `run_log_processing_pipeline` is the
+one orchestration entry point this reference documents, since it is the whole-recording pipeline the `axvs process` CLI
+runs.
 
 ### Import rule
 
@@ -117,18 +116,17 @@ VideoSystem(
 **Notes:**
 - `frame_width`, `frame_height`, and `frame_rate` default to the camera's native values when set to None
 - `color` is only used by OpenCV and Mock interfaces. Harvesters cameras determine color mode from their GenICam config
-- `quantization_parameter` accepts 0 to 51 inclusive, where 0 is near-lossless and 51 is worst quality. There is
-  no sentinel value, and the bound is enforced only when `output_directory` is set
+- `quantization_parameter` accepts 0 to 51 inclusive, where 0 is near-lossless and 51 is worst quality. There is no
+  sentinel value, and the bound is enforced only when `output_directory` is set
 - The output video file is named `{system_id:03d}.mp4` in the output directory, which `resolve_camera_video_path()`
   computes for callers that need the path without constructing a VideoSystem
 - Requesting `CameraInterfaces.HARVESTERS` where the GenICam runtime is absent raises `NotImplementedError`
-- The constructor connects to the camera and grabs one probe frame, then rejects the camera with `ValueError`
-  when that frame's dtype is not `np.uint8`. Every `InputPixelFormats` member describes 8 bits per component
-  and the library performs no software conversion, so a GenICam camera must be set to an 8-bit pixel format
-  (Mono8, BGR8, RGB8) before a VideoSystem is constructed against it. Mono10, Mono12, Mono16, and other wide
-  formats are rejected outright rather than down-converted
-- The same probe frame is rejected with `ValueError` when its color format falls outside the unpacked Monochrome,
-  RGB, and BGR families, so a packed or Bayer `PixelFormat` fails construction even at 8 bits per component
+- The constructor connects to the camera and grabs one probe frame, then rejects the camera with `ValueError` when that
+  frame's dtype is not `np.uint8`. Every `InputPixelFormats` member describes 8 bits per component and the library
+  performs no software conversion, so a GenICam camera must be set to an 8-bit pixel format (Mono8, BGR8, RGB8) before a
+  VideoSystem is constructed against it. Mono10, Mono12, Mono16, and other wide formats are rejected outright
+- The same probe frame is rejected with `ValueError` when its color format falls outside the unpacked Monochrome, RGB,
+  and BGR families, so a packed or Bayer `PixelFormat` fails construction even at 8 bits per component
 
 ### Constructor failure modes
 
@@ -248,8 +246,8 @@ class ExtractedDataColumns(StrEnum):
     FRAME_TIME = "frame_time_us"  # The only column of every extracted timestamp feather file
 ```
 
-Read the column of a `camera_{source_id}_timestamps.feather` file through this member rather than through the literal
-string, since the enumeration is the name both `execute_job()` and the frame statistics tool resolve the column by.
+Read the column of a `camera_{source_id}_timestamps.feather` file through this member, since the enumeration is the name
+both `execute_job()` and the frame statistics tool resolve the column by.
 
 ---
 
@@ -284,10 +282,9 @@ class GenicamNodeInfo:
 ```
 
 `selectors` is empty for an ordinary node. SFNC multiplexes some features behind a selector, so a camera holds one
-`BalanceRatio` per `BalanceRatioSelector` entry rather than a single value. The mapping pins the instance a value
-belongs to, and it is applied to the camera before the value is read or written. A dumped configuration therefore
-carries one entry per selector combination, which is why a dump can report more entries than the camera has distinct
-feature names.
+`BalanceRatio` per `BalanceRatioSelector` entry. The mapping pins the instance a value belongs to, and it is applied to
+the camera before the value is read or written. A dumped configuration therefore carries one entry per selector
+combination, which is why a dump can report more entries than the camera has distinct feature names.
 
 ### GenicamConfiguration
 
@@ -320,10 +317,9 @@ config = read_camera_configuration(camera_index=0)                # -> GenicamCo
 config.to_yaml(file_path=Path("camera_config.yaml"))
 ```
 
-Writing state, and holding one connection open across several operations, goes through the `HarvestersCamera`
-interface, which the `video` subpackage exports rather than the library root. These are the same operations the
-`/camera-setup` MCP tools (`read_genicam_node_tool`, `write_genicam_node_tool`, `dump_genicam_config_tool`,
-`load_genicam_config_tool`) perform:
+Writing state, and holding one connection open across several operations, goes through the `HarvestersCamera` interface,
+which the `video` subpackage exports. These are the same operations the `/camera-setup` MCP tools
+(`read_genicam_node_tool`, `write_genicam_node_tool`, `dump_genicam_config_tool`, `load_genicam_config_tool`) perform:
 
 ```python
 from ataraxis_video_system.video import harvester_connection
@@ -349,7 +345,7 @@ def apply_configuration(self, config: GenicamConfiguration, *, strict_identity: 
                         blacklisted_nodes: frozenset[str] = DEFAULT_BLACKLISTED_NODES) -> None: ...
 ```
 
-`strict_identity=False` warns (rather than aborts) on a camera model/serial mismatch. The default `blacklisted_nodes`
+`strict_identity=False` warns on a camera model/serial mismatch. The default `blacklisted_nodes`
 (`{CustomerIDKey, CustomerValueKey, TestPattern}`) skips vendor nodes that report ReadWrite access but reject writes. A
 connected `HarvestersCamera` is normally obtained at configuration time via the `/camera-setup` tools (which wrap these
 calls). These methods exist for advanced in-process use.
@@ -461,7 +457,7 @@ Yields a connected `HarvestersCamera` for the duration of the block and disconne
 Producer even when the connection itself failed. A `camera_index` outside the range the configured Producer discovers
 raises `IndexError`, naming the index and the discovered camera count. This is the sanctioned way to obtain the camera
 object the programmatic GenICam configuration methods above are called on. This function and `HarvestersCamera` are
-exported from `ataraxis_video_system.video` rather than from the library root.
+exported from `ataraxis_video_system.video`.
 
 ---
 
@@ -609,8 +605,7 @@ if __name__ == "__main__":
 
 ### Harvesters camera
 
-For Harvesters cameras, set resolution and frame rate via GenICam configuration (see `/camera-setup`) rather than
-VideoSystem constructor overrides.
+For Harvesters cameras, set resolution and frame rate via GenICam configuration (see `/camera-setup`).
 
 ```python
 from pathlib import Path

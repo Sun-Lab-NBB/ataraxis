@@ -98,13 +98,13 @@ these two files in the ataraxis-micro-controller checkout the target board was f
 
 **`baudrate` must equal the flashed board's `monitor_speed`, and 115200 is not a universal default.** A board whose
 `monitor_speed` differs never answers identification when the default is left in place, which surfaces as an
-initialization timeout rather than as a configuration error, so suspect the baudrate before the module code. The
-per-environment rates live in `/microcontroller:firmware-module`, "Serial speed per board environment". If a project
-ships its own firmware `platformio.ini`, read that file instead of the library's.
+initialization timeout, so suspect the baudrate before the module code. The per-environment rates live in
+`/microcontroller:firmware-module`, "Serial speed per board environment". If a project ships its own firmware
+`platformio.ini`, read that file instead of the library's.
 
 The two library versions are independent (axci 7.1.1 pairs with axmc 4.0.2), so they cannot be compared numerically.
 Record both, and treat an incompatible pair as the first suspect behind error code 5 (INVALID_MESSAGE_PROTOCOL), which
-surfaces at runtime rather than at build time. See `/microcontroller:firmware-module` for the firmware build.
+surfaces at runtime. See `/microcontroller:firmware-module` for the firmware build.
 
 ---
 

@@ -123,9 +123,9 @@ PlatformIO resolves both per environment, so every `[env:<board>]` declares them
 | `--extra-arg=-Wno-unusable-partial-specialization` | Silences the same headers' partial specializations           |
 
 `--config-file` is what keeps the curated list, because PlatformIO appends `--checks=*` whenever no `--config` flag is
-present. The header filter anchors on the repository directory name rather than a file-name pattern, so a header added
-later is still reported, and a dependency under `.pio/libdeps` is still excluded. `--target` takes the triple from the
-board table above, and a wrong triple gives a 32-bit width to a 16-bit AVR.
+present. The header filter anchors on the repository directory name, so a header added later is still reported, and a
+dependency under `.pio/libdeps` is still excluded. `--target` takes the triple from the board table above, and a wrong
+triple gives a 32-bit width to a 16-bit AVR.
 
 `-ferror-limit=0` is the flag whose absence is silent. PlatformIO bundles clang-tidy 15, which cannot parse the GCC
 libstdc++ that the Arduino toolchains ship. At the default limit clang stops after twenty errors and analyzes a
@@ -212,6 +212,12 @@ reason. Sentences over 39 words must be broken into smaller sentences at natural
 sentence in a comment or a `description` field signals over-explanation. Every comment body and `description` field is
 free of typos and grammatical errors.
 
+The two-word phrase `rather` followed by `than` is FORBIDDEN in every comment and `description` field, with no exception
+and no load-bearing carve-out. It names an alternative the reader never proposed, and the sentence keeps its full
+meaning once the trailing clause is deleted, so delete the clause and state the positive claim alone. Substituting
+`instead of`, `as opposed to`, or `in place of` reproduces the same padding under a new spelling and is equally
+forbidden. Where the excluded option genuinely carries information, it earns its own sentence naming what it costs.
+
 ### Forward-reading clauses
 
 A clause resolves left to right, so the reader reaches its last word already knowing what the clause says. The default
@@ -220,13 +226,13 @@ object it governs. Two departures from that default are banned, because each one
 and back-fill its grammar at the end.
 
 A clause ending on a preposition strands that preposition's object earlier in the sentence and sends the reader back to
-find it. Write "every module that has a registered parser" rather than "every module the system registers a parser
-for", and write "the cores each job occupies" rather than "the cores each job was admitted at".
+find it. Write "every module that has a registered parser", not "every module the system registers a parser for", and
+write "the cores each job occupies", not "the cores each job was admitted at".
 
 Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs before the head
 noun settles. Restore the relative pronoun, or convert the inner clause into a participial phrase. Write "one job for
-every module that the session used and that has a registered parser" rather than "one job per module the session
-configured and the system registers a parser for".
+every module that the session used and that has a registered parser", not "one job per module the session configured and
+the system registers a parser for".
 
 **The one-pass test**: read the sentence once at speaking pace. A sentence needing a second pass to settle the noun that
 a verb or a preposition governs fails the test. Rewrite it by naming the actor, then the action, then the qualifier.
@@ -347,4 +353,6 @@ wrote. Only parse validity, the library.json $schema, and what pio check and pio
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
 - [ ] Prose states what the configuration does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] No comment or `description` field contains the phrase `rather` followed by `than`, including where it wraps across
+      a line break (forbidden with no exception)
 ```

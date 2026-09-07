@@ -41,8 +41,8 @@ block, so re-anchor its whole span, and re-anchor the finding's own location lin
 and a quote that fails are reported separately, since the counts measure different things.
 
 Every other repair is FORBIDDEN. A quote whose text the cited file does not hold is evidence that the finding was
-assembled from recollection rather than from the file, which makes the claim resting on it unreliable for the same
-reason. A deleted finding is free to be re-derived from scratch in a later audit.
+assembled from recollection, which makes the claim resting on it unreliable for the same reason. A deleted finding is
+free to be re-derived from scratch in a later audit.
 
 Record the counts of findings checked, re-anchored, and deleted.
 
@@ -72,7 +72,7 @@ result. Answer REFUTED whenever you are uncertain.
 
 Discard every refuted finding. Record the counts of findings put through this check, confirmed, and refuted.
 
-A refuted CRITICAL or HIGH finding is discarded rather than demoted, because the refutation attacked the trigger and the
+A refuted CRITICAL or HIGH finding is discarded and never demoted, because the refutation attacked the trigger and the
 result, which are the same evidence a lower severity would rest on.
 
 ---
@@ -108,10 +108,10 @@ unusually clean file set or skipped the stage, and stating the numbers is what l
 HIGH and MEDIUM confidence findings occupy the body of the report, grouped file, then category, then severity, ordered
 most severe first.
 
-LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered most severe first,
-rather than interleaved into the file groups. Every finding there still carries its full evidence and still passed every
-guard and both checks above. The appendix exists so the body of the report reads at one confidence level, and so a
-reader who wants only the settled findings knows where to stop.
+LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered most severe first and
+never interleaved into the file groups. Every finding there still carries its full evidence and still passed every guard
+and both checks above. The appendix exists so the body of the report reads at one confidence level, and so a reader who
+wants only the settled findings knows where to stop.
 
 ---
 
@@ -120,4 +120,4 @@ reader who wants only the settled findings knows where to stop.
 Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
 line ending before column 100 while its next word would still fit is re-flowed. A line ending early because the sentence
 ends, or because it holds a table row, a list item, or a code span, is already correct. Verbatim quotes, triggers, and
-line-numbered interleavings are exempt, because they are copied rather than written.
+line-numbered interleavings are exempt, because they are copied.

@@ -89,6 +89,8 @@ respecting each language's idiomatic standards.
 - Clauses read forward, with no preposition stranded at a clause end and no noun carrying stacked bare relatives
 - State what the code does and what is currently true, not what it is not or used to be (contrast only when
   load-bearing)
+- The two-word phrase `rather` followed by `than` is FORBIDDEN in documentation and comment prose, with no exception,
+  and deleting the excluded alternative is the only fix
 
 **Python-specific divergences from C++:**
 - Functions and methods use snake_case (not PascalCase as in C++)
@@ -209,8 +211,8 @@ See [docstrings-and-types.md](references/docstrings-and-types.md) for inline com
 
 A setting that must be applied before the import it governs runs sits above the imports in the top-level `__init__.py`,
 and every import below it carries `# noqa: E402`. Such a setting takes effect only if it precedes the import, so moving
-it down changes behavior rather than formatting. Configuration carrying no such ordering requirement stays below the
-imports. See [class-patterns.md](references/class-patterns.md) for the qualifying settings and an example.
+it down changes behavior. Configuration carrying no such ordering requirement stays below the imports. See
+[class-patterns.md](references/class-patterns.md) for the qualifying settings and an example.
 
 ### Local import rules
 
@@ -260,8 +262,8 @@ See [class-patterns.md](references/class-patterns.md) for top-level library and 
 
 ## Unused assets
 
-An asset with no consumer is REMOVED rather than kept. This covers functions, classes, methods, properties, constants,
-enum members, dataclass fields, type aliases, parameters, and whole modules.
+An asset with no consumer is REMOVED. This covers functions, classes, methods, properties, constants, enum members,
+dataclass fields, type aliases, parameters, and whole modules.
 
 Ruff reports only the cases a single file reveals, which are unused imports outside `__init__.py` (`F401`), unused local
 variables (`F841`), and unused arguments (`ARG`). It carries no rule for an unused module-level definition, so a
@@ -272,14 +274,14 @@ Three things count as a consumer, and nothing else does:
 - A reference from library code under `src/`
 - An entry in the distribution's top-level `__init__.py` `__all__`, which places the symbol in the curated public API
   and hands it to downstream code this repository cannot see
-- A registration the interpreter resolves at runtime rather than by name, which covers `pyproject.toml` entry points,
-  Click commands, MCP tool registrations, plugin registries, and `getattr` dispatch
+- A registration the interpreter resolves at runtime, which covers `pyproject.toml` entry points, Click commands, MCP
+  tool registrations, plugin registries, and `getattr` dispatch
 
 A reference from `tests/` alone is NOT a consumer. A helper that only its own tests exercise is dead library code with a
 live test, and the pair is removed together.
 
-Removing a symbol from the curated public API is a breaking change, so it waits for a release permitted to break the API
-rather than landing as a cleanup.
+Removing a symbol from the curated public API is a breaking change, so it waits for a release permitted to break the
+API.
 
 ---
 
@@ -301,9 +303,8 @@ C++) that presents the interface before the helpers supporting it.
 
 This rule governs two levels. At module level, public functions and classes precede private ones. Inside a class body,
 public methods and properties precede private methods and properties, so a private helper sits below every public member
-of its class rather than beside the member that calls it. Dunder methods are exempt and keep their conventional position
-at the top of the class body, directly after the class docstring. See [class-patterns.md](references/class-patterns.md)
-for the full class member order.
+of its class. Dunder methods are exempt and keep their conventional position at the top of the class body, directly
+after the class docstring. See [class-patterns.md](references/class-patterns.md) for the full class member order.
 
 ### Call-hierarchy ordering
 
@@ -321,8 +322,8 @@ enumerations first, then public helper functions, then private helper functions,
 ### Stub files
 
 `.pyi` stub files and the `py.typed` marker are GENERATED, never hand-authored, and they ship with releases. Change
-typing by editing the `.py` source and regenerating, rather than by creating or hand-editing a stub. See `/tox-config`
-for the environments that generate and purge stubs.
+typing by editing the `.py` source and regenerating. See `/tox-config` for the environments that generate and purge
+stubs.
 
 ---
 
@@ -420,6 +421,8 @@ against the code you wrote.
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] No docstring or comment contains the phrase `rather` followed by `than`, including where it wraps across a line
+      break (forbidden with no exception)
 - [ ] Module docstring description is at most 2 sentences, with detail relocated into the members it documents
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
 - [ ] Full words used (no abbreviations like `pos`, `idx`, `val`)
@@ -433,7 +436,7 @@ against the code you wrote.
 - [ ] No symbol appears in a package's __init__.py import block or __all__ unless a package outside
       that one imports it, with the top-level __init__.py carrying the curated public API alone
 - [ ] Every asset has a consumer, so functions, classes, methods, constants, enum members, fields,
-      type aliases, and whole modules that nothing under src/ references are removed rather than kept
+      type aliases, and whole modules that nothing under src/ references are removed
 - [ ] A symbol exercised only by its own tests is removed together with those tests
 - [ ] Keyword arguments used for function calls (except Numba `jitclass` method calls)
 - [ ] Boolean flag parameters declared keyword-only behind a `*,` separator in the signature
@@ -485,15 +488,15 @@ against the code you wrote.
 - [ ] Context managers used for resource management
 - [ ] Pathlib used for path manipulation (not string concatenation)
 
-Tooling-enforced items. Ruff resolves or reports each of these, so run `tox -e lint` rather than
-hand-checking them. They stay listed for reviews performed without the linter.
+Tooling-enforced items. Ruff resolves or reports each of these, so run `tox -e lint`. They stay listed for reviews
+performed without the linter.
 - [ ] Google-style docstrings on all public and private members
 - [ ] All parameters and returns have type annotations
 - [ ] Type aliases use PEP 695 `type` statement syntax
 - [ ] Functions and methods use snake_case (both public and private, the private ones underscore-prefixed)
 - [ ] Double quotes used for all strings (enforced by ruff)
 - [ ] F-strings used exclusively (no % formatting or .format())
-- [ ] Lines within 120 characters, with wrapped prose filled to that limit rather than broken at a narrower width
+- [ ] Lines within 120 characters, with wrapped prose filled to that limit
 - [ ] 4-space indentation, no tabs
 - [ ] All imports at top of file (no deferred or inline imports)
 - [ ] Import sorting delegated to ruff (do not manually reorder)

@@ -34,9 +34,9 @@ exempt. `/communication-mcp-environment-setup` owns that exemption.
 - Diagnosing why the MCP server is down (see `/communication-mcp-environment-setup`)
 - Driving log processing from Python. Orchestration runs through MCP or this CLI only
 
-**Handoff rules:** If the user wants an operation performed rather than explained, use the MCP tools and invoke the
-owning skill. If the MCP tools are unavailable, invoke `/communication-mcp-environment-setup` first and fall back to the
-CLI-command handoff table below only after the server cannot be restored.
+**Handoff rules:** If the user wants an operation performed, use the MCP tools and invoke the owning skill. If the MCP
+tools are unavailable, invoke `/communication-mcp-environment-setup` first and fall back to the CLI-command handoff
+table below only after the server cannot be restored.
 
 ---
 
@@ -81,8 +81,8 @@ code 2). Path options carry Click `click.Path` constraints, listed under Effect.
 | `-b`  | `--baudrate` | `int` | `115200` | optional | Identification baudrate. Used only by UART controllers. Ignored by USB controllers |
 
 **Note:** 115200 is the option default, not a universal board default. A UART board flashed at another speed reports
-`[No microcontroller]` at the wrong baudrate rather than failing. `/microcontroller:firmware-module`, "Serial speed",
-owns the contract these rates form with the PC, and `/platformio-config` owns the per-board `monitor_speed` values.
+`[No microcontroller]` at the wrong baudrate. `/microcontroller:firmware-module`, "Serial speed", owns the contract
+these rates form with the PC, and `/platformio-config` owns the per-board `monitor_speed` values.
 
 ### `axci mqtt`
 
@@ -124,7 +124,7 @@ to a user for either command. The long forms are not interchangeable.
 parallel extraction threshold and `CONTROLLER_EXTRACTION_JOB_CORES`, the declared per-job allocation, at or above it. A
 positive value is passed through verbatim to every job, above the declared allocation and above the host's own core
 count alike, so a user who names one owns the oversubscription it buys. `-w 1` makes every job sequential. The command's
-own `--help` prints the declared allocation as a concrete figure. Read it from there rather than from this skill.
+own `--help` prints the declared allocation as a concrete figure. Read it from there.
 
 **Note on `-id`:** A job identifier is `CONTROLLER_EXTRACTION_JOB_NAME` hashed together with the controller's
 `source_id`, so one controller keeps the same identifier in every recording. A user obtains it from the `job_id` key of
@@ -145,14 +145,14 @@ extraction config, not against the archives on disk, so a missing sibling archiv
 ## Command behavior and failure modes
 
 Every command wraps its body in a decorator that catches whatever it raises, reports the message at the error level, and
-exits 0. A failing command therefore leaves the exit status at 0, so have the user read the reported message rather than
-branch a script on it. The console writes to the standard error stream, so a user capturing standard output alone sees
-nothing. `axci mqtt` additionally catches the `ConnectionError` of an unreachable broker inside its own body. That catch
-prints a short remediation line instead of the client's full connection-failure text, and the raw exception names the
-host and port too. A malformed invocation exits 2 instead, whether Click rejects the option before any body runs or a
-command body raises a usage error the decorator lets pass. A dependency that fails to import fails the `axci` entry
-point with a traceback before Click dispatches anything. The exception names in the tables below are what the bodies
-raise, and each reaches the user as that one error line.
+exits 0. A failing command therefore leaves the exit status at 0, so have the user read the reported message. The
+console writes to the standard error stream, so a user capturing standard output alone sees nothing. `axci mqtt`
+additionally catches the `ConnectionError` of an unreachable broker inside its own body. That catch prints a short
+remediation line instead of the client's full connection-failure text, and the raw exception names the host and port
+too. A malformed invocation exits 2 instead, whether Click rejects the option before any body runs or a command body
+raises a usage error the decorator lets pass. A dependency that fails to import fails the `axci` entry point with a
+traceback before Click dispatches anything. The exception names in the tables below are what the bodies raise, and each
+reaches the user as that one error line.
 
 ### `axci id`
 
@@ -297,7 +297,7 @@ by hand.
 
 Everything else genuinely blocks until the server is back: manifest read and write, archive assembly, recording
 discovery, extraction config write and validate, every batch status, timing, cancel, and reset tool, and every output
-verification, query, and cleanup tool. Say so plainly rather than improvising a substitute.
+verification, query, and cleanup tool. Say so plainly.
 
 ---
 

@@ -48,9 +48,9 @@ When `.codegraph/` exists, CodeGraph becomes the primary exploration tool, and t
 does not return. Call `codegraph_explore` with a question or symbol names when the codegraph MCP server is connected,
 and run `codegraph explore "<question or symbol names>"` when only the codegraph CLI is installed.
 
-The MCP tool may be listed as deferred rather than loaded, in which case load its schema by name through tool search
-before calling it. Both access paths return the same output, which is the verbatim line-numbered source of the matching
-symbols grouped by file, the call paths connecting them, and a summary of what depends on them.
+The MCP tool may be listed as deferred, in which case load its schema by name through tool search before calling it.
+Both access paths return the same output, which is the verbatim line-numbered source of the matching symbols grouped by
+file, the call paths connecting them, and a summary of what depends on them.
 
 When `.codegraph/` is absent, explore with the file and search tools alone. Indexing a repository is the user's
 decision, so do NOT create an index as part of exploration.
@@ -62,9 +62,9 @@ Unity) using the indicator table in `/project-layout`. Do not re-derive those in
 which entry points, manifests, source extensions, public API source, and test directory the phases target (see
 "Archetype-specific signals" after the phases).
 
-Then select the exploration tier. Count first-party source modules with a scoped command rather than listing the whole
-tree, for example `find src -name "*.py" | wc -l` (Python) or `find . -name "*.cpp" -o -name "*.h" | wc -l`
-(C++/PlatformIO), paired with a top-level directory listing.
+Then select the exploration tier. Count first-party source modules with a scoped command, for example
+`find src -name "*.py" | wc -l` (Python) or `find . -name "*.cpp" -o -name "*.h" | wc -l` (C++/PlatformIO), paired
+with a top-level directory listing.
 
 ataraxis source uses GENERATED `.pyi` stubs (one per `.py`). They are purged during development (`tox -e lint`) and only
 present at release (`tox -e stubs`), so a dev tree often has none. Treat their absence as normal, never a gap. When
@@ -133,18 +133,17 @@ file and search tools fill the remaining gaps.
 Query with the symbol and file names that matter, or with the plain question itself. One capped call usually answers a
 whole phase. Read these rules before querying:
 
-- Name several related symbols in one query rather than issuing one query per symbol. The index returns them together
-  with the call paths that connect them, which is the part a per-symbol query loses.
+- Name several related symbols in one query. The index returns them together with the call paths that connect them,
+  which is the part a per-symbol query loses.
 - Use the blast-radius summary for Phase 3. It reports the dependents of each symbol directly, which is the
   central-component ranking that would otherwise require reading every importer.
 - Use the reported test references for Phase 4 test-coverage mapping, then confirm the gaps against the `tests/` tree,
-  since the index reports the tests that exist rather than the modules that lack them.
+  since the index reports the tests that exist.
 - Do NOT re-read a file whose source a query already returned. The output is the current on-disk source, so a follow-up
   Read of the same file returns the same bytes at full token cost.
 - Fall back to the file and search tools for what the index does not model, which includes `pyproject.toml` and
   `tox.ini` settings, environment variables, documentation, and the directory layout itself.
-- Treat the index as lagging the working tree by about a second. After an edit, re-query rather than trusting an earlier
-  result for the changed file.
+- Treat the index as lagging the working tree by about a second. After an edit, re-query the changed file.
 
 ---
 
@@ -223,8 +222,8 @@ archetype indicators). Substitute the following, then apply the matching style s
 | C++ PlatformIO     | `library.json`, `platformio.ini`, `src/main.cpp` | public classes in header files |
 | C# Unity           | `Assets/`, `ProjectSettings/`, `*.slnx`          | `MonoBehaviour` entry points   |
 
-For C++ projects, enumerate the public surface from header files rather than `__all__`, read the version from
-`library.json` (not `pyproject.toml`), and map tests to the PlatformIO `test/` directory.
+For C++ projects, enumerate the public surface from header files, read the version from `library.json` (not
+`pyproject.toml`), and map tests to the PlatformIO `test/` directory.
 
 ---
 
@@ -319,7 +318,6 @@ Walk every one against the summary you are about to present.
 - [ ] Generated .pyi stubs excluded from file counts, dependency maps, and coverage mapping, with the
       .py read for the API and no missing stub reported as a gap
 
-Command-settled item. `ls -d .codegraph` settles whether the repository carries an index, so run it
-rather than inferring the index state from a partial directory listing.
+Command-settled item. `ls -d .codegraph` settles whether the repository carries an index, so run it.
 - [ ] Repository root checked for a .codegraph/ directory before exploration began
 ```

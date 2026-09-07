@@ -195,9 +195,9 @@ def test_data_logger_initialization(tmp_path: Path) -> None:
     ...
 ```
 
-Pass the group name through the `name` keyword, as with every other call. Group names span the whole run rather than the
-declaring module, so tests in separate modules that contend for one resource carry the same name. `/tox-config` owns the
-`-n logical --dist loadgroup` flags themselves.
+Pass the group name through the `name` keyword, as with every other call. Group names span the whole run, so tests in
+separate modules that contend for one resource carry the same name. `/tox-config` owns the `-n logical --dist loadgroup`
+flags themselves.
 
 `pyproject.toml` registers the marker under `[tool.pytest.ini_options] markers`, because pytest-xdist declares it only
 while the plugin is loaded. See `/pyproject-style` for that key.
@@ -279,8 +279,7 @@ Everything else stays in the measured corpus, and `# pragma: no cover` marks the
 reach. Use it for defensive or unreachable guard branches, for hardware-dependent code paths, and for the branch of an
 OS-dependent path that the current platform never takes. Annotate the narrowest construct that covers the excluded code,
 which is the `if` or `except` line for a whole block and the statement itself for a single line. A pragma that spans a
-function the suite could exercise hides real gaps, so reach for the whole-module `omit` list rather than annotating a
-long run of members one by one.
+function the suite could exercise hides real gaps, so reach for the whole-module `omit` list.
 
 ### IDE inspection directives
 
@@ -293,7 +292,6 @@ Ruff and mypy are the authoritative checkers, and only their suppressions bear w
 - Ruff: `# noqa: CODE` with the specific error code (see [Using noqa](#using-noqa)).
 - Mypy: `# type: ignore[code]` with the specific error code.
 
-When a real violation cannot be resolved, suppress it with the appropriate ruff or mypy comment rather than with an IDE
-directive. Files already excluded from both checkers (for example the Sphinx `conf.py`, excluded via ruff
-`extend-exclude`, and anything under the mypy `docs/` exclusion) need no suppression at all, so they MUST NOT carry `#
-noinspection` comments either.
+When a real violation cannot be resolved, suppress it with the appropriate ruff or mypy comment. Files already excluded
+from both checkers (for example the Sphinx `conf.py`, excluded via ruff `extend-exclude`, and anything under the mypy
+`docs/` exclusion) need no suppression at all, so they MUST NOT carry `# noinspection` comments either.

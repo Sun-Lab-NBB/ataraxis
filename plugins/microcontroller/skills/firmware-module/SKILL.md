@@ -233,7 +233,7 @@ Return `true` on success and `false` on failure.
 ### Design requirements
 
 A setup failure is unrecoverable at runtime, which makes `SetupModule()` the one virtual method whose failure modes you
-MUST design out rather than merely report. Apply these three requirements in order.
+MUST design out. Apply these three requirements in order.
 
 **1. Write the method so that it cannot fail.** Its body should always return `true`. Restrict it to operations that
 cannot fail: `pinMode` calls, pin state writes, and parameter default assignments. Do NOT place connection handshakes,
@@ -323,8 +323,7 @@ bool RunActiveCommand() override
 Returning `false` makes the Kernel report core event code 3 and then discard the active command, so an unrecognized
 command clears itself after a single runtime cycle. The discard also drops it from the queue when the queue still holds
 it, because a code the module does not recognize cannot become recognized on a later repetition. A recurrent command
-therefore reports the error once rather than on every repetition, and the module stays free to run whatever the PC
-queues next.
+therefore reports the error once, and the module stays free to run whatever the PC queues next.
 
 ---
 
@@ -419,7 +418,7 @@ void loop()
 **Key points:**
 - `kControllerID` must match the `controller_id` used on the PC side (1-255, unique per controller)
 - `kKeepaliveInterval` is in milliseconds and 0 disables the mechanism. The Kernel doubles it to derive the effective
-  timeout, saturating rather than wrapping, so 5000 ms fires after about 10 s of silence
+  timeout, saturating at the largest representable millisecond value, so 5000 ms fires after about 10 s of silence
 - Keepalive monitoring arms only once the PC sends its first keepalive command, and every `Setup()` run disarms it
   again, so the controller never times out before the PC starts pinging it
 - Module constructor arguments: `(module_type, module_id, communication)`
@@ -427,7 +426,7 @@ void loop()
   about the array the compiler checks, because the Kernel receives type-erased `Module*` pointers. The uniqueness of
   each `(module_type, module_id)` pair is verified by the PC interface at handshake time, not by the firmware
 - `Serial.begin()` baud rate must match both the target board environment's `monitor_speed` and the PC-side `baudrate`
-  parameter, so keep it in a named constant rather than a literal
+  parameter, so keep it in a named constant
 - Modules that perform analog reads require 12-bit resolution via `analogReadResolution(12)`. AVR boards have a fixed
   10-bit ADC and no `analogReadResolution()`, so the call must be guarded with `#if !defined(__AVR__)`
 

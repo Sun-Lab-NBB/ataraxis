@@ -100,12 +100,12 @@ Key constructor notes:
 - `output_directory` accepts `Path | None`. When `None`, frames are acquired but not saved to disk (useful for
   display-only or warm-up without recording).
 - `frame_width`, `frame_height`, `frame_rate` default to `None` (use camera native settings). For Harvesters cameras,
-  set resolution and frame rate via GenICam configuration (see `/camera-setup`) rather than overriding through these
-  parameters. The VideoSystem overrides are primarily intended for OpenCV cameras that lack GenICam node control.
-  Exposure, gain, and other GenICam nodes are applied at configuration time via the `/camera-setup` tools or, in code,
-  via the `HarvestersCamera` config methods (`set_node_value`, `get_configuration`, `apply_configuration`). See the API
-  reference. The deterministic acquisition script does not reconfigure nodes at runtime. The camera's `PixelFormat` must
-  be an 8-bit format, since the constructor grabs a probe frame and raises `ValueError` on any other frame dtype.
+  set resolution and frame rate via GenICam configuration (see `/camera-setup`). The VideoSystem overrides are primarily
+  intended for OpenCV cameras that lack GenICam node control. Exposure, gain, and other GenICam nodes are applied at
+  configuration time via the `/camera-setup` tools or, in code, via the `HarvestersCamera` config methods
+  (`set_node_value`, `get_configuration`, `apply_configuration`). See the API reference. The deterministic acquisition
+  script does not reconfigure nodes at runtime. The camera's `PixelFormat` must be an 8-bit format, since the
+  constructor grabs a probe frame and raises `ValueError` on any other frame dtype.
 - `display_frame_rate` defaults to `None` (preview disabled). Set to a positive integer FPS not exceeding the camera's
   acquisition frame rate to enable. A value that is neither an int nor `None` raises `TypeError`, while an int that is
   zero, negative, or above the camera's acquisition rate raises `ValueError`. Frame display is unsupported on macOS. It
@@ -129,13 +129,12 @@ VideoSystem() → start() → [start_frame_saving() → stop_frame_saving()] →
 ```
 
 - `start()` begins frame acquisition without saving. Useful for preview or warm-up.
-- `start_frame_saving()` / `stop_frame_saving()` toggle a flag rather than opening and closing files. One
-  VideoSystem writes exactly one `{system_id:03d}.mp4` for its whole lifetime, finalized only when `stop()`
-  runs, so toggling saving off and back on resumes appending to that same file. To produce separate video
-  files, stop the system and construct a new one.
-- `stop()` terminates acquisition and releases all resources. Must be called explicitly. It blocks until
-  all buffered frames are encoded, up to a 10-minute (600 s) cap. Beyond that the daemon consumer process is
-  abandoned and its remaining frames are discarded, with no error raised.
+- `start_frame_saving()` / `stop_frame_saving()` toggle a flag. One VideoSystem writes exactly one `{system_id:03d}.mp4`
+  for its whole lifetime, finalized only when `stop()` runs, so toggling saving off and back on resumes appending to
+  that same file. To produce separate video files, stop the system and construct a new one.
+- `stop()` terminates acquisition and releases all resources. Must be called explicitly. It blocks until all buffered
+  frames are encoded, up to a 10-minute (600 s) cap. Beyond that the daemon consumer process is abandoned and its
+  remaining frames are discarded, with no error raised.
 
 ### System ID allocation
 
@@ -144,7 +143,7 @@ DataLogger, including sources from sibling libraries. The output video file is n
 for system_id 51), while the log archive uses the bare integer.
 
 `/pipeline` owns the allocation convention, the values the library reserves, and the cross-library coexistence rules.
-Invoke it before choosing an ID rather than assuming a band here.
+Invoke it before choosing an ID.
 
 ---
 

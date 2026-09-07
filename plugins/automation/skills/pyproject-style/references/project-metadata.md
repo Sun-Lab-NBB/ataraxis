@@ -149,10 +149,10 @@ All production projects use:
 "Topic :: Scientific/Engineering",
 ```
 
-Treat the audience/topic split above as a starting point. Choose the `Topic` classifier to match the project's domain
-rather than always defaulting to `Topic :: Software Development`. Practiced domain-specific values include `Topic ::
-Communications` (ataraxis-communication-interface, ataraxis-transport-layer-pc) and `Topic :: Multimedia :: Video`
-(ataraxis-video-system). Projects without a more specific domain keep `Topic :: Software Development`.
+Treat the audience/topic split above as a starting point. Choose the `Topic` classifier to match the project's domain.
+Practiced domain-specific values include `Topic :: Communications` (ataraxis-communication-interface,
+ataraxis-transport-layer-pc) and `Topic :: Multimedia :: Video` (ataraxis-video-system). Projects without a more
+specific domain keep `Topic :: Software Development`.
 
 ### Python versions
 
@@ -365,8 +365,8 @@ The abbreviation prefix keeps the command clear of the unrelated executables alr
 
 That reason binds a command installed onto a user's general-purpose PATH. A command installed only into the isolated
 project environment that declares it reaches no such PATH, so it collides with nothing and carries no prefix.
-`automation-cli` is the standing case, since it is installed into each project's own development environment rather
-than onto the host, while every entry point that does reach a user's PATH follows the rule.
+`automation-cli` is the standing case, since it is installed into each project's own development environment, while
+every entry point that does reach a user's PATH follows the rule.
 
 ### Examples from projects
 

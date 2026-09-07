@@ -37,9 +37,8 @@ A finding is reportable only when Pass 1 assigned its line a multiplicity of PER
 categorical prohibition that holds at any frequency. The categorical prohibitions are heap allocation in embedded
 firmware, a missing `final` on a leaf class or leaf override, and LINQ inside a Unity per-frame method.
 
-`PEAK_MEMORY_FOOTPRINT` is exempt from this gate, because it is gated by SIZE rather than by frequency. A whole-file
-materialization that runs once per process still exhausts the machine when the file is large, so judge it against Guard
-15 instead.
+`PEAK_MEMORY_FOOTPRINT` is exempt from this gate, because it is gated by SIZE. A whole-file materialization that runs
+once per process still exhausts the machine when the file is large, so judge it against Guard 15 instead.
 
 A public API entry point is exempt from this gate, because it carries no traceable multiplicity to gate on. Judge it on
 per-call cost as the skill's evidence model defines it, so a constant-factor saving every call receives is reportable
@@ -47,10 +46,10 @@ whatever the frequency. A parser that runs in pure Python where a C implementati
 qualifies, and so does a per-call rebuild of a structure the entry point could compute once.
 
 A `prange` race and `os.cpu_count()` arithmetic without a None guard stay off that list, because the payload of each is
-a wrong value or a crash rather than a cost. `/audit-correctness` owns the race as CONCURRENCY_DEFECT, and
-`/audit-style` owns the worker arithmetic through the `/python-style` anti-pattern that prescribes
-`resolve_worker_count()`. Carry the race here only as a tag on the NUMBA_CONFIGURATION_DEFECT finding recording that the
-parallelization it enables is invalid, and keep the worker arithmetic out of this report.
+a wrong value or a crash. `/audit-correctness` owns the race as CONCURRENCY_DEFECT, and `/audit-style` owns the worker
+arithmetic through the `/python-style` anti-pattern that prescribes `resolve_worker_count()`. Carry the race here only
+as a tag on the NUMBA_CONFIGURATION_DEFECT finding recording that the parallelization it enables is invalid, and keep
+the worker arithmetic out of this report.
 
 Constructor bodies, module-level code, setup and calibration routines, CLI entry points, MCP tool wrappers, viewer and
 GUI code, Unity editor scripts, and `tests/` are COLD by default, so report nothing there on constant-factor grounds. A
@@ -67,11 +66,11 @@ A function whose call sites resolve nowhere inside the package and which the dis
 does not export is UNKNOWN and stays out of the report, because an unused helper is no evidence of heat. A function
 whose only call sites live in `tests/` is COLD unless that same export makes it a public API entry point.
 
-An exported symbol is a public API entry point, so Guard 1 exempts it from the cold-path gate and it is analyzed rather
-than discarded. The exemption licenses analysis of the entry point's own body and of the work that body performs per
-call. It licenses no claim about the caller, so "called in a loop downstream", "every session parses thousands of
-these", and any other downstream-frequency assertion stays disqualifying. A finding that leans on one is rejected here
-exactly as a finding leaning on an internal hot-path guess is.
+An exported symbol is a public API entry point, so Guard 1 exempts it from the cold-path gate and it is analyzed. The
+exemption licenses analysis of the entry point's own body and of the work that body performs per call. It licenses no
+claim about the caller, so "called in a loop downstream", "every session parses thousands of these", and any other
+downstream-frequency assertion stays disqualifying. A finding that leans on one is rejected here exactly as a finding
+leaning on an internal hot-path guess is.
 
 ---
 
@@ -108,7 +107,7 @@ immediately before a jitted kernel or a C extension call is a required guard. A 
 mutated, or that keeps a caller's buffer from being aliased, is defensive and correct.
 
 Before reporting any copy, enumerate every downstream use and state that none mutates the buffer. When the binding
-escapes into code you cannot read, report UNVERIFIABLE rather than guessing.
+escapes into code you cannot read, report UNVERIFIABLE.
 
 ---
 
@@ -129,8 +128,8 @@ Explicit `for` loops inside `@njit`, `@numba.njit`, and `@guvectorize` bodies ar
 compiles them to machine code and rewriting them as NumPy calls would allocate temporaries and slow them down. A loop
 inside a jitted function never enters MISSED_VECTORIZATION.
 
-Scalar per-element code inside a kernel is likewise correct rather than interpreter overhead, and `range` on inner loops
-under an outer `prange` is the prescribed nesting.
+Scalar per-element code inside a kernel is likewise correct, and `range` on inner loops under an outer `prange` is the
+prescribed nesting.
 
 ---
 
@@ -168,8 +167,8 @@ A method name matching a known-expensive API is no evidence that the expensive A
 The canonical case is a Unity component whose per-frame path calls `movement.Sum()`, which greps as a LINQ violation.
 When `movement` is a project type whose own `Sum()` is a hand-written zero-allocation loop over a fixed array, and the
 file imports only `UnityEngine`, the call allocates nothing and is exactly the prescribed form. Before reporting LINQ
-inside a per-frame method, find the receiver's declaration, confirm its type is an `IEnumerable<T>` rather than a
-project type, and confirm the file imports `System.Linq`.
+inside a per-frame method, find the receiver's declaration, confirm its type is an `IEnumerable<T>` and never a project
+type, and confirm the file imports `System.Linq`.
 
 Apply the same resolution discipline to `in`, where a set differs from a list, to `.copy()`, where a dict differs from a
 NumPy array, and to `.append`, where a list differs from `np.append`.
@@ -242,7 +241,7 @@ as an array a single vectorized call transforms end to end, is not reportable.
 
 The fourth is the inverted recommendation. Accumulating chunks in a list and concatenating once is the prescribed fix
 for quadratic growth. Report its peak only when the joined result and the chunk list are both alive and both full size,
-and say so explicitly rather than flagging the pattern itself.
+and say so explicitly, never flagging the pattern itself.
 
 Never propose chunking, windowing, or memory mapping without naming the window size and confirming the consumer
 tolerates a partial view. A proposal that would change the result the current code produces belongs to no report.
@@ -252,7 +251,7 @@ tolerates a partial view. A proposal that would change the result the current co
 ## Guard 16: Generated and vendored code is out of scope
 
 Stub files and the typing marker are produced by the stubs environment and never hand-authored, so their allocations and
-their memory layout are regenerated rather than optimized and are no performance finding.
+their memory layout are regenerated at the next run and are no performance finding.
 
 Audit nothing inside a virtual environment, site-packages, a tox working directory, a build directory, or a vendored
 third-party tree. Read them as authority for a callee's cost, and report findings only against this repository's own
@@ -261,17 +260,17 @@ source.
 For every candidate, resolve its Location `<path>` against the repository. Discard it when the path lies under `.venv/`,
 `site-packages/`, `.tox/`, `build/`, `dist/`, or a vendored third-party directory, and equally when the file is a `.pyi`
 stub or is otherwise regenerated by an environment the project defines. Confirm by checking whether the project's own
-build or stubs environment writes that path, and treat the file as authority rather than as audited source when it does.
+build or stubs environment writes that path, and treat the file as authority when it does.
 
 ---
 
 ## Guard 17: Documentation-side findings belong to /audit-facts
 
 A docstring, Doxygen block, or XML doc comment stating a dtype, a width, a unit, or a complexity the implementation does
-not deliver is FACTUAL, because the fix edits the prose rather than the code. This audit judges the NUMERIC OR TEMPORAL
-CONSEQUENCE of the code. Where one line breaks both a cost rule and a documented fact, report the cost here and leave
-the fact to its owner.
+not deliver is FACTUAL, because the fix edits the prose. This audit judges the NUMERIC OR TEMPORAL CONSEQUENCE of the
+code. Where one line breaks both a cost rule and a documented fact, report the cost here and leave the fact to its
+owner.
 
-For every candidate whose evidence quotes a docstring, a Doxygen tag, or an XML doc element rather than an annotation or
-a declaration, ask what the proposed fix edits. Where the fix edits the prose, discard the candidate here and hand it to
-`/audit-facts`. Where the fix edits the code and the cost arithmetic still stands with the prose quote removed, keep it.
+For every candidate whose evidence quotes a docstring, a Doxygen tag, or an XML doc element, ask what the proposed fix
+edits. Where the fix edits the prose, discard the candidate here and hand it to `/audit-facts`. Where the fix edits the
+code and the cost arithmetic still stands with the prose quote removed, keep it.

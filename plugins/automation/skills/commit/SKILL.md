@@ -48,8 +48,7 @@ Run the following git commands in parallel using the Bash tool:
    prefix when a remote exists. If that command errors with `is not a symbolic ref`, run `git remote set-head origin -a`
    to populate `origin/HEAD`, otherwise fall back to checking for `main` then `master`.
 
-If `git status` shows no staged, unstaged, or untracked changes, stop and report that there is nothing to commit rather
-than running `git add`/`git commit`.
+If `git status` shows no staged, unstaged, or untracked changes, stop and report that there is nothing to commit.
 
 ### Step 2: Analyze changes
 
@@ -90,11 +89,11 @@ of the code they touch. The test is mechanical: read the name alone and ask whic
 no particular file is rewritten to name the surfaces the branch alters.
 
 An audit is the recurring offender, because a feature carries its own subject while an audit carries only its own name.
-Derive the subject from the files the change set touches rather than from the task that produced it. Build the name as
-`<type>/<subject>`, where the type is `feature`, `bugfix`, `refactor`, or `docs`, and the subject names the altered
-surfaces in two to five hyphenated words. Those four types are the whole set, so a name reaching for another one is
-rewritten to the closest of the four. When one audit produced fixes across several surfaces, name those surfaces, as in
-`bugfix/serial-timeout-and-retry-handling`. When they share no surface, name the subsystem holding them.
+Derive the subject from the files the change set touches. Build the name as `<type>/<subject>`, where the type is
+`feature`, `bugfix`, `refactor`, or `docs`, and the subject names the altered surfaces in two to five hyphenated words.
+Those four types are the whole set, so a name reaching for another one is rewritten to the closest of the four. When one
+audit produced fixes across several surfaces, name those surfaces, as in `bugfix/serial-timeout-and-retry-handling`.
+When they share no surface, name the subsystem holding them.
 
 ### Step 6: Stage all changes
 
@@ -108,11 +107,11 @@ all pass, so stage them. A file that fits no slot fails, and a stray file at the
 When one fails, STOP. Do not stage it, do not commit it, and do not add it to `.gitignore` on your own initiative.
 Report the file and ask what to do with it.
 
-The untracked audit above runs once over the whole change set, before the first commit, rather than once per chain
-member. Once every untracked file is accounted for, stage the plan's first commit. A single commit stages with
-`git add -A`, covering tracked modifications, deletions, and the untracked files that belong in the tree. A chain stages
-one commit at a time with `git add -- <paths>`, naming that commit's files alone, which stages that pathspec's
-deletions along with its edits. Read the staged set back with `git diff --cached --name-only` before committing.
+The untracked audit above runs once over the whole change set, before the first commit. Once every untracked file is
+accounted for, stage the plan's first commit. A single commit stages with `git add -A`, covering tracked modifications,
+deletions, and the untracked files that belong in the tree. A chain stages one commit at a time with
+`git add -- <paths>`, naming that commit's files alone, which stages that pathspec's deletions along with its edits.
+Read the staged set back with `git diff --cached --name-only` before committing.
 
 ### Step 7: Create the commits
 
@@ -150,22 +149,21 @@ Stop there. Pushing is the supervising user's decision.
 ## Commit chains
 
 A change set spanning several isolatable concerns ships as a chain of commits, one per concern. An agent accumulates
-many edits inside one task, so the default for a broad change set is the chain rather than the single commit that
-bundles every edit behind one header.
+many edits inside one task, so the default for a broad change set is the chain.
 
 **The isolation test decides.** Cover a candidate commit and ask whether a reviewer accepts or reverts it alone, leaving
 the rest of the chain standing. When yes, it is its own commit. When reverting it forces the reverting of another
-candidate, the two are one commit. Apply the test to each candidate rather than to the change set as a whole.
+candidate, the two are one commit. Apply the test to each candidate.
 
 **The user overrides the default.** An explicit request for one commit produces one commit at any size, and an explicit
 request for a chain produces a chain at any size. Settle this before planning, and do not re-litigate a stated choice.
 
 ### Grouping the commits
 
-Group by AREA, meaning the subsystem or directory the files belong to, rather than by change type. Change types such as
-a visibility narrowing, a diagnostic rewrite, and a documentation pass interleave INSIDE a single file, so no hunk
-boundary separates a moved method body from the documentation edits that body contains. An area slice takes whole files
-and stays reviewable, while a type slice on interleaved edits produces hunks that belong to no clean group.
+Group by AREA, meaning the subsystem or directory the files belong to. Change types such as a visibility narrowing, a
+diagnostic rewrite, and a documentation pass interleave INSIDE a single file, so no hunk boundary separates a moved
+method body from the documentation edits that body contains. An area slice takes whole files and stays reviewable, while
+a type slice on interleaved edits produces hunks that belong to no clean group.
 
 Group by change type only when each type occupies whole files that no other type touches.
 
@@ -175,15 +173,13 @@ that grants access lands in or before the commit that relies on it. Order the ch
 
 ### Verifying the chain
 
-The build gate is the command the project already uses to prove its sources build. A Python package runs its `tox`
-test environment, a PlatformIO project runs `pio check` and `pio test`, and a C# Unity project runs the Roslyn compile
-gate `/csharp-style` documents. Ask the user which command serves as the gate when the project names none, rather than
-inventing one.
+The build gate is the command the project already uses to prove its sources build. A Python package runs its `tox` test
+environment, a PlatformIO project runs `pio check` and `pio test`, and a C# Unity project runs the Roslyn compile gate
+`/csharp-style` documents. Ask the user which command serves as the gate when the project names none.
 
-Run that gate at EVERY commit, rather than at the tip alone, because a chain that only builds at the end is a chain a
-bisect cannot walk. Check out each commit into a detached worktree with `git worktree add --detach <path> <sha>`, run
-the gate there, and remove the worktree. The working tree stays untouched throughout, so a failure costs a regrouping
-rather than a recovery.
+Run that gate at EVERY commit, because a chain that only builds at the end is a chain a bisect cannot walk. Check out
+each commit into a detached worktree with `git worktree add --detach <path> <sha>`, run the gate there, and remove the
+worktree. The working tree stays untouched throughout, so a failure costs a regrouping.
 
 A commit failing the gate is not dependency-closed. Merge it into the adjacent commit supplying what it lacks and run
 the gate again. Report the failure and stop when no regrouping clears it.
@@ -289,12 +285,18 @@ counter-intuitive assumption, giving its reason.
 ### Prose quality
 
 **Typo-free and grammatical**: The commit message must be free of typos and grammatical errors, checked before the
-commit is created, with every symbol name, file name, flag spelling, and version string verified against the diff rather
-than from memory.
+commit is created, with every symbol name, file name, flag spelling, and version string verified against the diff.
 
 **Sentence length**: Every sentence in the commit header and detail bullets stays under 40 words. Break a longer
 sentence at a natural clause boundary, or split it into two bullets. Count the message prose alone, never the git
 commands, paths, or code spans quoted inside it.
+
+**Forbidden phrase**: The two-word phrase `rather` followed by `than` is FORBIDDEN in a commit header and in every
+detail bullet, with no exception and no load-bearing carve-out. It names an alternative the reader never proposed, and
+the sentence keeps its full meaning once the trailing clause is deleted, so delete the clause and state the positive
+claim alone. Substituting `instead of`, `as opposed to`, or `in place of` reproduces the same padding under a new
+spelling and is equally forbidden. Where the excluded option genuinely carries information, it earns its own sentence
+naming what it costs.
 
 ---
 
@@ -387,15 +389,16 @@ Commit Message Compliance:
 - [ ] Free of typos and grammar errors
 - [ ] Every sentence in the drafted text stays under 40 words
 - [ ] Bullets state what the change now does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] Header and every bullet free of the phrase `rather` followed by `than` (forbidden with no exception)
 - [ ] Multi-line format used for bundled changes (if applicable)
 - [ ] Multi-line bullets prefixed with `-- ` and each ends with a period
 - [ ] Every bullet occupies one line, so no line after the header begins with whitespace
-- [ ] Header names the change rather than the activity that produced it (no audit, review, or ticket)
+- [ ] Header names the change itself (no audit, review, or ticket)
 - [ ] Header names the change the commit itself carries, so no chain position and no running count appear
 - [ ] Contains NO authorship details, co-author tags, or attribution
 - [ ] Contains NO references to tools or AI unless explicitly requested by the user
 - [ ] Contains ONLY information about the changes themselves
-- [ ] Checked against this list once per commit, so a chain runs it for every message rather than once
+- [ ] Checked against this list once per commit, so a chain runs it for every message
 ```
 
 ### Commit execution
@@ -408,10 +411,9 @@ Commit Execution Compliance:
 - [ ] Reported nothing to commit and made no commit when `git status` showed no staged, unstaged, or untracked changes
 - [ ] Determined the active branch and the default branch
 - [ ] If on the default branch, asked the user before creating a new branch
-- [ ] Branch name states the changed surfaces rather than the activity that produced them, so it names no audit,
-      review, sweep, cleanup, or skill, and it predicts the files the branch touches
+- [ ] Branch name states the changed surfaces, so it names no audit, review, sweep, cleanup, or skill, and it
+      predicts the files the branch touches
 - [ ] Every untracked file accounted for before staging, with any file occupying no archetype slot reported
-      rather than staged
 - [ ] Chain planned before staging, with each commit passing the isolation test, or a single commit justified by
       one concern or by an explicit user request
 - [ ] Chain plan reported to the user before staging whenever it holds more than one commit

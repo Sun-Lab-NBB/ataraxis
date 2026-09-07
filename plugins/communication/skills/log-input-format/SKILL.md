@@ -172,9 +172,9 @@ controller IDs, and `reset_log_processing_jobs_tool` tests them against the trac
 whitespace-bearing, or integer value matches nothing.
 
 **A mismatch fails quietly.** A padded ID such as `"051"` raises nothing on the MCP path. The batch simply prepares no
-job for it and reports it under `skipped_sources` as absent from the extraction configuration, which blames the config
-rather than the malformed ID. Re-read the ID from `discover_microcontroller_data_tool` before editing a config in
-response to that message.
+job for it and reports it under `skipped_sources` as absent from the extraction configuration. That message blames the
+config, and the malformed ID is the real cause. Re-read the ID from `discover_microcontroller_data_tool` before editing
+a config in response to that message.
 
 ### Uniqueness constraints
 
@@ -243,8 +243,8 @@ The ataraxis-communication-interface processing pipeline only processes archives
 `camera_manifest.yaml`.
 
 Both archive kinds carry the same `{source_id}_log.npz` name, so the manifest is the only thing that tells them apart.
-An unregistered archive is invisible to a pipeline rather than mis-parsed. `/video:log-input-format` documents the
-camera archives and their payload layout, and `/video:pipeline` owns the shared source ID namespace.
+An unregistered archive is invisible to a pipeline. `/video:log-input-format` documents the camera archives and their
+payload layout, and `/video:pipeline` owns the shared source ID namespace.
 
 Assembly is directory-wide, not per-library. The source ID grouping above ignores which library wrote an entry, so
 **one** call covers both libraries. Running it a second time after either side has already assembled is the destructive
@@ -402,7 +402,7 @@ Before running the log processing pipeline, verify these conditions:
 2. **Onset message present**: Each archive carries an onset message (elapsed_us=0) with a valid UTC epoch payload.
    `LogArchiveReader.onset_timestamp_us` takes the first entry whose elapsed time reads zero and treats every key after
    it as a data message, raising a `ValueError` only when the archive holds no such entry. One onset per archive is the
-   DataLogger's own writing contract rather than a validated invariant, since nothing rejects a second one.
+   DataLogger's own writing contract, since nothing rejects a second one.
 
 3. **Extraction config valid**: A validated `ExtractionConfig` YAML file must exist with event codes matching the
    firmware's data/state message events. See `/extraction-configuration`.

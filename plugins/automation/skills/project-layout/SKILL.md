@@ -57,8 +57,8 @@ repository. Determine which archetype applies using this table:
 
 A repository that carries none of these indicators, ships no installable artifact of its own, and instead indexes
 sibling libraries or distributes plugins through a marketplace is an umbrella repository. Umbrella repositories carry NO
-archetype tree, so this skill prescribes no directory layout for one and a layout audit records the tree as unresolvable
-rather than reporting the archetype paths it lacks. Its `README.md` still follows the umbrella order in `/readme-style`.
+archetype tree, so this skill prescribes no directory layout for one and a layout audit records the tree as
+unresolvable. Its `README.md` still follows the umbrella order in `/readme-style`.
 
 ### Step 2: Load the reference tree
 
@@ -80,9 +80,9 @@ Complete the verification checklist at the end of this file. Every item must pas
 
 ## Every file occupies a slot in the tree
 
-A file added to the repository MUST occupy a slot its layout defines. That test decides the question, rather than
-whether the user named the file. A project repository is judged against its archetype tree. An umbrella repository
-carries no archetype tree, so it is judged against the plugin and marketplace layout `/skill-design` owns.
+A file added to the repository MUST occupy a slot its layout defines. That test alone decides the question. A project
+repository is judged against its archetype tree. An umbrella repository carries no archetype tree, so it is judged
+against the plugin and marketplace layout `/skill-design` owns.
 
 Adding a file to a defined slot is ordinary work and needs no permission. A module under `src/{package_name}/`, a test
 module under `tests/`, a documentation page under `docs/source/`, a skill file under a skill's own directory, and an
@@ -94,9 +94,8 @@ reports, audit output, plans, summaries, checklists, scratch scripts, and genera
 reply to the user, and a plan belongs in the reply to the user. Neither belongs in a tracked file, and a file the user
 has to delete afterwards is worse than no file at all.
 
-Work that genuinely needs a file on disk goes OUTSIDE the repository, in the session scratch directory. When a file
-fits no slot and the task still seems to need it tracked, stop and ask, because the answer decides whether the file
-exists rather than where it goes.
+Work that genuinely needs a file on disk goes OUTSIDE the repository, in the session scratch directory. When a file fits
+no slot and the task still seems to need it tracked, stop and ask, because the answer decides whether the file exists.
 
 ---
 
@@ -204,7 +203,7 @@ PlatformIO and Unity projects do NOT have `envs/` directories.
 
 The `tests/` directory mirrors the `src/package_name/` subpackage structure and holds the test-support modules the test
 modules share. A project whose suite needs non-Python test data adds a fixture directory alongside the mirror, holding
-data files or vendored binary test doubles rather than importable modules:
+data files or vendored binary test doubles:
 
 ```text
 tests/
@@ -215,10 +214,10 @@ tests/
 └── standalone_test.py
 ```
 
-A test-support module holds the fixtures, builders, or fakes that several test modules draw on rather than tests of its
-own. It is named for what it provides, and `conftest.py` is the support module pytest discovers fixtures from
-automatically. The `_test.py` suffix marks test modules alone, so a support module carrying that suffix would be
-collected as one, which is why the suffix rule does not reach it.
+A test-support module holds the fixtures, builders, or fakes that several test modules draw on. It is named for what it
+provides, and `conftest.py` is the support module pytest discovers fixtures from automatically. The `_test.py` suffix
+marks test modules alone, so a support module carrying that suffix would be collected as one, which is why the suffix
+rule does not reach it.
 
 ### PlatformIO test structure
 
@@ -273,16 +272,16 @@ environment field with the lines matching the project's archetype:
 
 A Python project whose subject is a physical device adds one more line naming that device, as `Hardware: Teensy 4.1`. A
 maintainer cannot reproduce a bug in code that drives hardware without knowing which hardware it drove. The condition is
-the project's subject rather than its dependency list, so a project that exists to talk to a microcontroller, a camera,
-or an instrument qualifies, and a project that merely runs on a host does not.
+the project's subject, so a project that exists to talk to a microcontroller, a camera, or an instrument qualifies, and
+a project that merely runs on a host does not.
 
 A C# Unity project states the Editor version its `ProjectSettings/ProjectVersion.txt` pins, because a Unity project
 opens only in the version that serialized it, and an illustrative version would send a reporter to an Editor the
 project rejects.
 
 Each comma-separated entry becomes its own line of the YAML block scalar, indented to match the asset. The remaining
-example values are illustrative. They show the shape of a useful answer rather than the state of any one project, so
-the release version example stays as the asset spells it.
+example values are illustrative. They show the shape of a useful answer, so the release version example stays as the
+asset spells it.
 
 The reproduction and output fields the asset spells suit a project that a reporter installs into an environment and
 then calls. A C# Unity project is imported through Unity Hub and driven from the Editor, so it replaces the reproduction
@@ -381,6 +380,15 @@ Assets/
 
 ---
 
+## Prose conventions
+
+The two-word phrase `rather` followed by `than` is FORBIDDEN in every line of prose this skill authors, such as an issue
+template body or a justification for a retained path, with no exception and no load-bearing carve-out. Delete the
+excluded alternative and state the positive claim alone. A copy split across a line break survives a plain search, so
+`rg -Uni '\brather\b[\s#*/>|+-]*\bthan\b'` settles the rule.
+
+---
+
 ## Related skills
 
 | Skill                | Relationship                                                                 |
@@ -417,8 +425,7 @@ Project Layout Compliance:
 - [ ] Every added file occupies a slot the archetype tree defines, with no working artifact (notes, findings,
       reports, plans, scratch scripts) left in the tree, especially at the repository root
 
-Tool-settled items. `git ls-files` and `ls -a` decide each of these against the archetype tree, so run
-them rather than recalling the layout.
+Tool-settled items. `git ls-files`, `ls -a`, and the ripgrep search the last row names decide these, so run all three.
 - [ ] LICENSE present (Apache-2.0)
 - [ ] README.md present
 - [ ] .gitignore present
@@ -443,6 +450,8 @@ them rather than recalling the layout.
 - [ ] Unity projects do NOT have docs/
 - [ ] .github/ISSUE_TEMPLATE/ present for every repository published to GitHub
 - [ ] ISSUE_TEMPLATE/ holds exactly bug_report.yml, config.yml, and feature_request.yml
+- [ ] No prose this skill authors contains the phrase `rather` followed by `than`, including where it wraps across a
+      line break (`rg -Uni '\brather\b[\s#*/>|+-]*\bthan\b'`, forbidden with no exception)
 
 Reader-judged items. No directory listing settles these, so decide each one by reading the files it
 names and this skill's ownership boundary.

@@ -24,23 +24,23 @@ absent. Ask for the listing explicitly whenever you intend to render one.
 ## Shared fields and rules
 
 - `breakdown` maps each filterable axis to its value counts, and it answers "which source IDs, camera names, or statuses
-  are present and how many of each" without listing anything. Read filter values from here rather than from a page.
+  are present and how many of each" without listing anything. Read filter values from here.
 - `rows`, `matched_rows`, `start_row`, and `next_start_row` accompany every listed page. `matched_rows` counts the
   filter matches before the page cap, so a `rows` below it means the page was capped.
 - Walk a long result by following `next_start_row` until it reads null. A page that fills its own limit exactly may
-  still end the matches, so the null is the terminator rather than a short page.
+  still end the matches, so the null is the terminator.
 - `limit` defaults to 200, or to 50 under `detailed`. A value at or below zero lifts the cap and returns every match
   from the requested start.
-- The counts and the `breakdown` span every discovered item whatever the filters name, so narrowing what is listed
-  never distorts what is reported.
-- A filter naming a value the scan did not find returns an error dictionary naming what is available, rather than an
-  empty page. The one exception is `discover_camera_data_tool` over a root that confirms no source at all, which
-  returns an empty `sources` list and an empty `breakdown` whatever the filters name. Outside that case an empty page
-  means the filters matched nothing that also survived paging, never a typo.
+- The counts and the `breakdown` span every discovered item whatever the filters name, so narrowing what is listed never
+  distorts what is reported.
+- A filter naming a value the scan did not find returns an error dictionary naming what is available. The one exception
+  is `discover_camera_data_tool` over a root that confirms no source at all, which returns an empty `sources` list and
+  an empty `breakdown` whatever the filters name. Outside that case an empty page means the filters matched nothing that
+  also survived paging, never a typo.
 - A listed item omits any field holding nothing, so an unmatched video file and an unprocessed source carry no
   `video_file` and no `timestamps_file` key even under `detailed`. Read an absent key as the field holding nothing.
 - `detailed` widens the fields a listed item carries and never asks for the listing itself, so it is passed alongside a
-  filter or `include_items` rather than on its own.
+  filter or `include_items`.
 
 ---
 

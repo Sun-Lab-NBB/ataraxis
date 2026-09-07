@@ -123,8 +123,7 @@ envlist =
 - Sections appear in a mandatory file order: `[tox]`, the optional `[testenv]` base section, then the testenv sections
   in the order [environment-templates.md](references/environment-templates.md) presents them (lint, stubs, test,
   coverage, docs, build, upload, deploy, install, uninstall, create, remove, provision, export, import). An archetype
-  omits the environments it does not define and inserts a new environment at its position in this list rather than
-  appending it.
+  omits the environments it does not define and inserts a new environment at its position in this list.
 
 ---
 
@@ -206,12 +205,11 @@ tools instead.
 - `setenv = COVERAGE_FILE = reports{/}.coverage.{envname}` writes per-version coverage data.
 - Runs pytest with `--import-mode=importlib`, `--cov`, `--cov-config=pyproject.toml`, `--cov-fail-under=100`,
   `-n logical`, `--dist loadgroup`.
-- `--cov` carries the package name as `--cov={package_name}`, or stays bare when `pyproject.toml` declares
-  `source_pkgs` under `[tool.coverage.run]`, since a spawned worker reads the measured package from that file rather
-  than from the command line.
-- `--cov-fail-under=100` applies the coverage gate. It is stated here rather than in `pyproject.toml`, because a
-  `fail_under` declared there also gates every ad hoc `pytest --cov` run a developer types against a subset of the
-  suite. See `/pyproject-style` for that mechanism and for the section the key stays out of.
+- `--cov` carries the package name as `--cov={package_name}`, or stays bare when `pyproject.toml` declares `source_pkgs`
+  under `[tool.coverage.run]`, since a spawned worker reads the measured package from that file.
+- `--cov-fail-under=100` applies the coverage gate. It is stated here, because a `fail_under` declared in
+  `pyproject.toml` also gates every ad hoc `pytest --cov` run a developer types against a subset of the suite. See
+  `/pyproject-style` for that mechanism and for the section the key stays out of.
 - `--dist loadgroup` routes every test carrying the same `@pytest.mark.xdist_group` marker to one worker. See
   `/python-style` for the marker and the cases that require it.
 - `--import-mode=importlib` matches the `addopts` declaration in `pyproject.toml`, so a bare `pytest` invocation
@@ -239,7 +237,7 @@ tools instead.
 
 ### build
 
-- `skip_install = true`, since the build runs from source rather than from the installed package.
+- `skip_install = true`, since the build runs from source.
 - Standard projects: `uv build . --sdist` + `uv build . --wheel`.
 - C++ extension projects: `uv build . --sdist` + `cibuildwheel --output-dir dist --platform auto`.
 - `uv build` resolves the PEP 517 backend and creates the isolated environment that produces each distribution. The
@@ -278,10 +276,9 @@ tools instead.
 
 The mamba environment name follows the pattern `{abbr}_dev`. For a multi-repository project component, `{abbr}` is the
 project abbreviation plus the initial of each remaining word (`ataraxis-base-utilities` becomes `axbu`). A trailing
-token that is already an abbreviation is kept whole rather than reduced to its initial, so `ataraxis-transport-layer-pc`
-becomes `axtlpc`. For a standalone project, `{abbr}` is the project name used as-is (`harvester` becomes
-`harvester`). `automation-cli` appends the OS suffix (`_lin`, `_osx`, `_win`) at runtime, so the suffix stays out of
-tox.ini.
+token that is already an abbreviation is kept whole, so `ataraxis-transport-layer-pc` becomes `axtlpc`. For a standalone
+project, `{abbr}` is the project name used as-is (`harvester` becomes `harvester`). `automation-cli` appends the OS
+suffix (`_lin`, `_osx`, `_win`) at runtime, so the suffix stays out of tox.ini.
 
 ---
 
@@ -360,6 +357,12 @@ marker, in tables, and in compound words. State what the setting does and what i
 what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing because it corrects a
 counter-intuitive assumption, giving its reason.
 
+The two-word phrase `rather` followed by `than` is FORBIDDEN in every comment and description field, with no exception
+and no load-bearing carve-out. It names an alternative the reader never proposed, and the sentence keeps its full
+meaning once the trailing clause is deleted, so delete the clause and state the positive claim alone. Substituting
+`instead of`, `as opposed to`, or `in place of` reproduces the same padding under a new spelling and is equally
+forbidden. Where the excluded option genuinely carries information, it earns its own sentence naming what it costs.
+
 ### Forward-reading clauses
 
 A clause resolves left to right, so the reader reaches its last word already knowing what the clause says. The default
@@ -368,13 +371,13 @@ object it governs. Two departures from that default are banned, because each one
 and back-fill its grammar at the end.
 
 A clause ending on a preposition strands that preposition's object earlier in the sentence and sends the reader back to
-find it. Write "every module that has a registered parser" rather than "every module the system registers a parser
-for", and write "the cores each job occupies" rather than "the cores each job was admitted at".
+find it. Write "every module that has a registered parser", not "every module the system registers a parser for", and
+write "the cores each job occupies", not "the cores each job was admitted at".
 
 Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs before the head
 noun settles. Restore the relative pronoun, or convert the inner clause into a participial phrase. Write "one job for
-every module that the session used and that has a registered parser" rather than "one job per module the session
-configured and the system registers a parser for".
+every module that the session used and that has a registered parser", not "one job per module the session configured and
+the system registers a parser for".
 
 **The one-pass test**: read the sentence once at speaking pace. A sentence needing a second pass to settle the noun that
 a verb or a preposition governs fails the test. Rewrite it by naming the actor, then the action, then the qualifier.
@@ -515,4 +518,6 @@ Formatting:
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
 - [ ] Prose states what the setting does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] No comment or description field contains the phrase `rather` followed by `than`, including where it wraps across a
+      line break (forbidden with no exception)
 ```

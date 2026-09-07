@@ -321,7 +321,7 @@ owns the matching clang-tidy configuration for C++ projects.
 
 The `CA*` severities take effect only where the project references Microsoft.CodeAnalysis.NetAnalyzers. A stock Unity
 project does not, so its `CA*` keys sit inert until the package is added, and they cost nothing meanwhile. The `IDE*`
-rules ship with the compiler platform and surface through Rider and Visual Studio rather than through a Unity build:
+rules ship with the compiler platform and surface through Rider and Visual Studio:
 
 | Roslyn analyzer | Description                  |
 |-----------------|------------------------------|

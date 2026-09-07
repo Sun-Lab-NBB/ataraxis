@@ -183,15 +183,8 @@ Separate category groups with a blank line. The comment line has no leading blan
 
 ### Ruff ignore comments
 
-Each ruff ignore entry must have an inline comment explaining the reason:
-
-```toml
-lint.ignore = [
-    "COM812",  # Conflicts with the formatter
-    "ISC001",  # Conflicts with the formatter
-    "D107",    # __init__ is documented inside the main class docstring where applicable
-]
-```
+See [tool-configurations.md](references/tool-configurations.md) for the inline comment every ruff ignore
+entry carries.
 
 ### Array formatting
 
@@ -209,7 +202,7 @@ given also qualifies. A comment that restates the key is noise, and a file where
 to skip all of them.
 
 Two standing exceptions apply. Every entry in either ruff ignore corpus carries a reason comment, because the entry
-records a decision rather than a value. Every section keeps its one-line block comment naming its purpose.
+records a decision. Every section keeps its one-line block comment naming its purpose.
 
 ```toml
 # Avoid - every comment restates the key it sits on
@@ -237,13 +230,18 @@ re-checked when that issue closes, because the ignore usually goes with it.
 
 ### Prose punctuation and positive description
 
-Comment prose in pyproject.toml follows the two project-wide rules for documentation. Prose uses only the full stop and
-the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`, or `–`) as a separator, and use a colon
-only where it is lexically appropriate. A single hyphen stays available as a list marker, in tables, and in compound
-words. State what the setting does and what is currently true. Do not frame it by what it is not or what it used to be,
-and keep a "not Y" contrast only when it is load-bearing because it corrects a counter-intuitive assumption, giving its
-reason. This rule governs prose only. Code stays exempt, so a `;` in a PEP 508 dependency marker or a `--flag` in a CLI
-reference is left as written.
+Prose uses only the full stop and the comma to separate clauses. Do not use a semicolon or an em-dash (`--`, `—`, or
+`–`) as a separator, and use a colon only where it is lexically appropriate. A single hyphen stays available as a list
+marker, in tables, and in compound words. State what the setting does and what is currently true. Do not frame it by
+what it is not or what it used to be, and keep a "not Y" contrast only when it is load-bearing because it corrects a
+counter-intuitive assumption, giving its reason. This rule governs prose only. Code stays exempt, so a `;` in a PEP 508
+dependency marker or a `--flag` in a CLI reference is left as written.
+
+The two-word phrase `rather` followed by `than` is FORBIDDEN in every comment and every `description` field, with no
+exception and no load-bearing carve-out. It names an alternative the reader never proposed, and the sentence keeps its
+full meaning once the trailing clause is deleted, so delete the clause and state the positive claim alone. Substituting
+`instead of`, `as opposed to`, or `in place of` reproduces the same padding under a new spelling and is equally
+forbidden. Where the excluded option genuinely carries information, it earns its own sentence naming what it costs.
 
 Sentences over 39 words are difficult to parse and must be broken at natural clause boundaries, in block comments,
 inline comments, and the `description` field alike. Every block comment, inline comment, and `description` field must be
@@ -257,13 +255,13 @@ object it governs. Two departures from that default are banned, because each one
 and back-fill its grammar at the end.
 
 A clause ending on a preposition strands that preposition's object earlier in the sentence and sends the reader back to
-find it. Write "every module that has a registered parser" rather than "every module the system registers a parser
-for", and write "the cores each job occupies" rather than "the cores each job was admitted at".
+find it. Write "every module that has a registered parser", not "every module the system registers a parser for", and
+write "the cores each job occupies", not "the cores each job was admitted at".
 
 Two or more bare relative clauses stacked on one noun make the reader resolve nested subject-verb pairs before the head
 noun settles. Restore the relative pronoun, or convert the inner clause into a participial phrase. Write "one job for
-every module that the session used and that has a registered parser" rather than "one job per module the session
-configured and the system registers a parser for".
+every module that the session used and that has a registered parser", not "one job per module the session configured and
+the system registers a parser for".
 
 **The one-pass test**: read the sentence once at speaking pace. A sentence needing a second pass to settle the noun that
 a verb or a preposition governs fails the test. Rewrite it by naming the actor, then the action, then the qualifier.
@@ -403,7 +401,7 @@ Project Metadata:
 - [ ] keywords array present with relevant terms
 - [ ] Classifiers grouped with category comments, covering development status, intended audience and topic, Python
       versions, operating systems, and typing
-- [ ] Topic classifier matches the project's domain rather than defaulting to Topic :: Software Development
+- [ ] Topic classifier matches the project's domain
 - [ ] One "Programming Language :: Python :: X.Y" classifier per minor version covered by requires-python
 - [ ] "Typing :: Typed" classifier present
 
@@ -491,6 +489,8 @@ Formatting:
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
 - [ ] Prose states what the setting does, not what it is not or used to be (contrast only when load-bearing)
+- [ ] No comment or `description` field contains the phrase `rather` followed by `than`, including where it wraps across
+      a line break (forbidden with no exception)
 - [ ] Sentences in comments and description fields stay under 40 words
 - [ ] Comments and description fields free of typos and grammar errors
 ```

@@ -29,10 +29,10 @@ implementation calls.
 
 ## One traversal, nine questions
 
-Passes 2 through 6 are a CHECKLIST OF QUESTIONS asked of the CLAIM LEDGER rather than a schedule of re-reads. Each claim
-carries the kind that names its pass, so walk the ledger once and answer each claim under its own pass, opening each
-authoritative source once and settling every claim that resolves against it while it is open. Re-reading the file set
-once per pass costs four extra traversals and surfaces nothing the single walk misses.
+Passes 2 through 6 are a CHECKLIST OF QUESTIONS asked of the CLAIM LEDGER. Each claim carries the kind that names its
+pass, so walk the ledger once and answer each claim under its own pass, opening each authoritative source once and
+settling every claim that resolves against it while it is open. Re-reading the file set once per pass costs four extra
+traversals and surfaces nothing the single walk misses.
 
 Pass 1 runs to completion first, because it builds the ledger. Passes 7, 8, and 9 run after the ledger is fully
 verified, because each needs the whole ledger in one view.
@@ -87,8 +87,8 @@ Take every EXISTENCE claim and resolve the name it states:
 | An environment or config key | The code that reads the key                                      |
 
 Record the verdict per claim. A name that resolves nowhere is DRIFT when the documentation once matched a symbol that
-has since been renamed, and WRONG when no such symbol ever existed. Where the symbol resolves through a re-export rather
-than a definition, the claim is EXACT, because a re-exported name genuinely lives in the module the documentation names.
+has since been renamed, and WRONG when no such symbol ever existed. Where the symbol resolves through a re-export, the
+claim is EXACT, because a re-exported name genuinely lives in the module the documentation names.
 
 ---
 
@@ -96,8 +96,8 @@ than a definition, the claim is EXACT, because a re-exported name genuinely live
 
 **Question:** Does the documented interface match the declared one, parameter by parameter?
 
-Take every SIGNATURE claim, open the declaration, and compare mechanically rather than by reading for sense. Build a
-two-column diff per callable, the documented parameters against the declared ones, and walk it to the end.
+Take every SIGNATURE claim, open the declaration, and compare mechanically. Build a two-column diff per callable, the
+documented parameters against the declared ones, and walk it to the end.
 
 Check each of the following in order, because an early mismatch often explains a later one:
 
@@ -126,7 +126,7 @@ behavior still belongs to the documented callable. A claim is a finding only aft
 statement anywhere in it satisfies the claim.
 
 For a workflow or command claim, the authority is the ordered steps the code actually executes, so compare the
-documented ordering against the execution order rather than against a list of the steps.
+documented ordering against the execution order.
 
 Record the verdict as SEMANTIC where the implementation satisfies the claim through different wording, which is a match
 and stays out of the report. Reserve DRIFT and WRONG for a claim no statement satisfies.
@@ -142,8 +142,7 @@ together with the condition it attributes to each. The second holds every except
 raised by the helpers the body calls where the documentation attributes their failures to this callable.
 
 Diff the two lists in both directions. A documented exception the body cannot raise is a finding. An exception the body
-raises that a partially populated failure section omits is an omission finding, and it belongs to Pass 7 rather than
-here.
+raises that a partially populated failure section omits is an omission finding, and it belongs to Pass 7.
 
 Then verify each documented triggering condition against the guard that raises it, substituting one concrete value that
 satisfies the documented condition and confirming it reaches the raise. A documented condition that the guard states
@@ -156,7 +155,7 @@ differently, such as an inclusive bound documented as exclusive, is a finding ev
 **Question:** Is this stated value the value the source actually carries?
 
 Take every QUANTITY claim and resolve it against the declaration that fixes it. This pass catches the mismatches a
-reader glides over, so check the value character by character rather than by impression.
+reader glides over, so check the value character by character.
 
 | Quantity              | Authority                                                              |
 |-----------------------|------------------------------------------------------------------------|
@@ -170,7 +169,7 @@ reader glides over, so check the value character by character rather than by imp
 | A thread-safety claim | The synchronization primitive the code actually uses                   |
 
 Where a claim states a derived quantity, such as a duration computed from a rate, recompute it and compare. A documented
-figure that was correct before a constant changed is DRIFT rather than WRONG.
+figure that was correct before a constant changed is DRIFT, never WRONG.
 
 ---
 
@@ -211,8 +210,8 @@ Report only a broken or wrong reference. A working reference produces nothing.
 
 **Question:** Does this claim disagree with another claim about the same thing?
 
-Group the ledger by subject rather than by file location, so claims about one symbol sit together however far apart they
-were written. Then compare every pair within a group for compatibility.
+Group the ledger by subject, so claims about one symbol sit together however far apart they were written. Then compare
+every pair within a group for compatibility.
 
 The productive groupings are a value stated in two places, and a behavior described in both a module docstring and the
 docstring of the member implementing it. They also include a default stated in prose and in a table, a parameter

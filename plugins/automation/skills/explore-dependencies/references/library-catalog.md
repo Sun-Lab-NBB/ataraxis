@@ -73,8 +73,8 @@ ataraxis infrastructure for specific workflows such as experiment orchestration,
 | cindra                  | cindra                  | `cindra`                   | cindra |
 
 These follow the same exploration workflow as the ataraxis libraries: resolve each with `python -c "import ..."` and
-read their `__all__` exports. Match a dependency by NAME against this catalog rather than by prefix alone, because
-`cindra` shares no prefix with any first-party namespace and a prefix rule never reaches it.
+read their `__all__` exports. Match a dependency by NAME against this catalog, because `cindra` shares no prefix with
+any first-party namespace and a prefix rule never reaches it.
 
 ---
 

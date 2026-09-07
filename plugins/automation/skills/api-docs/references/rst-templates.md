@@ -133,15 +133,15 @@ Section Name
 
 Use this where a package re-exports a module-level constant. The `automodule` directive above discovers module-level
 data through the source of the module it documents, so it skips a constant the package re-exports, and the constant
-never reaches the rendered page. Name the DEFINING module rather than the re-exporting package, because autodoc reads
-the attribute docstring from that module's source and otherwise falls back to the docstring of the value's own type.
-Precede the block with a comment stating both reasons:
+never reaches the rendered page. Name the DEFINING module, because autodoc reads the attribute docstring from that
+module's source and otherwise falls back to the docstring of the value's own type. Precede the block with a comment
+stating both reasons:
 
 ```rst
 .. Documents the package constants explicitly, since the automodule directive above discovers module-level data through
    the source of the module it documents and therefore skips a constant this package re-exports. The directive names
-   the defining module rather than the package, because autodoc reads the attribute docstring from that module's
-   source and falls back to the docstring of the value's own type when it is pointed at the re-exporting package.
+   the defining module, because autodoc reads the attribute docstring from that module's source and falls back to the
+   docstring of the value's own type when it is pointed at the re-exporting package.
 .. autodata:: package_name.submodule.dataclasses.CONSTANT_NAME
 ```
 

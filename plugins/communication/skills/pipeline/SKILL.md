@@ -96,8 +96,8 @@ Phase 6  Results analysis    →  /log-processing-results
   path, execute jobs, monitor progress
 - **Handoff condition:** All jobs SUCCEEDED in ProcessingTracker
 - **Precondition:** The recording's raw entries must already be assembled into per-source `.npz` archives.
-  `/microcontroller-setup` owns that step. Skipping it leaves this phase with nothing to prepare, and it fails silently
-  rather than loudly, since an unassembled directory simply discovers no source.
+  `/microcontroller-setup` owns that step. Skipping it leaves this phase with nothing to prepare, and it fails silently,
+  since an unassembled directory simply discovers no source.
 - **Resource planning:** Do not size jobs or budgets from this skill. `/log-processing`, "Resource management", names
   the assets that report per-job and per-session figures, and it is the only place those figures are authoritative.
 
@@ -124,9 +124,9 @@ Is the microcontroller connected via USB?
 
 `keepalive_interval` is a `MicroControllerInterface` constructor argument in milliseconds, and `0` disables the
 mechanism, leaving no watchdog reset when the link drops. Pick the value during phase 4 planning, because the workable
-band depends on the board and link speed fixed in phases 0 and 2, not on anything this phase controls. Read the
-starting bands from `/microcontroller:firmware-module`, "Kernel constructor". They follow the link speed and CPU
-frequency rather than the board name, so do not plan against a restatement of them here.
+band depends on the board and link speed fixed in phases 0 and 2, not on anything this phase controls. Read the starting
+bands from `/microcontroller:firmware-module`, "Kernel constructor". They follow the link speed and CPU frequency, so do
+not plan against a restatement of them here.
 
 Both ends must be configured. The PC sends the keepalive command at this interval, and the firmware runs its own
 watchdog off the interval its Kernel was built with. Setting the PC interval while the firmware has keepalive disabled
@@ -238,12 +238,12 @@ To process every controller, list every controller's ID in the extraction config
 the sourcing model that decides which requested IDs become jobs. Do not plan against a restatement of it here.
 
 For multi-DataLogger setups, pass each DataLogger output directory to the preparation tool separately. Passing their
-shared parent fails that directory outright rather than merely processing it inefficiently: a tree holding more than one
-`microcontroller_manifest.yaml` spans several recordings or several DataLogger instances, and exactly one manifest is
-supported per invocation. The preparation tool reports the failure under `failed_directories` and prepares the rest of
-the batch, while the library path raises `ValueError` and `axci process` reports that error's message and exits 0.
-`discover_microcontroller_data_tool` does tolerate the parent: run it there and pass its flat `log_directories` list to
-preparation, which is exactly the per-directory split preparation needs.
+shared parent fails that directory outright: a tree holding more than one `microcontroller_manifest.yaml` spans several
+recordings or several DataLogger instances, and exactly one manifest is supported per invocation. The preparation tool
+reports the failure under `failed_directories` and prepares the rest of the batch, while the library path raises
+`ValueError` and `axci process` reports that error's message and exits 0. `discover_microcontroller_data_tool` does
+tolerate the parent: run it there and pass its flat `log_directories` list to preparation, which is exactly the
+per-directory split preparation needs.
 
 ---
 
@@ -251,20 +251,20 @@ preparation, which is exactly the per-directory split preparation needs.
 
 ### Resuming an existing project root
 
-Start here whenever the user points at a directory rather than at a task. `/log-processing` owns
-`get_batch_status_overview_tool`, whose recursive `breakdown` of directories per status decides the route.
+Start here whenever the user points at a directory. `/log-processing` owns `get_batch_status_overview_tool`, whose
+recursive `breakdown` of directories per status decides the route.
 
 | The overview reports      | Route to                                                              |
 |---------------------------|-----------------------------------------------------------------------|
 | Nothing found             | `/microcontroller-setup` to assemble archives, then resume at phase 5 |
 | Every directory succeeded | `/log-processing-results`                                             |
 | Anything failed           | `/log-processing`, "Re-running failed jobs"                           |
-| Anything still running    | `/log-processing` monitoring rather than a new batch                  |
+| Anything still running    | `/log-processing` monitoring                                          |
 
 ### New hardware module, firmware and interface together
 
 A hardware module is one design split across two plugins, and six values have to match on both sides. Work the two
-skills in this order rather than finishing one side and transcribing it into the other.
+skills in this order.
 
 1. `/microcontroller:firmware-module`: pick `module_type` and `module_id`, number the command enum from 1, assign custom
    event codes in the 51-250 range, lay out the `PACKED_STRUCT` parameter struct, and choose the C++ type and element

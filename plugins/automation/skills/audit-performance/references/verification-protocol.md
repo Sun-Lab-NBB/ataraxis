@@ -37,8 +37,8 @@ appears in the distribution's top-level `__init__.py` and that the finding rests
 that asserts a downstream call frequency fails this check, since Guard 2 leaves that assertion disqualifying.
 
 Delete the finding when either check fails. Repairing the citation is FORBIDDEN here. A citation that drifted is
-evidence that the finding was assembled from recollection rather than from the file, which makes the cost arithmetic
-resting on it unreliable for the same reason. A deleted finding is free to be re-derived from scratch in a later audit.
+evidence that the finding was assembled from recollection, which makes the cost arithmetic resting on it unreliable for
+the same reason. A deleted finding is free to be re-derived from scratch in a later audit.
 
 Record the count of findings checked and the count deleted.
 
@@ -58,7 +58,7 @@ Give the sub-agent this task:
 ```text
 Refute this audit finding by reading the cited source. Return REFUTED when any of these holds:
 - The cited call sites do not establish the claimed multiplicity, or resolve only inside tests, unless the finding is
-  marked PUBLIC_API, which rests on the per-call cost of an exported symbol rather than on a call site
+  marked PUBLIC_API, which rests on the per-call cost of an exported symbol
 - The finding is marked PUBLIC_API and its cost arithmetic depends on how often a downstream project calls the symbol
 - The loop bound is a literal, an enum length, or a configuration value in the low tens
 - The cost arithmetic does not follow from the shapes, dtypes, and trip counts in the source
@@ -71,7 +71,7 @@ Answer REFUTED whenever you are uncertain.
 
 Discard every refuted finding. Record the counts of findings put through this check, confirmed, and refuted.
 
-A refuted HIGH finding is discarded rather than demoted to MEDIUM, because the refutation attacked the multiplicity and
+A refuted HIGH finding is discarded and never demoted to MEDIUM, because the refutation attacked the multiplicity and
 the cost arithmetic, which are the same evidence a lower impact rating would rest on.
 
 ---
@@ -105,7 +105,7 @@ unusually clean file set or skipped the stage, and stating the numbers is what l
 HIGH and MEDIUM confidence findings occupy the body of the report, grouped file, then category, then impact, with the
 STATIC section ahead of the MEASUREMENT-PENDING section.
 
-LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered by impact, rather than
+LOW confidence findings go into one trailing section titled `Appendix: LOW confidence`, ordered by impact and never
 interleaved into the file groups. Every finding there still carries its full evidence and still passed every guard and
 both checks above. The appendix exists so the body of the report reads at one confidence level, and so a reader who
 wants only the settled findings knows where to stop.
@@ -115,9 +115,8 @@ wants only the settled findings knows where to stop.
 ## The report's own prose
 
 Hold the report's own prose to the documentation-quality rules this family enforces. Keep every sentence in a Wrong,
-Fix, Impact, or Choice bullet under 40 words. Separate clauses with full stops and commas rather than semicolons or
-em-dashes, and state what the fix does rather than what the code fails to do. Verbatim quotes and cost arithmetic are
-exempt, because they are copied rather than written.
+Fix, Impact, or Choice bullet under 40 words. Separate clauses with full stops and commas and never semicolons or
+em-dashes, and state what the fix does. Verbatim quotes and cost arithmetic are exempt, because they are copied.
 
 Fill each authored line to 120 characters before breaking it, under the wrap width rule `/python-style` defines, so a
 line ending before column 100 while its next word would still fit is re-flowed. A line ending early because the sentence

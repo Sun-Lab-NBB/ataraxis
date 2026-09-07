@@ -173,10 +173,9 @@ axvs --help
 ```
 
 **This skill owns the one exemption to the ban on invoking `axvs`.** `axvs --help` and `axvs COMMAND --help` may be run.
-They are read-only, start no server, touch no hardware, and report the installed build rather than a documented snapshot
-of it. Use them to smoke-test the install and to settle any question about a command's real options. No other `axvs`
-invocation is exempt. Always use the long form, because `-h` is never a help alias. `/cli-reference` owns the option
-surface and records the reason.
+They are read-only, start no server, touch no hardware, and report the installed build. Use them to smoke-test the
+install and to settle any question about a command's real options. No other `axvs` invocation is exempt. Always use the
+long form, because `-h` is never a help alias. `/cli-reference` owns the option surface and records the reason.
 
 If the command fails with an import error, a dependency is missing or broken. Run:
 
@@ -191,7 +190,7 @@ report only failures involving ataraxis-video-system or one of its dependencies.
 
 `axvs --help` proves the package imports. It does NOT prove the MCP server starts. If steps 2 through 5 all pass and the
 tools are still unavailable, **have the user launch the server by hand**. Starting a server is not covered by the
-`--help` exemption, so print the command rather than running it:
+`--help` exemption, so print the command:
 
 ```bash
 axvs mcp -t streamable-http

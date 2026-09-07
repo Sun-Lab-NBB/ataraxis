@@ -35,11 +35,10 @@ specific to that category.
 
 ## DTYPE_UNPINNED_AT_CREATION
 
-**Definition.** A value is created without its numeric width pinned in the source, so NumPy's default rules decide it
-rather than the author. The width is therefore untraceable, is frequently twice what the computation needs, and silently
-sets the promotion floor for every downstream operation the value joins. This covers arrays created with no `dtype=`
-keyword, and equally covers SCALARS, because a Python `int` or `float` reaching array code carries the interpreter's
-width rather than a chosen one.
+**Definition.** A value is created without its numeric width pinned in the source, so NumPy's default rules decide it.
+The width is therefore untraceable, is frequently twice what the computation needs, and silently sets the promotion
+floor for every downstream operation the value joins. This covers arrays created with no `dtype=` keyword, and equally
+covers SCALARS, because a Python `int` or `float` reaching array code carries the interpreter's width.
 
 **Detection.** Grep every array-producing constructor. Read each call and sort it into one of three states: PINNED,
 where a `dtype=` keyword is present, POSITIONAL, where a dtype is passed by position, and UNPINNED, where no dtype
@@ -242,8 +241,7 @@ chunk and the joined result at once, a full table read where a column or row sub
 its source alive while building a full-size destination.
 
 This is the category that counts RESIDENT BYTES. `HOT_LOOP_ALLOCATION` counts allocation EVENTS, so a single allocation
-performed once per file belongs here rather than there, and a small buffer allocated a million times belongs there
-rather than here.
+performed once per file belongs here, and a small buffer allocated a million times belongs to `HOT_LOOP_ALLOCATION`.
 
 **Detection.** Run the footprint half of Pass 3 in `detection-passes.md`. Write the high-water expression as element
 count times element width, then add every full-size binding alive across the same statement.
@@ -337,8 +335,7 @@ Also covers `prange` over a loop carrying a cross-iteration race, signature chur
 kernel entered so often that dispatch and unboxing dominate, and `nogil` used without threading.
 
 **Detection.** Follow the JIT half of Pass 7 in `detection-passes.md`. A missing `cache=True` is also a style finding,
-so report it here with its runtime cost, which is recompilation on every fresh process, and note the overlap rather than
-duplicating the style rule.
+so report it here with its runtime cost, which is recompilation on every fresh process, and note the overlap.
 
 **Evidence.** STATIC. Quote the decorator verbatim with its `<path>:<line>` and name the function. For a race finding,
 name the written variable, cite the line that writes it, and state why its index differs from the parallel loop

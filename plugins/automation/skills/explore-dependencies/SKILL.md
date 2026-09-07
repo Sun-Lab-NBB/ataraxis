@@ -89,8 +89,7 @@ Flag any drift between the local checkout and the latest release before treating
 For C++ ataraxis libraries (ataraxis-transport-layer-mc, ataraxis-micro-controller), the `python -c "import ..."`
 resolution does not apply. Locate the source under `.pio/libdeps/<env>/<lib>/src`, where `<env>` is the PlatformIO
 environment name from `platformio.ini`. Read the library version from the `version` field of the library's
-`library.json` (not `importlib.metadata`). Enumerate public classes from the library's header files rather than from
-`__all__` (see Step 4).
+`library.json` (not `importlib.metadata`). Enumerate public classes from the library's header files (see Step 4).
 
 If a package is not installed, note it as unavailable and skip to the next dependency.
 
@@ -147,7 +146,7 @@ Report each replacement opportunity with the file location and the suggested lib
 Treat the table above as starter heuristics, not an authoritative catalog. Before recommending any replacement, confirm
 the named symbol appears in the `__all__` exports enumerated in Step 4 (and in the signature read in Step 5). Never
 suggest a symbol absent from the live snapshot. Delete a replacement row whose symbol is missing from this run's
-per-library tables rather than repairing it.
+per-library tables.
 
 ### Step 7: Produce the dependency API snapshot
 
@@ -213,8 +212,8 @@ If no replacement opportunities are found, state: "No replacement opportunities 
 
 For a dependency with 15 or more public exports, or when the public exports across all dependencies total 30 or more,
 use the Agent tool with the `Explore` agent type to parallelize the API reading. Launch at most 2-3 Explore sub-agents,
-batching libraries across them rather than one sub-agent per library. Instruct each sub-agent to return ONLY the
-structured snapshot rows for its assigned libraries (signatures plus one-line summaries), never raw source bodies.
+batching libraries across them. Instruct each sub-agent to return ONLY the structured snapshot rows for its assigned
+libraries (signatures plus one-line summaries), never raw source bodies.
 
 When every dependency has fewer than 15 public exports and they total fewer than 30 across all dependencies, read the
 APIs directly without sub-agents.
@@ -264,15 +263,15 @@ Walk every one against the summary you are about to present.
 - [ ] Replacement opportunities reported with file:line location and concrete suggested replacement
 - [ ] Every suggested replacement names a symbol present in this run's enumerated __all__ exports, with its
       signature read, and no symbol carried over from the starter heuristics table unconfirmed
-- [ ] Empty replacement scan stated as "No replacement opportunities identified." rather than an omitted section
+- [ ] Empty replacement scan stated as "No replacement opportunities identified.", so the section always appears
 - [ ] Output organized by library with consistent table format
 - [ ] C++ sections use an Include line naming the header and a .pio/libdeps source path, not an Import line
 - [ ] Snapshot includes version numbers where available
 - [ ] No code modifications made during exploration
 
 Tool-settled items. Run `python -c "import <import_name>; print(<import_name>.__file__)"` and
-`gh api repos/<owner>/<repo>/releases/latest --jq .tag_name` to settle these rather than recalling
-them. They stay listed for reviews performed without a shell.
+`gh api repos/<owner>/<repo>/releases/latest --jq .tag_name` to settle these. They stay listed for
+reviews performed without a shell.
 - [ ] Each installed dependency's source location resolved
 - [ ] Local/editable checkouts reconciled against latest GitHub release where a repo is cataloged
 ```

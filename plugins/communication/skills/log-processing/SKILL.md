@@ -97,11 +97,10 @@ controllers". It is also a filter footgun: one `source_ids` list is applied unif
 `log_directories`, so a list built from one recording becomes the request for all of them.
 
 **Note:** A requested controller that yields no job in a directory the manifest registers is dropped into that
-directory's `skipped_sources` rather than raising. A directory whose requested archives all fail to resolve therefore
-returns `jobs: []` and `source_ids: []` while still reporting `success: True`. A directory whose tree holds no
-`microcontroller_manifest.yaml` at all fails into `failed_directories` instead, since the absent manifest belongs to the
-directory rather than to any one controller. See [error-routing.md](references/error-routing.md) for each skip reason
-and its remedy.
+directory's `skipped_sources`. A directory whose requested archives all fail to resolve therefore returns `jobs: []` and
+`source_ids: []` while still reporting `success: True`. A directory whose tree holds no `microcontroller_manifest.yaml`
+at all fails into `failed_directories` instead, since the absent manifest belongs to the directory. See
+[error-routing.md](references/error-routing.md) for each skip reason and its remedy.
 
 **Return structure:**
 ```text
@@ -152,10 +151,10 @@ so a caller that filtered every descriptor away names the descriptors it kept or
 Naming neither form returns "No work was named."
 
 **Note:** Every descriptor passed as `jobs` must carry the nine keys the preparation emitted, `log_directory`,
-`archive_path`, `output_directory`, `config_path`, `tracker_path`, `job_name`, `job_id`, `source_id`, and
-`core_weight`. A descriptor missing one is rejected into `invalid_jobs` with a message naming the absent keys.
-`message_count` and `archive_bytes` are read when the descriptor carries them and resolved from the archive when it
-does not, so dropping them costs one archive read rather than a rejection.
+`archive_path`, `output_directory`, `config_path`, `tracker_path`, `job_name`, `job_id`, `source_id`, and `core_weight`.
+A descriptor missing one is rejected into `invalid_jobs` with a message naming the absent keys. `message_count` and
+`archive_bytes` are read when the descriptor carries them and resolved from the archive when it does not, so dropping
+them costs one archive read.
 
 **Return structure:**
 ```text
@@ -296,8 +295,8 @@ message:        Present only alongside `reset: False`, naming why nothing was re
 error:          "Tracker file not found: ..." or "Unable to read tracker: ...", returned instead of every field above
 ```
 
-**Note:** `jobs` and `summary` span the whole tracker rather than the entries this call reset, and a tracker that
-cannot be re-read after a successful reset returns both of them empty. Read `jobs_reset` to confirm what the call did.
+**Note:** `jobs` and `summary` span the whole tracker, and a tracker that cannot be re-read after a successful reset
+returns both of them empty. Read `jobs_reset` to confirm what the call did.
 
 `get_batch_status_overview_tool` requires `root_directory`, the absolute path under which trackers are searched for. A
 bare call reports `total_log_directories`, an aggregate `summary`, and a `breakdown` of directories per status, and it
@@ -410,7 +409,7 @@ filename.
    `get_log_processing_timing_tool` for elapsed time and throughput metrics. Present status as a formatted table (see
    Status formatting section). The pool warms every slot before it admits the first job, so the first status read after
    execute normally shows every job `SCHEDULED`. That is not a stall. The manager then re-examines the running set on a
-   fixed poll interval, so re-read after a few seconds rather than immediately.
+   fixed poll interval, so re-read after a few seconds.
 
 10. **Handle completion**: The session is over once a status read passes the Completion test. Check its `jobs` list for
     failures. On success, invoke `/log-processing-results` to discover and analyze the output. On failure, see the Error

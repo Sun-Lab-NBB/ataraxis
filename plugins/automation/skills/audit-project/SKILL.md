@@ -23,7 +23,7 @@ verification checklist at the end is mandatory before presenting the report.
 
 **Covers:**
 - Selecting which of the four audits a target actually needs, and sequencing them
-- Asking the user whether wave 2 runs, rather than sweeping a whole project for bugs and cost unasked
+- Asking the user whether wave 2 runs before any project-wide sweep for bugs and cost begins
 - Running the shared discovery ONCE, so four audits stop re-deriving one inventory, one set of prerequisites, one
   coverage ranking, and one callgraph
 - Full mode over a repository, a package, or a directory
@@ -71,8 +71,7 @@ wait for another's verdict.
 
 The order each audit states in its own Proactive behavior, which is facts, then correctness, then performance, then
 style, is a FIX order. It exists because applying a fix from an earlier audit changes what a later audit would judge. No
-audit modifies anything, so that order constrains the sequence in which the USER acts on the report rather than the
-sequence in which the audits run.
+audit modifies anything, so that order constrains the sequence in which the USER acts on the report.
 
 **Waves.** Run the audits in two waves, and run the members of a wave concurrently.
 
@@ -82,8 +81,7 @@ sequence in which the audits run.
 | 2    | `/audit-correctness`, `/audit-performance` | Both read the shared context, not each other's output |
 
 Facts owns the claim inside a documentation block and style owns the form of that block, so wave 1 splits cleanly. What
-sits between the wave 2 members is a routing rule rather than a data dependency, so the merge step settles it after both
-finish.
+sits between the wave 2 members is a routing rule, so the merge step settles it after both finish.
 
 Wave 1 completes before wave 2 starts, because `/audit-correctness` adjudicates the ownership ladder against wave 1's
 documentation verdicts. Wave 1 also runs the deterministic gates, whose diagnostics every later wave reads instead of
@@ -93,8 +91,7 @@ re-deriving.
 archetype. That sweep runs once per run, on the main agent and never inside a batch sub-agent, and ONLY where the
 resolved target is a project root, because a package or a single file carries no tree to judge. In change mode it
 additionally requires that the change set CREATES or DELETES a file. Tell `/audit-style` which case applies, so the pass
-runs once rather than once per batch or not at all, and carry the status it reports, in the vocabulary Step 0 states,
-into the merged coverage ledger.
+runs exactly once, and carry the status it reports, in the vocabulary Step 0 states, into the merged coverage ledger.
 
 **Parallelize at exactly ONE level.** Each audit already fans out internally over file batches, and nesting a fan-out
 inside a fan-out multiplies the instruction payload by both factors. A target under 10 files parallelizes at the WAVE
@@ -148,8 +145,7 @@ and that it MUST NOT pause again, otherwise four separate confirmations interrup
 Wave 1 is not elective. `/audit-facts` and `/audit-style` run wherever they have files, because documentation drift and
 convention drift accumulate across a whole target and are read that way.
 
-Wave 2 IS elective, and you MUST ask for it explicitly rather than inferring it from the target. Put the question in the
-plan with all four answers stated:
+Wave 2 IS elective, and you MUST ask for it explicitly. Put the question in the plan with all four answers stated:
 
 | Answer           | Wave 2 runs                                   |
 |------------------|-----------------------------------------------|
@@ -159,8 +155,8 @@ plan with all four answers stated:
 | Neither          | Wave 1 alone, and the run ends after it       |
 
 Recommend NEITHER in full mode. A correctness or performance sweep over a whole project returns a report scoped to
-nothing the user chose, and both are acted on one module at a time rather than one repository at a time. A user who
-wants them names the module, and that naming is the scoping those two audits were built around.
+nothing the user chose, and both are acted on one module at a time. A user who wants them names the module, and that
+naming is the scoping those two audits were built around.
 
 Recommend what the routing table selects in change mode, because a change set is already that scoping.
 
@@ -170,10 +166,9 @@ both wave 2 members there, so the election has nothing to decide. A target holdi
 
 ### Step 1: Build the shared context
 
-Build it ONCE on the main agent, and write it to the session scratch directory. Every audit RECORDS it rather than
-re-deriving it, and it stands as the output of the discovery steps that audit would otherwise run. Those steps are Step
-1 for `/audit-facts` and `/audit-style`, Steps 1 through 3 for `/audit-correctness`, and Steps 1 and 2 for
-`/audit-performance`.
+Build it ONCE on the main agent, and write it to the session scratch directory. Every audit RECORDS it, and it stands as
+the output of the discovery steps that audit would otherwise run. Those steps are Step 1 for `/audit-facts` and
+`/audit-style`, Steps 1 through 3 for `/audit-correctness`, and Steps 1 and 2 for `/audit-performance`.
 
 The schema is in [execution-plan.md](references/execution-plan.md). It carries the file inventory with each file's
 authority binding, the per-language prerequisites, the coverage ranking, and the CONTRACT, STATE, and CALLGRAPH ledgers.
@@ -182,15 +177,14 @@ Building this once is what stops a four-audit run from reading the same file set
 
 ### Step 2: Select the audits
 
-Both modes select from what the target actually CONTAINS rather than from file extensions alone, and wave 2 additionally
-requires the Step 0 election. An audit that did not run is recorded in the report with its reason, so a thin run is
-visible rather than silent.
+Both modes select from what the target actually CONTAINS, and wave 2 additionally requires the Step 0 election. An audit
+that did not run is recorded in the report with its reason, so a thin run is visible.
 
 Change mode routes with the routing table in [change-mode.md](references/change-mode.md), which reads the change set and
 recommends the wave 2 election.
 
 Full mode never narrows an audit, and it runs every audit that has something to read. Membership comes from the `kind`
-field of the Step 1 inventory rather than from a change set:
+field of the Step 1 inventory:
 
 | Audit                | Bound file set                        | Skipped when                  |
 |----------------------|---------------------------------------|-------------------------------|
@@ -215,17 +209,15 @@ target is small or unusual.
 Run `/audit-facts` and `/audit-style` at the parallel level Step 0 selected. Hand each one the shared context, the
 change-set narrowing where change mode applies, and the instruction that its Step 0 is satisfied.
 
-Collect the deterministic-gate diagnostics `/audit-style` produced into the shared context, so wave 2 reads them rather
-than re-deriving them.
+Collect the deterministic-gate diagnostics `/audit-style` produced into the shared context, so wave 2 reads them.
 
 ### Step 4: Run wave 2
 
 Run the members the Step 0 election kept, at the same parallel level. Hand `/audit-correctness` wave 1's DRIFT and WRONG
-verdicts alongside the shared context, so its ownership ladder adjudicates against findings that already exist rather
-than re-deriving them.
+verdicts alongside the shared context, so its ownership ladder adjudicates against findings that already exist.
 
 Where the election kept neither, skip wave 2 and go to Step 5, which merges wave 1 alone. Where it kept one, that audit
-runs by itself and the wave costs one sub-agent rather than two.
+runs by itself and the wave costs one sub-agent.
 
 ### Step 5: Merge and adjudicate
 
@@ -255,12 +247,12 @@ Open with the merged triage header from [report-merge.md](references/report-merg
 ledger, then the findings. Both layouts are given there verbatim, and this skill emits them unchanged.
 
 Group the findings by AUDIT, then follow each audit's own ordering inside its section, including its trailing LOW
-confidence appendix. A reader who wants one audit's report finds it whole rather than interleaved with three others.
+confidence appendix. A reader who wants one audit's report finds it whole.
 
 Every finding keeps the shared shape its own audit defines, which is a stable ID, a rank, a location line, and the
 Wrong, Fix, and Impact bullets, with a Choice bullet where the audit cannot settle the question. The four audits use
 distinct ID letters, `C` for correctness, `P` for performance, `S` for style, and `F` for facts. Identifiers therefore
-stay unique across the merged report, and a reader answers with one identifier rather than with a file and a line.
+stay unique across the merged report, and a reader answers with one identifier.
 
 A finding that survived adjudication against another audit names the audit that yielded and the rule that decided it at
 the end of its Wrong bullet.
@@ -309,8 +301,7 @@ Invoke this skill in change mode after completing any unit of implementation wor
 refactor, and a documentation change, and BEFORE offering to commit. The point is that new code passes the audits it is
 subject to while the work is still in context.
 
-Invoke it in full mode when the user asks to audit a project, a package, or a repository, rather than running the four
-audits by hand in sequence.
+Invoke it in full mode when the user asks to audit a project, a package, or a repository.
 
 Prefer this skill over invoking a single audit whenever more than one audit applies to the target, because a
 single-audit run pays the shared discovery again and produces a report a reader must merge by hand.
@@ -319,8 +310,7 @@ Invoke `/audit-correctness` or `/audit-performance` DIRECTLY when the user names
 That narrow, deliberate run is what those two audits are built for, and routing it through this skill adds an
 orchestration a single-audit target does not need.
 
-Do NOT make code changes during an audit round. Present findings and, in change mode, fix between rounds rather than
-inside them.
+Do NOT make code changes during an audit round. Present findings and, in change mode, fix between rounds.
 
 ---
 
@@ -350,7 +340,7 @@ Project Audit Orchestration Compliance:
 - [ ] Merged triage header present, carrying per-audit counts and every discard count
 - [ ] Each audit's section preserves its own output format, ordering, and LOW confidence appendix
 - [ ] In change mode, the gate verdict stated and every blocking finding named
-- [ ] In change mode, fixes applied between rounds rather than inside an audit
+- [ ] In change mode, fixes applied between rounds and never inside an audit
 - [ ] Every public API break and public behavior change presented for approval and waited on
 - [ ] No fix needing approval applied to reach a PASSED verdict
 - [ ] In change mode, each re-run covered the original change set plus the files the fixes touched

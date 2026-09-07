@@ -26,9 +26,9 @@ C# files only.
 
 ## One traversal, nine questions
 
-Passes 2 through 9 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file ONCE and answer every
-applicable pass during that single traversal, carrying the pass list beside you. Re-reading the file set once per pass
-costs seven extra traversals of every line in scope and surfaces nothing the single traversal misses.
+Passes 2 through 9 are a CHECKLIST OF QUESTIONS. Read each file ONCE and answer every applicable pass during that single
+traversal, carrying the pass list beside you. Re-reading the file set once per pass costs seven extra traversals of
+every line in scope and surfaces nothing the single traversal misses.
 
 Pass 1 is the one exception. It runs to completion across the whole file set before any other pass starts, because every
 later pass consumes the multiplicity table it builds.
@@ -48,11 +48,10 @@ bounding variable to its source and write down what determines it: an array `.sh
 row count, or a literal. A bound that resolves to a literal, an enum length, or a configuration value in the low tens
 marks the region COLD, however deeply the loop nests.
 
-For each function, determine multiplicity from its call sites rather than from its body. Locate every call site with
-`codegraph explore` where a `.codegraph/` directory exists, because it follows the callback, registry, and
-message-dispatch hops that establish whether a function runs per frame or per record. Fall back to grep elsewhere. A
-function whose call sites resolve nowhere inside the package is marked UNKNOWN. A function whose only call sites live in
-`tests/` is COLD.
+For each function, determine multiplicity from its call sites. Locate every call site with `codegraph explore` where a
+`.codegraph/` directory exists, because it follows the callback, registry, and message-dispatch hops that establish
+whether a function runs per frame or per record. Fall back to grep elsewhere. A function whose call sites resolve
+nowhere inside the package is marked UNKNOWN. A function whose only call sites live in `tests/` is COLD.
 
 Read the distribution's top-level `__init__.py` `__all__` before assigning either mark, and mark every symbol it exports
 PUBLIC_API instead. Such a symbol is reachable from repositories this audit cannot read, so record its per-call cost in
@@ -85,8 +84,8 @@ run the matching trace below, and record the result in one shared ledger.
 
 ### The DTYPE TRACE procedure
 
-Execute this per array binding rather than per line, for Python files. Read the NumPy version pin first. Grep the
-array-producing and width-changing surface to find the seeds:
+Execute this per array binding, for Python files. Read the NumPy version pin first. Grep the array-producing and
+width-changing surface to find the seeds:
 
 ```bash
 grep -nE 'np\.(zeros|ones|empty|full|array|arange|linspace|frombuffer|fromiter|identity|eye)\(|\.astype\(|\.view\(|np\.asarray\(|dtype='
@@ -118,9 +117,9 @@ UNRESOLVED, and that is itself the finding.
 **Step 4.** Walk forward through every use, applying the promotion rules. Arithmetic between an integer array and a
 Python `float` yields float64 under both regimes. A Python `float` against a float array keeps the array's width under
 both regimes, unless the literal's value overflows that width, which widens only under legacy casting. Record the
-operand kinds rather than the regime alone. Mixing two array widths promotes to the wider. True division of integer
-arrays yields float64. A reduction's default accumulator is often wider than its input. Indexing and `np.where` promote
-to the common type of their branches. Mark each row EXPLICIT when a cast appears in the source, and IMPLICIT otherwise.
+operand kinds alongside the regime. Mixing two array widths promotes to the wider. True division of integer arrays
+yields float64. A reduction's default accumulator is often wider than its input. Indexing and `np.where` promote to the
+common type of their branches. Mark each row EXPLICIT when a cast appears in the source, and IMPLICIT otherwise.
 
 **Step 5.** Terminate each trace at a `return`, a disk write, or a jitted-kernel boundary. Compare the final dtype
 against the function's return annotation and against every consumer's expectation.
@@ -205,10 +204,9 @@ The three buckets above count allocation EVENTS. This half counts RESIDENT BYTES
 one the buckets cannot answer. A single allocation performed once per file allocates once and still exhausts the machine
 when the file is a stack of imaging frames.
 
-Walk every whole-input materialization. The shapes are a reader that returns the complete array rather than an iterator
-or a memory-mapped handle, and a `read()` or `load` over a path whose size the input decides. The rest are a list built
-from every record before any record is processed, a concatenate over every chunk, and a `DataFrame` or feather read
-without column or row selection.
+Walk every whole-input materialization. The shapes are a reader that returns the complete array, and a `read()` or
+`load` over a path whose size the input decides. The rest are a list built from every record before any record is
+processed, a concatenate over every chunk, and a `DataFrame` or feather read without column or row selection.
 
 For each one, write the high-water expression as element count times element width, taking the count from the input
 dimension that bounds it and the width from the Pass 2 ledger. State what the input dimension is in practice, citing the
@@ -262,8 +260,8 @@ time. Resolve the container's declared type at its declaration line before repor
 
 Also sweep index and count searches, a sort applied to already-sorted data, and the linear NumPy scans `np.where`,
 `np.isin`, `np.argmax`, and whole-array comparisons appearing inside a loop body. `np.searchsorted` is a binary search
-costing logarithmic time per query, so it is the replacement for a linear scan rather than an instance of one, and it
-enters this pass as a proposed fix.
+costing logarithmic time per query, so it is the replacement for a linear scan, and it enters this pass as a proposed
+fix.
 
 State both the current and the proposed complexity in big-O, with the variables bound to real quantities.
 

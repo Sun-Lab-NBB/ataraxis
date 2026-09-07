@@ -25,9 +25,9 @@ agent.
 
 ## One traversal, ten questions
 
-Passes 2 through 10 are a CHECKLIST OF QUESTIONS rather than a schedule of re-reads. Read each file ONCE and answer
-every applicable pass during that single traversal, carrying the pass list beside you. Re-reading the file set once per
-pass costs eight extra traversals of every line in scope and surfaces nothing the single traversal misses.
+Passes 2 through 10 are a CHECKLIST OF QUESTIONS. Read each file ONCE and answer every applicable pass during that
+single traversal, carrying the pass list beside you. Re-reading the file set once per pass costs eight extra traversals
+of every line in scope and surfaces nothing the single traversal misses.
 
 Pass 1 is the one exception. It runs to completion across the whole file set before any other pass starts, because every
 later pass consumes the ledgers it builds.
@@ -62,8 +62,8 @@ Where `branch = true`, those same outcomes are measured, so the unexercised ones
 **Question:** What does this line promise, and where is that promise written down?
 
 Read every source file top to bottom once and build three ledgers before hunting any defect. Read the test suite and the
-build configuration as authority rather than auditing them, which means `pyproject.toml` and `tox.ini` for Python,
-`platformio.ini` or `CMakeLists.txt` for C++, and the assembly definitions for C#.
+build configuration as authority, which means `pyproject.toml` and `tox.ini` for Python, `platformio.ini` or
+`CMakeLists.txt` for C++, and the assembly definitions for C#.
 
 **CONTRACT ledger.** One row per callable, class, and module, holding its preconditions and postconditions with each
 tagged by source:
@@ -164,17 +164,15 @@ each enum member, and the dtype inside an array annotation. In C++ they are each
 tagged union, each enumerator of an `enum class`, and the null state of every pointer and `std::optional`. In C# they
 are each arm of a nullable reference or value type, each enum member, and each pattern arm of a `switch` expression.
 
-Locate the handler that dominates each arm. For a Python optional the handler is an identity check against None rather
-than a truthiness check, because the style skills require identity for None. For a C++ pointer or `std::optional` it is
-a null or `has_value` test on every path to the dereference. For a C# nullable it is a null test, and a null-forgiving
-`!` operator asserts an arm the compiler could not prove, so treat every one of them as an unhandled arm until a
-dominating test is found.
+Locate the handler that dominates each arm. For a Python optional the handler is an identity check against None, which
+the style skills require. For a C++ pointer or `std::optional` it is a null or `has_value` test on every path to the
+dereference. For a C# nullable it is a null test, and a null-forgiving `!` operator asserts an arm the compiler could
+not prove, so treat every one of them as an unhandled arm until a dominating test is found.
 
 Walk every terminating path of every function declared to return a value and identify the paths that fall off the end.
 In Python, remember that ruff RET503 reasons syntactically and does not follow `NoReturn` through a call, so the
-sanctioned unreachable `return` after a terminating error call is compliance rather than a defect. In C++, a path
-falling off the end of a non-`void` function is undefined behavior, so route it to CPP_LOW_LEVEL_DEFECT with that
-consequence named.
+sanctioned unreachable `return` after a terminating error call is compliance. In C++, a path falling off the end of a
+non-`void` function is undefined behavior, so route it to CPP_LOW_LEVEL_DEFECT with that consequence named.
 
 Then sweep the boundaries no type system polices. For Python this is YAML and JSON deserialization, CLI arguments, wire
 bytes, environment variables, `**kwargs`, `Any`, every `cast(...)`, and every `# type: ignore`. For C++ it is every
@@ -184,7 +182,7 @@ For C# it is every `as` cast, unboxing cast, `dynamic` value, and deserialized p
 Verify the actual dtype of every expression whose annotation names one, tracking NumPy promotion. True division of
 integer arrays yields float64 and true division of float32 arrays stays float32. `np.mean` returns float64 for integer
 input and the input's own dtype for floating input. `np.zeros` and `np.empty` without `dtype=` default to float64, and a
-reduction returns a scalar rather than an array.
+reduction returns a scalar.
 
 These NumPy rules apply to Python files. The C++ and C# width analysis lives in NUMERIC_DEFECT and CPP_LOW_LEVEL_DEFECT,
 which cover integer promotion and implicit conversion.
@@ -223,13 +221,13 @@ file shares the destination's directory.
 data it vouches for. Write down the actual order of the data write, the flush, and the marker write, then name the crash
 point between them that leaves the marker claiming a file that is absent or partial.
 
-**Checksum subject.** A checksum computed over an in-memory buffer verifies the buffer rather than the bytes that
+**Checksum subject.** A checksum computed over an in-memory buffer verifies that buffer alone, never the bytes that
 reached the disk. Trace what the checksum consumed and what the verifier later reads, and report the pair when they
 differ.
 
 **Second writer.** Name every context that can write the same path, taking the contexts from the Pass 6 enumeration, and
 give the interleaving that leaves the file holding one writer's header over another writer's body. Where the code claims
-a lock or a marker prevents this, check that the claim covers the whole write rather than its opening.
+a lock or a marker prevents this, check that the claim covers the whole write.
 
 A durability candidate carries the same evidence floor as every other. The trigger is the concrete crash point or
 interleaving with its line, and the result is the concrete on-disk state a later read observes.
@@ -325,8 +323,8 @@ inside it with the ordinary category procedures.
 For every T3 region, name the specific branch outcome that never runs and trace what happens when it does. The four
 unmeasured outcomes the coverage tiers section lists all belong here.
 
-An unexercised region is a place to look rather than a finding. It becomes a finding only when the ordinary category
-procedures produce a concrete trigger and a concrete result inside it.
+An unexercised region is a place to look. It becomes a finding only when the ordinary category procedures produce a
+concrete trigger and a concrete result inside it.
 
 ---
 

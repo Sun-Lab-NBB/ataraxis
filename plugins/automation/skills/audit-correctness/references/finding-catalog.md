@@ -107,10 +107,10 @@ breach reaching persisted data or a wire buffer. MEDIUM for an unhandled union a
 
 ## NUMERIC_DEFECT
 
-**Definition.** A computation whose result is wrong because of the numeric representation rather than the algorithm.
-Covers fixed-width overflow and wraparound, silent truncation on cast or integer division, float equality and
-near-equality comparison, and precision loss from magnitude or ordering. Also covers division and modulo by zero, modulo
-and floor division of negatives, and array dtype wraparound that the same expression on a Python integer would avoid.
+**Definition.** A computation whose result is wrong because of the numeric representation. Covers fixed-width overflow
+and wraparound, silent truncation on cast or integer division, float equality and near-equality comparison, and
+precision loss from magnitude or ordering. Also covers division and modulo by zero, modulo and floor division of
+negatives, and array dtype wraparound that the same expression on a Python integer would avoid.
 
 **Detection.** Annotate every arithmetic expression with the width of each operand, resolved from the annotation, the
 array constructor, the packed struct field, or the declared C++ or C# type. Python integers are arbitrary precision, so
@@ -169,10 +169,10 @@ leak inside a loop or on a retry path. MEDIUM for a single-shot leak.
 ## DURABILITY_DEFECT
 
 **Definition.** A persisted artifact that a crash, a kill, or a second writer can leave partial, stale, or internally
-inconsistent, where a later read accepts it as complete. Covers a write straight to its destination path rather than
-through a temporary file and a rename, a rename across filesystems, and a completion marker written before the data it
-vouches for. Also covers a checksum computed over the in-memory buffer rather than the bytes that reached the disk, an
-unguarded second writer to one path, and a resume path that treats a partial artifact as finished.
+inconsistent, where a later read accepts it as complete. Covers a write straight to its destination path, a rename
+across filesystems, and a completion marker written before the data it vouches for. Also covers a checksum computed over
+the in-memory buffer alone, an unguarded second writer to one path, and a resume path that treats a partial artifact as
+finished.
 
 This category owns the state left ON DISK. `RESOURCE_LEAK` owns the handle left open, and `STATE_LIFECYCLE_DEFECT` owns
 the object left half-built in memory. A defect that leaves both a leaked handle and a truncated file is filed here when
@@ -361,8 +361,7 @@ thousand-fold error on the acquisition path. MEDIUM for a display or log unit er
 ## UNTESTED_PATH_DEFECT
 
 **Definition.** A defect from any other category living specifically on a line, branch, or module the project's coverage
-machinery leaves unexercised. The category exists so those regions get named explicitly rather than blending into the
-rest of the report.
+machinery leaves unexercised. The category exists so those regions get named explicitly.
 
 **Detection.** Run Pass 9, working the tiers in order.
 
@@ -427,5 +426,5 @@ Enumerate the tests that touch the symbol, each cited by `<path>:<line>`, with t
 mutation. Give the concrete wrong value that would then reach a consumer. A finding saying only that more tests are
 needed is unreportable.
 
-**Severity.** MEDIUM by default, since this is a latent exposure rather than an active defect. HIGH when the unpinned
-behavior is a serialization width, a unit conversion, a checksum, or a safety gate.
+**Severity.** MEDIUM by default, since this is a latent exposure. HIGH when the unpinned behavior is a serialization
+width, a unit conversion, a checksum, or a safety gate.

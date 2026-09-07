@@ -35,9 +35,9 @@ exempt. `/video-mcp-environment-setup` owns that exemption.
 - Driving log processing from Python. The library exports its orchestration symbols, but they are not an agent-facing
   surface, so never drive a batch from Python
 
-**Handoff rules:** If the user wants an operation performed rather than explained, use the MCP tools and invoke the
-owning skill. If the MCP tools are unavailable, invoke `/video-mcp-environment-setup` first and fall back to the
-CLI-command handoff table below only after the server cannot be restored.
+**Handoff rules:** If the user wants an operation performed, use the MCP tools and invoke the owning skill. If the MCP
+tools are unavailable, invoke `/video-mcp-environment-setup` first and fall back to the CLI-command handoff table below
+only after the server cannot be restored.
 
 ---
 
@@ -77,8 +77,7 @@ The CLI declares fifteen Click nodes: the root group, three subgroups, and eleve
 
 **Note:** Twenty-five options are declared across the surface. Click adds `--help` to every node on top of those. The
 CLI leaves `help_option_names` at its `["--help"]` default, so `-h` is never a help alias. On `axvs run`, `-h` is bound
-to `--height` and consumes the next token as a pixel count, so `axvs run -h` fails on the missing value rather than
-printing help.
+to `--height` and consumes the next token as a pixel count, so `axvs run -h` fails on the missing value.
 
 ---
 
@@ -162,12 +161,11 @@ carries no usable default, so omitting it raises a Click usage error naming the 
 cannot be marked required on the group without also blocking `axvs configure SUBCOMMAND --help`.
 
 `-b` and `--no-blacklist` are mutually exclusive, and supplying both raises a Click usage error. Because `-b` carries a
-non-empty default, the CLI settles the conflict by consulting Click's parameter source rather than the parsed tuple, so
-the error fires only when the user actually named a GenICam node.
+non-empty default, the CLI settles the conflict by consulting Click's parameter source, so the error fires only when the
+user actually named a GenICam node.
 
 A `-c` value naming no discovered camera also raises a Click usage error, on all four subcommands. The message names the
-requested index and the number of cameras the configured Producer discovers, so a count of zero points at the Producer
-rather than at the index.
+requested index and the number of cameras the configured Producer discovers, so a count of zero points at the Producer.
 
 ### `axvs configure` subcommands
 
@@ -191,9 +189,9 @@ rather than at the index.
 
 Every one of the eleven leaf commands wraps its body in a decorator that catches whatever the body raises, reports it
 through the console at the ERROR level, and returns normally. The command therefore exits 0 on a body failure, and the
-user sees a single formatted ERROR line rather than a Python stack. The console writes to the standard error stream, so
-a user capturing standard output alone sees nothing. Read the message text to identify the fault, and never ask a user
-for an exit status as evidence that a command worked.
+user sees a single formatted ERROR line. The console writes to the standard error stream, so a user capturing standard
+output alone sees nothing. Read the message text to identify the fault, and never ask a user for an exit status as
+evidence that a command worked.
 
 A malformed invocation is the one failure that keeps its own contract, and it aborts at exit code 2 with a usage
 message wherever it is detected. That covers Click's own parameter validation, which runs before the body and rejects
@@ -211,7 +209,7 @@ Echoes `Node '{name}' written with {value}. The camera reports {observed} for it
 the node back over the connection it wrote on, because a node that advertises ReadWrite access can still round the write
 to its step increment or reject it. Which of the two a camera does is camera-specific, so a value violating the
 increment aborts with an error on one camera and lands rounded on another. A reported value differing from the requested
-one is therefore the value in force rather than a failure.
+one is therefore the value in force.
 
 Each subcommand opens and closes its own connection, so a camera that discards node state across a device close serves
 its previous values to the next command. See `/camera-setup` for the UserSet route a setting takes when it has to
@@ -330,7 +328,7 @@ terminal output.
 
 Everything else genuinely blocks until the server is back: camera manifest read and write, archive assembly, video file
 validation, camera data discovery, every batch status, timing, cancel, reset, and cleanup tool, and frame statistics
-analysis. Say so plainly rather than improvising a substitute.
+analysis. Say so plainly.
 
 ---
 

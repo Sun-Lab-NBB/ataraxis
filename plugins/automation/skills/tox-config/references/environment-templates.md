@@ -81,8 +81,8 @@ setenv =
 ```
 
 tox does not merge `setenv`. An env that defines its own `setenv` block, as test and coverage both do for
-`COVERAGE_FILE`, fully replaces the inherited base `setenv` rather than extending it. So a project that needs
-prereleases during testing re-declares `UV_PRERELEASE = allow` inside the test env `setenv` alongside `COVERAGE_FILE`.
+`COVERAGE_FILE`, fully replaces the inherited base `setenv`. So a project that needs prereleases during testing
+re-declares `UV_PRERELEASE = allow` inside the test env `setenv` alongside `COVERAGE_FILE`.
 
 ### lint environment
 
@@ -188,9 +188,9 @@ commands =
   libraries (`ataraxis-*`) test 3 versions, and applications may test fewer.
 - `{package_name}` in `--cov`: The underscore-separated package name. A project that declares `source_pkgs` under
   `[tool.coverage.run]` in `pyproject.toml` passes a bare `--cov` instead. Spawned worker processes read the measured
-  package from that config file rather than from the command line, so the name belongs in exactly one place.
-- `--cov-fail-under=100`: The coverage gate. It rides the command rather than `[tool.coverage.report]`, because a
-  `fail_under` declared there is ambient and gates every ad hoc `pytest --cov` run against a subset of the suite. See
+  package from that config file, so the name belongs in exactly one place.
+- `--cov-fail-under=100`: The coverage gate. It rides the command, because a `fail_under` declared in
+  `[tool.coverage.report]` is ambient and gates every ad hoc `pytest --cov` run against a subset of the suite. See
   `/pyproject-style` for the mechanism.
 - `package = wheel`: Forces the project to be built as a wheel before testing.
 - `--import-mode=importlib`: Matches the `addopts` declaration in `pyproject.toml`, so a bare `pytest` invocation
@@ -234,9 +234,9 @@ other on identical coverage data. See `/pyproject-style` for the placement of th
 interface modules out of the measured corpus, and the `# pragma: no cover` marker for individual unreachable
 statements.
 
-A project whose gate depends on the host states the number once as an environment variable that both commands read,
-rather than by lowering it in either place. `ataraxis-video-system` does this, because a host installing no GenICam
-runtime and carrying no NVENC device cannot execute the camera and encoder paths:
+A project whose gate depends on the host states the number once as an environment variable that both commands read.
+`ataraxis-video-system` does this, because a host installing no GenICam runtime and carrying no NVENC device cannot
+execute the camera and encoder paths:
 
 ```ini
     pytest ... --cov-fail-under={env:AXVS_COVERAGE_MINIMUM:100} ...

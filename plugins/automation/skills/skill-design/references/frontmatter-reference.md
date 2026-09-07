@@ -23,14 +23,14 @@ The skill's identifier. You MUST ensure it matches the parent directory name.
 Explains what the skill does and when to use it. Serves as the primary trigger mechanism, because the agent reads all
 skill descriptions at session start to decide when to invoke each skill.
 
-| Property     | Value                                                        |
-|--------------|--------------------------------------------------------------|
-| Type         | String (use YAML `>-` for multi-line)                        |
-| Required     | Yes, by ataraxis convention                                  |
-| Max length   | 1024 characters, an ataraxis budget rather than a schema cap |
-| Max lines    | 5 wrapped lines in the folded block                          |
-| Voice        | Third person                                                 |
-| Must include | What the skill does AND when to use it ("Use when...")       |
+| Property     | Value                                                  |
+|--------------|--------------------------------------------------------|
+| Type         | String (use YAML `>-` for multi-line)                  |
+| Required     | Yes, by ataraxis convention                            |
+| Max length   | 1024 characters, an ataraxis budget                    |
+| Max lines    | 5 wrapped lines in the folded block                    |
+| Voice        | Third person                                           |
+| Must include | What the skill does AND when to use it ("Use when...") |
 
 **Example:**
 
