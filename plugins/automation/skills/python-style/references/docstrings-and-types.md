@@ -135,6 +135,35 @@ before the head noun settles, so restore the relative pronoun or convert the inn
 Apply the one-pass test to every docstring and comment: read the sentence once at speaking pace, and rewrite it when a
 second pass is needed to settle the noun that a verb or a preposition governs.
 
+**Trailing subjects**: A noun followed by a bare clause in which that noun is the object, and whose own subject is a
+full noun phrase, makes the reader hold the noun open until the clause's verb arrives. "The shapes the contract states",
+"the archive, which the violations cite", and "every array the archive holds" all fail, with or without the relative
+pronoun. Rewrite the modifier so it resolves forward: a participle with "by" ("the shapes stated by the contract", "the
+archive cited by the violations"), a preposition ("every array in the archive"), or a possessive ("the benchmark's
+values"). A clause whose subject is a pronoun ("the file it holds") reads in one pass and stays.
+
+**Compound nouns**: A kind is named by a compound noun, never buried in an of-genitive. Write "the cgroup and GPU
+counter stream", not "the stream of cgroup and GPU counters", and "an orchestrator's job logs", not "the logs of an
+orchestrator's jobs". An of-phrase that names a relation stays ("the pixels of every cell", "the name of the
+recording"). A noun phrase never chains two of-phrases, so "a validated tree of the results of its units" becomes "a
+validated tree of its units' results". It never piles four or more modifiers before its head, so "the cindra single-day
+pipeline configuration parameters requested by the benchmark" becomes "the configuration values pinned by the
+benchmark".
+
+**The actor acts**: The subject of a sentence is the thing that performs the verb. An abstraction never acts on itself
+or stands in for the program, so "one ground truth writes one sequence of bytes" becomes "writing the same ground truth
+twice produces the same file". Causality runs forward: a trace is "the calcium trace of every cell", never "the trace
+that drove every cell", while "the spike train behind the calcium trace" is correct because spikes do cause calcium.
+State the claim, then the reason. "A and B, so C" makes the reader carry two premises to reach the point, so write "C,
+because A and B".
+
+**Attachment and completeness**: A "which" clause attaches to the noun directly before it. "The archive that carries a
+recording's ground truth, which sits beside the data directory" therefore splits into two sentences, because the
+archive, not the ground truth, is what sits there. No sentence repeats its own words, so "the number of frames the trace
+covers, which is the number of frames the recording holds" becomes "which is the recording's frame count". No docstring
+is a sentence fragment, so "Has single-day and multi-day components" becomes "Provides both a single-day and a multi-day
+pipeline".
+
 **Positive description**: State what the code does and what is currently true. Do not define behavior by contrast with
 what it does not do ("does X, not Y"), and do not frame it against former behavior ("previously", "used to", "no
 longer"). The one exception is a contrast that is load-bearing because it corrects a counter-intuitive but likely

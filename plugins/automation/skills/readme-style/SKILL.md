@@ -221,6 +221,16 @@ noun settles. Restore the relative pronoun, or convert the inner clause into a p
 every module that the session used and that has a registered parser", not "one job per module the session configured and
 the system registers a parser for".
 
+A noun trailed by a bare clause whose subject is a full noun phrase makes the reader hold the noun open until the
+clause's verb arrives, with or without a relative pronoun. Write "the shapes stated by the contract", not "the shapes
+the contract states", and "every pipeline run by the suite", not "every pipeline the suite runs". A clause whose subject
+is a pronoun ("the file it holds") reads in one pass and stays.
+
+A kind is a compound noun, never an of-genitive. Write "the cgroup and GPU counter stream", not "the stream of cgroup
+and GPU counters". A noun phrase never chains two of-phrases and never piles four or more modifiers before its head. The
+subject of every sentence is the thing that acts, causality runs forward, and the claim precedes its reason, so write
+"C, because A and B" and never "A and B, so C".
+
 **The one-pass test**: read the sentence once at speaking pace. A sentence needing a second pass to settle the noun that
 a verb or a preposition governs fails the test. Rewrite it by naming the actor, then the action, then the qualifier.
 
@@ -431,6 +441,10 @@ Style:
       syntax exempt)
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
+- [ ] No noun is trailed by a bare clause whose subject is a full noun phrase ("the shapes the contract states"), and
+      every such modifier is a participle with "by", a preposition, or a possessive
+- [ ] Kinds are compound nouns, never of-genitives, no noun phrase chains two of-phrases or piles four modifiers, the
+      subject of every sentence is the thing that acts, and the claim precedes its reason
 - [ ] README prose lines within 120 characters and filled to that limit, with table rows, code blocks, and badge URLs
       exempt
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)

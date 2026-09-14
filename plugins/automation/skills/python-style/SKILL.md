@@ -86,11 +86,11 @@ respecting each language's idiomatic standards.
 - No example/code blocks in documentation (they go stale)
 - I/O operations separated from processing logic
 - Only full stops and commas separate clauses in documentation prose (no semicolons, no em-dashes)
-- Clauses read forward, with no preposition stranded at a clause end and no noun carrying stacked bare relatives
-- State what the code does and what is currently true, not what it is not or used to be (contrast only when
-  load-bearing)
-- The two-word phrase `rather` followed by `than` is FORBIDDEN in documentation and comment prose, with no exception,
-  and deleting the excluded alternative is the only fix
+- Clauses read forward, with no preposition stranded at a clause end, no noun carrying stacked bare relatives, and no
+  noun trailed by a clause whose subject is a full noun phrase ("stated by the contract", never "the contract states") -
+  State what the code does and what is currently true, not what it is not or used to be (contrast only when
+  load-bearing) - The two-word phrase `rather` followed by `than` is FORBIDDEN in documentation and comment prose, with
+  no exception, and deleting the excluded alternative is the only fix
 
 **Python-specific divergences from C++:**
 - Functions and methods use snake_case (not PascalCase as in C++)
@@ -420,6 +420,12 @@ against the code you wrote.
       syntax exempt)
 - [ ] Clauses read forward, with no preposition stranded at a clause end and no noun carrying two or more stacked
       bare relative clauses (the one-pass test)
+- [ ] No noun is trailed by a bare clause whose subject is a full noun phrase, with or without "which" ("the shapes
+      the contract states"), and every such modifier is a participle with "by", a preposition, or a possessive
+- [ ] Kinds are compound nouns, never of-genitives, no noun phrase chains two of-phrases or piles four modifiers, the
+      subject of every sentence is the thing that acts, and the claim precedes its reason
+- [ ] Every "which" clause attaches to the noun directly before it, no sentence repeats its own words, and no
+      docstring is a sentence fragment
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] No docstring or comment contains the phrase `rather` followed by `than`, including where it wraps across a line
       break (forbidden with no exception)
