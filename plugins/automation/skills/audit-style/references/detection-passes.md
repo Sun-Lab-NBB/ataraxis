@@ -56,7 +56,8 @@ grouping, and every rule carried by a ruff code the project enables.
 The sweep keeps the rules no tool decides:
 
 - Documentation quality in every form, which is length proportionality, redundancy with the signature, behavioral scope,
-  sentence length, mood, separator punctuation, positive description, and spelling.
+  sentence length, mood, separator punctuation, positive description, spelling, trailing subjects, compound nouns and
+  of-chains, agency and causality, attachment, and completeness.
 - Identifier vocabulary, meaning full words against the abbreviations the checklist enumerates.
 - Element and section ORDERING where the checklist states an order the formatter does not enforce.
 - Visibility placement.
@@ -246,9 +247,21 @@ Walk every documentation block and check:
     Contrastive and historical framing ("does X, not Y" or "used to do Y") is a finding, with a load-bearing contrast
     that carries its reason exempt.
 11. Spelling and grammar against the checklist's stated language variant, checked word by word.
+12. Trailing subjects, so no noun is modified by a bare clause whose subject is a full noun phrase. Detect it by reading
+    each noun and asking whether a determiner-led noun phrase and a finite verb follow it before any preposition or
+    relative pronoun. The pattern holds with or without "which" or "that" in between, as in "the shapes the contract
+    states" or "the archive, which the violations cite". A pronoun subject is exempt. The fix is a participle with "by",
+    a preposition, or a possessive.
+13. Compound nouns and of-chains, so a kind is a compound noun and never an of-genitive ("the stream of cgroup and
+    GPU counters"), no noun phrase chains two of-phrases, and no head noun carries four or more piled modifiers.
+14. Agency and causality, so the subject of every sentence performs its verb, cause precedes effect, and the claim
+    precedes its reason. "A and B, so C" is a finding, and so is an abstraction acting on itself.
+15. Attachment and completeness, so every "which" clause attaches to the noun directly before it, every docstring is
+    a sentence, and no sentence repeats its own words.
 
-Check each block against all eleven, because these violations co-occur and a block corrected for one frequently still
-breaks three others.
+Check each block against all fifteen, because these violations co-occur and a block corrected for one frequently still
+breaks three others. Items 12 through 15 are the ones a checklist-satisfying block most often still breaks, so read
+every sentence aloud once before passing it.
 
 ---
 
