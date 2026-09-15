@@ -87,10 +87,10 @@ respecting each language's idiomatic standards.
 - I/O operations separated from processing logic
 - Only full stops and commas separate clauses in documentation prose (no semicolons, no em-dashes)
 - Clauses read forward, with no preposition stranded at a clause end, no noun carrying stacked bare relatives, and no
-  noun trailed by a clause whose subject is a full noun phrase ("stated by the contract", never "the contract states") -
-  State what the code does now, not what it avoids doing or formerly did (positive description) - The two-word phrase
-  `rather` followed by `than` is FORBIDDEN in documentation and comment prose, with no exception, and deleting the
-  excluded alternative is the only fix
+  noun trailed by a clause whose subject is a full noun phrase ("stated by the contract", never "the contract states")
+- State what the code does now, not what it avoids doing or formerly did (positive description)
+- The two-word phrase `rather` followed by `than` is FORBIDDEN in documentation and comment prose, with no exception,
+  and deleting the excluded alternative is the only fix
 
 **Shared between C++ and C# only:**
 - Allman brace style (opening braces on new lines, where Python uses indentation)
