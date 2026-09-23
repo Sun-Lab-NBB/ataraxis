@@ -87,6 +87,20 @@ over-explanation.
 **Typo-free and grammatical**: Every comment, docstring, and inline annotation must be free of typos and grammatical
 errors.
 
+**US spelling**: Every word takes its US spelling, in prose and identifiers alike: color, center, meter, neighbor,
+normalize, gray, artifact, behavior, analyze, labeled. The search
+`rg -n -i '\b\w*(colour|centre|metre|neighbour|normalis|grey|artefact|behaviour|labelled|analys(e|ed|ing))\w*\b'`
+settles the rule.
+
+**Every word bears weight**: A word whose removal leaves the claim intact is removed, so "which is what keeps" becomes
+"which keeps", "in order to" becomes "to", and "the fact that" goes with its clause recast. A rewrite made to satisfy
+one rule is reread as a whole sentence before it is kept, because a substitution that clears one rule leaves the
+sentence contorted more often than it leaves it plain.
+
+**Attribution**: A claim credited to a source carries the source in one agent phrase, "as directed by caiman's guide
+and its demo pipeline". A verb left without its object for the reader to supply, "as caiman's guide directs and its
+demo pipeline ships", is a defect.
+
 **Length proportionality**: Docstring length must be proportional to how hard the code is to understand, which is
 independent of how many lines it occupies. A long function that carries out one straightforward task needs a short
 docstring, because its size alone gives the reader nothing extra to learn. A short function warrants a longer

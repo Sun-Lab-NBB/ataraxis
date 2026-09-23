@@ -246,7 +246,9 @@ Walk every documentation block and check:
 10. Positive description, so the text states present behavior, never framing it by what it is not or what it used to be.
     Contrastive and historical framing ("does X, not Y" or "used to do Y") is a finding, with a load-bearing contrast
     that carries its reason exempt.
-11. Spelling and grammar against the checklist's stated language variant, checked word by word.
+11. Spelling and grammar, with every word in US spelling, checked word by word. The search
+    `rg -n -i '\b\w*(colour|centre|metre|neighbour|normalis|grey|artefact|behaviour|labelled)\w*\b'` settles the
+    spelling.
 12. Trailing subjects, so no noun is modified by a bare clause whose subject is a full noun phrase. Detect it by reading
     each noun and asking whether a determiner-led noun phrase and a finite verb follow it before any preposition or
     relative pronoun. The pattern holds with or without "which" or "that" in between, as in "the shapes the contract
@@ -258,9 +260,12 @@ Walk every documentation block and check:
     precedes its reason. "A and B, so C" is a finding, and so is an abstraction acting on itself.
 15. Attachment and completeness, so every "which" clause attaches to the noun directly before it, every docstring is
     a sentence, and no sentence repeats its own words.
+16. Weight and attribution, so no word can be cut without changing the claim ("which is what", "in order to", "the
+    fact that" are findings) and every source attribution is one agent phrase ("as directed by the guide"), never a
+    verb left without its object ("as the guide directs and its demo ships").
 
-Check each block against all fifteen, because these violations co-occur and a block corrected for one frequently still
-breaks three others. Items 12 through 15 are the ones a checklist-satisfying block most often still breaks, so read
+Check each block against all sixteen, because these violations co-occur and a block corrected for one frequently still
+breaks three others. Items 12 through 16 are the ones a checklist-satisfying block most often still breaks, so read
 every sentence aloud once before passing it.
 
 ---
