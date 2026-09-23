@@ -189,6 +189,14 @@ clarity, since neither wraps without breaking what it renders, and a badge URL i
 `Acknowledgments` spelling the one named exception the rule cannot settle on its own, because both spellings are correct
 English.
 
+**US spelling**: Every word takes its US spelling (color, center, meter, neighbor, gray, normalize), which settles the
+`Acknowledgments` spelling as well.
+
+**Every word bears weight**: A word whose removal leaves the claim intact is removed, so "which is what keeps" becomes
+"which keeps" and "in order to" becomes "to". A rewrite made to satisfy one rule is reread as a whole sentence before it
+is kept. A claim credited to a source carries the source in one agent phrase ("as directed by the guide"), never a
+verb left without its object ("as the guide directs and its demo ships").
+
 **Notes and warnings**: Use the callout markers the [PyPI compatibility](#pypi-compatibility) section defines.
 
 ### Prose punctuation and positive description
@@ -450,6 +458,11 @@ Style:
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] No README prose contains the phrase `rather` followed by `than`, including where it wraps across a line break
       (forbidden with no exception)
+- [ ] US spelling in prose and identifiers, settled by
+      `rg -n -i '\b\w*(colour|centre|metre|neighbour|normalis|grey|artefact|behaviour|labelled)\w*\b'`
+- [ ] Every word bears weight: no filler ("which is what", "in order to", "the fact that"), and every rule-driven
+      rewrite reread as a whole sentence before it is kept
+- [ ] Every source attribution is one agent phrase ("as directed by X"), never a verb left without its object
 - [ ] README prose free of typos and grammar errors
 
 Quality:

@@ -92,6 +92,11 @@ respecting each language's idiomatic standards.
   load-bearing)
 - The two-word phrase `rather` followed by `than` is FORBIDDEN in documentation and comment prose, with no exception,
   and deleting the excluded alternative is the only fix
+- US spelling in every word of prose and every identifier (color, center, meter, neighbor, gray, normalize)
+- Every word bears weight, so filler such as "which is what", "in order to", and "the fact that" is cut, and a
+  rewrite made for one rule is reread whole before it is kept
+- A source attribution is one agent phrase ("as directed by the guide"), never a verb left without its object ("as
+  the guide directs and its demo ships")
 
 **Python-specific divergences from C++:**
 - Functions and methods use snake_case (not PascalCase as in C++)
@@ -430,6 +435,11 @@ against the code you wrote.
 - [ ] Documentation states what the code does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] No docstring or comment contains the phrase `rather` followed by `than`, including where it wraps across a line
       break (forbidden with no exception)
+- [ ] US spelling in prose and identifiers, settled by
+      `rg -n -i '\b\w*(colour|centre|metre|neighbour|normalis|grey|artefact|behaviour|labelled)\w*\b'`
+- [ ] Every word bears weight: no filler ("which is what", "in order to", "the fact that"), and every rule-driven
+      rewrite reread as a whole sentence before it is kept
+- [ ] Every source attribution is one agent phrase ("as directed by X"), never a verb left without its object
 - [ ] Module docstring description is at most 2 sentences, with detail relocated into the members it documents
 - [ ] NumPy arrays specify dtype explicitly (NDArray[np.float32])
 - [ ] Full words used (no abbreviations like `pos`, `idx`, `val`)

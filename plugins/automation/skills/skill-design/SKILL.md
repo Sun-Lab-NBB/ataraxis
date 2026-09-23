@@ -337,10 +337,12 @@ The default for a rule is one sentence, and examples, tables, and motivation are
 broken at a natural clause boundary, in SKILL.md, reference files, and CLAUDE.md alike. Cover each sentence and delete
 it when you are able to reconstruct it from the skill name, the section heading, and the rule it sits under. A section
 starts with its rule, so an opening sentence that announces the section or restates the frontmatter description is
-deleted. Every skill file, reference file, and CLAUDE.md is free of typos and grammatical errors. A rule appears once
-per file, because a file loads as a unit and a second copy inside it earns nothing. The same rule in both SKILL.md and a
-reference file is permitted, because SKILL.md loads on every invocation while a reference loads only when the agent
-opens it. See [progressive-disclosure.md](references/progressive-disclosure.md) for the full rule set.
+deleted. Every skill file, reference file, and CLAUDE.md is free of typos and grammatical errors. Every word takes its
+US spelling, and every word bears weight, so filler such as "which is what" is cut and a rewrite made for one rule is
+reread whole before it is kept. A rule appears once per file, because a file loads as a unit and a second copy inside it
+earns nothing. The same rule in both SKILL.md and a reference file is permitted, because SKILL.md loads on every
+invocation while a reference loads only when the agent opens it. See
+[progressive-disclosure.md](references/progressive-disclosure.md) for the full rule set.
 
 ### Prose punctuation and positive description
 
@@ -455,6 +457,8 @@ Skill File Compliance, tool-settled (run `rg -n '.{121,}' <file>` and `wc -l <fi
       bare relative clauses (the one-pass test)
 - [ ] No occurrence of `rather` followed by `than`, including across a line break
       (`rg -Uni '\brather\b[\s#*/>|+-]*\bthan\b'`, forbidden with no exception)
+- [ ] US spelling throughout
+      (`rg -n -i '\b\w*(colour|centre|metre|neighbour|normalis|grey|artefact|behaviour|labelled)\w*\b'`)
 
 Skill File Compliance, reader-judged:
 - [ ] YAML frontmatter with `name` and `description`
@@ -478,6 +482,7 @@ Skill File Compliance, reader-judged:
       heading, and the rule it sits under)
 - [ ] No rule stated twice inside one file (the same rule in SKILL.md and in a reference is permitted)
 - [ ] Sentences in skill prose, reference files, and CLAUDE.md stay under 40 words
+- [ ] Every word bears weight, with filler such as "which is what" cut and every rule-driven rewrite reread whole
 - [ ] Prose fills each line to 120 characters, with no line ending before column 100 while its next word would still fit
 - [ ] No section preamble restating the heading or the frontmatter description above it
 - [ ] No rule restated from a skill that owns it (reference the owning skill instead)
@@ -507,6 +512,8 @@ CLAUDE.md Compliance, tool-settled (run `rg -n '.{121,}' <file>`, `rg -n '^---$'
       bare relative clauses (the one-pass test)
 - [ ] No occurrence of `rather` followed by `than`, including across a line break
       (`rg -Uni '\brather\b[\s#*/>|+-]*\bthan\b'`, forbidden with no exception)
+- [ ] US spelling throughout
+      (`rg -n -i '\b\w*(colour|centre|metre|neighbour|normalis|grey|artefact|behaviour|labelled)\w*\b'`)
 
 CLAUDE.md Compliance, reader-judged:
 - [ ] Title is `# Claude Code Instructions`
@@ -521,6 +528,7 @@ CLAUDE.md Compliance, reader-judged:
 - [ ] No personality instructions or generic advice
 - [ ] Prose states what the project does, not what it is not or used to be (contrast only when load-bearing)
 - [ ] Sentences in skill prose, reference files, and CLAUDE.md stay under 40 words
+- [ ] Every word bears weight, with filler such as "which is what" cut and every rule-driven rewrite reread whole
 - [ ] Prose fills each line to 120 characters, with no line ending before column 100 while its next word would still fit
 - [ ] No section preamble restating the heading or the frontmatter description above it
 - [ ] Edits leave CLAUDE.md no longer than it started unless a genuinely new instruction was added
