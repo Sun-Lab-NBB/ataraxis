@@ -219,14 +219,12 @@ survive.
 
 `set` persists the Producer path for every later runtime and echoes `AXVS CTI file: Set to {path}.` on success.
 
-`check` reports the platform limitation first, before it evaluates any stored path, because a host without the GenICam
-runtime cannot validate a Producer and would otherwise blame the configuration for a platform gate.
+`check` prints one of two lines.
 
-| Observed                                         | Meaning                                                               |
-|--------------------------------------------------|-----------------------------------------------------------------------|
-| `AXVS CTI file: Unable to check. {reason}`       | The GenICam runtime is absent. See `/camera-setup` for the two causes |
-| `AXVS CTI file: Configured and valid. Path: ...` | A Producer is set and still resolves                                  |
-| `AXVS CTI file: Not configured or invalid.`      | No Producer is set, or the stored path no longer resolves             |
+| Observed                                         | Meaning                                                  |
+|--------------------------------------------------|----------------------------------------------------------|
+| `AXVS CTI file: Configured and valid. Path: ...` | A Producer is set and loads                              |
+| `AXVS CTI file: Not configured or invalid. ...`  | No Producer is set, or the configured path fails to load |
 
 The `AXVS_CTI_PATH` environment variable supplies the path for a single runtime and takes precedence over the persisted
 one, so a host reporting a Producer nobody configured has that variable set.
@@ -238,13 +236,12 @@ format differs from `list_cameras_tool`, which returns the compact `OpenCV #0: 1
 `OpenCV camera 1: index=0, frame_height=..., frame_width=..., frame_rate=...` and numbers its lines from 1, so never
 read the leading number as a camera index. Read `index=` instead.
 
-| Condition              | Behavior                                                                                       |
-|------------------------|------------------------------------------------------------------------------------------------|
-| No OpenCV cameras      | Prints a warning line. Not an error                                                            |
-| OpenCV cameras present | Warns first that OpenCV resolves no model or serial, and recommends `axvs run` to map indices  |
-| GenICam runtime absent | Prints `Harvesters camera discovery skipped.` with the reason, and probes no GenTL device      |
-| No Harvesters cameras  | Prints a warning line. Distinct from the skipped case above, so read which of the two appeared |
-| No CTI file configured | Prints that same warning line with no note naming the cause. Ask for `axvs cti check` first    |
+| Condition              | Behavior                                                                                      |
+|------------------------|-----------------------------------------------------------------------------------------------|
+| No OpenCV cameras      | Prints a warning line. Not an error                                                           |
+| OpenCV cameras present | Warns first that OpenCV resolves no model or serial, and recommends `axvs run` to map indices |
+| No Harvesters cameras  | Prints a warning line. Not an error                                                           |
+| No CTI file configured | Prints that same warning line with no note naming the cause. Ask for `axvs cti check` first   |
 
 ### `axvs check compatibility`
 

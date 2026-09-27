@@ -216,39 +216,30 @@ changes. The ataraxis video plugin will automatically configure the server on th
 
 ## Common issues and resolutions
 
-| Symptom                                                  | Cause                                  | Resolution                                                    |
-|----------------------------------------------------------|----------------------------------------|---------------------------------------------------------------|
-| `axvs: command not found`                                | Environment not activated              | Activate conda/venv, then restart the Claude assistant        |
-| `axvs: command not found`                                | ataraxis-video-system not installed    | `pip install ataraxis-video-system` in the active environment |
-| Import error on `axvs mcp`                               | Missing or incompatible dependency     | `pip install --force-reinstall ataraxis-video-system`         |
-| Python version mismatch                                  | Wrong environment activated            | Activate environment with Python >=3.12,<3.15                 |
-| MCP server starts but tools are missing                  | Outdated ataraxis-video-system version | `pip install --upgrade ataraxis-video-system`                 |
-| MCP server connected but tools fail                      | Not an environment issue               | Check tool-specific error messages                            |
-| Skills available but MCP tools missing                   | Plugin installed without pip package   | `pip install ataraxis-video-system` in the active environment |
-| GenICam/CTI tools report Unsupported on an unclaimed Mac | GenICam runtime never installed        | Expected, not a fault. See GenICam runtime availability below |
-| GenICam/CTI tools report Unsupported where it installs   | Damaged installation                   | `pip install --force-reinstall ataraxis-video-system`         |
+| Symptom                                 | Cause                                  | Resolution                                                    |
+|-----------------------------------------|----------------------------------------|---------------------------------------------------------------|
+| `axvs: command not found`               | Environment not activated              | Activate conda/venv, then restart the Claude assistant        |
+| `axvs: command not found`               | ataraxis-video-system not installed    | `pip install ataraxis-video-system` in the active environment |
+| Import error on `axvs mcp`              | Missing or incompatible dependency     | `pip install --force-reinstall ataraxis-video-system`         |
+| Python version mismatch                 | Wrong environment activated            | Activate environment with Python >=3.12,<3.15                 |
+| MCP server starts but tools are missing | Outdated ataraxis-video-system version | `pip install --upgrade ataraxis-video-system`                 |
+| MCP server connected but tools fail     | Not an environment issue               | Check tool-specific error messages                            |
+| Skills available but MCP tools missing  | Plugin installed without pip package   | `pip install ataraxis-video-system` in the active environment |
+| Intel Mac or macOS older than 13        | Unsupported host platform              | See Platform support below                                    |
 
-### GenICam runtime availability
+### Platform support
 
-The GenICam camera runtime ships as the `harvesters` and `genicam` distributions, which ataraxis-video-system declares
-with a `sys_platform != 'darwin' or (python_version < '3.14' and platform_machine == 'arm64')` marker. They install
-automatically on Linux, Windows, and Apple Silicon Macs running Python 3.12 or 3.13, which is the only combination the
-`genicam` distribution publishes a macOS wheel for. The library guards the import, so an absent runtime produces no
-import error.
+ataraxis-video-system declares `harvesters` and `genicam` as unconditional dependencies. `genicam` publishes macOS
+wheels only for Apple Silicon on macOS 13 or later, and ships no source distribution. An Intel Mac therefore cannot
+install ataraxis-video-system 5.2.0 or later, and the project treats it as unsupported legacy hardware. There, a plain
+`pip install ataraxis-video-system` resolves an older release without GenICam support, so a successful install does not
+make the host supported. Steer that user to a Linux host, a Windows host, or an Apple Silicon Mac on macOS 13 or later.
 
-Branch on the host platform whenever `check_runtime_requirements_tool` reports `CTI: Unsupported` or
-`get_cti_status_tool` reports `CTI: Unavailable.`:
+Importing the package loads both distributions, so a damaged runtime stops every `axvs` command, the MCP server
+included, at startup. The error is a `ModuleNotFoundError` or `ImportError` naming `harvesters` or `genicam`, and
+`pip install --force-reinstall ataraxis-video-system` repairs it.
 
-- **An Intel Mac, or any Mac on Python 3.14**: permanent and by design. Do not prescribe a reinstall. Steer the
-  user to the `opencv` camera interface, or to an Apple Silicon Mac on Python 3.12 or 3.13, a Linux host, or a
-  Windows host for GenICam cameras. Every other feature, including video encoding and log processing, works
-  normally there. The only other macOS restriction is the live frame display, which VideoSystem disables on
-  every Mac because macOS forbids GUI updates outside the main thread.
-- **Linux, Windows, or an Apple Silicon Mac on Python 3.12 or 3.13**: the runtime installs alongside the library
-  there, so its absence means a damaged installation. `pip install --force-reinstall ataraxis-video-system`
-  restores it.
-
-For the tool-level consequences of an absent runtime, see `/camera-setup`.
+VideoSystem disables the live frame display on every Mac, because macOS forbids GUI updates outside the main thread.
 
 ---
 

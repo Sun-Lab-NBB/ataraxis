@@ -43,7 +43,7 @@ Check the locally installed ataraxis-video-system version against the latest rel
 pip show ataraxis-video-system
 ```
 
-The current version is **5.1.1**. If a version mismatch exists, ask the user how to proceed.
+The current version is **5.2.0**. If a version mismatch exists, ask the user how to proceed.
 
 ### Step 2: API verification
 
@@ -114,10 +114,9 @@ Key constructor notes:
 - `quantization_parameter` must be an integer between 0 and 51 inclusive. There is no sentinel for "let the encoder
   decide", and a negative value raises `ValueError`. The parameter is validated only when `output_directory` is set,
   since a system that saves nothing constructs no encoder.
-- `camera_interface=CameraInterfaces.HARVESTERS` requires the GenICam runtime, which ataraxis-video-system installs on
-  Linux, Windows, and Apple Silicon Macs running Python 3.12 or 3.13. On an Intel Mac, or on any Mac running Python
-  3.14, the constructor raises `NotImplementedError`, as do `add_cti_file()` and every GenICam configuration call. Use
-  `CameraInterfaces.OPENCV` there, or target a Linux or Windows host.
+- `CameraInterfaces.HARVESTERS` requires a GenTL Producer (.cti) file, configured through `/camera-setup`. The
+  constructor raises `FileNotFoundError` when no file is configured or the configured file is missing, and `OSError`
+  when the file is not a loadable GenTL Producer.
 - `color` is a keyword-only parameter defaulting to `None`. For OpenCV and Mock, `None` resolves to monochrome
   (`False`). A color OpenCV camera left at `None` silently records grayscale, so pass `color=True` explicitly to record
   color. Only Harvesters infers color/mono from the GenICam config.
@@ -320,7 +319,7 @@ or low-contrast scenes are cheap. A preset that works for a stationary camera ma
 
 ```text
 Camera Interface, tool-settled (run `pip show ataraxis-video-system` and the project's `tox -e lint`):
-- [ ] Verified ataraxis-video-system version matches requirements (>=5.1.1)
+- [ ] Verified ataraxis-video-system version matches requirements (>=5.2.0)
 - [ ] Comments and docstrings fill to 120 characters before wrapping, under the wrap-width rule /python-style defines
 
 Camera Interface, reader-judged:
