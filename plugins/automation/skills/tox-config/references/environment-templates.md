@@ -235,8 +235,7 @@ interface modules out of the measured corpus, and the `# pragma: no cover` marke
 statements.
 
 A project whose gate depends on the host states the number once as an environment variable that both commands read.
-`ataraxis-video-system` does this, because a host installing no GenICam runtime and carrying no NVENC device cannot
-execute the camera and encoder paths:
+`ataraxis-video-system` does this, because a host carrying no NVENC device cannot execute the GPU encoder paths:
 
 ```ini
     pytest ... --cov-fail-under={env:AXVS_COVERAGE_MINIMUM:100} ...

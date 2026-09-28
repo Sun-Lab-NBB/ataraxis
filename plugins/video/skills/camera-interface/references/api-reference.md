@@ -1,6 +1,6 @@
 # ataraxis-video-system API reference
 
-Complete API reference for ataraxis-video-system v5.1.1.
+Complete API reference for ataraxis-video-system v5.2.0.
 
 ---
 
@@ -27,7 +27,6 @@ from ataraxis_video_system import (
     discover_camera_ids,
     add_cti_file,
     check_cti_file,
-    genicam_runtime_available,
     read_camera_configuration,
     # Utilities
     check_ffmpeg_availability,
@@ -38,7 +37,6 @@ from ataraxis_video_system import (
     DEFAULT_BLACKLISTED_NODES,
     CAMERA_MANIFEST_FILENAME,
     MAXIMUM_QUANTIZATION_VALUE,
-    GENICAM_UNAVAILABLE_REASON,
     # Log processing
     run_log_processing_pipeline,
     extract_logged_camera_timestamps,
@@ -120,7 +118,6 @@ VideoSystem(
   sentinel value, and the bound is enforced only when `output_directory` is set
 - The output video file is named `{system_id:03d}.mp4` in the output directory, which `resolve_camera_video_path()`
   computes for callers that need the path without constructing a VideoSystem
-- Requesting `CameraInterfaces.HARVESTERS` where the GenICam runtime is absent raises `NotImplementedError`
 - The constructor connects to the camera and grabs one probe frame, then rejects the camera with `ValueError` when that
   frame's dtype is not `np.uint8`. Every `InputPixelFormats` member describes 8 bits per component and the library
   performs no software conversion, so a GenICam camera must be set to an 8-bit pixel format (Mono8, BGR8, RGB8) before a
@@ -130,18 +127,17 @@ VideoSystem(
 
 ### Constructor failure modes
 
-| Exception             | Cause                                                                                   |
-|-----------------------|-----------------------------------------------------------------------------------------|
-| `TypeError`           | An argument has the wrong type                                                          |
-| `ValueError`          | An argument is out of range, or the camera's frame dtype or color format is unsupported |
-| `OverflowError`       | `system_id` falls outside the 0-255 range a uint8 supports                              |
-| `RuntimeError`        | FFMPEG is unavailable, or GPU encoding was requested without an NVIDIA GPU              |
-| `NotImplementedError` | The Harvesters interface was requested where the GenICam runtime is absent              |
-| `FileNotFoundError`   | The Harvesters interface was requested before a .cti file was configured                |
-| `OSError`             | The configured .cti file is not a loadable GenTL Producer                               |
-| `IndexError`          | `camera_index` exceeds the number of cameras the configured GenTL Producer discovers    |
-| `BrokenPipeError`     | The validation frame grab from the managed camera failed                                |
-| `Timeout`             | The camera manifest's `.lock` file could not be acquired within 10 seconds              |
+| Exception           | Cause                                                                                      |
+|---------------------|--------------------------------------------------------------------------------------------|
+| `TypeError`         | An argument has the wrong type                                                             |
+| `ValueError`        | An argument is out of range, or the camera's frame dtype or color format is unsupported    |
+| `OverflowError`     | `system_id` falls outside the 0-255 range a uint8 supports                                 |
+| `RuntimeError`      | FFMPEG is unavailable, or GPU encoding was requested without an NVIDIA GPU                 |
+| `FileNotFoundError` | No .cti file is configured for the Harvesters interface, or the configured file is missing |
+| `OSError`           | The configured .cti file is not a loadable GenTL Producer                                  |
+| `IndexError`        | `camera_index` exceeds the number of cameras the configured GenTL Producer discovers       |
+| `BrokenPipeError`   | The validation frame grab from the managed camera failed                                   |
+| `Timeout`           | The camera manifest's `.lock` file could not be acquired within 10 seconds                 |
 
 The `Timeout` comes from the `filelock` dependency that guards the manifest write. It is the one to expect when several
 VideoSystems register against one DataLogger directory concurrently, from separate processes or from the threads
@@ -399,8 +395,7 @@ def discover_camera_ids() -> tuple[CameraInformation, ...]
 ```
 
 Discovers all cameras accessible through both OpenCV and Harvesters interfaces. OpenCV cameras are discovered first.
-Harvesters discovery is skipped if no CTI file is configured, and also wherever the GenICam runtime is absent, which is
-every Intel Mac and every Mac running Python 3.14. Call `genicam_runtime_available()` to distinguish the two cases.
+Harvesters discovery is skipped if no CTI file is configured or the configured file is missing.
 
 ### add_cti_file
 
@@ -410,9 +405,8 @@ def add_cti_file(cti_path: Path) -> None
 
 Configures the GenTL Producer file path. Persists across sessions (stored in user data directory via platformdirs). Must
 be called before `discover_camera_ids()` or creating a VideoSystem with `CameraInterfaces.HARVESTERS`. The supplied path
-is expanded and resolved before it is persisted, so a relative path is stored absolute. Raises `NotImplementedError`
-where the GenICam runtime is absent, `FileNotFoundError` if the file does not exist, and `OSError` if it is not a
-loadable GenTL Producer.
+is expanded and resolved before it is persisted, so a relative path is stored absolute. Raises `FileNotFoundError`
+if the file does not exist, and `OSError` if it is not a loadable GenTL Producer.
 
 ### check_cti_file
 
@@ -420,18 +414,9 @@ loadable GenTL Producer.
 def check_cti_file() -> Path | None
 ```
 
-Returns the configured CTI file path if valid, or None if not configured or the file no longer exists. The
+Returns the configured CTI file path if valid, or None if no path is configured or the file fails to load. The
 `AXVS_CTI_PATH` environment variable overrides the persisted path, matching the resolution order applied when connecting
-to a camera. Also returns None wherever the GenICam runtime is absent, regardless of any configured path.
-
-### genicam_runtime_available
-
-```python
-def genicam_runtime_available() -> bool
-```
-
-Returns True when the GenICam camera runtime is importable. It returns False wherever that runtime is not installed, and
-the Dependencies section below records the platforms that runtime installs on.
+to a camera.
 
 ### read_camera_configuration
 
@@ -555,10 +540,10 @@ The first log entry for each VideoSystem uses a special format:
 
 ### Python
 
-The package requires Python `>=3.12,<3.15`. Its `harvesters` and `genicam` dependencies carry the marker
-`sys_platform != 'darwin' or (python_version < '3.14' and platform_machine == 'arm64')`, so the GenICam camera runtime
-is installed on Linux, Windows, and Apple Silicon Macs running Python 3.12 or 3.13. Its absence on an Intel Mac, or on
-any Mac running Python 3.14, is by design, and no reinstall restores it.
+The package requires Python `>=3.12,<3.15` and installs on Linux, Windows, and Apple Silicon Macs running macOS 13 or
+later. Intel Macs cannot install it, because its required `genicam` dependency publishes no macOS x86_64 wheel. An
+environment missing `harvesters` or `genicam` raises `ImportError` at `import ataraxis_video_system`, and
+`pip install --force-reinstall ataraxis-video-system` repairs it.
 
 ---
 
